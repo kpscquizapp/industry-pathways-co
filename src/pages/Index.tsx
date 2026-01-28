@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import Header from '@/components/Header';
-import Hero from '@/components/Hero';
-import HomeJobsSection from '@/components/HomeJobsSection';
-import FeaturedCompanies from '@/components/FeaturedCompanies';
-import SmartCareerTools from '@/components/SmartCareerTools';
-import Footer from '@/components/Footer';
+import LandingHeader from '@/components/landing/LandingHeader';
+import HeroSection from '@/components/landing/HeroSection';
+import HowItWorks from '@/components/landing/HowItWorks';
+import UserTypesSection from '@/components/landing/UserTypesSection';
+import AIDifferentiation from '@/components/landing/AIDifferentiation';
+import TrustMetrics from '@/components/landing/TrustMetrics';
+import LandingFooter from '@/components/landing/LandingFooter';
 
 const Index = () => {
   // Initialize fade-in animations on scroll
@@ -34,14 +35,15 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <LandingHeader />
       <main>
-        <Hero />
-        <HomeJobsSection />
-        <FeaturedCompanies />
-        <SmartCareerTools />
+        <HeroSection />
+        <HowItWorks />
+        <UserTypesSection />
+        <AIDifferentiation />
+        <TrustMetrics />
       </main>
-      <Footer />
+      <LandingFooter />
     </div>
   );
 };

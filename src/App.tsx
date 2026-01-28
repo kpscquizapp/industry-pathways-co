@@ -30,8 +30,8 @@ import JobRecommendations from "./pages/JobRecommendations";
 import SkillsAssessment from "./pages/SkillsAssessment";
 import SavedJobs from "./pages/SavedJobs";
 
-// Employer Dashboard
-import EmployerLayout from "./components/employer/EmployerLayout";
+// Old Employer Dashboard (keeping for compatibility)
+import EmployerLayoutOld from "./components/employer/EmployerLayout";
 import CompanyDashboard from "./pages/employer/CompanyDashboard";
 import PostJob from "./pages/employer/PostJob";
 import AIScreening from "./pages/employer/AIScreening";
@@ -49,6 +49,17 @@ import CreateJob from "./pages/employer/CreateJob";
 import AppliedCandidates from "./pages/employer/AppliedCandidates";
 import JobDetailsPage from "./pages/employer/JobDetails";
 import CandidateDetailPage from "./pages/employer/CandidateDetailPage";
+
+// New Dashboard Layouts
+import ContractorLayout from "./components/dashboard/ContractorLayout";
+import BenchLayout from "./components/dashboard/BenchLayout";
+import EmployerLayout from "./components/dashboard/EmployerLayout";
+
+// New Dashboard Pages
+import ContractorDashboard from "./pages/contractor/ContractorDashboard";
+import BenchDashboard from "./pages/bench/BenchDashboard";
+import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
+
 import { useFetchRefreshToken } from "./services/utils/hooks/useFetchRefreshToken";
 import ForgotPassword from "./pages/ForgotPassword";
 
@@ -126,10 +137,43 @@ const App = () => {
                       element={<SkillsAssessment />}
                     />
                     <Route path="/saved-jobs" element={<SavedJobs />} />
-                    {/* Employer Dashboard Routes */}
+
+                    {/* NEW: Contractor Dashboard Routes */}
+                    <Route path="/contractor" element={<ContractorLayout />}>
+                      <Route index element={<ContractorDashboard />} />
+                      <Route path="dashboard" element={<ContractorDashboard />} />
+                      <Route path="jobs" element={<ContractorDashboard />} />
+                      <Route path="tests" element={<ContractorDashboard />} />
+                      <Route path="interviews" element={<ContractorDashboard />} />
+                      <Route path="profile" element={<ContractorDashboard />} />
+                      <Route path="earnings" element={<ContractorDashboard />} />
+                    </Route>
+
+                    {/* NEW: Bench Resources Dashboard Routes */}
+                    <Route path="/bench" element={<BenchLayout />}>
+                      <Route index element={<BenchDashboard />} />
+                      <Route path="dashboard" element={<BenchDashboard />} />
+                      <Route path="talent" element={<BenchDashboard />} />
+                      <Route path="matches" element={<BenchDashboard />} />
+                      <Route path="analytics" element={<BenchDashboard />} />
+                      <Route path="contracts" element={<BenchDashboard />} />
+                      <Route path="billing" element={<BenchDashboard />} />
+                    </Route>
+
+                    {/* NEW: Hiring Company Dashboard Routes */}
+                    <Route path="/employer" element={<EmployerLayout />}>
+                      <Route path="dashboard" element={<HiringDashboardNew />} />
+                      <Route path="post-job" element={<HiringDashboardNew />} />
+                      <Route path="shortlists" element={<HiringDashboardNew />} />
+                      <Route path="tests" element={<HiringDashboardNew />} />
+                      <Route path="interviews" element={<HiringDashboardNew />} />
+                      <Route path="contracts" element={<HiringDashboardNew />} />
+                    </Route>
+
+                    {/* Legacy Employer Dashboard Routes */}
                     <Route
                       path="/employer-dashboard"
-                      element={<EmployerLayout />}
+                      element={<EmployerLayoutOld />}
                     >
                       <Route index element={<CompanyDashboard />} />
                       <Route path="dashboard" element={<CompanyDashboard />} />
@@ -151,30 +195,30 @@ const App = () => {
                     </Route>
 
                     {/* Standalone employer routes (redirect to dashboard) */}
-                    <Route path="/post-job" element={<EmployerLayout />}>
+                    <Route path="/post-job" element={<EmployerLayoutOld />}>
                       <Route index element={<PostJob />} />
                     </Route>
-                    <Route path="/hire-fulltime" element={<EmployerLayout />}>
+                    <Route path="/hire-fulltime" element={<EmployerLayoutOld />}>
                       <Route index element={<HireFullTime />} />
                     </Route>
-                    <Route path="/hire-interns" element={<EmployerLayout />}>
+                    <Route path="/hire-interns" element={<EmployerLayoutOld />}>
                       <Route index element={<HireInterns />} />
                     </Route>
-                    <Route path="/contract-hiring" element={<EmployerLayout />}>
+                    <Route path="/contract-hiring" element={<EmployerLayoutOld />}>
                       <Route index element={<ContractHiring />} />
                     </Route>
                     <Route
                       path="/talent-marketplace"
-                      element={<EmployerLayout />}
+                      element={<EmployerLayoutOld />}
                     >
                       <Route index element={<TalentMarketplace />} />
                     </Route>
-                    <Route path="/ai-screening" element={<EmployerLayout />}>
+                    <Route path="/ai-screening" element={<EmployerLayoutOld />}>
                       <Route index element={<AIScreening />} />
                     </Route>
                     <Route
                       path="/company-dashboard"
-                      element={<EmployerLayout />}
+                      element={<EmployerLayoutOld />}
                     >
                       <Route index element={<CompanyDashboard />} />
                     </Route>
