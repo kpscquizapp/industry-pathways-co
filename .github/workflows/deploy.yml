@@ -1,0 +1,75 @@
+name: Deploy React Frontend to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build React App
+        run: npm run build
+
+      - name: Debug Build
+        run: |
+          echo "📁 Build contents:"
+          ls -la build/ || ls -la dist/
+          du -sh build/ || du -sh dist/
+
+      - name: Copy .htaccess (if exists)
+        run: |
+          if [ -f .htaccess ]; then
+            cp .htaccess build/ 2>/dev/null || cp .htaccess dist/ 2>/dev/null
+            echo "✅ .htaccess copied"
+          fi
+
+      - name: Upload Build to EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          source: "build/*,dist/*"
+          target: "/tmp/hireon-fe-build"
+          rm: true
+
+      - name: Deploy Frontend (Amazon Linux)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            set -e
+            echo "📤 Verifying upload: $(ls -la /tmp/hireon-fe-build/ | head -3)"
+            
+            # Atomic deploy
+            sudo rsync -av --delete /tmp/hireon-fe-build/ /var/www/html/hireon-fe/
+            sudo rm -rf /tmp/hireon-fe-build
+            
+            # Permissions
+            sudo chown -R apache:apache /var/www/html/hireon-fe
+            sudo chmod -R 755 /var/www/html/hireon-fe
+            sudo find /var/www/html/hireon-fe -type f -exec chmod 644 {} \;
+            
+            # Restart Apache
+            sudo systemctl restart httpd
+            
+            echo "✅ Frontend deployed!"
+            echo "📁 Deployed files:"
+            ls -la /var/www/html/hireon-fe/ | head -5
