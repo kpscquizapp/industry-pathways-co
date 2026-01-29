@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import { 
   Plus, 
   X, 
-  Calendar as CalendarIcon, 
   Shield,
-  ChevronDown,
   Save,
   Send,
   Sparkles
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -90,19 +88,19 @@ const EmployerPostJob = () => {
 
       <Accordion type="multiple" defaultValue={['basic', 'skills', 'location', 'budget']} className="space-y-4">
         {/* Basic Information */}
-        <AccordionItem value="basic" className="border rounded-xl bg-card overflow-hidden">
+        <AccordionItem value="basic" className="border border-border rounded-xl bg-card overflow-hidden">
           <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-semibold text-sm">1</span>
               </div>
-              <span className="font-semibold">Basic Information</span>
+              <span className="font-semibold text-foreground">Basic Information</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-6 pt-2">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="title" className="text-sm font-medium">Job Title</Label>
+                <Label htmlFor="title" className="text-sm font-medium text-foreground">Job Title</Label>
                 <Input 
                   id="title"
                   value={formData.title}
@@ -159,19 +157,19 @@ const EmployerPostJob = () => {
         </AccordionItem>
 
         {/* Skills & Experience */}
-        <AccordionItem value="skills" className="border rounded-xl bg-card overflow-hidden">
+        <AccordionItem value="skills" className="border border-border rounded-xl bg-card overflow-hidden">
           <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-semibold text-sm">2</span>
               </div>
-              <span className="font-semibold">Skills & Experience</span>
+              <span className="font-semibold text-foreground">Skills & Experience</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-6 pt-2">
             <div className="space-y-4">
               <div>
-                <Label className="text-sm font-medium">Required Skills</Label>
+                <Label className="text-sm font-medium text-foreground">Required Skills</Label>
                 <div className="flex gap-2 mt-1.5">
                   <Input 
                     value={newSkill}
@@ -240,20 +238,20 @@ const EmployerPostJob = () => {
         </AccordionItem>
 
         {/* Location & Terms */}
-        <AccordionItem value="location" className="border rounded-xl bg-card overflow-hidden">
+        <AccordionItem value="location" className="border border-border rounded-xl bg-card overflow-hidden">
           <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-semibold text-sm">3</span>
               </div>
-              <span className="font-semibold">Location & Terms</span>
+              <span className="font-semibold text-foreground">Location & Terms</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-6 pt-2">
             <div className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Work Mode</Label>
+                  <Label className="text-sm font-medium text-foreground">Work Mode</Label>
                   <Select value={formData.workMode} onValueChange={(v) => setFormData({...formData, workMode: v})}>
                     <SelectTrigger className="mt-1.5">
                       <SelectValue placeholder="Select work mode" />
@@ -303,20 +301,20 @@ const EmployerPostJob = () => {
         </AccordionItem>
 
         {/* Budget & Duration */}
-        <AccordionItem value="budget" className="border rounded-xl bg-card overflow-hidden">
+        <AccordionItem value="budget" className="border border-border rounded-xl bg-card overflow-hidden">
           <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-semibold text-sm">4</span>
               </div>
-              <span className="font-semibold">Budget & Duration</span>
+              <span className="font-semibold text-foreground">Budget & Duration</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-6 pt-2">
             <div className="space-y-4">
               <div className="grid sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
-                  <Label htmlFor="duration" className="text-sm font-medium">Duration</Label>
+                  <Label htmlFor="duration" className="text-sm font-medium text-foreground">Duration</Label>
                   <div className="flex gap-2 mt-1.5">
                     <Input 
                       id="duration"

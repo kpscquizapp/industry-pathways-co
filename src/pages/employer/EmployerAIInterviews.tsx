@@ -116,53 +116,53 @@ const EmployerAIInterviews = () => {
 
       {/* Stats */}
       <div className="grid sm:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">2</p>
+                <p className="text-2xl font-bold text-foreground">2</p>
                 <p className="text-xs text-muted-foreground">Scheduled</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
                 <CheckCircle2 className="w-5 h-5 text-green-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">12</p>
+                <p className="text-2xl font-bold text-foreground">12</p>
                 <p className="text-xs text-muted-foreground">Completed</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                <Star className="w-5 h-5 text-blue-500" />
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Star className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">8</p>
+                <p className="text-2xl font-bold text-foreground">8</p>
                 <p className="text-xs text-muted-foreground">Recommended</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-orange-500" />
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-2xl font-bold">78%</p>
+                <p className="text-2xl font-bold text-foreground">78%</p>
                 <p className="text-xs text-muted-foreground">Avg Score</p>
               </div>
             </div>
@@ -172,8 +172,8 @@ const EmployerAIInterviews = () => {
 
       {/* Actions */}
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">AI Interviews</h2>
-        <Button className="rounded-xl">
+        <h2 className="text-xl font-bold text-foreground">AI Interviews</h2>
+        <Button className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground">
           <Plus className="h-4 w-4 mr-2" />
           Schedule Interview
         </Button>

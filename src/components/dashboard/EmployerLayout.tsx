@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
   PlusCircle, 
@@ -9,14 +9,14 @@ import {
   Settings,
   Sparkles,
   Bell,
-  Search,
   LogOut,
   User,
-  ChevronDown
+  ChevronLeft,
+  ChevronRight,
+  LayoutDashboard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -26,8 +26,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarTrigger,
+  useSidebar,
+} from '@/components/ui/sidebar';
 
 const menuItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/employer/dashboard' },
   { icon: PlusCircle, label: 'Post Job', href: '/employer/post-job' },
   { icon: Users, label: 'AI Shortlists', href: '/employer/shortlists', isAI: true },
   { icon: ClipboardCheck, label: 'Skill Tests', href: '/employer/tests' },
@@ -36,10 +49,12 @@ const menuItems = [
   { icon: Settings, label: 'Settings', href: '/employer/settings' },
 ];
 
-const EmployerLayout = () => {
+const EmployerSidebarContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
 
   const handleLogout = () => {
     logout();
@@ -47,127 +62,131 @@ const EmployerLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <Sidebar collapsible="icon" className="border-r border-border bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background border-b border-border">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 bg-gradient-to-br from-primary to-green-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-foreground">
-                HIRION
-              </span>
-            </Link>
+      <SidebarHeader className="border-b border-border p-4">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+            <Sparkles className="h-5 w-5 text-primary-foreground" />
+          </div>
+          {!isCollapsed && (
+            <span className="text-xl font-bold tracking-tight text-foreground">
+              HIRION
+            </span>
+          )}
+        </Link>
+      </SidebarHeader>
 
-            {/* Search */}
-            <div className="hidden md:flex relative max-w-md flex-1 mx-8">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search jobs, candidates..." 
-                className="pl-10 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary rounded-xl"
-              />
+      {/* Navigation */}
+      <SidebarContent className="p-3">
+        <SidebarMenu>
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.href || 
+              (item.href !== '/employer/dashboard' && location.pathname.startsWith(item.href));
+            
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  tooltip={item.label}
+                  className={cn(
+                    "w-full justify-start gap-3 px-3 py-2.5 rounded-xl transition-all",
+                    isActive 
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <Link to={item.href}>
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    {!isCollapsed && (
+                      <span className="font-medium">{item.label}</span>
+                    )}
+                    {item.isAI && !isCollapsed && (
+                      <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-primary/20 text-primary rounded-full font-semibold">
+                        AI
+                      </span>
+                    )}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarContent>
+
+      {/* Footer */}
+      <SidebarFooter className="border-t border-border p-3">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className={cn(
+              "flex items-center gap-3 w-full p-2 rounded-xl hover:bg-muted transition-colors",
+              isCollapsed && "justify-center"
+            )}>
+              <Avatar className="h-9 w-9 bg-primary flex-shrink-0">
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
+                  {user?.name?.charAt(0) || user?.email?.charAt(0) || 'H'}
+                </AvatarFallback>
+              </Avatar>
+              {!isCollapsed && (
+                <div className="text-left flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{user?.name || 'InnovateLab Inc.'}</p>
+                  <p className="text-xs text-muted-foreground truncate">Hiring Company</p>
+                </div>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="top" className="w-56">
+            <DropdownMenuItem>
+              <User className="h-4 w-4 mr-2" />
+              Company Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/employer/settings">
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarFooter>
+    </Sidebar>
+  );
+};
+
+const EmployerLayout = () => {
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <EmployerSidebarContent />
+        
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Top Header */}
+          <header className="sticky top-0 z-40 h-16 bg-background border-b border-border flex items-center justify-between px-6">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             </div>
 
-            {/* Right Actions */}
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5 text-muted-foreground" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
               </Button>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 px-2">
-                    <Avatar className="h-8 w-8 bg-gradient-to-br from-primary to-green-400">
-                      <AvatarFallback className="bg-transparent text-white text-sm font-semibold">
-                        {user?.name?.charAt(0) || user?.email?.charAt(0) || 'H'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="text-left hidden sm:block">
-                      <p className="text-sm font-medium">{user?.name || 'InnovateLab Inc.'}</p>
-                      <p className="text-xs text-muted-foreground">Hiring Company</p>
-                    </div>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem>
-                    <User className="h-4 w-4 mr-2" />
-                    Company Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/employer/settings">
-                      <Settings className="h-4 w-4 mr-2" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
-          </div>
-        </div>
-      </header>
+          </header>
 
-      {/* Menu Bar */}
-      <nav className="bg-background border-b border-border sticky top-16 z-40">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
-            {menuItems.map((item) => {
-              const isActive = location.pathname === item.href || 
-                (item.href !== '/employer/dashboard' && location.pathname.startsWith(item.href));
-              
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    'flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all border-b-2',
-                    isActive 
-                      ? 'text-primary border-primary bg-primary/5' 
-                      : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/50'
-                  )}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                  {item.isAI && (
-                    <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-gradient-to-r from-primary to-green-400 text-white rounded-full font-semibold">
-                      AI
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
+          {/* Main Content */}
+          <main className="flex-1 p-6 overflow-auto">
+            <Outlet />
+          </main>
         </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
-        <Outlet />
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border bg-background py-4 mt-auto">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <div className="flex items-center gap-4">
-              <Link to="/help" className="hover:text-foreground">Help</Link>
-              <Link to="/terms" className="hover:text-foreground">Terms</Link>
-              <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
-            </div>
-            <p>© 2025 Hirion. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+      </div>
+    </SidebarProvider>
   );
 };
 
