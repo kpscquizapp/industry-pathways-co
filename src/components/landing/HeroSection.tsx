@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles, Users, Building2 } from 'lucide-react';
+import { ArrowRight, Sparkles, Users, Building2, CheckCircle } from 'lucide-react';
 
 const HeroSection = () => {
   return (
@@ -33,7 +33,7 @@ const HeroSection = () => {
               AI-matched resumes, skill tests, and automated interviews — all in one platform.
             </p>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons - All similar style */}
             <div className="flex flex-wrap gap-4">
               <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all">
                 <Link to="/employer/dashboard">
@@ -42,14 +42,14 @@ const HeroSection = () => {
                 </Link>
               </Button>
               
-              <Button asChild variant="outline" size="lg" className="border-white/20 text-white hover:bg-white/10 px-8 py-6 text-lg rounded-xl">
+              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all">
                 <Link to="/contractor/dashboard">
                   <Users className="mr-2 h-5 w-5" />
                   Join as Contractor
                 </Link>
               </Button>
               
-              <Button asChild variant="ghost" size="lg" className="text-white/80 hover:text-white hover:bg-white/10 px-8 py-6 text-lg rounded-xl">
+              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all">
                 <Link to="/bench/dashboard">
                   <Building2 className="mr-2 h-5 w-5" />
                   List Bench Resources
@@ -58,91 +58,129 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right: Product Mockup Animation */}
-          <div className="relative animate-fade-in-right hidden lg:block">
+          {/* Right: Animated AI Matching Flow */}
+          <div className="relative hidden lg:block">
             <div className="relative">
-              {/* Main Card - AI Matching */}
-              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-2xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-3 h-3 rounded-full bg-red-400" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                  <div className="w-3 h-3 rounded-full bg-green-400" />
+              {/* Main Card - AI Matching Visualization */}
+              <div className="bg-navy-800/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">
+                {/* Window controls */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-400" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                    <div className="w-3 h-3 rounded-full bg-green-400" />
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/20 border border-primary/30 rounded-lg">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span className="text-primary text-sm font-medium">Skill Verified</span>
+                  </div>
                 </div>
                 
-                {/* Job Flow Animation */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
-                    <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <span className="text-2xl">📋</span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-white font-medium">Senior React Developer</p>
-                      <p className="text-white/50 text-sm">Posted 2 mins ago</p>
-                    </div>
-                    <div className="px-3 py-1 bg-primary/20 rounded-full">
-                      <span className="text-primary text-sm font-medium">New</span>
-                    </div>
+                {/* Job Posting Card */}
+                <div className="flex items-center gap-4 p-4 bg-navy-700/50 rounded-xl border border-white/10 mb-4">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500/30 to-cyan-500/30 border border-blue-400/20 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                   </div>
-
-                  <div className="flex items-center justify-center gap-2 text-white/40">
-                    <div className="w-8 h-0.5 bg-gradient-to-r from-transparent to-primary/50" />
-                    <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                    <span className="text-xs">AI Matching</span>
-                    <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                    <div className="w-8 h-0.5 bg-gradient-to-l from-transparent to-primary/50" />
+                  <div className="flex-1">
+                    <p className="text-white font-semibold">Senior React Developer</p>
+                    <p className="text-white/50 text-sm">Posted 2 mins ago</p>
                   </div>
+                  <div className="px-3 py-1.5 bg-primary/20 border border-primary/30 rounded-lg">
+                    <span className="text-primary text-sm font-medium">New</span>
+                  </div>
+                </div>
 
-                  {/* Matched Candidates */}
-                  <div className="space-y-3">
-                    {[
-                      { name: 'Sarah Chen', match: 94, avatar: '👩‍💻' },
-                      { name: 'Alex Kumar', match: 89, avatar: '👨‍💼' },
-                      { name: 'Maria Silva', match: 87, avatar: '👩‍🔬' },
-                    ].map((candidate, i) => (
-                      <div 
-                        key={candidate.name}
-                        className="flex items-center gap-4 p-3 bg-white/5 rounded-lg border border-white/10 animate-fade-in"
-                        style={{ animationDelay: `${(i + 1) * 0.2}s` }}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-green-400/30 flex items-center justify-center text-xl">
-                          {candidate.avatar}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-white text-sm font-medium">{candidate.name}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-gradient-to-r from-primary to-green-400 rounded-full"
-                              style={{ width: `${candidate.match}%` }}
-                            />
-                          </div>
-                          <span className="text-primary font-bold text-sm">{candidate.match}%</span>
-                        </div>
+                {/* AI Matching Indicator */}
+                <div className="flex items-center justify-center gap-3 py-4">
+                  <div className="w-12 h-px bg-gradient-to-r from-transparent via-primary/50 to-primary" />
+                  <div className="flex items-center gap-2 text-white/60">
+                    <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                    <span className="text-sm font-medium">AI Matching</span>
+                    <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                  </div>
+                  <div className="w-12 h-px bg-gradient-to-l from-transparent via-primary/50 to-primary" />
+                </div>
+
+                {/* Matched Candidates with Progress Bars */}
+                <div className="space-y-3">
+                  {[
+                    { name: 'Sarah Chen', match: 94, delay: '0.3s', color: 'from-primary to-green-400' },
+                    { name: 'Alex Kumar', match: 89, delay: '0.5s', color: 'from-primary to-green-400' },
+                    { name: 'Maria Silva', match: 87, delay: '0.7s', color: 'from-primary to-green-400' },
+                  ].map((candidate, i) => (
+                    <div 
+                      key={candidate.name}
+                      className="flex items-center gap-4 p-3 bg-navy-700/50 rounded-xl border border-white/10 transition-all hover:border-primary/30 animate-fade-in"
+                      style={{ animationDelay: candidate.delay }}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-green-400/20 border border-primary/20 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
                       </div>
-                    ))}
+                      <div className="flex-1">
+                        <p className="text-white text-sm font-medium">{candidate.name}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-20 h-2 bg-navy-600 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full bg-gradient-to-r ${candidate.color} rounded-full transition-all duration-1000`}
+                            style={{ 
+                              width: `${candidate.match}%`,
+                              animation: 'grow-width 1.5s ease-out forwards',
+                              animationDelay: candidate.delay
+                            }}
+                          />
+                        </div>
+                        <span className="text-primary font-bold text-sm min-w-[40px] text-right">{candidate.match}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Floating AI Interview Badge */}
+              <div 
+                className="absolute -left-6 bottom-24 bg-navy-800/90 backdrop-blur-xl border border-primary/30 rounded-xl px-4 py-2.5 shadow-xl animate-float"
+                style={{ animationDelay: '0.5s' }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
                   </div>
+                  <span className="text-white text-sm font-medium">AI Interview Ready</span>
                 </div>
               </div>
 
-              {/* Floating badges */}
-              <div className="absolute -right-4 top-8 bg-white/10 backdrop-blur border border-white/20 rounded-xl px-4 py-2 animate-float">
+              {/* Floating Skill Test Badge */}
+              <div 
+                className="absolute -right-4 top-1/2 bg-navy-800/90 backdrop-blur-xl border border-green-400/30 rounded-xl px-4 py-2.5 shadow-xl animate-float"
+              >
                 <div className="flex items-center gap-2">
-                  <span className="text-green-400">✓</span>
-                  <span className="text-white text-sm">Skill Verified</span>
-                </div>
-              </div>
-
-              <div className="absolute -left-4 bottom-20 bg-white/10 backdrop-blur border border-white/20 rounded-xl px-4 py-2 animate-float" style={{ animationDelay: '0.5s' }}>
-                <div className="flex items-center gap-2">
-                  <span className="text-primary">🎯</span>
-                  <span className="text-white text-sm">AI Interview Ready</span>
+                  <div className="w-8 h-8 rounded-lg bg-green-400/20 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                  </div>
+                  <span className="text-white text-sm font-medium">Auto Skill Test</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Add keyframe for progress bar animation */}
+      <style>{`
+        @keyframes grow-width {
+          from { width: 0%; }
+          to { width: var(--target-width); }
+        }
+      `}</style>
     </section>
   );
 };
