@@ -128,7 +128,7 @@ const LandingHeader = () => {
                   </Link>
                 </Button>
                 <Button asChild size="sm" className="rounded-xl bg-primary hover:bg-primary/90">
-                  <Link to="/employer/dashboard">Start Hiring</Link>
+                  <Link to="/employer-signup1">Hire Talent</Link>
                 </Button>
               </>
             )}
@@ -192,8 +192,8 @@ const LandingHeader = () => {
                     </Link>
                   </Button>
                   <Button asChild className="w-full rounded-xl">
-                    <Link to="/employer/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                      Start Hiring
+                    <Link to="/employer-signup1" onClick={() => setIsMobileMenuOpen(false)}>
+                      Hire Talent
                     </Link>
                   </Button>
                 </>
