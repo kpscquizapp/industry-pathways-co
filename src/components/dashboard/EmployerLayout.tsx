@@ -1,144 +1,172 @@
-import React from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
-  FileText, 
+  PlusCircle, 
   Users, 
-  FileCheck, 
+  ClipboardCheck, 
   Video, 
-  FileSignature,
+  FileText,
+  Settings,
   Sparkles,
-  Menu,
-  X,
   Bell,
-  Plus
+  Search,
+  LogOut,
+  User,
+  ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/contexts/AuthContext';
 
-const sidebarLinks = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/employer/dashboard' },
-  { icon: FileText, label: 'Post Job', href: '/employer/post-job' },
-  { icon: Users, label: 'AI Shortlists', href: '/employer/shortlists' },
-  { icon: FileCheck, label: 'Skill Tests', href: '/employer/tests' },
-  { icon: Video, label: 'AI Interviews', href: '/employer/interviews' },
-  { icon: FileSignature, label: 'Contracts', href: '/employer/contracts' },
+const menuItems = [
+  { icon: PlusCircle, label: 'Post Job', href: '/employer/post-job' },
+  { icon: Users, label: 'AI Shortlists', href: '/employer/shortlists', isAI: true },
+  { icon: ClipboardCheck, label: 'Skill Tests', href: '/employer/tests' },
+  { icon: Video, label: 'AI Interviews', href: '/employer/interviews', isAI: true },
+  { icon: FileText, label: 'Contracts', href: '/employer/contracts' },
+  { icon: Settings, label: 'Settings', href: '/employer/settings' },
 ];
 
 const EmployerLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = React.useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/employer-login');
+  };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className={cn(
-        'fixed inset-y-0 left-0 z-50 bg-card border-r border-border transition-all duration-300',
-        sidebarOpen ? 'w-64' : 'w-20'
-      )}>
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="h-16 flex items-center justify-between px-4 border-b border-border">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 bg-gradient-to-br from-primary to-green-400 rounded-xl flex items-center justify-center">
+    <div className="min-h-screen bg-muted/30">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-background border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <div className="w-9 h-9 bg-gradient-to-br from-primary to-green-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
-              {sidebarOpen && <span className="text-lg font-bold">HIRION</span>}
+              <span className="text-xl font-bold tracking-tight text-foreground">
+                HIRION
+              </span>
             </Link>
-            <button 
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-muted transition-colors"
-            >
-              {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-            </button>
-          </div>
 
-          {/* Company Info */}
-          {sidebarOpen && (
-            <div className="p-4 border-b border-border">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
-                  <span className="text-purple-600 font-bold">IN</span>
-                </div>
-                <div>
-                  <p className="font-medium text-sm">InnovateLab Inc.</p>
-                  <p className="text-xs text-muted-foreground">Hiring Company</p>
-                </div>
-              </div>
+            {/* Search */}
+            <div className="hidden md:flex relative max-w-md flex-1 mx-8">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search jobs, candidates..." 
+                className="pl-10 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary rounded-xl"
+              />
             </div>
-          )}
 
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1">
-            {sidebarLinks.map((link) => {
-              const isActive = location.pathname === link.href;
+            {/* Right Actions */}
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5 text-muted-foreground" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
+              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 px-2">
+                    <Avatar className="h-8 w-8 bg-gradient-to-br from-primary to-green-400">
+                      <AvatarFallback className="bg-transparent text-white text-sm font-semibold">
+                        {user?.name?.charAt(0) || user?.email?.charAt(0) || 'H'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-left hidden sm:block">
+                      <p className="text-sm font-medium">{user?.name || 'InnovateLab Inc.'}</p>
+                      <p className="text-xs text-muted-foreground">Hiring Company</p>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem>
+                    <User className="h-4 w-4 mr-2" />
+                    Company Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/employer/settings">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Menu Bar */}
+      <nav className="bg-background border-b border-border sticky top-16 z-40">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
+            {menuItems.map((item) => {
+              const isActive = location.pathname === item.href || 
+                (item.href !== '/employer/dashboard' && location.pathname.startsWith(item.href));
+              
               return (
                 <Link
-                  key={link.href}
-                  to={link.href}
+                  key={item.href}
+                  to={item.href}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all',
+                    'flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all border-b-2',
                     isActive 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      ? 'text-primary border-primary bg-primary/5' 
+                      : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/50'
                   )}
                 >
-                  <link.icon className="w-5 h-5" />
-                  {sidebarOpen && <span className="font-medium">{link.label}</span>}
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                  {item.isAI && (
+                    <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-gradient-to-r from-primary to-green-400 text-white rounded-full font-semibold">
+                      AI
+                    </span>
+                  )}
                 </Link>
               );
             })}
-          </nav>
-
-          {/* Hiring Stats */}
-          {sidebarOpen && (
-            <div className="p-4 border-t border-border">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Active Jobs</span>
-                  <span className="text-sm font-bold text-foreground">5</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Candidates</span>
-                  <span className="text-sm font-bold text-primary">142</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Interviews</span>
-                  <span className="text-sm font-bold text-foreground">12</span>
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
-      </aside>
+      </nav>
 
       {/* Main Content */}
-      <main className={cn(
-        'flex-1 transition-all duration-300',
-        sidebarOpen ? 'ml-64' : 'ml-20'
-      )}>
-        {/* Top Bar */}
-        <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
-          <div>
-            <h1 className="text-lg font-semibold">Hiring Dashboard</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="relative p-2 rounded-lg hover:bg-muted transition-colors">
-              <Bell className="w-5 h-5 text-muted-foreground" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
-            </button>
-            <Button size="sm" className="rounded-xl">
-              <Plus className="w-4 h-4 mr-2" />
-              Post Job
-            </Button>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <div className="p-6">
-          <Outlet />
-        </div>
+      <main className="container mx-auto px-4 py-6">
+        <Outlet />
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-background py-4 mt-auto">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div className="flex items-center gap-4">
+              <Link to="/help" className="hover:text-foreground">Help</Link>
+              <Link to="/terms" className="hover:text-foreground">Terms</Link>
+              <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+            </div>
+            <p>© 2025 Hirion. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
