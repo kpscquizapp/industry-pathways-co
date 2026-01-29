@@ -170,9 +170,9 @@ const App = () => {
                     <Route path="/employer" element={<EmployerLayout />}>
                       <Route path="dashboard" element={<HiringDashboardNew />} />
                       <Route path="post-job" element={<EmployerPostJob />} />
-                      <Route path="shortlists" element={<EmployerAIShortlists />} />
-                      <Route path="tests" element={<EmployerSkillTests />} />
-                      <Route path="interviews" element={<EmployerAIInterviews />} />
+                      <Route path="ai-shortlists" element={<EmployerAIShortlists />} />
+                      <Route path="skill-tests" element={<EmployerSkillTests />} />
+                      <Route path="ai-interviews" element={<EmployerAIInterviews />} />
                       <Route path="contracts" element={<EmployerContracts />} />
                       <Route path="settings" element={<EmployerSettings />} />
                     </Route>

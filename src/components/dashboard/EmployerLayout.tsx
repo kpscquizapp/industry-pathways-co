@@ -42,9 +42,9 @@ import {
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/employer/dashboard' },
   { icon: PlusCircle, label: 'Post Job', href: '/employer/post-job' },
-  { icon: Users, label: 'AI Shortlists', href: '/employer/shortlists', isAI: true },
-  { icon: ClipboardCheck, label: 'Skill Tests', href: '/employer/tests' },
-  { icon: Video, label: 'AI Interviews', href: '/employer/interviews', isAI: true },
+  { icon: Users, label: 'AI Shortlists', href: '/employer/ai-shortlists', isAI: true },
+  { icon: ClipboardCheck, label: 'Skill Tests', href: '/employer/skill-tests' },
+  { icon: Video, label: 'AI Interviews', href: '/employer/ai-interviews', isAI: true },
   { icon: FileText, label: 'Contracts', href: '/employer/contracts' },
   { icon: Settings, label: 'Settings', href: '/employer/settings' },
 ];

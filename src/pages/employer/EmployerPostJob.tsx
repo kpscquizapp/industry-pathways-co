@@ -69,12 +69,12 @@ const EmployerPostJob = () => {
 
   const handlePostJob = () => {
     toast.success('Job posted successfully!');
-    navigate('/employer/shortlists');
+    navigate('/employer/dashboard');
   };
 
   const handlePostAndShowProfiles = () => {
-    toast.success('Job posted! Redirecting to AI shortlists...');
-    navigate('/employer/shortlists');
+    toast.success('Job posted! Finding AI-matched candidates...');
+    navigate('/employer/ai-shortlists');
   };
 
   return (
