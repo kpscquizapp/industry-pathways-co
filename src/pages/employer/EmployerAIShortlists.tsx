@@ -102,19 +102,19 @@ const EmployerAIShortlists = () => {
   return (
     <div className="space-y-6">
       {/* Overview Banner */}
-      <Card className="bg-gradient-to-r from-primary/10 to-green-400/10 border-primary/20">
+      <Card className="bg-primary/5 border-primary/20">
         <CardContent className="p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-green-400 flex items-center justify-center">
-                <Sparkles className="h-7 w-7 text-white" />
+              <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center">
+                <Sparkles className="h-7 w-7 text-primary-foreground" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-foreground">12 New AI Matches</h2>
                 <p className="text-muted-foreground">For your active job postings</p>
               </div>
             </div>
-            <Button className="rounded-xl">
+            <Button className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh Matches
             </Button>
@@ -173,7 +173,7 @@ const EmployerAIShortlists = () => {
                   <div className="flex flex-wrap gap-6 items-start">
                     {/* Avatar & Basic Info */}
                     <div className="flex items-center gap-4 flex-1 min-w-[280px]">
-                      <Avatar className="h-14 w-14 bg-gradient-to-br from-primary/30 to-green-400/30">
+                      <Avatar className="h-14 w-14 bg-primary/10">
                         <AvatarFallback className="text-lg font-semibold text-primary">
                           {candidate.name.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>

@@ -72,53 +72,53 @@ const EmployerContracts = () => {
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid sm:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <FileText className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">3</p>
+                <p className="text-2xl font-bold text-foreground">3</p>
                 <p className="text-xs text-muted-foreground">Active Contracts</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-green-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">₹7.3L</p>
+                <p className="text-2xl font-bold text-foreground">₹7.3L</p>
                 <p className="text-xs text-muted-foreground">Total Billed</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
                 <Clock className="w-5 h-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">₹2.3L</p>
+                <p className="text-2xl font-bold text-foreground">₹2.3L</p>
                 <p className="text-xs text-muted-foreground">Pending</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                <Users className="w-5 h-5 text-blue-500" />
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Users className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">2</p>
+                <p className="text-2xl font-bold text-foreground">2</p>
                 <p className="text-xs text-muted-foreground">Active Hires</p>
               </div>
             </div>
@@ -138,8 +138,8 @@ const EmployerContracts = () => {
         {/* Contracts */}
         <TabsContent value="contracts" className="mt-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Contract List</h2>
-            <Button className="rounded-xl">
+            <h2 className="text-lg font-semibold text-foreground">Contract List</h2>
+            <Button className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground">
               <Plus className="h-4 w-4 mr-2" />
               New Contract
             </Button>

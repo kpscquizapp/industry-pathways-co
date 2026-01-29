@@ -138,8 +138,8 @@ const EmployerSkillTests = () => {
 
       {/* Actions */}
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Skill Assessments</h2>
-        <Button className="rounded-xl">
+        <h2 className="text-xl font-bold text-foreground">Skill Assessments</h2>
+        <Button className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground">
           <Plus className="h-4 w-4 mr-2" />
           Schedule Bulk Tests
         </Button>
@@ -157,10 +157,10 @@ const EmployerSkillTests = () => {
         <TabsContent value="scheduled" className="mt-6">
           <div className="space-y-4">
             {scheduledTests.map((test) => (
-              <Card key={test.id} className="hover:border-primary/30 transition-colors">
+              <Card key={test.id} className="border border-border hover:border-primary/30 transition-colors">
                 <CardContent className="p-6">
                   <div className="flex flex-wrap gap-6 items-center">
-                    <Avatar className="h-12 w-12 bg-gradient-to-br from-primary/30 to-green-400/30">
+                    <Avatar className="h-12 w-12 bg-primary/10">
                       <AvatarFallback className="font-semibold text-primary">
                         {test.candidate.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
@@ -210,10 +210,10 @@ const EmployerSkillTests = () => {
         <TabsContent value="results" className="mt-6">
           <div className="space-y-4">
             {completedTests.map((test) => (
-              <Card key={test.id} className="hover:border-primary/30 transition-colors">
+              <Card key={test.id} className="border border-border hover:border-primary/30 transition-colors">
                 <CardContent className="p-6">
                   <div className="flex flex-wrap gap-6 items-start">
-                    <Avatar className="h-12 w-12 bg-gradient-to-br from-primary/30 to-green-400/30">
+                    <Avatar className="h-12 w-12 bg-primary/10">
                       <AvatarFallback className="font-semibold text-primary">
                         {test.candidate.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>

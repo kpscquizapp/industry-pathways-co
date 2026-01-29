@@ -33,13 +33,13 @@ const HiringDashboardNew = () => {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-500 rounded-2xl p-6 text-white">
+      <div className="bg-primary rounded-2xl p-6 text-primary-foreground">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold mb-2">Find Your Next Great Hire 🚀</h2>
-            <p className="text-white/80">AI has shortlisted 12 new candidates matching your open roles.</p>
+            <p className="text-primary-foreground/80">AI has shortlisted 12 new candidates matching your open roles.</p>
           </div>
-          <Button variant="secondary" className="bg-white text-purple-600 hover:bg-white/90" asChild>
+          <Button variant="secondary" className="bg-background text-foreground hover:bg-background/90" asChild>
             <Link to="/employer/post-job">
               <Plus className="w-4 h-4 mr-2" />
               Post New Job
@@ -50,56 +50,56 @@ const HiringDashboardNew = () => {
 
       {/* Stats Grid */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border border-border">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                <Briefcase className="w-6 h-6 text-purple-500" />
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">5</p>
+                <p className="text-2xl font-bold text-foreground">5</p>
                 <p className="text-sm text-muted-foreground">Active Jobs</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-border">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Users className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">142</p>
+                <p className="text-2xl font-bold text-foreground">142</p>
                 <p className="text-sm text-muted-foreground">Total Candidates</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-border">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                <FileCheck className="w-6 h-6 text-blue-500" />
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <FileCheck className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">26</p>
+                <p className="text-2xl font-bold text-foreground">26</p>
                 <p className="text-sm text-muted-foreground">AI Shortlisted</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-border">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
-                <Video className="w-6 h-6 text-orange-500" />
+              <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+                <Video className="w-6 h-6 text-green-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">12</p>
+                <p className="text-2xl font-bold text-foreground">12</p>
                 <p className="text-sm text-muted-foreground">Interviews Done</p>
               </div>
             </div>
@@ -110,9 +110,9 @@ const HiringDashboardNew = () => {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Active Jobs */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="border border-border">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Active Jobs</CardTitle>
+              <CardTitle className="text-foreground">Active Jobs</CardTitle>
               <Link to="/employer/post-job" className="text-sm text-primary hover:underline flex items-center gap-1">
                 Post Job <ChevronRight className="w-4 h-4" />
               </Link>
@@ -160,9 +160,9 @@ const HiringDashboardNew = () => {
 
         {/* Top Candidates */}
         <div>
-          <Card>
+          <Card className="border border-border">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-foreground">
                 <Sparkles className="w-5 h-5 text-primary" />
                 Top AI Matches
               </CardTitle>
@@ -171,7 +171,7 @@ const HiringDashboardNew = () => {
               {topCandidates.map((candidate, index) => (
                 <div key={candidate.id} className="p-4 border border-border rounded-xl">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-green-400/30 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                       <span className="font-semibold text-sm">{candidate.name.split(' ').map(n => n[0]).join('')}</span>
                     </div>
                     <div className="flex-1">
