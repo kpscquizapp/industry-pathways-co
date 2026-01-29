@@ -43,14 +43,14 @@ const HeroSection = () => {
               </Button>
               
               <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all">
-                <Link to="/contractor/dashboard">
+                <Link to="/contractor-registration">
                   <Users className="mr-2 h-5 w-5" />
                   Join as Contractor
                 </Link>
               </Button>
               
               <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all">
-                <Link to="/bench/dashboard">
+                <Link to="/company-dashboard">
                   <Building2 className="mr-2 h-5 w-5" />
                   List Bench Resources
                 </Link>
