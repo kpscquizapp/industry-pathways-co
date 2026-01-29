@@ -59,6 +59,12 @@ import EmployerLayout from "./components/dashboard/EmployerLayout";
 import ContractorDashboard from "./pages/contractor/ContractorDashboard";
 import BenchDashboard from "./pages/bench/BenchDashboard";
 import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
+import EmployerPostJob from "./pages/employer/EmployerPostJob";
+import EmployerAIShortlists from "./pages/employer/EmployerAIShortlists";
+import EmployerSkillTests from "./pages/employer/EmployerSkillTests";
+import EmployerAIInterviews from "./pages/employer/EmployerAIInterviews";
+import EmployerContracts from "./pages/employer/EmployerContracts";
+import EmployerSettings from "./pages/employer/EmployerSettings";
 
 import { useFetchRefreshToken } from "./services/utils/hooks/useFetchRefreshToken";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -163,11 +169,12 @@ const App = () => {
                     {/* NEW: Hiring Company Dashboard Routes */}
                     <Route path="/employer" element={<EmployerLayout />}>
                       <Route path="dashboard" element={<HiringDashboardNew />} />
-                      <Route path="post-job" element={<HiringDashboardNew />} />
-                      <Route path="shortlists" element={<HiringDashboardNew />} />
-                      <Route path="tests" element={<HiringDashboardNew />} />
-                      <Route path="interviews" element={<HiringDashboardNew />} />
-                      <Route path="contracts" element={<HiringDashboardNew />} />
+                      <Route path="post-job" element={<EmployerPostJob />} />
+                      <Route path="shortlists" element={<EmployerAIShortlists />} />
+                      <Route path="tests" element={<EmployerSkillTests />} />
+                      <Route path="interviews" element={<EmployerAIInterviews />} />
+                      <Route path="contracts" element={<EmployerContracts />} />
+                      <Route path="settings" element={<EmployerSettings />} />
                     </Route>
 
                     {/* Legacy Employer Dashboard Routes */}
