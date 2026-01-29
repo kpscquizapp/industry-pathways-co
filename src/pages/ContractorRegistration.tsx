@@ -1,70 +1,25 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { 
   Building2, 
   User,
-  Users,
-  Mail,
   ArrowRight,
   Sparkles,
-  Target,
-  TrendingUp,
-  CheckCircle2,
-  Briefcase,
-  DollarSign,
-  Upload
+  Upload,
+  CheckCircle2
 } from "lucide-react";
-import { toast } from "sonner";
 
 const ContractorRegistration = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'contractor' | 'bench'>('contractor');
-  
-  // Contractor form state
-  const [contractorForm, setContractorForm] = useState({
-    fullName: "",
-    primarySkill: "",
-    workEmail: "",
-    availability: ""
-  });
 
-  // Bench form state
-  const [benchForm, setBenchForm] = useState({
-    companyName: "",
-    resourceName: "",
-    primarySkill: "",
-    billingRate: ""
-  });
-
-  const handleContractorSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Profile created successfully!", {
-      description: "Welcome to HIRION! Redirecting to your dashboard..."
-    });
-    setTimeout(() => {
-      navigate("/contractor/dashboard");
-    }, 1000);
+  const handleContractorContinue = () => {
+    navigate("/contractor/dashboard");
   };
 
-  const handleBenchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Bench resource listed!", {
-      description: "Your resource is now visible to hiring companies."
-    });
-    setTimeout(() => {
-      navigate("/bench/dashboard");
-    }, 1000);
+  const handleBenchContinue = () => {
+    navigate("/bench/dashboard");
   };
 
   return (
@@ -89,11 +44,11 @@ const ContractorRegistration = () => {
         <div className="relative z-10 space-y-8">
           <div>
             <h1 className="text-4xl lg:text-5xl font-bold text-foreground leading-tight">
-              Turn Bench & Contractors<br />
-              <span className="text-primary">into Billable Revenue.</span>
+              Contractors & Bench,<br />
+              <span className="text-primary">One Smart Entry Point.</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground max-w-md">
-              Onboard independent contractors or list your internal bench resources in one place. AI helps you deploy faster and keep everyone billable.
+              Pick the right track for yourself or your team. Join as an independent contractor or list internal bench talent in a dedicated marketplace.
             </p>
           </div>
 
@@ -101,12 +56,24 @@ const ContractorRegistration = () => {
           <div className="space-y-4">
             <div className="flex items-start gap-4 p-4 bg-background/60 backdrop-blur-sm rounded-2xl border border-border/50">
               <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Users className="h-5 w-5 text-primary" />
+                <User className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">Two Powerful Modes</h3>
+                <h3 className="font-semibold text-foreground">Independent Talent</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Register independent contractors or publish ready-to-deploy bench talent for external projects.
+                  Build a verified contractor profile with skills, rate, and availability visible to hiring teams.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4 p-4 bg-background/60 backdrop-blur-sm rounded-2xl border border-border/50">
+              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Building2 className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Bench Monetization</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Publish ready-to-deploy employees from your bench and keep them billable on external projects.
                 </p>
               </div>
             </div>
@@ -116,21 +83,9 @@ const ContractorRegistration = () => {
                 <Sparkles className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">AI-Matched Engagements</h3>
+                <h3 className="font-semibold text-foreground">AI Matching</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Smart matching engine connects your profiles to the right full-time, contract, or short-term work.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4 p-4 bg-background/60 backdrop-blur-sm rounded-2xl border border-border/50">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Bench-to-Billable</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Reduce idle time with a live marketplace for your bench and individual contractors.
+                  AI surfaces the best contract, part-time and short-term roles for each profile automatically.
                 </p>
               </div>
             </div>
@@ -145,7 +100,7 @@ const ContractorRegistration = () => {
         </div>
       </div>
 
-      {/* Right Side - Forms */}
+      {/* Right Side - Registration Options */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-2xl">
           {/* Mobile Logo */}
@@ -160,34 +115,26 @@ const ContractorRegistration = () => {
 
           <div className="text-center mb-8">
             <h2 className="text-2xl lg:text-3xl font-bold text-foreground">
-              Choose how you want to onboard
+              How would you like to register?
             </h2>
             <p className="mt-2 text-muted-foreground">
-              Register as an individual contractor or list internal bench resources from your company.
+              Choose a track to continue. You can always add the other mode later from your dashboard.
             </p>
           </div>
 
-          {/* Tab Cards */}
+          {/* Registration Option Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Contractor Card */}
-            <Card 
-              className={`cursor-pointer transition-all duration-300 overflow-hidden ${
-                activeTab === 'contractor' 
-                  ? 'ring-2 ring-primary shadow-lg shadow-primary/10' 
-                  : 'hover:border-primary/50'
-              }`}
-              onClick={() => setActiveTab('contractor')}
-            >
+            {/* Join as Contractor Card */}
+            <Card className="hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
               <CardContent className="p-6">
                 {/* Card Header */}
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
                       <User className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground">Join as Contractor</h3>
-                      <p className="text-xs text-muted-foreground">For individual freelancers and independent consultants.</p>
                     </div>
                   </div>
                   <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
@@ -195,101 +142,47 @@ const ContractorRegistration = () => {
                   </span>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handleContractorSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">Full Name</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Jane Contractor"
-                          value={contractorForm.fullName}
-                          onChange={(e) => setContractorForm({ ...contractorForm, fullName: e.target.value })}
-                          className="pl-9 h-10 rounded-xl bg-muted/50 border-0 focus:bg-background focus:ring-2 focus:ring-primary/20 text-sm"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">Primary Skill</Label>
-                      <div className="relative">
-                        <Target className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="e.g. React Developer"
-                          value={contractorForm.primarySkill}
-                          onChange={(e) => setContractorForm({ ...contractorForm, primarySkill: e.target.value })}
-                          className="pl-9 h-10 rounded-xl bg-muted/50 border-0 focus:bg-background focus:ring-2 focus:ring-primary/20 text-sm"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  For freelancers, independent consultants and gig experts.
+                </p>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">Work Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="email"
-                          placeholder="you@email.com"
-                          value={contractorForm.workEmail}
-                          onChange={(e) => setContractorForm({ ...contractorForm, workEmail: e.target.value })}
-                          className="pl-9 h-10 rounded-xl bg-muted/50 border-0 focus:bg-background focus:ring-2 focus:ring-primary/20 text-sm"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">Availability</Label>
-                      <Select 
-                        value={contractorForm.availability} 
-                        onValueChange={(v) => setContractorForm({ ...contractorForm, availability: v })}
-                      >
-                        <SelectTrigger className="h-10 rounded-xl bg-muted/50 border-0 focus:ring-2 focus:ring-primary/20 text-sm">
-                          <SelectValue placeholder="Immediately" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="immediately">Immediately</SelectItem>
-                          <SelectItem value="1-week">Within 1 week</SelectItem>
-                          <SelectItem value="2-weeks">Within 2 weeks</SelectItem>
-                          <SelectItem value="1-month">Within 1 month</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                {/* Benefits List */}
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Highlight skills, rate (₹/hour or ₹/day) & availability.</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Get AI-matched to full-time, contract & part-time work.</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Control profile visibility and who can contact you.</span>
+                  </li>
+                </ul>
 
-                  <Button 
-                    type="submit"
-                    className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
-                  >
-                    Complete Contractor Registration
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </form>
+                <Button 
+                  onClick={handleContractorContinue}
+                  className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                >
+                  Continue Contractor Registration
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
               </CardContent>
             </Card>
 
-            {/* Bench Resource Card */}
-            <Card 
-              className={`cursor-pointer transition-all duration-300 overflow-hidden ${
-                activeTab === 'bench' 
-                  ? 'ring-2 ring-primary shadow-lg shadow-primary/10' 
-                  : 'hover:border-primary/50'
-              }`}
-              onClick={() => setActiveTab('bench')}
-            >
+            {/* List Bench Resource Card */}
+            <Card className="hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
               <CardContent className="p-6">
                 {/* Card Header */}
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
                       <Building2 className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground">List Bench Resource</h3>
-                      <p className="text-xs text-muted-foreground">For companies listing internal bench talent.</p>
                     </div>
                   </div>
                   <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
@@ -297,74 +190,33 @@ const ContractorRegistration = () => {
                   </span>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handleBenchSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">Company Name</Label>
-                      <div className="relative">
-                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="e.g. Acme Inc"
-                          value={benchForm.companyName}
-                          onChange={(e) => setBenchForm({ ...benchForm, companyName: e.target.value })}
-                          className="pl-9 h-10 rounded-xl bg-muted/50 border-0 focus:bg-background focus:ring-2 focus:ring-primary/20 text-sm"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">Bench Resource Name</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="John Doe"
-                          value={benchForm.resourceName}
-                          onChange={(e) => setBenchForm({ ...benchForm, resourceName: e.target.value })}
-                          className="pl-9 h-10 rounded-xl bg-muted/50 border-0 focus:bg-background focus:ring-2 focus:ring-primary/20 text-sm"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  For companies listing idle internal employees.
+                </p>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">Primary Skill / Role</Label>
-                      <div className="relative">
-                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Java Developer"
-                          value={benchForm.primarySkill}
-                          onChange={(e) => setBenchForm({ ...benchForm, primarySkill: e.target.value })}
-                          className="pl-9 h-10 rounded-xl bg-muted/50 border-0 focus:bg-background focus:ring-2 focus:ring-primary/20 text-sm"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">Billing Rate (₹ / hour)</Label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="1200"
-                          value={benchForm.billingRate}
-                          onChange={(e) => setBenchForm({ ...benchForm, billingRate: e.target.value })}
-                          className="pl-9 h-10 rounded-xl bg-muted/50 border-0 focus:bg-background focus:ring-2 focus:ring-primary/20 text-sm"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
+                {/* Benefits List */}
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Add employee details, role, skills & bill rate in ₹.</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Showcase availability window & non-compete notes.</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Track which bench profiles are deployed via Hirion.</span>
+                  </li>
+                </ul>
 
-                  <Button 
-                    type="submit"
-                    className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
-                  >
-                    List Bench Resource
-                    <Upload className="ml-2 h-5 w-5" />
-                  </Button>
-                </form>
+                <Button 
+                  onClick={handleBenchContinue}
+                  className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                >
+                  Continue Bench Resource Listing
+                  <Upload className="ml-2 h-5 w-5" />
+                </Button>
               </CardContent>
             </Card>
           </div>
