@@ -10,9 +10,9 @@ import {
   Building2, 
   Lock, 
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Mail
 } from "lucide-react";
-import { useLoginMutation } from "@/app/queries/loginApi";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/app/slices/userAuth";
 import { toast } from "sonner";
@@ -20,37 +20,51 @@ import { toast } from "sonner";
 const EmployerLogin1 = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [login, { isLoading }] = useLoginMutation();
+  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    try {
-      const response = await login({ email, password }).unwrap();
-      dispatch(setUser(response));
+    // Simulate login - accept any credentials
+    setTimeout(() => {
+      const mockUser = {
+        accessToken: "mock-token-" + Date.now(),
+        refreshToken: "mock-refresh-" + Date.now(),
+        user: {
+          id: "1",
+          uuid: "mock-uuid",
+          email: email,
+          firstName: email.split("@")[0],
+          lastName: "User",
+          role: "employer",
+          admin: false
+        }
+      };
+      
+      dispatch(setUser(mockUser));
       toast.success("Login successful!");
       navigate("/employer/dashboard");
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Invalid credentials. Please try again.");
-    }
+      setIsLoading(false);
+    }, 500);
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <LandingHeader />
 
-      <main className="flex-1 pt-20 pb-12 px-4 flex items-center justify-center">
+      <main className="flex-1 pt-24 pb-12 px-4 flex items-center justify-center">
         <div className="container mx-auto max-w-md">
-          <Card className="shadow-xl border-border rounded-2xl overflow-hidden bg-card">
+          <Card className="shadow-xl border border-border rounded-2xl overflow-hidden bg-card">
             <CardContent className="p-8 sm:p-10">
               <div className="space-y-6">
                 {/* Header */}
                 <div className="text-center">
-                  <div className="flex items-center justify-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                      <Building2 className="h-6 w-6 text-primary" />
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
+                      <Building2 className="h-7 w-7 text-primary" />
                     </div>
                   </div>
                   <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary text-sm font-semibold rounded-full mb-4">
@@ -65,16 +79,16 @@ const EmployerLogin1 = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
+                    <Label htmlFor="email" className="text-sm font-medium text-foreground">Email Address</Label>
                     <div className="relative">
-                      <Building2 className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+                      <Mail className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                       <Input
                         id="email"
                         type="email"
                         placeholder="name@company.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="pl-12 h-12 rounded-xl border-border bg-background"
+                        className="pl-12 h-12 rounded-xl border-border bg-background text-foreground placeholder:text-muted-foreground"
                         required
                       />
                     </div>
@@ -82,7 +96,7 @@ const EmployerLogin1 = () => {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                      <Label htmlFor="password" className="text-sm font-medium text-foreground">Password</Label>
                       <Link to="/forgot-password" className="text-xs text-primary hover:underline">
                         Forgot password?
                       </Link>
@@ -95,7 +109,7 @@ const EmployerLogin1 = () => {
                         placeholder="Enter your password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-12 h-12 rounded-xl border-border bg-background"
+                        className="pl-12 h-12 rounded-xl border-border bg-background text-foreground placeholder:text-muted-foreground"
                         required
                       />
                     </div>
@@ -115,12 +129,14 @@ const EmployerLogin1 = () => {
                   </Button>
                 </form>
 
-                <p className="text-center text-sm text-muted-foreground">
-                  Don't have an account?{" "}
-                  <Link to="/employer-signup1" className="text-primary hover:underline font-medium">
+                <div className="text-center space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Don't have an account?
+                  </p>
+                  <Link to="/employer-signup1" className="text-primary hover:underline font-medium text-sm">
                     Sign up
                   </Link>
-                </p>
+                </div>
               </div>
             </CardContent>
           </Card>
