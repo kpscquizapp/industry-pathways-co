@@ -3,352 +3,490 @@ import {
   Calendar, 
   Video,
   Play,
-  Eye,
+  Users,
+  CalendarClock,
+  ChevronRight,
+  Search,
+  CheckCircle2,
   Star,
   MessageSquare,
   BarChart3,
-  Plus,
-  Clock,
-  CheckCircle2,
-  AlertCircle
+  Clock
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
 
-const scheduledInterviews = [
-  { 
-    id: 1, 
-    candidate: 'Sarah Chen', 
-    job: 'Senior React Developer',
-    scheduledAt: '2025-02-01 10:00 AM',
-    testScore: 92,
-    status: 'scheduled'
-  },
-  { 
-    id: 2, 
-    candidate: 'Alex Kumar', 
-    job: 'Senior React Developer',
-    scheduledAt: '2025-02-02 2:00 PM',
-    testScore: 88,
-    status: 'scheduled'
-  },
+interface Candidate {
+  id: number;
+  name: string;
+  role: string;
+  matchScore: number;
+  testScore: number;
+  status: 'ready' | 'scheduled' | 'completed';
+  interviewDate?: string;
+  scores?: {
+    communication: number;
+    technical: number;
+    problemSolving: number;
+    overall: number;
+  };
+  recommendation?: 'strongly_recommend' | 'recommend' | 'not_recommend';
+  duration?: string;
+}
+
+const candidatesData: Candidate[] = [
+  { id: 1, name: 'Amit Sharma', role: 'Senior React Native Developer', matchScore: 98, testScore: 92, status: 'ready' },
+  { id: 2, name: 'Sarah Chen', role: 'Senior React Developer', matchScore: 94, testScore: 88, status: 'scheduled', interviewDate: '2025-02-01 10:00 AM' },
+  { id: 3, name: 'Maria Silva', role: 'React Native Specialist', matchScore: 89, testScore: 92, status: 'completed', 
+    scores: { communication: 90, technical: 95, problemSolving: 88, overall: 91 }, 
+    recommendation: 'strongly_recommend', duration: '32 min' },
+  { id: 4, name: 'James Wilson', role: 'Frontend Architect', matchScore: 87, testScore: 85, status: 'completed',
+    scores: { communication: 85, technical: 78, problemSolving: 82, overall: 82 },
+    recommendation: 'recommend', duration: '28 min' },
+  { id: 5, name: 'Alex Kumar', role: 'Full Stack Engineer', matchScore: 91, testScore: 78, status: 'ready' },
 ];
 
-const completedInterviews = [
-  { 
-    id: 3, 
-    candidate: 'Maria Silva', 
-    job: 'React Native Specialist',
-    completedAt: '2025-01-25',
-    scores: {
-      communication: 90,
-      technical: 95,
-      problemSolving: 88,
-      overall: 91
-    },
-    recommendation: 'strongly_recommend',
-    duration: '32 min'
-  },
-  { 
-    id: 4, 
-    candidate: 'James Wilson', 
-    job: 'Frontend Architect',
-    completedAt: '2025-01-24',
-    scores: {
-      communication: 85,
-      technical: 78,
-      problemSolving: 82,
-      overall: 82
-    },
-    recommendation: 'recommend',
-    duration: '28 min'
-  },
-  { 
-    id: 5, 
-    candidate: 'Priya Sharma', 
-    job: 'Senior Developer',
-    completedAt: '2025-01-23',
-    scores: {
-      communication: 70,
-      technical: 55,
-      problemSolving: 60,
-      overall: 62
-    },
-    recommendation: 'not_recommend',
-    duration: '25 min'
-  },
-];
-
-const getRecommendationBadge = (recommendation: string) => {
+const getRecommendationBadge = (recommendation?: string) => {
   switch (recommendation) {
     case 'strongly_recommend':
-      return <Badge className="bg-green-500 text-white">Strongly Recommend</Badge>;
+      return <Badge className="bg-primary text-primary-foreground">Strongly Recommend</Badge>;
     case 'recommend':
       return <Badge className="bg-blue-500 text-white">Recommend</Badge>;
     case 'not_recommend':
       return <Badge variant="destructive">Not Recommended</Badge>;
     default:
-      return <Badge variant="secondary">Pending</Badge>;
+      return null;
   }
 };
 
 const EmployerAIInterviews = () => {
-  const [activeTab, setActiveTab] = useState('scheduled');
+  const [candidates, setCandidates] = useState<Candidate[]>(candidatesData);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [isReschedule, setIsReschedule] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [scheduleData, setScheduleData] = useState({
+    date: '',
+    time: '',
+    duration: '30',
+    interviewType: 'technical'
+  });
+
+  const readyCandidates = candidates.filter(c => c.status === 'ready');
+  const scheduledCandidates = candidates.filter(c => c.status === 'scheduled');
+  const completedCandidates = candidates.filter(c => c.status === 'completed');
+
+  const handleSelectCandidate = (candidate: Candidate) => {
+    setSelectedCandidate(candidate);
+    setIsReschedule(candidate.status === 'scheduled');
+    setShowScheduleModal(true);
+  };
+
+  const handleScheduleInterview = () => {
+    if (!selectedCandidate) return;
+    
+    const updatedCandidates = candidates.map(c => 
+      c.id === selectedCandidate.id 
+        ? { ...c, status: 'scheduled' as const, interviewDate: `${scheduleData.date} ${scheduleData.time}` }
+        : c
+    );
+    setCandidates(updatedCandidates);
+    setShowScheduleModal(false);
+    setSelectedCandidate(null);
+    toast.success(isReschedule ? 'Interview rescheduled successfully!' : 'AI Interview scheduled successfully!');
+  };
+
+  const filteredCandidates = (list: Candidate[]) => 
+    list.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="space-y-6">
-      {/* Prerequisite Notice */}
-      <Card className="bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-            <div>
-              <p className="font-medium text-amber-800 dark:text-amber-200">AI Interviews require completed Skill Tests</p>
-              <p className="text-sm text-amber-700 dark:text-amber-300">Candidates must pass the skill assessment before scheduling an AI interview.</p>
+      {/* Header Section - Dark Navy */}
+      <div className="bg-[hsl(222,47%,11%)] rounded-2xl p-6 text-white">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">AI Interviews</h1>
+            <p className="text-white/70">Schedule and review AI-powered interviews</p>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="text-center">
+              <p className="text-3xl font-bold">{readyCandidates.length}</p>
+              <p className="text-xs text-white/60">Ready</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold">{scheduledCandidates.length}</p>
+              <p className="text-xs text-white/60">Scheduled</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold">{completedCandidates.length}</p>
+              <p className="text-xs text-white/60">Completed</p>
             </div>
           </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+          <Input 
+            placeholder="Search candidates..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl"
+          />
+        </div>
+      </div>
+
+      {/* Step 1: Choose Candidate */}
+      <Card className="border-2 border-[hsl(222,47%,11%)]/10">
+        <CardHeader className="bg-[hsl(222,47%,11%)] text-white rounded-t-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold">1</div>
+            <CardTitle className="text-lg">Choose Candidate (Passed Skill Test)</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          {filteredCandidates(readyCandidates).length > 0 ? (
+            <div className="grid gap-3">
+              {filteredCandidates(readyCandidates).map((candidate) => (
+                <div 
+                  key={candidate.id}
+                  className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-[hsl(222,47%,11%)]/30 hover:bg-muted/50 transition-all cursor-pointer group"
+                  onClick={() => handleSelectCandidate(candidate)}
+                >
+                  <Avatar className="h-12 w-12 bg-[hsl(222,47%,11%)]/10">
+                    <AvatarFallback className="font-semibold text-[hsl(222,47%,11%)]">
+                      {candidate.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground">{candidate.name}</h3>
+                    <p className="text-sm text-muted-foreground">{candidate.role}</p>
+                  </div>
+                  <div className="text-center px-4">
+                    <p className="text-lg font-bold text-[hsl(222,47%,11%)]">{candidate.matchScore}%</p>
+                    <p className="text-xs text-muted-foreground">Match</p>
+                  </div>
+                  <div className="text-center px-4">
+                    <p className="text-lg font-bold text-primary">{candidate.testScore}%</p>
+                    <p className="text-xs text-muted-foreground">Test Score</p>
+                  </div>
+                  <Badge className="bg-primary/10 text-primary">Test Passed</Badge>
+                  <Button 
+                    className="bg-[hsl(222,47%,11%)] hover:bg-[hsl(222,47%,18%)] text-white rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    Initiate Interview
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No candidates ready for interview</p>
+              <p className="text-sm">Candidates must pass skill tests first</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Stats */}
-      <div className="grid sm:grid-cols-4 gap-4">
-        <Card className="border border-border">
-          <CardContent className="p-4">
+      {/* Scheduled Interviews */}
+      {scheduledCandidates.length > 0 && (
+        <Card className="border-2 border-amber-500/20">
+          <CardHeader className="bg-amber-500 text-white rounded-t-lg">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">2</p>
-                <p className="text-xs text-muted-foreground">Scheduled</p>
-              </div>
+              <CalendarClock className="h-5 w-5" />
+              <CardTitle className="text-lg">Scheduled Interviews</CardTitle>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="border border-border">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">12</p>
-                <p className="text-xs text-muted-foreground">Completed</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border border-border">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Star className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">8</p>
-                <p className="text-xs text-muted-foreground">Recommended</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border border-border">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">78%</p>
-                <p className="text-xs text-muted-foreground">Avg Score</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Actions */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-foreground">AI Interviews</h2>
-        <Button className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground">
-          <Plus className="h-4 w-4 mr-2" />
-          Schedule Interview
-        </Button>
-      </div>
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-muted/50 rounded-xl p-1">
-          <TabsTrigger value="scheduled" className="rounded-lg px-6">Scheduled</TabsTrigger>
-          <TabsTrigger value="completed" className="rounded-lg px-6">Completed</TabsTrigger>
-          <TabsTrigger value="analytics" className="rounded-lg px-6">Analytics</TabsTrigger>
-        </TabsList>
-
-        {/* Scheduled */}
-        <TabsContent value="scheduled" className="mt-6">
-          <div className="space-y-4">
-            {scheduledInterviews.map((interview) => (
-              <Card key={interview.id} className="hover:border-primary/30 transition-colors">
-                <CardContent className="p-6">
-                  <div className="flex flex-wrap gap-6 items-center">
-                    <Avatar className="h-12 w-12 bg-gradient-to-br from-primary/30 to-green-400/30">
-                      <AvatarFallback className="font-semibold text-primary">
-                        {interview.candidate.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="flex-1 min-w-[200px]">
-                      <h3 className="font-semibold">{interview.candidate}</h3>
-                      <p className="text-sm text-muted-foreground">{interview.job}</p>
-                    </div>
-
-                    <div className="text-center min-w-[80px]">
-                      <p className="text-xs text-muted-foreground">Skill Test</p>
-                      <p className="font-bold text-green-600">{interview.testScore}%</p>
-                    </div>
-
-                    <div className="text-center min-w-[150px]">
-                      <p className="text-xs text-muted-foreground">Scheduled</p>
-                      <p className="font-medium text-sm">{interview.scheduledAt}</p>
-                    </div>
-
-                    <Badge variant="secondary">Scheduled</Badge>
-
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="rounded-lg">
-                        Reschedule
-                      </Button>
-                      <Button size="sm" className="rounded-lg">
-                        <Video className="h-4 w-4 mr-1" />
-                        Join
-                      </Button>
-                    </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid gap-3">
+              {filteredCandidates(scheduledCandidates).map((candidate) => (
+                <div 
+                  key={candidate.id}
+                  className="flex items-center gap-4 p-4 rounded-xl border border-amber-200 bg-amber-50/50"
+                >
+                  <Avatar className="h-12 w-12 bg-amber-100">
+                    <AvatarFallback className="font-semibold text-amber-700">
+                      {candidate.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{candidate.name}</h3>
+                    <p className="text-sm text-muted-foreground">{candidate.role}</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
+                  <div className="flex items-center gap-2 text-amber-700">
+                    <Calendar className="h-4 w-4" />
+                    <span className="text-sm font-medium">{candidate.interviewDate}</span>
+                  </div>
+                  <Badge className="bg-amber-500">Upcoming</Badge>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="rounded-lg border-amber-500 text-amber-700 hover:bg-amber-50"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectCandidate(candidate);
+                      }}
+                    >
+                      Reschedule
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      className="rounded-lg bg-[hsl(222,47%,11%)] hover:bg-[hsl(222,47%,18%)] text-white"
+                    >
+                      <Video className="h-4 w-4 mr-1" />
+                      Join
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Completed */}
-        <TabsContent value="completed" className="mt-6">
-          <div className="space-y-4">
-            {completedInterviews.map((interview) => (
-              <Card key={interview.id} className="hover:border-primary/30 transition-colors">
-                <CardContent className="p-6">
-                  <div className="flex flex-wrap gap-6 items-start">
-                    <Avatar className="h-12 w-12 bg-gradient-to-br from-primary/30 to-green-400/30">
+      {/* Completed Interviews */}
+      {completedCandidates.length > 0 && (
+        <Card className="border-2 border-primary/20">
+          <CardHeader className="bg-primary text-primary-foreground rounded-t-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5" />
+              <CardTitle className="text-lg">Completed Interviews</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid gap-4">
+              {filteredCandidates(completedCandidates).map((candidate) => (
+                <div 
+                  key={candidate.id}
+                  className="p-4 rounded-xl border border-primary/20 bg-primary/5"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <Avatar className="h-12 w-12 bg-primary/10">
                       <AvatarFallback className="font-semibold text-primary">
-                        {interview.candidate.split(' ').map(n => n[0]).join('')}
+                        {candidate.name.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
-
-                    <div className="flex-1 min-w-[200px]">
+                    <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold">{interview.candidate}</h3>
-                        {getRecommendationBadge(interview.recommendation)}
+                        <h3 className="font-semibold">{candidate.name}</h3>
+                        {getRecommendationBadge(candidate.recommendation)}
                       </div>
-                      <p className="text-sm text-muted-foreground">{interview.job}</p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                        <span>{interview.completedAt}</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {interview.duration}
-                        </span>
+                      <p className="text-sm text-muted-foreground">{candidate.role}</p>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span>{candidate.duration}</span>
                       </div>
                     </div>
-
-                    {/* Overall Score */}
-                    <div className="text-center min-w-[100px]">
+                    <div className="text-center">
                       <div className="relative inline-flex items-center justify-center">
-                        <svg className="w-20 h-20 transform -rotate-90">
+                        <svg className="w-16 h-16 transform -rotate-90">
                           <circle
-                            cx="40"
-                            cy="40"
-                            r="35"
+                            cx="32"
+                            cy="32"
+                            r="26"
                             stroke="currentColor"
-                            strokeWidth="6"
+                            strokeWidth="5"
                             fill="transparent"
                             className="text-muted/30"
                           />
                           <circle
-                            cx="40"
-                            cy="40"
-                            r="35"
+                            cx="32"
+                            cy="32"
+                            r="26"
                             stroke="currentColor"
-                            strokeWidth="6"
+                            strokeWidth="5"
                             fill="transparent"
-                            strokeDasharray={`${(interview.scores.overall / 100) * 220} 220`}
-                            className={interview.scores.overall >= 75 ? 'text-green-500' : interview.scores.overall >= 60 ? 'text-amber-500' : 'text-destructive'}
+                            strokeDasharray={`${((candidate.scores?.overall || 0) / 100) * 163} 163`}
+                            className="text-primary"
                           />
                         </svg>
-                        <span className={`absolute text-lg font-bold ${interview.scores.overall >= 75 ? 'text-green-500' : interview.scores.overall >= 60 ? 'text-amber-500' : 'text-destructive'}`}>
-                          {interview.scores.overall}
+                        <span className="absolute text-sm font-bold text-primary">
+                          {candidate.scores?.overall}%
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Overall</p>
+                      <p className="text-xs text-muted-foreground">Overall</p>
                     </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="rounded-lg text-primary border-primary hover:bg-primary/10"
+                    >
+                      <Play className="h-4 w-4 mr-1" />
+                      Watch Replay
+                    </Button>
+                  </div>
 
-                    {/* Score Breakdown */}
-                    <div className="flex-1 min-w-[250px]">
-                      <p className="text-xs text-muted-foreground mb-2">Score Breakdown</p>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-xs w-28">Communication</span>
-                          <Progress value={interview.scores.communication} className="flex-1 h-2" />
-                          <span className="text-xs font-medium w-8">{interview.scores.communication}</span>
+                  {/* Score Breakdown */}
+                  {candidate.scores && (
+                    <div className="grid grid-cols-3 gap-4 pt-4 border-t border-primary/10">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex-1">
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-muted-foreground">Communication</span>
+                            <span className="font-medium">{candidate.scores.communication}</span>
+                          </div>
+                          <Progress value={candidate.scores.communication} className="h-1.5" />
                         </div>
-                        <div className="flex items-center gap-3">
-                          <Star className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-xs w-28">Technical</span>
-                          <Progress value={interview.scores.technical} className="flex-1 h-2" />
-                          <span className="text-xs font-medium w-8">{interview.scores.technical}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Star className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex-1">
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-muted-foreground">Technical</span>
+                            <span className="font-medium">{candidate.scores.technical}</span>
+                          </div>
+                          <Progress value={candidate.scores.technical} className="h-1.5" />
                         </div>
-                        <div className="flex items-center gap-3">
-                          <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-xs w-28">Problem Solving</span>
-                          <Progress value={interview.scores.problemSolving} className="flex-1 h-2" />
-                          <span className="text-xs font-medium w-8">{interview.scores.problemSolving}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex-1">
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-muted-foreground">Problem Solving</span>
+                            <span className="font-medium">{candidate.scores.problemSolving}</span>
+                          </div>
+                          <Progress value={candidate.scores.problemSolving} className="h-1.5" />
                         </div>
                       </div>
                     </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-                    <div className="flex flex-col gap-2">
-                      <Button variant="outline" size="sm" className="rounded-lg">
-                        <Play className="h-4 w-4 mr-1" />
-                        Watch Replay
-                      </Button>
-                      <Button variant="ghost" size="sm" className="rounded-lg">
-                        <Eye className="h-4 w-4 mr-1" />
-                        Full Report
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* Analytics */}
-        <TabsContent value="analytics" className="mt-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center py-12">
-                <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Interview Analytics</h3>
-                <p className="text-muted-foreground">View aggregated interview performance data and trends</p>
-                <Button className="mt-4 rounded-xl">View Full Analytics</Button>
+      {/* Schedule Modal */}
+      <Dialog open={showScheduleModal} onOpenChange={setShowScheduleModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[hsl(222,47%,11%)] flex items-center justify-center">
+                <Video className="h-5 w-5 text-white" />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              {isReschedule ? 'Reschedule AI Interview' : 'Schedule AI Interview'}
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedCandidate && (
+            <div className="space-y-6">
+              {/* Selected Candidate */}
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-[hsl(222,47%,11%)]/5 border border-[hsl(222,47%,11%)]/10">
+                <Avatar className="h-12 w-12 bg-[hsl(222,47%,11%)]/10">
+                  <AvatarFallback className="font-semibold text-[hsl(222,47%,11%)]">
+                    {selectedCandidate.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 className="font-semibold">{selectedCandidate.name}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedCandidate.role}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-primary">{selectedCandidate.testScore}%</p>
+                  <p className="text-xs text-muted-foreground">Test Score</p>
+                </div>
+              </div>
+
+              {/* Schedule Form */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Date</Label>
+                    <Input 
+                      type="date"
+                      value={scheduleData.date}
+                      onChange={(e) => setScheduleData({...scheduleData, date: e.target.value})}
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Time</Label>
+                    <Input 
+                      type="time"
+                      value={scheduleData.time}
+                      onChange={(e) => setScheduleData({...scheduleData, time: e.target.value})}
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Interview Duration</Label>
+                  <Select value={scheduleData.duration} onValueChange={(v) => setScheduleData({...scheduleData, duration: v})}>
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15 minutes</SelectItem>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="45">45 minutes</SelectItem>
+                      <SelectItem value="60">60 minutes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Interview Focus</Label>
+                  <Select value={scheduleData.interviewType} onValueChange={(v) => setScheduleData({...scheduleData, interviewType: v})}>
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="technical">Technical Deep Dive</SelectItem>
+                      <SelectItem value="behavioral">Behavioral Assessment</SelectItem>
+                      <SelectItem value="system">System Design</SelectItem>
+                      <SelectItem value="comprehensive">Comprehensive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 rounded-xl"
+                  onClick={() => setShowScheduleModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="flex-1 rounded-xl bg-[hsl(222,47%,11%)] hover:bg-[hsl(222,47%,18%)] text-white"
+                  onClick={handleScheduleInterview}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  {isReschedule ? 'Reschedule' : 'Initiate Interview'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

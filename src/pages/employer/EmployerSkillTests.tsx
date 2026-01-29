@@ -3,316 +3,377 @@ import {
   Calendar, 
   Clock, 
   CheckCircle2, 
-  XCircle,
   Play,
-  Eye,
   Users,
-  FileText,
-  BarChart3,
-  Plus
+  ClipboardCheck,
+  CalendarClock,
+  ChevronRight,
+  X,
+  Search
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
 
-const scheduledTests = [
-  { 
-    id: 1, 
-    candidate: 'Sarah Chen', 
-    job: 'Senior React Developer',
-    areas: ['React', 'TypeScript', 'System Design'],
-    duration: 90,
-    deadline: '2025-02-01',
-    status: 'pending'
-  },
-  { 
-    id: 2, 
-    candidate: 'Alex Kumar', 
-    job: 'Senior React Developer',
-    areas: ['React', 'Node.js', 'API Design'],
-    duration: 60,
-    deadline: '2025-02-02',
-    status: 'in_progress'
-  },
-];
+interface Candidate {
+  id: number;
+  name: string;
+  role: string;
+  matchScore: number;
+  skills: string[];
+  status: 'available' | 'scheduled' | 'completed';
+  testDate?: string;
+  testScore?: number;
+}
 
-const completedTests = [
-  { 
-    id: 3, 
-    candidate: 'Maria Silva', 
-    job: 'React Native Specialist',
-    areas: ['React Native', 'JavaScript', 'Mobile UI'],
-    duration: 60,
-    score: 92,
-    passed: true,
-    completedAt: '2025-01-25',
-    breakdown: { 'React Native': 95, 'JavaScript': 90, 'Mobile UI': 88 }
-  },
-  { 
-    id: 4, 
-    candidate: 'James Wilson', 
-    job: 'Frontend Architect',
-    areas: ['React', 'Performance', 'Architecture'],
-    duration: 90,
-    score: 78,
-    passed: true,
-    completedAt: '2025-01-24',
-    breakdown: { 'React': 85, 'Performance': 72, 'Architecture': 75 }
-  },
-  { 
-    id: 5, 
-    candidate: 'Priya Sharma', 
-    job: 'Senior Developer',
-    areas: ['React', 'Angular', 'Testing'],
-    duration: 60,
-    score: 45,
-    passed: false,
-    completedAt: '2025-01-23',
-    breakdown: { 'React': 60, 'Angular': 35, 'Testing': 40 }
-  },
+const candidatesData: Candidate[] = [
+  { id: 1, name: 'Amit Sharma', role: 'Senior React Native Developer', matchScore: 98, skills: ['React Native', 'TypeScript'], status: 'available' },
+  { id: 2, name: 'Sarah Chen', role: 'Senior React Developer', matchScore: 94, skills: ['React', 'Node.js'], status: 'scheduled', testDate: '2025-02-01 10:00 AM' },
+  { id: 3, name: 'Alex Kumar', role: 'Full Stack Engineer', matchScore: 91, skills: ['React', 'Python'], status: 'completed', testScore: 88, testDate: '2025-01-28' },
+  { id: 4, name: 'Maria Silva', role: 'React Native Specialist', matchScore: 89, skills: ['React Native', 'Firebase'], status: 'completed', testScore: 92, testDate: '2025-01-25' },
+  { id: 5, name: 'James Wilson', role: 'Frontend Architect', matchScore: 87, skills: ['React', 'Vue'], status: 'available' },
 ];
 
 const EmployerSkillTests = () => {
-  const [activeTab, setActiveTab] = useState('scheduled');
+  const [candidates, setCandidates] = useState<Candidate[]>(candidatesData);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [isReschedule, setIsReschedule] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [scheduleData, setScheduleData] = useState({
+    date: '',
+    time: '',
+    duration: '60',
+    testType: 'technical'
+  });
+
+  const availableCandidates = candidates.filter(c => c.status === 'available');
+  const scheduledCandidates = candidates.filter(c => c.status === 'scheduled');
+  const completedCandidates = candidates.filter(c => c.status === 'completed');
+
+  const handleSelectCandidate = (candidate: Candidate) => {
+    setSelectedCandidate(candidate);
+    setIsReschedule(candidate.status === 'scheduled');
+    setShowScheduleModal(true);
+  };
+
+  const handleScheduleTest = () => {
+    if (!selectedCandidate) return;
+    
+    const updatedCandidates = candidates.map(c => 
+      c.id === selectedCandidate.id 
+        ? { ...c, status: 'scheduled' as const, testDate: `${scheduleData.date} ${scheduleData.time}` }
+        : c
+    );
+    setCandidates(updatedCandidates);
+    setShowScheduleModal(false);
+    setSelectedCandidate(null);
+    toast.success(isReschedule ? 'Test rescheduled successfully!' : 'Skill test scheduled successfully!');
+  };
+
+  const filteredCandidates = (list: Candidate[]) => 
+    list.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
-      <div className="grid sm:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">3</p>
-                <p className="text-xs text-muted-foreground">Scheduled</p>
-              </div>
+      {/* Header Section - Dark Navy */}
+      <div className="bg-[hsl(222,47%,11%)] rounded-2xl p-6 text-white">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">Skill Tests</h1>
+            <p className="text-white/70">Schedule and manage candidate assessments</p>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="text-center">
+              <p className="text-3xl font-bold">{availableCandidates.length}</p>
+              <p className="text-xs text-white/60">Ready to Test</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                <Play className="w-5 h-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">1</p>
-                <p className="text-xs text-muted-foreground">In Progress</p>
-              </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold">{scheduledCandidates.length}</p>
+              <p className="text-xs text-white/60">Scheduled</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">8</p>
-                <p className="text-xs text-muted-foreground">Passed</p>
-              </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold">{completedCandidates.length}</p>
+              <p className="text-xs text-white/60">Completed</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-orange-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">82%</p>
-                <p className="text-xs text-muted-foreground">Avg Score</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+          <Input 
+            placeholder="Search candidates..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl"
+          />
+        </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-foreground">Skill Assessments</h2>
-        <Button className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground">
-          <Plus className="h-4 w-4 mr-2" />
-          Schedule Bulk Tests
-        </Button>
-      </div>
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-muted/50 rounded-xl p-1">
-          <TabsTrigger value="scheduled" className="rounded-lg px-6">Scheduled</TabsTrigger>
-          <TabsTrigger value="results" className="rounded-lg px-6">Results</TabsTrigger>
-          <TabsTrigger value="library" className="rounded-lg px-6">Test Library</TabsTrigger>
-        </TabsList>
-
-        {/* Scheduled Tests */}
-        <TabsContent value="scheduled" className="mt-6">
-          <div className="space-y-4">
-            {scheduledTests.map((test) => (
-              <Card key={test.id} className="border border-border hover:border-primary/30 transition-colors">
-                <CardContent className="p-6">
-                  <div className="flex flex-wrap gap-6 items-center">
-                    <Avatar className="h-12 w-12 bg-primary/10">
-                      <AvatarFallback className="font-semibold text-primary">
-                        {test.candidate.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="flex-1 min-w-[200px]">
-                      <h3 className="font-semibold">{test.candidate}</h3>
-                      <p className="text-sm text-muted-foreground">{test.job}</p>
-                    </div>
-
-                    <div className="min-w-[200px]">
-                      <p className="text-xs text-muted-foreground mb-1">Test Areas</p>
-                      <div className="flex flex-wrap gap-1">
-                        {test.areas.map((area) => (
-                          <Badge key={area} variant="secondary" className="text-xs">{area}</Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="text-center min-w-[80px]">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        <span className="text-sm">{test.duration} min</span>
-                      </div>
-                    </div>
-
-                    <div className="text-center min-w-[100px]">
-                      <p className="text-xs text-muted-foreground">Deadline</p>
-                      <p className="font-medium text-sm">{test.deadline}</p>
-                    </div>
-
-                    <Badge variant={test.status === 'in_progress' ? 'default' : 'secondary'}>
-                      {test.status === 'in_progress' ? 'In Progress' : 'Pending'}
-                    </Badge>
-
-                    <Button variant="outline" size="sm" className="rounded-lg">
-                      Manage
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+      {/* Step 1: Choose Candidate */}
+      <Card className="border-2 border-[hsl(222,47%,11%)]/10">
+        <CardHeader className="bg-[hsl(222,47%,11%)] text-white rounded-t-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold">1</div>
+            <CardTitle className="text-lg">Choose Candidate</CardTitle>
           </div>
-        </TabsContent>
-
-        {/* Results */}
-        <TabsContent value="results" className="mt-6">
-          <div className="space-y-4">
-            {completedTests.map((test) => (
-              <Card key={test.id} className="border border-border hover:border-primary/30 transition-colors">
-                <CardContent className="p-6">
-                  <div className="flex flex-wrap gap-6 items-start">
-                    <Avatar className="h-12 w-12 bg-primary/10">
-                      <AvatarFallback className="font-semibold text-primary">
-                        {test.candidate.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="flex-1 min-w-[200px]">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{test.candidate}</h3>
-                        {test.passed ? (
-                          <Badge className="bg-green-500 text-white">Passed</Badge>
-                        ) : (
-                          <Badge variant="destructive">Failed</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">{test.job}</p>
-                      <p className="text-xs text-muted-foreground mt-1">Completed: {test.completedAt}</p>
-                    </div>
-
-                    {/* Score Circle */}
-                    <div className="text-center min-w-[100px]">
-                      <div className="relative inline-flex items-center justify-center">
-                        <svg className="w-20 h-20 transform -rotate-90">
-                          <circle
-                            cx="40"
-                            cy="40"
-                            r="35"
-                            stroke="currentColor"
-                            strokeWidth="6"
-                            fill="transparent"
-                            className="text-muted/30"
-                          />
-                          <circle
-                            cx="40"
-                            cy="40"
-                            r="35"
-                            stroke="currentColor"
-                            strokeWidth="6"
-                            fill="transparent"
-                            strokeDasharray={`${(test.score / 100) * 220} 220`}
-                            className={test.passed ? 'text-green-500' : 'text-destructive'}
-                          />
-                        </svg>
-                        <span className={`absolute text-lg font-bold ${test.passed ? 'text-green-500' : 'text-destructive'}`}>
-                          {test.score}%
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">Overall Score</p>
-                    </div>
-
-                    {/* Breakdown */}
-                    <div className="flex-1 min-w-[250px]">
-                      <p className="text-xs text-muted-foreground mb-2">Score Breakdown</p>
-                      <div className="space-y-2">
-                        {Object.entries(test.breakdown).map(([skill, score]) => (
-                          <div key={skill} className="flex items-center gap-3">
-                            <span className="text-xs w-24 truncate">{skill}</span>
-                            <Progress value={score} className="flex-1 h-2" />
-                            <span className="text-xs font-medium w-8">{score}%</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <Button variant="outline" size="sm" className="rounded-lg">
-                      <Eye className="h-4 w-4 mr-1" />
-                      View Details
-                    </Button>
+        </CardHeader>
+        <CardContent className="p-6">
+          {filteredCandidates(availableCandidates).length > 0 ? (
+            <div className="grid gap-3">
+              {filteredCandidates(availableCandidates).map((candidate) => (
+                <div 
+                  key={candidate.id}
+                  className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-[hsl(222,47%,11%)]/30 hover:bg-muted/50 transition-all cursor-pointer group"
+                  onClick={() => handleSelectCandidate(candidate)}
+                >
+                  <Avatar className="h-12 w-12 bg-[hsl(222,47%,11%)]/10">
+                    <AvatarFallback className="font-semibold text-[hsl(222,47%,11%)]">
+                      {candidate.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground">{candidate.name}</h3>
+                    <p className="text-sm text-muted-foreground">{candidate.role}</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* Library */}
-        <TabsContent value="library" className="mt-6">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {['React Fundamentals', 'TypeScript Advanced', 'Node.js Backend', 'System Design', 'SQL & Databases', 'API Design'].map((testName) => (
-              <Card key={testName} className="hover:border-primary/30 transition-colors cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <FileText className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{testName}</h3>
-                      <p className="text-sm text-muted-foreground">60 minutes • 25 questions</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="secondary" className="text-xs">Auto-graded</Badge>
-                        <Badge variant="outline" className="text-xs">Intermediate</Badge>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    {candidate.skills.slice(0, 2).map(skill => (
+                      <Badge key={skill} variant="secondary" className="text-xs">{skill}</Badge>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+                  <div className="text-center px-4">
+                    <p className="text-lg font-bold text-[hsl(222,47%,11%)]">{candidate.matchScore}%</p>
+                    <p className="text-xs text-muted-foreground">Match</p>
+                  </div>
+                  <Button 
+                    className="bg-[hsl(222,47%,11%)] hover:bg-[hsl(222,47%,18%)] text-white rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <ClipboardCheck className="h-4 w-4 mr-2" />
+                    Initiate Test
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No candidates available for testing</p>
+              <p className="text-sm">Shortlist candidates from AI Matches first</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Scheduled Tests */}
+      {scheduledCandidates.length > 0 && (
+        <Card className="border-2 border-amber-500/20">
+          <CardHeader className="bg-amber-500 text-white rounded-t-lg">
+            <div className="flex items-center gap-3">
+              <CalendarClock className="h-5 w-5" />
+              <CardTitle className="text-lg">Scheduled Tests</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid gap-3">
+              {filteredCandidates(scheduledCandidates).map((candidate) => (
+                <div 
+                  key={candidate.id}
+                  className="flex items-center gap-4 p-4 rounded-xl border border-amber-200 bg-amber-50/50"
+                >
+                  <Avatar className="h-12 w-12 bg-amber-100">
+                    <AvatarFallback className="font-semibold text-amber-700">
+                      {candidate.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{candidate.name}</h3>
+                    <p className="text-sm text-muted-foreground">{candidate.role}</p>
+                  </div>
+                  <div className="flex items-center gap-2 text-amber-700">
+                    <Calendar className="h-4 w-4" />
+                    <span className="text-sm font-medium">{candidate.testDate}</span>
+                  </div>
+                  <Badge className="bg-amber-500">Pending</Badge>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="rounded-lg border-amber-500 text-amber-700 hover:bg-amber-50"
+                    onClick={() => handleSelectCandidate(candidate)}
+                  >
+                    Reschedule
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Completed Tests */}
+      {completedCandidates.length > 0 && (
+        <Card className="border-2 border-primary/20">
+          <CardHeader className="bg-primary text-primary-foreground rounded-t-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5" />
+              <CardTitle className="text-lg">Completed Tests</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid gap-3">
+              {filteredCandidates(completedCandidates).map((candidate) => (
+                <div 
+                  key={candidate.id}
+                  className="flex items-center gap-4 p-4 rounded-xl border border-primary/20 bg-primary/5"
+                >
+                  <Avatar className="h-12 w-12 bg-primary/10">
+                    <AvatarFallback className="font-semibold text-primary">
+                      {candidate.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{candidate.name}</h3>
+                    <p className="text-sm text-muted-foreground">{candidate.role}</p>
+                  </div>
+                  <div className="text-center px-6">
+                    <p className="text-2xl font-bold text-primary">{candidate.testScore}%</p>
+                    <p className="text-xs text-muted-foreground">Score</p>
+                  </div>
+                  <Badge className="bg-primary">{candidate.testScore! >= 80 ? 'Passed' : 'Review'}</Badge>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="rounded-lg text-primary border-primary hover:bg-primary/10"
+                  >
+                    View Report
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Schedule Modal */}
+      <Dialog open={showScheduleModal} onOpenChange={setShowScheduleModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[hsl(222,47%,11%)] flex items-center justify-center">
+                <ClipboardCheck className="h-5 w-5 text-white" />
+              </div>
+              {isReschedule ? 'Reschedule Skill Test' : 'Schedule Skill Test'}
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedCandidate && (
+            <div className="space-y-6">
+              {/* Selected Candidate */}
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-[hsl(222,47%,11%)]/5 border border-[hsl(222,47%,11%)]/10">
+                <Avatar className="h-12 w-12 bg-[hsl(222,47%,11%)]/10">
+                  <AvatarFallback className="font-semibold text-[hsl(222,47%,11%)]">
+                    {selectedCandidate.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-semibold">{selectedCandidate.name}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedCandidate.role}</p>
+                </div>
+              </div>
+
+              {/* Schedule Form */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Date</Label>
+                    <Input 
+                      type="date"
+                      value={scheduleData.date}
+                      onChange={(e) => setScheduleData({...scheduleData, date: e.target.value})}
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Time</Label>
+                    <Input 
+                      type="time"
+                      value={scheduleData.time}
+                      onChange={(e) => setScheduleData({...scheduleData, time: e.target.value})}
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Test Duration</Label>
+                  <Select value={scheduleData.duration} onValueChange={(v) => setScheduleData({...scheduleData, duration: v})}>
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="60">60 minutes</SelectItem>
+                      <SelectItem value="90">90 minutes</SelectItem>
+                      <SelectItem value="120">120 minutes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Test Type</Label>
+                  <Select value={scheduleData.testType} onValueChange={(v) => setScheduleData({...scheduleData, testType: v})}>
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="technical">Technical Assessment</SelectItem>
+                      <SelectItem value="coding">Coding Challenge</SelectItem>
+                      <SelectItem value="system">System Design</SelectItem>
+                      <SelectItem value="full">Full Stack Assessment</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 rounded-xl"
+                  onClick={() => setShowScheduleModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="flex-1 rounded-xl bg-[hsl(222,47%,11%)] hover:bg-[hsl(222,47%,18%)] text-white"
+                  onClick={handleScheduleTest}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  {isReschedule ? 'Reschedule' : 'Initiate Test'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
