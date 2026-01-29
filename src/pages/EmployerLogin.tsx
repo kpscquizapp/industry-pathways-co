@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useId } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import LandingHeader from "@/components/landing/LandingHeader";
+import LandingFooter from "@/components/landing/LandingFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -102,7 +102,7 @@ const EmployerLogin = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-      <Header />
+      <LandingHeader />
 
       <main className="flex-1 pt-20 pb-12 px-4">
         <div className="container mx-auto max-w-7xl">
@@ -327,7 +327,7 @@ const EmployerLogin = () => {
         </div>
       </main>
 
-      <Footer />
+      <LandingFooter />
     </div>
   );
 };
