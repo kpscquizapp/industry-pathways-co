@@ -36,7 +36,7 @@ const HeroSection = () => {
             {/* CTA Buttons - All similar style */}
             <div className="flex flex-wrap gap-4">
               <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all">
-                <Link to="/employer-signup">
+                <Link to="/employer-signup1">
                   Hire Talent
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
