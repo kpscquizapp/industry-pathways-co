@@ -122,7 +122,7 @@ const LandingHeader = () => {
                   size="sm" 
                   className={cn('rounded-xl', textColor, isScrolled || !isHomePage ? 'hover:bg-muted' : 'hover:bg-white/10')}
                 >
-                  <Link to="/login">
+                  <Link to="/employer-login1">
                     <LogIn className="w-4 h-4 mr-2" />
                     Login
                   </Link>
@@ -187,7 +187,7 @@ const LandingHeader = () => {
               ) : (
                 <>
                   <Button asChild variant="outline" className="w-full rounded-xl">
-                    <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Link to="/employer-login1" onClick={() => setIsMobileMenuOpen(false)}>
                       Login
                     </Link>
                   </Button>

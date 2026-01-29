@@ -209,7 +209,7 @@ const HiringDashboardNew = () => {
                 </div>
               ))}
 
-              <Link to="/employer/shortlists" className="block text-center text-sm text-primary hover:underline pt-2">
+              <Link to="/employer/ai-shortlists" className="block text-center text-sm text-primary hover:underline pt-2">
                 View All Candidates →
               </Link>
             </CardContent>
