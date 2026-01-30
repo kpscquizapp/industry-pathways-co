@@ -196,7 +196,6 @@ const CandidateRegistration = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(formData);
     // Step 3 validation
     if (
       formData.preferredWorkType.length === 0 ||
