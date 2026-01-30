@@ -86,7 +86,10 @@ const ForgotPassword = () => {
               <div className="my-6">
                 <p className="text-center text-[16px] text-muted-foreground">
                   Go back to{" "}
-                  <Link className="text-primary font-semibold" to="/login">
+                  <Link
+                    className="text-primary font-semibold"
+                    to="/employer-login1"
+                  >
                     Login
                   </Link>
                 </p>

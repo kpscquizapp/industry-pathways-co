@@ -6,15 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Building2, 
-  Lock, 
-  Users, 
+import {
+  Building2,
+  Lock,
+  Users,
   ArrowRight,
   CheckCircle2,
   Sparkles,
   TrendingUp,
-  Target
+  Target,
 } from "lucide-react";
 import { useCreateEmployerMutation } from "@/app/queries/loginApi";
 import { toast } from "sonner";
@@ -30,12 +30,12 @@ const EmployerSignup1 = () => {
   const useCases = [
     { id: "fulltime", label: "Full-time hiring" },
     { id: "contract", label: "Contract & gig talent" },
-    { id: "bench", label: "Bench monetization" }
+    { id: "bench", label: "Bench monetization" },
   ];
 
   const toggleUseCase = (id: string) => {
-    setUseCase(prev => 
-      prev.includes(id) ? prev.filter(u => u !== id) : [...prev, id]
+    setUseCase((prev) =>
+      prev.includes(id) ? prev.filter((u) => u !== id) : [...prev, id],
     );
   };
 
@@ -47,20 +47,26 @@ const EmployerSignup1 = () => {
         email,
         password,
         companySize,
-        useCases: useCase
+        useCases: useCase,
       }).unwrap();
       toast.success("Account created successfully!");
       navigate("/employer-login1");
     } catch (error: any) {
-      toast.error(error?.data?.message || "Registration failed. Please try again.");
+      toast.error(
+        error?.data?.message || "Registration failed. Please try again.",
+      );
     }
   };
 
   const features = [
     { icon: CheckCircle2, label: "AI-verified skill scores", highlight: true },
     { icon: Target, label: "Bench to billable in days", highlight: false },
-    { icon: Sparkles, label: "Automated screening & interviews", highlight: false },
-    { icon: TrendingUp, label: "Monetize internal talent", highlight: false }
+    {
+      icon: Sparkles,
+      label: "Automated screening & interviews",
+      highlight: false,
+    },
+    { icon: TrendingUp, label: "Monetize internal talent", highlight: false },
   ];
 
   return (
@@ -68,7 +74,7 @@ const EmployerSignup1 = () => {
       <LandingHeader />
 
       <main className="flex-1 pt-20 pb-12 px-4">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto max-w-9xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center mt-8">
             {/* Left Column - Features */}
             <div className="space-y-6 order-2 lg:order-1">
@@ -79,8 +85,12 @@ const EmployerSignup1 = () => {
                     <Building2 className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <span className="text-xl font-bold text-foreground">HIRION</span>
-                    <p className="text-xs text-muted-foreground">AI Talent & Bench Marketplace</p>
+                    <span className="text-xl font-bold text-foreground">
+                      HIRION
+                    </span>
+                    <p className="text-xs text-muted-foreground">
+                      AI Talent & Bench Marketplace
+                    </p>
                   </div>
                 </div>
 
@@ -93,22 +103,25 @@ const EmployerSignup1 = () => {
                   Turn Your Bench Into Billable Talent
                 </h1>
                 <p className="text-muted-foreground text-lg">
-                  AI verifies skills. Companies deploy instantly. You earn from idle resources across full-time and contract hiring.
+                  AI verifies skills. Companies deploy instantly. You earn from
+                  idle resources across full-time and contract hiring.
                 </p>
               </div>
 
               {/* Feature Pills Grid */}
               <div className="grid grid-cols-2 gap-3">
                 {features.map((feature, index) => (
-                  <div 
+                  <div
                     key={index}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
-                      feature.highlight 
-                        ? "bg-primary text-primary-foreground border-primary" 
+                      feature.highlight
+                        ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card border-border"
                     }`}
                   >
-                    <feature.icon className={`h-5 w-5 ${feature.highlight ? "" : "text-primary"}`} />
+                    <feature.icon
+                      className={`h-5 w-5 ${feature.highlight ? "" : "text-primary"}`}
+                    />
                     <span className="text-sm font-medium">{feature.label}</span>
                   </div>
                 ))}
@@ -117,14 +130,22 @@ const EmployerSignup1 = () => {
               {/* Stats */}
               <div className="grid grid-cols-2 gap-4">
                 <Card className="bg-card border-border rounded-xl p-5">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">TIME TO HIRE</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    TIME TO HIRE
+                  </p>
                   <p className="text-3xl font-bold text-primary">-40%</p>
-                  <p className="text-xs text-muted-foreground mt-1">with AI interview & scoring</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    with AI interview & scoring
+                  </p>
                 </Card>
                 <Card className="bg-card border-border rounded-xl p-5">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">BENCH UTILIZATION</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    BENCH UTILIZATION
+                  </p>
                   <p className="text-3xl font-bold text-primary">↑ 30%</p>
-                  <p className="text-xs text-muted-foreground mt-1">turn idle talent into revenue</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    turn idle talent into revenue
+                  </p>
                 </Card>
               </div>
             </div>
@@ -134,15 +155,20 @@ const EmployerSignup1 = () => {
               <CardContent className="p-8 sm:p-10">
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-2">Create Employer Account</h2>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
+                      Create Employer Account
+                    </h2>
                     <p className="text-muted-foreground text-sm">
-                      Access AI hiring, deployments, and bench monetization in one secure workspace.
+                      Access AI hiring, deployments, and bench monetization in
+                      one secure workspace.
                     </p>
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium">Company Email</Label>
+                      <Label htmlFor="email" className="text-sm font-medium">
+                        Company Email
+                      </Label>
                       <div className="relative">
                         <Building2 className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                         <Input
@@ -159,7 +185,12 @@ const EmployerSignup1 = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                        <Label
+                          htmlFor="password"
+                          className="text-sm font-medium"
+                        >
+                          Password
+                        </Label>
                         <div className="relative">
                           <Lock className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                           <Input
@@ -174,7 +205,12 @@ const EmployerSignup1 = () => {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="company-size" className="text-sm font-medium">Company Size (Optional)</Label>
+                        <Label
+                          htmlFor="company-size"
+                          className="text-sm font-medium"
+                        >
+                          Company Size (Optional)
+                        </Label>
                         <div className="relative">
                           <Users className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                           <Input
@@ -190,7 +226,9 @@ const EmployerSignup1 = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Primary Use Case</Label>
+                      <Label className="text-sm font-medium">
+                        Primary Use Case
+                      </Label>
                       <div className="flex flex-wrap gap-2">
                         {useCases.map((uc) => (
                           <button
@@ -214,7 +252,9 @@ const EmployerSignup1 = () => {
                       className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl transition-all text-base shadow-lg"
                       disabled={isLoading}
                     >
-                      {isLoading ? "Creating account..." : (
+                      {isLoading ? (
+                        "Creating account..."
+                      ) : (
                         <>
                           Create Employer Account
                           <ArrowRight className="ml-2 h-5 w-5" />
@@ -234,7 +274,10 @@ const EmployerSignup1 = () => {
 
                   <p className="text-center text-sm text-muted-foreground">
                     Already have an account?{" "}
-                    <Link to="/employer-login1" className="text-primary hover:underline font-medium">
+                    <Link
+                      to="/employer-login1"
+                      className="text-primary hover:underline font-medium"
+                    >
                       Log in
                     </Link>
                   </p>

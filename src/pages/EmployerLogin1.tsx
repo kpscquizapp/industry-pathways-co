@@ -6,13 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Building2, 
-  Lock, 
-  ArrowRight,
-  Sparkles,
-  Mail
-} from "lucide-react";
+import { Building2, Lock, ArrowRight, Sparkles, Mail } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/app/slices/userAuth";
 import { toast } from "sonner";
@@ -40,10 +34,10 @@ const EmployerLogin1 = () => {
           firstName: email.split("@")[0],
           lastName: "User",
           role: "employer",
-          admin: false
-        }
+          admin: false,
+        },
       };
-      
+
       dispatch(setUser(mockUser));
       toast.success("Login successful!");
       navigate("/employer/dashboard");
@@ -56,7 +50,7 @@ const EmployerLogin1 = () => {
       <LandingHeader />
 
       <main className="flex-1 pt-24 pb-12 px-4 flex items-center justify-center">
-        <div className="container mx-auto max-w-md">
+        <div className="container mx-auto max-w-3xl">
           <Card className="shadow-xl border border-border rounded-2xl overflow-hidden bg-card">
             <CardContent className="p-8 sm:p-10">
               <div className="space-y-6">
@@ -71,7 +65,9 @@ const EmployerLogin1 = () => {
                     <Sparkles className="h-4 w-4" />
                     Employer Login
                   </span>
-                  <h2 className="text-2xl font-bold text-foreground mb-2">Welcome Back</h2>
+                  <h2 className="text-2xl font-bold text-foreground mb-2">
+                    Welcome Back
+                  </h2>
                   <p className="text-muted-foreground text-sm">
                     Sign in to access your employer dashboard
                   </p>
@@ -79,7 +75,12 @@ const EmployerLogin1 = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium text-foreground">Email Address</Label>
+                    <Label
+                      htmlFor="email"
+                      className="text-sm font-medium text-foreground"
+                    >
+                      Email Address
+                    </Label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                       <Input
@@ -96,8 +97,16 @@ const EmployerLogin1 = () => {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password" className="text-sm font-medium text-foreground">Password</Label>
-                      <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                      <Label
+                        htmlFor="password"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        Password
+                      </Label>
+                      <Link
+                        to="/forgot-password"
+                        className="text-xs text-primary hover:underline"
+                      >
                         Forgot password?
                       </Link>
                     </div>
@@ -120,7 +129,9 @@ const EmployerLogin1 = () => {
                     className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl transition-all text-base shadow-lg"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Signing in..." : (
+                    {isLoading ? (
+                      "Signing in..."
+                    ) : (
                       <>
                         Sign In
                         <ArrowRight className="ml-2 h-5 w-5" />
@@ -133,7 +144,10 @@ const EmployerLogin1 = () => {
                   <p className="text-sm text-muted-foreground">
                     Don't have an account?
                   </p>
-                  <Link to="/employer-signup1" className="text-primary hover:underline font-medium text-sm">
+                  <Link
+                    to="/employer-signup1"
+                    className="text-primary hover:underline font-medium text-sm"
+                  >
                     Sign up
                   </Link>
                 </div>
