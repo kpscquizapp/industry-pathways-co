@@ -20,6 +20,10 @@ import EmployerSignup from "./pages/EmployerSignup";
 import EmployerSignup1 from "./pages/EmployerSignup1";
 import EmployerLogin1 from "./pages/EmployerLogin1";
 import ContractorRegistration from "./pages/ContractorRegistration";
+import BenchRegistration from "./pages/BenchRegistration";
+import BenchLogin from "./pages/BenchLogin";
+import CandidateLogin from "./pages/CandidateLogin";
+import CandidateSignup from "./pages/CandidateSignup";
 import ProfileVisibility from "./pages/ProfileVisibility";
 import Register from "./pages/Register";
 import JobSearch from "./pages/JobSearch";
@@ -119,6 +123,10 @@ const App = () => {
                     <Route path="/employer-signup1" element={<EmployerSignup1 />} />
                     <Route path="/employer-login1" element={<EmployerLogin1 />} />
                     <Route path="/contractor-registration" element={<ContractorRegistration />} />
+                    <Route path="/bench-registration" element={<BenchRegistration />} />
+                    <Route path="/bench-login" element={<BenchLogin />} />
+                    <Route path="/candidate-login" element={<CandidateLogin />} />
+                    <Route path="/candidate-signup" element={<CandidateSignup />} />
                     <Route path="/profile-visibility" element={<ProfileVisibility />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/jobs" element={<JobSearch />} />
