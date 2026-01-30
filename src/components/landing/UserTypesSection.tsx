@@ -29,7 +29,7 @@ const userTypes = {
       { icon: Clock, text: 'Faster short-term gig placements' },
     ],
     cta: 'Join as Contractor',
-    link: '/contractor/dashboard',
+    link: '/candidate-signup',
   },
   bench: {
     title: 'Companies with Bench Resources',
@@ -43,7 +43,7 @@ const userTypes = {
       { icon: DollarSign, text: 'Monetize idle resources' },
     ],
     cta: 'List Bench Resources',
-    link: '/bench/dashboard',
+    link: '/bench-registration',
   },
   hiring: {
     title: 'Hiring Companies',
