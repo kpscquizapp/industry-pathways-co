@@ -86,12 +86,12 @@ const ForgotPassword = () => {
               <div className="my-6">
                 <p className="text-center text-[16px] text-muted-foreground">
                   Go back to{" "}
-                  <Link
+                  <button
                     className="text-primary font-semibold"
-                    to="/employer-login1"
+                    onClick={() => history.back()}
                   >
                     Login
-                  </Link>
+                  </button>
                 </p>
               </div>
             </Card>

@@ -56,8 +56,7 @@ interface FormData {
 
 // Validation regex patterns
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/;
 const CandidateRegistration = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
@@ -80,7 +79,7 @@ const CandidateRegistration = () => {
   const [primarySkillInput, setPrimarySkillInput] = useState("");
   const [createCandidate, { isLoading: isLoadingCandidate }] =
     useCreateCandidateMutation();
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const totalSteps = 4;
 
@@ -175,14 +174,13 @@ const CandidateRegistration = () => {
         toast.error("Please fill in all required fields");
         return;
       }
+      if (
+        Number(formData.expectedSalaryMin) > Number(formData.expectedSalaryMax)
+      ) {
+        toast.error("Minimum salary cannot exceed maximum salary");
+        return;
+      }
     }
-    if (
-      Number(formData.expectedSalaryMin) > Number(formData.expectedSalaryMax)
-    ) {
-      toast.error("Minimum salary cannot exceed maximum salary");
-      return;
-    }
-
     if (currentStep < totalSteps) {
       setCurrentStep((prev) => prev + 1);
     }
@@ -220,7 +218,7 @@ const CandidateRegistration = () => {
     try {
       await createCandidate(formData).unwrap();
       toast.success("Registration successful! Welcome aboard!");
-      // navigate("/candidate-dashboard"); candidate profile coming soon...
+      navigate("/candidate-login"); // or a success/confirmation page
     } catch (error: any) {
       toast.error(
         error?.data?.message || "Registration failed. Please try again.",
@@ -295,11 +293,6 @@ const CandidateRegistration = () => {
             required
           />
         </div>
-        {formData.email && !EMAIL_REGEX.test(formData.email) && (
-          <p className="text-xs text-destructive">
-            Please enter a valid email address
-          </p>
-        )}
       </div>
 
       <div className="space-y-2">
@@ -318,11 +311,6 @@ const CandidateRegistration = () => {
             required
           />
         </div>
-        {formData.password && !PASSWORD_REGEX.test(formData.password) && (
-          <p className="text-xs text-destructive">
-            At least 8 characters, include uppercase, lowercase, and a number
-          </p>
-        )}
       </div>
     </div>
   );
@@ -397,7 +385,7 @@ const CandidateRegistration = () => {
             type="number"
             min={0}
             placeholder="e.g. 5"
-            value={formData.yearsExperience}
+            value={formData.yearsExperience ?? ""}
             onChange={(e) =>
               updateFormData(
                 "yearsExperience",
@@ -495,9 +483,12 @@ const CandidateRegistration = () => {
               id="expectedSalaryMin"
               type="number"
               placeholder="Enter Expected Yearly Salary Min"
-              value={formData.expectedSalaryMin}
+              value={formData.expectedSalaryMin ?? ""}
               onChange={(e) =>
-                updateFormData("expectedSalaryMin", Number(e.target.value))
+                updateFormData(
+                  "expectedSalaryMin",
+                  e.target.value === "" ? null : Number(e.target.value),
+                )
               }
               className="h-12 rounded-xl border-border bg-background"
               required
@@ -514,9 +505,12 @@ const CandidateRegistration = () => {
               id="expectedSalaryMax"
               type="number"
               placeholder="Enter Expected Yearly Salary Max"
-              value={formData.expectedSalaryMax}
+              value={formData.expectedSalaryMax ?? ""}
               onChange={(e) =>
-                updateFormData("expectedSalaryMax", Number(e.target.value))
+                updateFormData(
+                  "expectedSalaryMax",
+                  e.target.value === "" ? null : Number(e.target.value),
+                )
               }
               className="h-12 rounded-xl border-border bg-background"
               required
