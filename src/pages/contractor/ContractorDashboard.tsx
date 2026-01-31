@@ -14,6 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import SpinnerLoader from '@/components/loader/SpinnerLoader';
 
 const recommendedJobs = [
   { id: 1, title: 'Senior React Developer', company: 'TechCorp', match: 94, duration: '6 months', testRequired: true },
@@ -22,6 +23,22 @@ const recommendedJobs = [
 ];
 
 const ContractorDashboard = () => {
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <SpinnerLoader className="w-10 h-10 text-primary" />
+        <p className="text-muted-foreground animate-pulse">Personalizing your dashboard...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}

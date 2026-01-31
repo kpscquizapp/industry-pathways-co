@@ -57,7 +57,7 @@ const userTypes = {
       { icon: Clock, text: 'Hire fast, pay per contract' },
     ],
     cta: 'Start Hiring',
-    link: '/employer/dashboard',
+    link: '/employer-signup',
   },
 };
 

@@ -26,21 +26,21 @@ export interface CandidateProfile {
   name: string;
   role: string;
   avatar?: string;
-  matchScore: number;
-  technicalScore: number;
-  communicationScore: number;
-  problemSolvingScore: number;
+  matchScore?: number;
+  technicalScore?: number;
+  communicationScore?: number;
+  problemSolvingScore?: number;
   hourlyRate: { min: number; max: number };
   availability: string;
   location: string;
   experience: string;
-  englishLevel: string;
+  englishLevel?: string;
   type: 'individual' | 'bench';
   company?: string;
   skills: string[];
-  certifications: { name: string; issuer: string; year: string }[];
-  about: string;
-  workExperience: {
+  certifications?: { name: string; issuer: string; year: string }[];
+  about?: string;
+  workExperience?: {
     role: string;
     company: string;
     companyColor?: string;
@@ -48,7 +48,7 @@ export interface CandidateProfile {
     location: string;
     highlights: string[];
   }[];
-  projects: {
+  projects?: {
     name: string;
     description: string;
     technologies: string[];
@@ -60,9 +60,9 @@ interface CandidateProfileModalProps {
   candidate: CandidateProfile | null;
   open: boolean;
   onClose: () => void;
-  onScheduleInterview: (candidate: CandidateProfile) => void;
-  onShortlist: (candidate: CandidateProfile) => void;
-  onSkillTest: (candidate: CandidateProfile) => void;
+  onScheduleInterview?: (candidate: CandidateProfile) => void;
+  onShortlist?: (candidate: CandidateProfile) => void;
+  onSkillTest?: (candidate: CandidateProfile) => void;
 }
 
 const ScoreCircle = ({ score, size = 64 }: { score: number; size?: number }) => {
@@ -123,7 +123,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+      <DialogContent className="max-w-none w-screen h-screen border-none rounded-none overflow-y-auto p-0 gap-0">
         <div className="flex flex-col lg:flex-row">
           {/* Left Sidebar */}
           <div className="lg:w-80 bg-card border-r border-border p-6 flex-shrink-0">
@@ -151,12 +151,14 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
 
             {/* Action Buttons */}
             <div className="space-y-3 mb-6">
-              <Button 
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
-                onClick={() => onScheduleInterview(candidate)}
-              >
-                Book Interview
-              </Button>
+              {onScheduleInterview && (
+                <Button 
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
+                  onClick={() => onScheduleInterview(candidate)}
+                >
+                  Book Interview
+                </Button>
+              )}
               <Button variant="outline" className="w-full rounded-xl">
                 <Download className="h-4 w-4 mr-2" />
               </Button>
@@ -214,22 +216,24 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
             </div>
 
             {/* Certifications */}
-            <div className="mt-6">
-              <h3 className="font-semibold text-foreground mb-3">Certifications</h3>
-              <div className="space-y-3">
-                {candidate.certifications.map((cert, idx) => (
-                  <div key={idx} className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
-                      <Award className="h-4 w-4 text-destructive" />
+            {candidate.certifications && candidate.certifications.length > 0 && (
+              <div className="mt-6">
+                <h3 className="font-semibold text-foreground mb-3">Certifications</h3>
+                <div className="space-y-3">
+                  {candidate.certifications.map((cert, idx) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                        <Award className="h-4 w-4 text-destructive" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground text-sm">{cert.name}</p>
+                        <p className="text-xs text-muted-foreground">Issued {cert.year}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-foreground text-sm">{cert.name}</p>
-                      <p className="text-xs text-muted-foreground">Issued {cert.year}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Right Content */}
@@ -244,92 +248,100 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
 
               <TabsContent value="overview" className="space-y-6">
                 {/* AI Matching Score */}
-                <Card className="border-border">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-4">
-                        <ScoreCircle score={candidate.matchScore} />
-                        <div>
-                          <h3 className="font-semibold text-lg text-foreground">AI Matching Score</h3>
-                          <p className="text-sm text-muted-foreground">Based on your project requirements for "Senior Mobile Developer".</p>
+                {candidate.matchScore !== undefined && (
+                  <Card className="border-border">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-4">
+                          <ScoreCircle score={candidate.matchScore} />
+                          <div>
+                            <h3 className="font-semibold text-lg text-foreground">AI Matching Score</h3>
+                            <p className="text-sm text-muted-foreground">Based on your project requirements for "Senior Mobile Developer".</p>
+                          </div>
                         </div>
+                        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
+                          View Detailed Report
+                        </Button>
                       </div>
-                      <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
-                        View Detailed Report
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <ScoreBar label="Technical Skill" score={candidate.technicalScore} />
-                      <ScoreBar label="Communication" score={candidate.communicationScore} />
-                      <ScoreBar label="Problem Solving" score={candidate.problemSolvingScore} />
-                    </div>
-                  </CardContent>
-                </Card>
+                      <div className="grid grid-cols-3 gap-4">
+                        {candidate.technicalScore !== undefined && <ScoreBar label="Technical Skill" score={candidate.technicalScore} />}
+                        {candidate.communicationScore !== undefined && <ScoreBar label="Communication" score={candidate.communicationScore} />}
+                        {candidate.problemSolvingScore !== undefined && <ScoreBar label="Problem Solving" score={candidate.problemSolvingScore} />}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* About */}
-                <Card className="border-border">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg text-foreground">About Candidate</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground leading-relaxed">{candidate.about}</p>
-                  </CardContent>
-                </Card>
+                {candidate.about && (
+                  <Card className="border-border">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg text-foreground">About Candidate</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground leading-relaxed">{candidate.about}</p>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Work Experience */}
-                <Card className="border-border">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg text-foreground">Work Experience</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {candidate.workExperience.map((exp, idx) => (
-                      <div key={idx} className="relative pl-6 border-l-2 border-muted">
-                        <div className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full bg-primary" />
-                        <div className="mb-1">
-                          <h4 className="font-semibold text-foreground">{exp.role}</h4>
-                          <p className="text-primary font-medium">{exp.company}</p>
-                          <p className="text-sm text-muted-foreground">{exp.period} • {exp.location}</p>
-                        </div>
-                        <ul className="mt-2 space-y-1">
-                          {exp.highlights.map((highlight, hIdx) => (
-                            <li key={hIdx} className="text-sm text-muted-foreground flex items-start gap-2">
-                              <span className="text-muted-foreground">-</span>
-                              {highlight}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-
-                {/* Featured Projects */}
-                <Card className="border-border">
-                  <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                    <CardTitle className="text-lg text-foreground">Featured Projects</CardTitle>
-                    <Button variant="link" className="text-primary p-0 h-auto">
-                      View Portfolio
-                      <ExternalLink className="h-3 w-3 ml-1" />
-                    </Button>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {candidate.projects.map((project, idx) => (
-                        <div key={idx} className="bg-muted/30 rounded-xl p-4">
-                          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-3">
-                            {project.icon === 'smartphone' ? (
-                              <Smartphone className="h-6 w-6 text-muted-foreground" />
-                            ) : (
-                              <ShoppingCart className="h-6 w-6 text-muted-foreground" />
-                            )}
+                {candidate.workExperience && candidate.workExperience.length > 0 && (
+                  <Card className="border-border">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg text-foreground">Work Experience</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {candidate.workExperience.map((exp, idx) => (
+                        <div key={idx} className="relative pl-6 border-l-2 border-muted">
+                          <div className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full bg-primary" />
+                          <div className="mb-1">
+                            <h4 className="font-semibold text-foreground">{exp.role}</h4>
+                            <p className="text-primary font-medium">{exp.company}</p>
+                            <p className="text-sm text-muted-foreground">{exp.period} • {exp.location}</p>
                           </div>
-                          <h4 className="font-semibold text-foreground">{project.name}</h4>
-                          <p className="text-xs text-muted-foreground mt-1">{project.technologies.join(', ')}</p>
+                          <ul className="mt-2 space-y-1">
+                            {exp.highlights.map((highlight, hIdx) => (
+                              <li key={hIdx} className="text-sm text-muted-foreground flex items-start gap-2">
+                                <span className="text-muted-foreground">-</span>
+                                {highlight}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Featured Projects */}
+                {candidate.projects && candidate.projects.length > 0 && (
+                  <Card className="border-border">
+                    <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                      <CardTitle className="text-lg text-foreground">Featured Projects</CardTitle>
+                      <Button variant="link" className="text-primary p-0 h-auto">
+                        View Portfolio
+                        <ExternalLink className="h-3 w-3 ml-1" />
+                      </Button>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        {candidate.projects.map((project, idx) => (
+                          <div key={idx} className="bg-muted/30 rounded-xl p-4">
+                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-3">
+                              {project.icon === 'smartphone' ? (
+                                <Smartphone className="h-6 w-6 text-muted-foreground" />
+                              ) : (
+                                <ShoppingCart className="h-6 w-6 text-muted-foreground" />
+                              )}
+                            </div>
+                            <h4 className="font-semibold text-foreground">{project.name}</h4>
+                            <p className="text-xs text-muted-foreground mt-1">{project.technologies.join(', ')}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="projects">
@@ -364,17 +376,23 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
 
         {/* Bottom Action Bar */}
         <div className="sticky bottom-0 bg-card border-t border-border p-4 flex items-center justify-end gap-3">
-          <Button variant="outline" className="rounded-xl" onClick={() => onSkillTest(candidate)}>
-            <FileText className="h-4 w-4 mr-2" />
-            Schedule Skill Test
-          </Button>
-          <Button variant="outline" className="rounded-xl text-primary border-primary hover:bg-primary/10" onClick={() => onShortlist(candidate)}>
-            <Star className="h-4 w-4 mr-2" />
-            Shortlist
-          </Button>
-          <Button className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => onScheduleInterview(candidate)}>
-            Book Interview
-          </Button>
+          {onSkillTest && (
+            <Button variant="outline" className="rounded-xl" onClick={() => onSkillTest(candidate)}>
+              <FileText className="h-4 w-4 mr-2" />
+              Schedule Skill Test
+            </Button>
+          )}
+          {onShortlist && (
+            <Button variant="outline" className="rounded-xl text-primary border-primary hover:bg-primary/10" onClick={() => onShortlist(candidate)}>
+              <Star className="h-4 w-4 mr-2" />
+              Shortlist
+            </Button>
+          )}
+          {onScheduleInterview && (
+            <Button className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => onScheduleInterview(candidate)}>
+              Book Interview
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

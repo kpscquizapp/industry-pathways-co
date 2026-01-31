@@ -28,11 +28,16 @@ import {
   Building2
 } from "lucide-react";
 import { toast } from "sonner";
+import { useExtractResumeMutation } from "@/app/queries/atsApi";
+import { usePostBenchResourceMutation } from "@/app/queries/benchApi";
 
 const PostBenchResource = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(2);
   
+  const [extractResume, { isLoading: isExtracting }] = useExtractResumeMutation();
+  const [postBenchResource] = usePostBenchResourceMutation();
+
   const steps = [
     { number: 1, title: "Company Profile", completed: true },
     { number: 2, title: "Resource Details", current: true },
@@ -80,57 +85,95 @@ const PostBenchResource = () => {
     }
   };
 
+  const mapExperience = (years: number) => {
+    if (years < 1) return "0-1";
+    if (years <= 3) return "1-3";
+    if (years <= 5) return "3-5";
+    if (years <= 8) return "5-8";
+    if (years <= 10) return "8-10";
+    return "10+";
+  };
+
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFormData({ ...formData, resumeFile: file });
+
+    try {
+      const result = await extractResume(file).unwrap();
+
+      if (result.success && result.data) {
+        setFormData((prev) => ({
+          ...prev,
+          resourceName: result.data.resourceName || prev.resourceName,
+          professionalSummary: result.data.professionalSummary || prev.professionalSummary,
+          skills: result.data.technicalSkills || prev.skills,
+          totalExperience: mapExperience(result.data.totalExperience) || prev.totalExperience,
+        }));
+        toast.success("Resume processed successfully!", {
+          description: "Form fields have been populated from your resume."
+        });
+      } else {
+        toast.error("Failed to extract data from resume");
+      }
+    } catch (error) {
+      console.error("OCR API error:", error);
+      toast.error("Error connecting to OCR service");
+    }
+  };
+
   const handleSaveDraft = () => {
     toast.success("Draft saved", {
       description: "You can continue later from where you left off."
     });
   };
 
-  const handleProceed = () => {
+  const handleProceed = async () => {
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
-      toast.success("Bench resource posted successfully!", {
-        description: "Your resource is now visible to potential clients."
-      });
-      navigate("/employer-dashboard/talent-marketplace");
+      // Final submission to backend
+      const formDataToSend = new FormData();
+      formDataToSend.append("resourceName", formData.resourceName);
+      formDataToSend.append("currentRole", formData.currentRole);
+      formDataToSend.append("totalExperience", formData.totalExperience);
+      formDataToSend.append("technicalSkills", JSON.stringify(formData.skills));
+      formDataToSend.append("hourlyRate", formData.hourlyRate);
+      formDataToSend.append("currency", formData.currency);
+      formDataToSend.append("availableFrom", formData.availableFrom);
+      formDataToSend.append("employeeId", formData.employeeId);
+      formDataToSend.append("minimumContractDuration", formData.minimumDuration);
+      formDataToSend.append("professionalSummary", formData.professionalSummary);
+      formDataToSend.append("requireNonSolicitation", String(formData.requireNonSolicitation));
+      
+      const deploymentPreference = Object.entries(formData.locationPreferences)
+          .filter(([_, v]) => v)
+          .map(([k, _]) => k);
+      formDataToSend.append("deploymentPreference", JSON.stringify(deploymentPreference));
+
+      if (formData.resumeFile) {
+        formDataToSend.append("resume", formData.resumeFile);
+      }
+
+      try {
+        await postBenchResource(formDataToSend).unwrap();
+        toast.success("Bench resource posted successfully!", {
+          description: "Your resource is now visible to potential clients."
+        });
+        navigate("/employer-dashboard/talent-marketplace");
+      } catch (error) {
+        toast.error("Failed to post bench resource");
+      }
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
       <div className="max-w-7xl mx-auto p-6 space-y-6 animate-fade-in">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+        <div >
           {/* Left Sidebar */}
-          <div className="space-y-6">
-            {/* Title Card */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white">
-              <CardContent className="p-6">
-                <h1 className="text-xl font-bold text-slate-800 mb-6">Post Bench Resource</h1>
-                <div className="space-y-4">
-                  {steps.map((step, index) => (
-                    <div key={step.number} className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 transition-all ${
-                        step.completed 
-                          ? "bg-blue-500 text-white shadow-md shadow-blue-500/30" 
-                          : step.current 
-                            ? "bg-blue-100 text-blue-600 ring-2 ring-blue-500 ring-offset-2" 
-                            : "bg-slate-100 text-slate-400"
-                      }`}>
-                        {step.completed ? <CheckCircle2 className="h-4 w-4" /> : step.number}
-                      </div>
-                      <span className={`text-sm font-medium ${
-                        step.current ? "text-blue-600" : step.completed ? "text-slate-700" : "text-slate-400"
-                      }`}>
-                        {step.title}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-          </div>
+         
 
           {/* Main Form */}
           <div className="space-y-6">
@@ -143,6 +186,53 @@ const PostBenchResource = () => {
                 <p className="text-sm text-orange-800">
                   <strong>Bench Policy:</strong> Resources listed here must be on your company payroll. Profiles can be anonymized until an interview request is accepted.
                 </p>
+              </CardContent>
+            </Card>
+
+            {/* Documents - Moved to Top */}
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white">
+              <CardHeader className="pb-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-purple-50/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                      <FileText className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <CardTitle className="text-lg font-semibold text-slate-800">Documents</CardTitle>
+                  </div>
+                  <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 gap-1.5 py-1 px-3">
+                    <Lightbulb className="h-3.5 w-3.5" />
+                    Upload to auto-fill details
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-6 p-6">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">Upload Anonymized Resume (PDF)</Label>
+                  <div 
+                    className={`border-2 border-dashed ${isExtracting ? 'border-blue-400 bg-blue-50/30' : 'border-slate-200'} rounded-2xl p-10 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer group relative`}
+                    onClick={() => document.getElementById('resume-upload')?.click()}
+                  >
+                    <input
+                      id="resume-upload"
+                      type="file"
+                      className="hidden"
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleResumeUpload}
+                      disabled={isExtracting}
+                    />
+                    <div className="w-14 h-14 rounded-2xl bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center mx-auto mb-4 transition-colors">
+                      {isExtracting ? (
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                      ) : (
+                        <Upload className="h-6 w-6 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                      )}
+                    </div>
+                    <p className="text-sm font-medium text-slate-600 group-hover:text-blue-600 transition-colors">
+                      {isExtracting ? "Extracting information..." : formData.resumeFile ? formData.resumeFile.name : "Click to upload resume"}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-2">Max file size 5MB. Please remove contact details.</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -354,30 +444,6 @@ const PostBenchResource = () => {
                     <p className="text-xs text-slate-500 mt-1">
                       Client cannot hire this resource permanently for 12 months.
                     </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Documents */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white">
-              <CardHeader className="pb-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-purple-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-                    <FileText className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <CardTitle className="text-lg font-semibold text-slate-800">Documents</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6 p-6">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">Upload Anonymized Resume (PDF)</Label>
-                  <div className="border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer group">
-                    <div className="w-14 h-14 rounded-2xl bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center mx-auto mb-4 transition-colors">
-                      <Upload className="h-6 w-6 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                    </div>
-                    <p className="text-sm font-medium text-slate-600 group-hover:text-blue-600 transition-colors">Click to upload resume</p>
-                    <p className="text-xs text-slate-400 mt-2">Max file size 5MB. Please remove contact details.</p>
                   </div>
                 </div>
               </CardContent>
