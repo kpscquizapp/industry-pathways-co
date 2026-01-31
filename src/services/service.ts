@@ -5,7 +5,7 @@ export const config = {
   //TODO: need to change this base url when deploying to production
   //baseURL: "http://localhost:4000/api/v1/" || "http://44.222.35.138/api/api/v1/",
   // DEV SERVER
-  baseURL: "http://localhost:4000/api/v1/",
+  baseURL: "http://44.222.35.138/api/api/v1/",
   headers: {
     "Content-Type": "application/json",
   },
