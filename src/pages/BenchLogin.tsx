@@ -144,7 +144,7 @@ const BenchLogin = () => {
                       <Input
                         name="email"
                         type="email"
-                        placeholder="hr@agency.com"
+                        placeholder="employer@agency.com"
                         className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
                         value={formData.email}
                         onChange={handleInputChange}
