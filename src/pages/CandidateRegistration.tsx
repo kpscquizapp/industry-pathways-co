@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
+import { Link, useNavigate } from "react-router-dom";
+import LandingHeader from "@/components/landing/LandingHeader";
+import LandingFooter from "@/components/landing/LandingFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -15,265 +15,178 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  ArrowLeft,
+  User,
+  Mail,
+  Lock,
+  Phone,
+  Briefcase,
+  Calendar,
   ArrowRight,
-  Upload,
-  Shield,
-  X,
-  Eye,
-  EyeOff,
-  Sparkles,
+  ArrowLeft,
   CheckCircle2,
-  FileText,
-  Building2,
+  Sparkles,
+  Zap,
+  Target,
+  Award,
+  Loader,
+  EyeOff,
+  Eye,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import Logo from "@/components/header/Logo";
+import { toast } from "sonner";
+import { useCreateCandidateMutation } from "@/app/queries/loginApi";
 
 interface FormData {
-  // Step 1: Personal Details
+  // Step 1
   firstName: string;
   lastName: string;
   email: string;
-  mobile: string;
   password: string;
-  confirmPassword: string;
-
-  // Step 2: Account Type
-  candidateType: "fulltime" | "contract" | "";
-
-  // Step 3: Career Basics
+  mobileNumber: string;
+  // Step 2
+  candidateType: string;
   primaryJobRole: string;
-  totalExperience: string;
-  currentCity: string;
-  currentCountry: string;
-  preferredWorkType: string;
-
-  // Step 4: Skills
+  yearsExperience: number | null;
   primarySkills: string[];
-  secondarySkills: string[];
-
-  // Step 5: Resume
-  resumeFile: File | null;
-
-  // Step 6: Preferences
-  preferredLocations: string[];
-  expectedSalaryMin: string;
-  expectedSalaryMax: string;
-  noticePeriod: string;
+  // Step 3
+  preferredWorkType: string[];
+  expectedSalaryMin: number | null;
+  expectedSalaryMax: number | null;
   availableToJoin: string;
-  acceptTerms: boolean;
-  acceptPrivacy: boolean;
-  enableAIMatching: boolean;
-  takeAssessment: boolean;
-  scheduleInterview: boolean;
+  acceptedTerms: boolean;
+  acceptedPrivacyPolicy: boolean;
 }
 
-const steps = [
-  { number: 1, title: "Personal Details" },
-  { number: 2, title: "Account Type" },
-  { number: 3, title: "Career Basics" },
-  { number: 4, title: "Skills" },
-  { number: 5, title: "Resume" },
-  { number: 6, title: "Preferences" },
-];
-
+// Validation regex patterns
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const PHONE_REGEX = /^\+?[0-9]{7,15}$/;
 const CandidateRegistration = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [primarySkillInput, setPrimarySkillInput] = useState("");
-  const [secondarySkillInput, setSecondarySkillInput] = useState("");
-  const [locationInput, setLocationInput] = useState("");
-
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
     email: "",
-    mobile: "",
     password: "",
-    confirmPassword: "",
+    mobileNumber: "",
     candidateType: "",
     primaryJobRole: "",
-    totalExperience: "",
-    currentCity: "",
-    currentCountry: "",
-    preferredWorkType: "",
+    yearsExperience: null,
     primarySkills: [],
-    secondarySkills: [],
-    resumeFile: null,
-    preferredLocations: [],
-    expectedSalaryMin: "",
-    expectedSalaryMax: "",
-    noticePeriod: "",
+    preferredWorkType: [],
+    expectedSalaryMin: null,
+    expectedSalaryMax: null,
     availableToJoin: "",
-    acceptTerms: false,
-    acceptPrivacy: false,
-    enableAIMatching: true,
-    takeAssessment: false,
-    scheduleInterview: false,
+    acceptedTerms: false,
+    acceptedPrivacyPolicy: false,
   });
+  const [primarySkillInput, setPrimarySkillInput] = useState("");
+  const [createCandidate, { isLoading: isLoadingCandidate }] =
+    useCreateCandidateMutation();
+  const navigate = useNavigate();
+
+  const totalSteps = 4;
+
+  const candidateTypeOptions = [
+    "Full-Time Job Seeker",
+    "Contract",
+    "Freelance",
+  ];
+
+  const preferredWorkTypeOptions = ["Remote", "Hybrid", "Onsite"];
 
   const updateFormData = (field: keyof FormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const addSkill = (type: "primary" | "secondary") => {
-    const input = type === "primary" ? primarySkillInput : secondarySkillInput;
-    const field = type === "primary" ? "primarySkills" : "secondarySkills";
-
-    if (input.trim() && !formData[field].includes(input.trim())) {
-      updateFormData(field, [...formData[field], input.trim()]);
-      type === "primary"
-        ? setPrimarySkillInput("")
-        : setSecondarySkillInput("");
-    }
+  const addPrimarySkill = (skill?: string) => {
+    const raw = (skill ?? primarySkillInput).trim();
+    if (!raw) return;
+    const skills = raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    setFormData((prev) => ({
+      ...prev,
+      primarySkills: Array.from(new Set([...prev.primarySkills, ...skills])),
+    }));
+    setPrimarySkillInput("");
   };
 
-  const removeSkill = (skill: string, type: "primary" | "secondary") => {
-    const field = type === "primary" ? "primarySkills" : "secondarySkills";
-    updateFormData(
-      field,
-      formData[field].filter((s) => s !== skill)
-    );
-  };
-
-  const addLocation = () => {
-    if (
-      locationInput.trim() &&
-      !formData.preferredLocations.includes(locationInput.trim())
-    ) {
-      updateFormData("preferredLocations", [
-        ...formData.preferredLocations,
-        locationInput.trim(),
-      ]);
-      setLocationInput("");
-    }
-  };
-
-  const removeLocation = (location: string) => {
-    updateFormData(
-      "preferredLocations",
-      formData.preferredLocations.filter((l) => l !== location)
-    );
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const validTypes = [
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      ];
-      if (validTypes.includes(file.type)) {
-        updateFormData("resumeFile", file);
-        toast({
-          title: "Resume Uploaded",
-          description:
-            "Your resume has been uploaded successfully. AI will extract skills automatically.",
-        });
-      } else {
-        toast({
-          title: "Invalid File Format",
-          description: "Please upload a PDF, DOC, or DOCX file.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
-  const validateStep = (step: number): boolean => {
-    switch (step) {
-      case 1:
-        if (
-          !formData.firstName ||
-          !formData.lastName ||
-          !formData.email ||
-          !formData.mobile ||
-          !formData.password ||
-          !formData.confirmPassword
-        ) {
-          toast({
-            title: "Please fill all required fields",
-            variant: "destructive",
-          });
-          return false;
-        }
-        if (formData.password !== formData.confirmPassword) {
-          toast({ title: "Passwords do not match", variant: "destructive" });
-          return false;
-        }
-        if (formData.password.length < 8) {
-          toast({
-            title: "Password must be at least 8 characters",
-            variant: "destructive",
-          });
-          return false;
-        }
-        return true;
-      case 2:
-        if (!formData.candidateType) {
-          toast({
-            title: "Please select a candidate type",
-            variant: "destructive",
-          });
-          return false;
-        }
-        return true;
-      case 3:
-        if (
-          !formData.primaryJobRole ||
-          !formData.totalExperience ||
-          !formData.currentCity ||
-          !formData.currentCountry ||
-          !formData.preferredWorkType
-        ) {
-          toast({
-            title: "Please fill all required fields",
-            variant: "destructive",
-          });
-          return false;
-        }
-        return true;
-      case 4:
-        if (formData.primarySkills.length === 0) {
-          toast({
-            title: "Please add at least one primary skill",
-            variant: "destructive",
-          });
-          return false;
-        }
-        return true;
-      case 5:
-        if (!formData.resumeFile) {
-          toast({ title: "Please upload your resume", variant: "destructive" });
-          return false;
-        }
-        return true;
-      case 6:
-        if (!formData.acceptTerms || !formData.acceptPrivacy) {
-          toast({
-            title: "Please accept Terms & Conditions and Privacy Policy",
-            variant: "destructive",
-          });
-          return false;
-        }
-        return true;
-      default:
-        return true;
-    }
+  const removePrimarySkill = (skill: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      primarySkills: prev.primarySkills.filter((s) => s !== skill),
+    }));
   };
 
   const handleNext = () => {
-    if (validateStep(currentStep)) {
-      if (currentStep < 6) {
-        setCurrentStep((prev) => prev + 1);
-      } else {
-        handleSubmit();
+    // Validation for each step
+    if (currentStep === 1) {
+      if (
+        !formData.firstName ||
+        !formData.lastName ||
+        !formData.email ||
+        !formData.password
+      ) {
+        toast.error("Please fill in all required fields");
+        return;
       }
+
+      // Email validation
+      if (!EMAIL_REGEX.test(formData.email)) {
+        toast.error("Please enter a valid email address");
+        return;
+      }
+
+      // Password validation
+      if (!PASSWORD_REGEX.test(formData.password)) {
+        toast.error(
+          "Password must be at least 8 characters with uppercase, lowercase, and a number",
+        );
+        return;
+      }
+    } else if (currentStep === 2) {
+      if (
+        !formData.mobileNumber ||
+        !formData.candidateType ||
+        !formData.primaryJobRole ||
+        formData.yearsExperience === null
+      ) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+      if (formData.yearsExperience < 0) {
+        toast.error("Years of experience cannot be negative");
+        return;
+      }
+      if (!PHONE_REGEX.test(formData.mobileNumber.replace(/[\s-]/g, ""))) {
+        toast.error("Please enter a valid mobile number");
+        return;
+      }
+    } else if (currentStep === 3) {
+      if (
+        formData.primarySkills.length === 0 ||
+        formData.preferredWorkType.length === 0 ||
+        formData.expectedSalaryMin === null ||
+        formData.expectedSalaryMax === null
+      ) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+      if (formData.expectedSalaryMin < 0 || formData.expectedSalaryMax < 0) {
+        toast.error("Salary values must be positive");
+        return;
+      }
+      if (
+        Number(formData.expectedSalaryMin) > Number(formData.expectedSalaryMax)
+      ) {
+        toast.error("Minimum salary cannot exceed maximum salary");
+        return;
+      }
+    }
+    if (currentStep < totalSteps) {
+      setCurrentStep((prev) => prev + 1);
     }
   };
 
@@ -283,652 +196,438 @@ const CandidateRegistration = () => {
     }
   };
 
-  const handleSubmit = () => {
-    toast({
-      title: "Registration Successful! 🎉",
-      description:
-        "Your profile has been created. Please verify your email to complete registration.",
-    });
-    navigate("/job-recommendations");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isLoadingCandidate) return;
+
+    if (currentStep !== totalSteps) {
+      return;
+    }
+    // Step 4 (final) validation
+    if (!formData.availableToJoin) {
+      toast.error("Please fill the required field");
+      return;
+    }
+
+    if (!formData.acceptedTerms) {
+      toast.error("Please accept the Terms and Conditions");
+      return;
+    }
+
+    if (!formData.acceptedPrivacyPolicy) {
+      toast.error("Please accept the Privacy Policy");
+      return;
+    }
+
+    try {
+      await createCandidate(formData).unwrap();
+      toast.success("Registration successful! Welcome aboard!");
+      navigate("/contractor/dashboard");
+    } catch (error: any) {
+      toast.error(
+        error?.data?.message || "Registration failed. Please try again.",
+      );
+    }
   };
 
-  const renderStepIndicator = () => (
-    <div className="flex items-center justify-center mb-8">
-      {steps.map((step, index) => (
-        <React.Fragment key={step.number}>
-          <div className="flex flex-col items-center">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
-                currentStep === step.number
-                  ? "bg-primary text-primary-foreground"
-                  : currentStep > step.number
-                  ? "bg-primary/20 text-primary"
-                  : "bg-muted text-muted-foreground"
-              }`}
-            >
-              {currentStep > step.number ? (
-                <CheckCircle2 className="w-4 h-4" />
-              ) : (
-                step.number
-              )}
-            </div>
-            <span
-              className={`text-xs mt-1 hidden sm:block ${
-                currentStep === step.number
-                  ? "text-primary font-medium"
-                  : "text-muted-foreground"
-              }`}
-            >
-              {step.title}
-            </span>
-          </div>
-          {index < steps.length - 1 && (
-            <div
-              className={`w-8 sm:w-16 h-0.5 mx-1 ${
-                currentStep > step.number ? "bg-primary" : "bg-muted"
-              }`}
-            />
-          )}
-        </React.Fragment>
-      ))}
-    </div>
-  );
+  const features = [
+    { icon: Zap, label: "AI-powered skill matching", highlight: true },
+    { icon: Target, label: "Smart job recommendations", highlight: false },
+    { icon: Award, label: "Verified skill assessments", highlight: false },
+    {
+      icon: CheckCircle2,
+      label: "Direct employer connections",
+      highlight: false,
+    },
+  ];
 
   const renderStep1 = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">
-          Let's get started
-        </h2>
-        <p className="text-muted-foreground mt-1">
-          Enter your personal details to begin your journey with Hirion.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="firstName">
+          <Label htmlFor="firstName" className="text-sm font-medium">
             First Name <span className="text-destructive">*</span>
           </Label>
-          <Input
-            id="firstName"
-            placeholder="e.g. John"
-            value={formData.firstName}
-            onChange={(e) => updateFormData("firstName", e.target.value)}
-          />
+          <div className="relative">
+            <User className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+            <Input
+              id="firstName"
+              type="text"
+              placeholder="Enter your first name"
+              value={formData.firstName}
+              onChange={(e) => updateFormData("firstName", e.target.value)}
+              className="pl-12 h-12 rounded-xl border-border bg-background"
+              required
+            />
+          </div>
         </div>
+
         <div className="space-y-2">
-          <Label htmlFor="lastName">
+          <Label htmlFor="lastName" className="text-sm font-medium">
             Last Name <span className="text-destructive">*</span>
           </Label>
-          <Input
-            id="lastName"
-            placeholder="e.g. Doe"
-            value={formData.lastName}
-            onChange={(e) => updateFormData("lastName", e.target.value)}
-          />
+          <div className="relative">
+            <User className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+            <Input
+              id="lastName"
+              type="text"
+              placeholder="Enter your last name"
+              value={formData.lastName}
+              onChange={(e) => updateFormData("lastName", e.target.value)}
+              className="pl-12 h-12 rounded-xl border-border bg-background"
+              required
+            />
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">
-            Email Address <span className="text-destructive">*</span>
-          </Label>
+      <div className="space-y-2">
+        <Label htmlFor="email" className="text-sm font-medium">
+          Email Address <span className="text-destructive">*</span>
+        </Label>
+        <div className="relative">
+          <Mail className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
           <Input
             id="email"
             type="email"
-            placeholder="john@example.com"
+            placeholder="Enter your email address"
             value={formData.email}
             onChange={(e) => updateFormData("email", e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="mobile">
-            Mobile Number <span className="text-destructive">*</span>
-          </Label>
-          <Input
-            id="mobile"
-            placeholder="+91 98765 43210"
-            value={formData.mobile}
-            onChange={(e) => updateFormData("mobile", e.target.value)}
+            className="pl-12 h-12 rounded-xl border-border bg-background"
+            required
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="password">
-            Password <span className="text-destructive">*</span>
-          </Label>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Create a strong password"
-              value={formData.password}
-              onChange={(e) => updateFormData("password", e.target.value)}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">
-            Confirm Password <span className="text-destructive">*</span>
-          </Label>
-          <div className="relative">
-            <Input
-              id="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Repeat password"
-              value={formData.confirmPassword}
-              onChange={(e) =>
-                updateFormData("confirmPassword", e.target.value)
-              }
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              {showConfirmPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </button>
-          </div>
+      <div className="space-y-2">
+        <Label htmlFor="password" className="text-sm font-medium">
+          Password <span className="text-destructive">*</span>
+        </Label>
+        <div className="relative">
+          <Lock className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Create a strong password"
+            value={formData.password}
+            onChange={(e) => updateFormData("password", e.target.value)}
+            className="pl-12 h-12 rounded-xl border-border bg-background"
+            required
+          />
+          <button
+            type="button"
+            className="absolute right-4 top-3.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors min-h-0 min-w-0"
+            onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword}
+          >
+            {showPassword ? (
+              <EyeOff className="h-5 w-5" />
+            ) : (
+              <Eye className="h-5 w-5" />
+            )}
+          </button>
         </div>
       </div>
     </div>
   );
 
   const renderStep2 = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">
-          What type of candidate are you?
-        </h2>
-        <p className="text-muted-foreground mt-1">
-          This helps us personalize your job recommendations.
-        </p>
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <Label htmlFor="mobileNumber" className="text-sm font-medium">
+          Mobile Number <span className="text-destructive">*</span>
+        </Label>
+        <div className="relative">
+          <Phone className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+          <Input
+            id="mobileNumber"
+            type="tel"
+            placeholder="Enter your mobile number"
+            value={formData.mobileNumber}
+            onChange={(e) => updateFormData("mobileNumber", e.target.value)}
+            className="pl-12 h-12 rounded-xl border-border bg-background"
+            required
+          />
+        </div>
       </div>
 
-      <RadioGroup
-        value={formData.candidateType}
-        onValueChange={(value) => updateFormData("candidateType", value)}
-        className="space-y-4"
-      >
-        <div
-          className={`flex items-start space-x-4 p-6 rounded-xl border-2 cursor-pointer transition-all ${
-            formData.candidateType === "fulltime"
-              ? "border-primary bg-primary/5"
-              : "border-border hover:border-primary/50"
-          }`}
-          onClick={() => updateFormData("candidateType", "fulltime")}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">
+          Candidate Type <span className="text-destructive">*</span>
+        </Label>
+        <Select
+          name="candidateType"
+          value={formData.candidateType}
+          onValueChange={(value) => updateFormData("candidateType", value)}
         >
-          <RadioGroupItem value="fulltime" id="fulltime" className="mt-1" />
-          <div className="flex-1">
-            <Label
-              htmlFor="fulltime"
-              className="text-lg font-semibold cursor-pointer"
-            >
-              Full-Time Job Seeker
-            </Label>
-            <p className="text-muted-foreground mt-1">
-              Looking for permanent employment opportunities with companies.
-            </p>
-          </div>
-          <Building2 className="h-8 w-8 text-primary" />
-        </div>
+          <SelectTrigger className="h-12 rounded-xl border-border bg-background">
+            <SelectValue placeholder="Select candidate type" />
+          </SelectTrigger>
+          <SelectContent>
+            {candidateTypeOptions.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-        <div
-          className={`flex items-start space-x-4 p-6 rounded-xl border-2 cursor-pointer transition-all ${
-            formData.candidateType === "contract"
-              ? "border-primary bg-primary/5"
-              : "border-border hover:border-primary/50"
-          }`}
-          onClick={() => updateFormData("candidateType", "contract")}
-        >
-          <RadioGroupItem value="contract" id="contract" className="mt-1" />
-          <div className="flex-1">
-            <Label
-              htmlFor="contract"
-              className="text-lg font-semibold cursor-pointer"
-            >
-              Contract / Freelance Talent
-            </Label>
-            <p className="text-muted-foreground mt-1">
-              Available for project-based, contract, or freelance work.
-            </p>
-          </div>
-          <FileText className="h-8 w-8 text-primary" />
+      <div className="space-y-2">
+        <Label htmlFor="primaryJobRole" className="text-sm font-medium">
+          Primary Job Role <span className="text-destructive">*</span>
+        </Label>
+        <div className="relative">
+          <Briefcase className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+          <Input
+            id="primaryJobRole"
+            type="text"
+            placeholder="e.g. Senior Software Engineer"
+            value={formData.primaryJobRole}
+            onChange={(e) => updateFormData("primaryJobRole", e.target.value)}
+            className="pl-12 h-12 rounded-xl border-border bg-background"
+            required
+          />
         </div>
-      </RadioGroup>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="yearsExperience" className="text-sm font-medium">
+          Years of Experience <span className="text-destructive">*</span>
+        </Label>
+        <div className="relative">
+          <Award className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+          <Input
+            id="yearsExperience"
+            type="number"
+            min={0}
+            placeholder="e.g. 5"
+            value={formData.yearsExperience ?? ""}
+            onChange={(e) =>
+              updateFormData(
+                "yearsExperience",
+                e.target.value ? Number(e.target.value) : null,
+              )
+            }
+            className="pl-12 h-12 rounded-xl border-border bg-background"
+            required
+          />
+        </div>
+      </div>
     </div>
   );
 
   const renderStep3 = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Career Basics</h2>
-        <p className="text-muted-foreground mt-1">
-          Tell us about your professional background.
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <Label htmlFor="primarySkills" className="text-sm font-medium">
+          Primary Skills <span className="text-destructive">*</span>
+        </Label>
+        <div className="relative flex items-center">
+          <Sparkles className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+          <Input
+            id="primarySkills"
+            type="text"
+            placeholder="Type a skill and press Enter or comma, or click Add"
+            value={primarySkillInput}
+            onChange={(e) => setPrimarySkillInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === ",") {
+                e.preventDefault();
+                addPrimarySkill();
+              }
+            }}
+            className="pl-12 h-12 rounded-xl border-border bg-background flex-1"
+          />
+          <Button
+            type="button"
+            onClick={() => addPrimarySkill()}
+            className="ml-3 h-10 rounded-xl"
+          >
+            Add
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-2">
+          {formData.primarySkills.map((skill) => (
+            <span
+              key={skill}
+              className="inline-flex items-center md:gap-2 md:px-3 pl-3 md:py-1 rounded-full bg-muted text-muted-foreground text-sm"
+            >
+              {skill}
+              <button
+                type="button"
+                className="md:ml-2 text-destructive"
+                onClick={() => removePrimarySkill(skill)}
+                aria-label={`Remove ${skill}`}
+              >
+                ✕
+              </button>
+            </span>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Add skills individually so they are stored as a list
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="primaryJobRole">
-          Primary Job Role <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          id="primaryJobRole"
-          placeholder="e.g., Software Developer, Data Analyst"
-          value={formData.primaryJobRole}
-          onChange={(e) => updateFormData("primaryJobRole", e.target.value)}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>
-          Total Experience <span className="text-destructive">*</span>
-        </Label>
-        <Select
-          value={formData.totalExperience}
-          onValueChange={(value) => updateFormData("totalExperience", value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select your experience level" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="fresher">Fresher</SelectItem>
-            <SelectItem value="0-2">0–2 Years</SelectItem>
-            <SelectItem value="2-5">2–5 Years</SelectItem>
-            <SelectItem value="5-10">5–10 Years</SelectItem>
-            <SelectItem value="10+">10+ Years</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="currentCity">
-            City <span className="text-destructive">*</span>
-          </Label>
-          <Input
-            id="currentCity"
-            placeholder="e.g., Mumbai"
-            value={formData.currentCity}
-            onChange={(e) => updateFormData("currentCity", e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="currentCountry">
-            Country <span className="text-destructive">*</span>
-          </Label>
-          <Input
-            id="currentCountry"
-            placeholder="e.g., India"
-            value={formData.currentCountry}
-            onChange={(e) => updateFormData("currentCountry", e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label>
+        <Label className="text-sm font-medium">
           Preferred Work Type <span className="text-destructive">*</span>
         </Label>
-        <Select
-          value={formData.preferredWorkType}
-          onValueChange={(value) => updateFormData("preferredWorkType", value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select work type preference" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="onsite">Onsite</SelectItem>
-            <SelectItem value="remote">Remote</SelectItem>
-            <SelectItem value="hybrid">Hybrid</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-4">
+          {preferredWorkTypeOptions.map((option) => (
+            <label
+              key={option}
+              className="flex items-center space-x-2 cursor-pointer"
+            >
+              <Checkbox
+                name="preferredWorkType"
+                checked={formData.preferredWorkType.includes(option)}
+                onCheckedChange={(checked) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    preferredWorkType: checked
+                      ? [
+                          ...prev.preferredWorkType.filter((t) => t !== option),
+                          option,
+                        ]
+                      : prev.preferredWorkType.filter((t) => t !== option),
+                  }));
+                }}
+                className="min-h-0 min-w-0"
+              />
+              <span className="text-sm">{option}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="expectedSalaryMin" className="text-sm font-medium">
+            Expected Salary Min <span className="text-destructive">*</span>
+          </Label>
+          <div className="relative">
+            <Input
+              id="expectedSalaryMin"
+              type="number"
+              placeholder="Enter Expected Yearly Salary Min"
+              value={formData.expectedSalaryMin ?? ""}
+              onChange={(e) =>
+                updateFormData(
+                  "expectedSalaryMin",
+                  e.target.value === "" ? null : Number(e.target.value),
+                )
+              }
+              className="h-12 rounded-xl border-border bg-background"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="expectedSalaryMax" className="text-sm font-medium">
+            Expected Salary Max <span className="text-destructive">*</span>
+          </Label>
+          <div className="relative">
+            <Input
+              id="expectedSalaryMax"
+              type="number"
+              placeholder="Enter Expected Yearly Salary Max"
+              value={formData.expectedSalaryMax ?? ""}
+              onChange={(e) =>
+                updateFormData(
+                  "expectedSalaryMax",
+                  e.target.value === "" ? null : Number(e.target.value),
+                )
+              }
+              className="h-12 rounded-xl border-border bg-background"
+              required
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
 
   const renderStep4 = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Your Skills</h2>
-        <p className="text-muted-foreground mt-1">
-          Add skills that showcase your expertise.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label>
-            Primary Skills <span className="text-destructive">*</span>
-          </Label>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Add a skill (e.g., React, Python)"
-              value={primarySkillInput}
-              onChange={(e) => setPrimarySkillInput(e.target.value)}
-              onKeyPress={(e) =>
-                e.key === "Enter" && (e.preventDefault(), addSkill("primary"))
-              }
-            />
-            <Button type="button" onClick={() => addSkill("primary")}>
-              Add
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {formData.primarySkills.map((skill) => (
-              <Badge
-                key={skill}
-                variant="default"
-                className="gap-1 py-1.5 px-3"
-              >
-                {skill}
-                <X
-                  className="h-3 w-3 cursor-pointer ml-1"
-                  onClick={() => removeSkill(skill, "primary")}
-                />
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label>
-            Secondary Skills{" "}
-            <span className="text-muted-foreground">(Optional)</span>
-          </Label>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Add secondary skills"
-              value={secondarySkillInput}
-              onChange={(e) => setSecondarySkillInput(e.target.value)}
-              onKeyPress={(e) =>
-                e.key === "Enter" && (e.preventDefault(), addSkill("secondary"))
-              }
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => addSkill("secondary")}
-            >
-              Add
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {formData.secondarySkills.map((skill) => (
-              <Badge
-                key={skill}
-                variant="secondary"
-                className="gap-1 py-1.5 px-3"
-              >
-                {skill}
-                <X
-                  className="h-3 w-3 cursor-pointer ml-1"
-                  onClick={() => removeSkill(skill, "secondary")}
-                />
-              </Badge>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderStep5 = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">
-          Upload Your Resume
-        </h2>
-        <p className="text-muted-foreground mt-1">
-          Our AI will automatically extract your skills and experience.
-        </p>
-      </div>
-
-      <div
-        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
-          formData.resumeFile
-            ? "border-primary bg-primary/5"
-            : "border-border hover:border-primary/50"
-        }`}
-      >
-        <input
-          type="file"
-          id="resume"
-          accept=".pdf,.doc,.docx"
-          className="hidden"
-          onChange={handleFileUpload}
-        />
-        <label htmlFor="resume" className="cursor-pointer">
-          {formData.resumeFile ? (
-            <div className="space-y-3">
-              <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
-              <div>
-                <p className="font-semibold text-foreground">
-                  {formData.resumeFile.name}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Click to replace
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <Upload className="h-12 w-12 text-muted-foreground mx-auto" />
-              <div>
-                <p className="font-semibold text-foreground">
-                  Drop your resume here or click to browse
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Supported formats: PDF, DOC, DOCX
-                </p>
-              </div>
-            </div>
-          )}
-        </label>
-      </div>
-
-      <div className="bg-primary/10 p-4 rounded-xl flex items-start gap-3">
-        <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="font-medium text-foreground">
-            AI-Powered Skill Extraction
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Our AI will automatically identify and extract skills from your
-            resume to improve your profile visibility.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderStep6 = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Job Preferences</h2>
-        <p className="text-muted-foreground mt-1">
-          Set your preferences for better job matches. (Optional fields)
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label>Preferred Job Location(s)</Label>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Add a location"
-              value={locationInput}
-              onChange={(e) => setLocationInput(e.target.value)}
-              onKeyPress={(e) =>
-                e.key === "Enter" && (e.preventDefault(), addLocation())
-              }
-            />
-            <Button type="button" variant="outline" onClick={addLocation}>
-              Add
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {formData.preferredLocations.map((location) => (
-              <Badge
-                key={location}
-                variant="secondary"
-                className="gap-1 py-1.5 px-3"
-              >
-                {location}
-                <X
-                  className="h-3 w-3 cursor-pointer ml-1"
-                  onClick={() => removeLocation(location)}
-                />
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Expected Salary (Min)</Label>
-            <Input
-              placeholder="e.g., ₹5,00,000"
-              value={formData.expectedSalaryMin}
-              onChange={(e) =>
-                updateFormData("expectedSalaryMin", e.target.value)
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Expected Salary (Max)</Label>
-            <Input
-              placeholder="e.g., ₹10,00,000"
-              value={formData.expectedSalaryMax}
-              onChange={(e) =>
-                updateFormData("expectedSalaryMax", e.target.value)
-              }
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label>
-            Available to Join <span className="text-destructive">*</span>
-          </Label>
-          <Select
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <Label htmlFor="availableToJoin" className="text-sm font-medium">
+          Available to Join <span className="text-destructive">*</span>
+        </Label>
+        <div className="relative">
+          <Calendar className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+          <Input
+            id="availableToJoin"
+            type="text"
+            placeholder="e.g. Immediate, 2 weeks, 1 month"
             value={formData.availableToJoin}
-            onValueChange={(value) => updateFormData("availableToJoin", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select availability" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="immediate">Immediate</SelectItem>
-              <SelectItem value="15-days">15 Days</SelectItem>
-              <SelectItem value="30-days">30 Days</SelectItem>
-              <SelectItem value="60-days">60+ Days</SelectItem>
-            </SelectContent>
-          </Select>
+            onChange={(e) => updateFormData("availableToJoin", e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+              }
+            }}
+            className="pl-12 h-12 rounded-xl border-border bg-background"
+          />
         </div>
       </div>
 
-      <div className="border-t pt-6 space-y-4">
-        <h3 className="font-semibold text-foreground">Terms & AI Options</h3>
+      <div className="space-y-4 pt-2">
+        <div className="flex items-start space-x-3">
+          <Checkbox
+            id="acceptedTerms"
+            checked={formData.acceptedTerms}
+            onCheckedChange={(checked) =>
+              updateFormData("acceptedTerms", checked === true)
+            }
+            className="mt-1 min-h-0 min-w-0"
+          />
+          <Label
+            htmlFor="acceptedTerms"
+            className="text-sm font-normal leading-relaxed cursor-pointer"
+          >
+            I accept the{" "}
+            <Link
+              to="/terms"
+              className="text-primary hover:underline font-medium"
+            >
+              Terms and Conditions
+            </Link>{" "}
+            <span className="text-destructive">*</span>
+          </Label>
+        </div>
 
-        <div className="space-y-3">
-          <div className="flex items-start gap-3">
-            <Checkbox
-              id="terms"
-              checked={formData.acceptTerms}
-              onCheckedChange={(checked) =>
-                updateFormData("acceptTerms", checked)
-              }
-            />
-            <Label htmlFor="terms" className="text-sm cursor-pointer">
-              I accept the{" "}
-              <Link to="#" className="text-primary hover:underline">
-                Terms & Conditions
-              </Link>{" "}
-              <span className="text-destructive">*</span>
-            </Label>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <Checkbox
-              id="privacy"
-              checked={formData.acceptPrivacy}
-              onCheckedChange={(checked) =>
-                updateFormData("acceptPrivacy", checked)
-              }
-            />
-            <Label htmlFor="privacy" className="text-sm cursor-pointer">
-              I accept the{" "}
-              <Link to="#" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>{" "}
-              <span className="text-destructive">*</span>
-            </Label>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <Checkbox
-              id="aiMatching"
-              checked={formData.enableAIMatching}
-              onCheckedChange={(checked) =>
-                updateFormData("enableAIMatching", checked)
-              }
-            />
-            <Label htmlFor="aiMatching" className="text-sm cursor-pointer">
-              Enable AI Skill Matching for personalized job recommendations
-            </Label>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <Checkbox
-              id="assessment"
-              checked={formData.takeAssessment}
-              onCheckedChange={(checked) =>
-                updateFormData("takeAssessment", checked)
-              }
-            />
-            <Label htmlFor="assessment" className="text-sm cursor-pointer">
-              Take Skill Assessment after registration
-            </Label>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <Checkbox
-              id="interview"
-              checked={formData.scheduleInterview}
-              onCheckedChange={(checked) =>
-                updateFormData("scheduleInterview", checked)
-              }
-            />
-            <Label htmlFor="interview" className="text-sm cursor-pointer">
-              Schedule AI Interview later
-            </Label>
-          </div>
+        <div className="flex items-start space-x-3">
+          <Checkbox
+            id="acceptedPrivacyPolicy"
+            checked={formData.acceptedPrivacyPolicy}
+            onCheckedChange={(checked) =>
+              updateFormData("acceptedPrivacyPolicy", checked === true)
+            }
+            className="mt-1 min-h-0 min-w-0"
+          />
+          <Label
+            htmlFor="acceptedPrivacyPolicy"
+            className="text-sm font-normal leading-relaxed cursor-pointer"
+          >
+            I accept the{" "}
+            <Link
+              to="/privacy"
+              className="text-primary hover:underline font-medium"
+            >
+              Privacy Policy
+            </Link>{" "}
+            <span className="text-destructive">*</span>
+          </Label>
         </div>
       </div>
     </div>
   );
 
-  const renderCurrentStep = () => {
+  const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return renderStep1();
@@ -938,64 +637,202 @@ const CandidateRegistration = () => {
         return renderStep3();
       case 4:
         return renderStep4();
-      case 5:
-        return renderStep5();
-      case 6:
-        return renderStep6();
       default:
-        return renderStep1();
+        return null;
+    }
+  };
+
+  const getStepTitle = () => {
+    switch (currentStep) {
+      case 1:
+        return "Create Candidate Account";
+      case 2:
+        return "Professional Details";
+      case 3:
+        return "Skills & Preferences";
+      case 4:
+        return "Final Details";
+      default:
+        return "";
+    }
+  };
+
+  const getStepDescription = () => {
+    switch (currentStep) {
+      case 1:
+        return "Enter your basic information to get started";
+      case 2:
+        return "Tell us about your professional background";
+      case 3:
+        return "Share your skills and work preferences";
+      case 4:
+        return "Complete your registration";
+      default:
+        return "";
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Header */}
-      <header className="bg-[#0a1628] py-4 px-6">
-        <Logo />
-      </header>
+      <LandingHeader />
 
-      <main className="flex-1 py-8 px-4">
-        <div className="container mx-auto max-w-3xl">
-          {renderStepIndicator()}
-
-          <Card className="shadow-lg">
-            <CardContent className="p-6 md:p-8">
-              {renderCurrentStep()}
-
-              {/* Footer with security note and navigation */}
-              <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                  <Shield className="h-4 w-4" />
-                  <span>Your data is encrypted and secure.</span>
+      <main className="flex-1 pt-20 pb-12 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center mt-8">
+            {/* Left Column - Features */}
+            <div className="space-y-6 order-2 lg:order-1">
+              {/* Header */}
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <span className="text-xl font-bold text-foreground">
+                      HIRION
+                    </span>
+                    <p className="text-xs text-muted-foreground">
+                      AI Talent & Bench Marketplace
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex gap-3">
-                  {currentStep > 1 && (
-                    <Button variant="outline" onClick={handleBack}>
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Back
-                    </Button>
-                  )}
-                  <Button onClick={handleNext}>
-                    {currentStep === 6 ? "Create Account" : "Next Step"}
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </div>
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary text-sm font-semibold rounded-full mb-4">
+                  <Sparkles className="h-4 w-4" />
+                  Candidate Registration
+                </span>
+
+                <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 leading-tight">
+                  Find Your Perfect Opportunity
+                </h1>
+                <p className="text-muted-foreground text-lg">
+                  Let AI match your skills with opportunities. Get discovered by
+                  top companies. Accelerate your career with verified
+                  assessments.
+                </p>
               </div>
-            </CardContent>
-          </Card>
 
-          <p className="text-center mt-6 text-muted-foreground">
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-primary font-medium hover:underline"
-            >
-              Log in here
-            </Link>
-          </p>
+              {/* Feature Pills Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {features.map((feature, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
+                      feature.highlight
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card border-border"
+                    }`}
+                  >
+                    <feature.icon
+                      className={`h-5 w-5 ${feature.highlight ? "" : "text-primary"}`}
+                    />
+                    <span className="text-sm font-medium">{feature.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="bg-card border-border rounded-xl p-5">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    AVERAGE MATCH TIME
+                  </p>
+                  <p className="text-3xl font-bold text-primary">24hrs</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    AI-powered job matching
+                  </p>
+                </Card>
+                <Card className="bg-card border-border rounded-xl p-5">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    SUCCESS RATE
+                  </p>
+                  <p className="text-3xl font-bold text-primary">85%</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    candidates placed in 90 days
+                  </p>
+                </Card>
+              </div>
+            </div>
+
+            {/* Right Column - Registration Form */}
+            <Card className="shadow-xl border-border rounded-2xl overflow-hidden bg-card order-1 lg:order-2">
+              <CardContent className="p-8 sm:p-10">
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
+                      {getStepTitle()}
+                    </h2>
+                    <p className="text-muted-foreground text-sm">
+                      {getStepDescription()}
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    {renderStepContent()}
+
+                    <div className="flex gap-3 pt-2">
+                      {currentStep > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleBack}
+                          className="flex-1 h-12 rounded-xl border-2 border-border"
+                        >
+                          <ArrowLeft className="mr-2 h-5 w-5" />
+                          Back
+                        </Button>
+                      )}
+
+                      {currentStep < totalSteps ? (
+                        <Button
+                          type="button"
+                          onClick={handleNext}
+                          className={`h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl transition-all text-base shadow-lg ${
+                            currentStep === 1 ? "w-full" : "flex-1"
+                          }`}
+                        >
+                          Next Step
+                          <ArrowRight className="ml-2 h-5 w-5" />
+                        </Button>
+                      ) : (
+                        <Button
+                          type="submit"
+                          className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl transition-all text-base shadow-lg"
+                          disabled={isLoadingCandidate}
+                        >
+                          {isLoadingCandidate ? (
+                            <>
+                              <Loader className="mr-2 h-4 w-4 animate-spin" />
+                              Creating account...
+                            </>
+                          ) : (
+                            <>
+                              Complete Registration
+                              <CheckCircle2 className="ml-2 h-5 w-5" />
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  </form>
+
+                  <p className="text-center text-sm text-muted-foreground">
+                    Already have an account?{" "}
+                    <Link
+                      to="/candidate-login"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Log in
+                    </Link>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
+
+      <LandingFooter />
     </div>
   );
 };

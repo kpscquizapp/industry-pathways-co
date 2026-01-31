@@ -20,7 +20,7 @@ export const loginApi = createApi({
       query: (data) => ({
         method: "POST",
         body: data,
-        url: "jobboard/register/candidate",
+        url: "/auth/register-candidate",
       }),
     }),
     login: builder.mutation({
