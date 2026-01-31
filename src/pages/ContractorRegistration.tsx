@@ -2,20 +2,20 @@ import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Building2, 
+import {
+  Building2,
   User,
   ArrowRight,
   Sparkles,
   Upload,
-  CheckCircle2
+  CheckCircle2,
 } from "lucide-react";
 
 const ContractorRegistration = () => {
   const navigate = useNavigate();
 
   const handleContractorContinue = () => {
-    navigate("/contractor/dashboard");
+    navigate("/candidate-register");
   };
 
   const handleBenchContinue = () => {
@@ -29,7 +29,7 @@ const ContractorRegistration = () => {
         {/* Background decorative elements */}
         <div className="absolute top-20 right-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-20 left-10 w-48 h-48 bg-primary/15 rounded-full blur-2xl" />
-        
+
         {/* Logo */}
         <div className="relative z-10">
           <Link to="/" className="flex items-center gap-3">
@@ -44,11 +44,14 @@ const ContractorRegistration = () => {
         <div className="relative z-10 space-y-8">
           <div>
             <h1 className="text-4xl lg:text-5xl font-bold text-foreground leading-tight">
-              Contractors & Bench,<br />
+              Contractors & Bench,
+              <br />
               <span className="text-primary">One Smart Entry Point.</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground max-w-md">
-              Pick the right track for yourself or your team. Join as an independent contractor or list internal bench talent in a dedicated marketplace.
+              Pick the right track for yourself or your team. Join as an
+              independent contractor or list internal bench talent in a
+              dedicated marketplace.
             </p>
           </div>
 
@@ -59,9 +62,12 @@ const ContractorRegistration = () => {
                 <User className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">Independent Talent</h3>
+                <h3 className="font-semibold text-foreground">
+                  Independent Talent
+                </h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Build a verified contractor profile with skills, rate, and availability visible to hiring teams.
+                  Build a verified contractor profile with skills, rate, and
+                  availability visible to hiring teams.
                 </p>
               </div>
             </div>
@@ -71,9 +77,12 @@ const ContractorRegistration = () => {
                 <Building2 className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">Bench Monetization</h3>
+                <h3 className="font-semibold text-foreground">
+                  Bench Monetization
+                </h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Publish ready-to-deploy employees from your bench and keep them billable on external projects.
+                  Publish ready-to-deploy employees from your bench and keep
+                  them billable on external projects.
                 </p>
               </div>
             </div>
@@ -85,7 +94,8 @@ const ContractorRegistration = () => {
               <div>
                 <h3 className="font-semibold text-foreground">AI Matching</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  AI surfaces the best contract, part-time and short-term roles for each profile automatically.
+                  AI surfaces the best contract, part-time and short-term roles
+                  for each profile automatically.
                 </p>
               </div>
             </div>
@@ -118,7 +128,8 @@ const ContractorRegistration = () => {
               How would you like to register?
             </h2>
             <p className="mt-2 text-muted-foreground">
-              Choose a track to continue. You can always add the other mode later from your dashboard.
+              Choose a track to continue. You can always add the other mode
+              later from your dashboard.
             </p>
           </div>
 
@@ -134,7 +145,9 @@ const ContractorRegistration = () => {
                       <User className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">Join as Contractor</h3>
+                      <h3 className="font-semibold text-foreground">
+                        Join as Contractor
+                      </h3>
                     </div>
                   </div>
                   <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
@@ -150,19 +163,25 @@ const ContractorRegistration = () => {
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start gap-2 text-sm text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Highlight skills, rate (₹/hour or ₹/day) & availability.</span>
+                    <span>
+                      Highlight skills, rate (₹/hour or ₹/day) & availability.
+                    </span>
                   </li>
                   <li className="flex items-start gap-2 text-sm text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Get AI-matched to full-time, contract & part-time work.</span>
+                    <span>
+                      Get AI-matched to full-time, contract & part-time work.
+                    </span>
                   </li>
                   <li className="flex items-start gap-2 text-sm text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Control profile visibility and who can contact you.</span>
+                    <span>
+                      Control profile visibility and who can contact you.
+                    </span>
                   </li>
                 </ul>
 
-                <Button 
+                <Button
                   onClick={handleContractorContinue}
                   className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
                 >
@@ -182,7 +201,9 @@ const ContractorRegistration = () => {
                       <Building2 className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">List Bench Resource</h3>
+                      <h3 className="font-semibold text-foreground">
+                        List Bench Resource
+                      </h3>
                     </div>
                   </div>
                   <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
@@ -198,19 +219,25 @@ const ContractorRegistration = () => {
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start gap-2 text-sm text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Add employee details, role, skills & bill rate in ₹.</span>
+                    <span>
+                      Add employee details, role, skills & bill rate in ₹.
+                    </span>
                   </li>
                   <li className="flex items-start gap-2 text-sm text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Showcase availability window & non-compete notes.</span>
+                    <span>
+                      Showcase availability window & non-compete notes.
+                    </span>
                   </li>
                   <li className="flex items-start gap-2 text-sm text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Track which bench profiles are deployed via Hirion.</span>
+                    <span>
+                      Track which bench profiles are deployed via Hirion.
+                    </span>
                   </li>
                 </ul>
 
-                <Button 
+                <Button
                   onClick={handleBenchContinue}
                   className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
                 >
@@ -224,7 +251,10 @@ const ContractorRegistration = () => {
           {/* Login Link */}
           <p className="text-center mt-8 text-muted-foreground">
             Already registered?{" "}
-            <Link to="/login" className="text-primary font-medium hover:underline">
+            <Link
+              to="/login"
+              className="text-primary font-medium hover:underline"
+            >
               Go to login
             </Link>
           </p>

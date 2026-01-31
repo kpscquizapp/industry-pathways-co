@@ -222,7 +222,7 @@ const CandidateRegistration = () => {
     try {
       await createCandidate(formData).unwrap();
       toast.success("Registration successful! Welcome aboard!");
-      navigate("/candidate-login"); // or a success/confirmation page
+      navigate("/contractor/dashboard");
     } catch (error: any) {
       toast.error(
         error?.data?.message || "Registration failed. Please try again.",
