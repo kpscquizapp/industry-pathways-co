@@ -3,12 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Sparkles, ArrowRight, Mail, Lock, Users, BarChart3, Zap } from 'lucide-react';
+import { Building2, Sparkles, ArrowRight, Mail, Lock, Users, TrendingUp, Shield, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLoginEmployerMutation } from '@/app/queries/loginApi';
 import { useDispatch } from 'react-redux';
 import { setUser } from '@/app/slices/userAuth';
+import SpinnerLoader from '@/components/loader/SpinnerLoader';
 
 const BenchLogin = () => {
   const navigate = useNavigate();
@@ -41,154 +41,169 @@ const BenchLogin = () => {
     }
   };
 
-  const stats = [
-    { icon: Users, value: '500+', label: 'Staffing Partners' },
-    { icon: BarChart3, value: '95%', label: 'Placement Rate' },
-    { icon: Zap, value: '24hrs', label: 'Avg. Match Time' },
+  const features = [
+    { 
+      icon: Users, 
+      title: 'Bench Talent Pool', 
+      description: 'Maximize ROI by listing your idle resources.',
+      color: 'bg-emerald-500/20 text-emerald-400'
+    },
+    { 
+      icon: TrendingUp, 
+      title: 'AI-Powered Matching', 
+      description: 'Our engine finds the perfect projects for your bench.',
+      color: 'bg-emerald-500/20 text-emerald-400'
+    },
+    { 
+      icon: Shield, 
+      title: 'Secure Contracts', 
+      description: 'Automated legal and billing workflows.',
+      color: 'bg-primary/20 text-primary'
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-green-600 p-12 flex-col justify-between relative overflow-hidden">
-        {/* Decorative Elements */}
-        <div className="absolute top-20 right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-20 w-64 h-64 bg-white/5 rounded-full blur-2xl" />
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
+      {/* Left Panel - Immersive Branding */}
+      <div className="hidden lg:flex lg:w-[50%] bg-[#080b14] p-12 flex-col justify-between relative overflow-hidden shrink-0 border-r border-white/5">
+        <div className="absolute top-[-10%] right-[-10%] w-[80%] h-[80%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-500/10 rounded-full blur-[100px]" />
         
         <div className="relative z-10">
-          <Link to="/" className="flex items-center gap-3 mb-16">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              <Sparkles className="h-7 w-7 text-white" />
+          <Link to="/" className="flex items-center gap-3 mb-20 group">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
+              <Sparkles className="h-6 w-6 text-white" />
             </div>
             <span className="text-2xl font-bold text-white tracking-tight">HIRION</span>
           </Link>
 
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full">
-              <Building2 className="w-4 h-4 text-white" />
-              <span className="text-white/90 text-sm font-medium">HR Portal</span>
+          <div className="space-y-8 max-w-lg">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+              <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">Staffing Partner Hub</span>
             </div>
             
-            <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight">
+            <h1 className="text-5xl xl:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
               Welcome Back,<br />
-              <span className="text-white/80">Partner</span>
+              <span className="bg-gradient-to-r from-primary via-emerald-400 to-green-400 bg-clip-text text-transparent">Partner</span>
             </h1>
             
-            <p className="text-lg text-white/70 max-w-md">
+            <p className="text-xl text-white/50 leading-relaxed font-light">
               Access your bench talent dashboard and manage your resource listings.
             </p>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="relative z-10 grid grid-cols-3 gap-4">
-          {stats.map((stat, index) => (
-            <div key={index} className="text-center p-4 bg-white/10 backdrop-blur-sm rounded-xl">
-              <stat.icon className="w-6 h-6 text-white/80 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
-              <p className="text-xs text-white/60">{stat.label}</p>
-            </div>
-          ))}
+        <div className="relative z-10 space-y-6">
+          <div className="grid gap-4">
+            {features.map((feature, index) => (
+              <div 
+                key={index} 
+                className="group flex items-start gap-4 p-5 bg-white/[0.02] backdrop-blur-sm border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300"
+              >
+                <div className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+                  <feature.icon className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-lg mb-1">{feature.title}</h3>
+                  <p className="text-sm text-white/40 leading-relaxed">{feature.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Right Panel - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md">
-          {/* Mobile Logo */}
-          <div className="lg:hidden mb-8 text-center">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-foreground">HIRION</span>
-            </Link>
-          </div>
+      {/* Right Panel - Premium Login Section */}
+      <div className="flex-1 flex flex-col bg-[#fafafa] dark:bg-[#030303] overflow-y-auto">
+        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 xl:p-16">
+          <div className="w-full max-w-[500px]">
+            <div className="lg:hidden mb-12 flex flex-col items-center">
+              <Link to="/" className="flex items-center gap-2 mb-6">
+                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-xl shadow-primary/20">
+                  <Sparkles className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-xl font-bold tracking-tighter text-slate-900 dark:text-white">HIRION</span>
+              </Link>
+            </div>
 
-          <Card className="border-0 shadow-xl">
-            <CardHeader className="space-y-1 pb-6">
-              <CardTitle className="text-2xl font-bold">HR Sign In</CardTitle>
-              <CardDescription>
-                Enter your credentials to access your bench dashboard
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="hr@company.com"
-                      className="pl-10 h-12"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 to-emerald-500/10 rounded-[36px] blur-xl opacity-50 dark:opacity-20" />
+              
+              <div className="relative bg-white dark:bg-[#0a0a0a] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-white/[0.05] p-8 md:p-10">
+                <div className="mb-10 text-center lg:text-left">
+                  <h3 className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">Sign In</h3>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">Enter your partner credentials below.</p>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                      Forgot password?
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Work Email</Label>
+                    <div className="relative group">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
+                      <Input
+                        name="email"
+                        type="email"
+                        placeholder="hr@agency.com"
+                        className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Password</Label>
+                    <Link to="/forgot-password" title="Forgot Password" className="text-xs font-bold text-primary hover:opacity-80 transition-opacity">
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
+                      <Input
+                        name="password"
+                        type="password"
+                        placeholder="••••••••"
+                        className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full h-14 text-lg font-bold mt-4 rounded-2xl bg-primary text-white hover:opacity-90 shadow-2xl shadow-primary/10 transition-all active:scale-[0.98] group"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-3">
+                        <SpinnerLoader className="w-5 h-5 text-current" />
+                        <span>Logging you in...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span>Sign In to Dashboard</span>
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    )}
+                  </Button>
+                </form>
+
+                <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/[0.03] flex flex-col items-center gap-4">
+                  <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
+                    New to Hirion?{' '}
+                    <Link to="/bench-registration" className="text-primary hover:text-primary/80 transition-colors underline-offset-8 underline decoration-primary/30">
+                      Partner Registration
                     </Link>
-                  </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="Enter your password"
-                      className="pl-10 h-12"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
+                  </p>
                 </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 text-base font-semibold"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Signing in...' : 'Sign In'}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </form>
-
-              <div className="mt-6 text-center space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Don't have an account?{' '}
-                  <Link to="/bench-registration" className="text-primary font-semibold hover:underline">
-                    Register Now
-                  </Link>
-                </p>
-                
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Or</span>
-                  </div>
-                </div>
-
-                <p className="text-sm text-muted-foreground">
-                  Looking for work?{' '}
-                  <Link to="/candidate-login" className="text-primary font-semibold hover:underline">
-                    Candidate Login
-                  </Link>
-                </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

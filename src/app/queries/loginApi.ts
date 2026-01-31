@@ -16,11 +16,18 @@ export const loginApi = createApi({
         url: "jobboard/register/employer",
       }),
     }),
+    registerEmployer: builder.mutation({
+      query: (formData) => ({
+        method: "POST",
+        body: formData,
+        url: "auth/register-employer",
+      }),
+    }),
     createCandidate: builder.mutation({
       query: (data) => ({
         method: "POST",
         body: data,
-        url: "/auth/register-candidate",
+        url: "auth/register-candidate",
       }),
     }),
     login: builder.mutation({
@@ -72,6 +79,7 @@ export const loginApi = createApi({
 
 export const {
   useCreateEmployerMutation,
+  useRegisterEmployerMutation,
   useCreateCandidateMutation,
   useLoginMutation,
   useGetRefreshTokenMutation,
