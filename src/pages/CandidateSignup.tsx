@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,10 +7,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { User, Sparkles, ArrowRight, Mail, Lock, Phone, Briefcase, CheckCircle2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCreateCandidateMutation } from '@/app/queries/loginApi';
+import { useSelector } from 'react-redux';
 
 const CandidateSignup = () => {
   const navigate = useNavigate();
   const [createCandidate, { isLoading }] = useCreateCandidateMutation();
+
+
+  const user = useSelector((state: any) => state.user.userDetails);
+
+  // useEffect(() => {
+  //   if (user?.role==='candidate') {
+  //     navigate('/profile');
+  //   }
+  // }, [user]);
+
+  console.log(user , 'user')
   
   const [formData, setFormData] = useState({
     fullName: '',

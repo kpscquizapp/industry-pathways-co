@@ -95,6 +95,10 @@ const RefreshTokenHandler = () => {
 };
 
 const App = () => {
+
+  
+
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
