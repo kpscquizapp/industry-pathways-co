@@ -156,6 +156,10 @@ const CandidateRegistration = () => {
         toast.error("Please fill in all required fields");
         return;
       }
+      if (formData.yearsExperience < 0) {
+        toast.error("Years of experience cannot be negative");
+        return;
+      }
       if (!PHONE_REGEX.test(formData.mobileNumber.replace(/[\s-]/g, ""))) {
         toast.error("Please enter a valid mobile number");
         return;
@@ -193,6 +197,12 @@ const CandidateRegistration = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isLoadingCandidate) return;
+
+    if (currentStep !== totalSteps) {
+      return;
+    }
     // Step 4 (final) validation
     if (!formData.availableToJoin) {
       toast.error("Please fill the required field");
@@ -247,6 +257,7 @@ const CandidateRegistration = () => {
               value={formData.firstName}
               onChange={(e) => updateFormData("firstName", e.target.value)}
               className="pl-12 h-12 rounded-xl border-border bg-background"
+              required
             />
           </div>
         </div>
@@ -264,6 +275,7 @@ const CandidateRegistration = () => {
               value={formData.lastName}
               onChange={(e) => updateFormData("lastName", e.target.value)}
               className="pl-12 h-12 rounded-xl border-border bg-background"
+              required
             />
           </div>
         </div>
@@ -282,6 +294,7 @@ const CandidateRegistration = () => {
             value={formData.email}
             onChange={(e) => updateFormData("email", e.target.value)}
             className="pl-12 h-12 rounded-xl border-border bg-background"
+            required
           />
         </div>
       </div>
@@ -299,6 +312,7 @@ const CandidateRegistration = () => {
             value={formData.password}
             onChange={(e) => updateFormData("password", e.target.value)}
             className="pl-12 h-12 rounded-xl border-border bg-background"
+            required
           />
           <button
             type="button"
@@ -333,6 +347,7 @@ const CandidateRegistration = () => {
             value={formData.mobileNumber}
             onChange={(e) => updateFormData("mobileNumber", e.target.value)}
             className="pl-12 h-12 rounded-xl border-border bg-background"
+            required
           />
         </div>
       </div>
@@ -372,6 +387,7 @@ const CandidateRegistration = () => {
             value={formData.primaryJobRole}
             onChange={(e) => updateFormData("primaryJobRole", e.target.value)}
             className="pl-12 h-12 rounded-xl border-border bg-background"
+            required
           />
         </div>
       </div>
@@ -395,6 +411,7 @@ const CandidateRegistration = () => {
               )
             }
             className="pl-12 h-12 rounded-xl border-border bg-background"
+            required
           />
         </div>
       </div>
@@ -504,6 +521,7 @@ const CandidateRegistration = () => {
                 )
               }
               className="h-12 rounded-xl border-border bg-background"
+              required
             />
           </div>
         </div>
@@ -525,6 +543,7 @@ const CandidateRegistration = () => {
                 )
               }
               className="h-12 rounded-xl border-border bg-background"
+              required
             />
           </div>
         </div>
@@ -546,6 +565,11 @@ const CandidateRegistration = () => {
             placeholder="e.g. Immediate, 2 weeks, 1 month"
             value={formData.availableToJoin}
             onChange={(e) => updateFormData("availableToJoin", e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+              }
+            }}
             className="pl-12 h-12 rounded-xl border-border bg-background"
           />
         </div>
@@ -743,21 +767,7 @@ const CandidateRegistration = () => {
                     </p>
                   </div>
 
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      if (currentStep === totalSteps) {
-                        handleSubmit(e);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && currentStep !== totalSteps) {
-                        e.preventDefault();
-                      }
-                    }}
-                    noValidate
-                    className="space-y-6"
-                  >
+                  <form onSubmit={handleSubmit} className="space-y-6">
                     {renderStepContent()}
 
                     <div className="flex gap-3 pt-2">
