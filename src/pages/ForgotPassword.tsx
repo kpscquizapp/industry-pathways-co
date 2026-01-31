@@ -86,12 +86,9 @@ const ForgotPassword = () => {
               <div className="my-6">
                 <p className="text-center text-[16px] text-muted-foreground">
                   Go back to{" "}
-                  <button
-                    className="text-primary font-semibold"
-                    onClick={() => history.back()}
-                  >
+                  <Link className="text-primary font-semibold" to="/login">
                     Login
-                  </button>
+                  </Link>
                 </p>
               </div>
             </Card>

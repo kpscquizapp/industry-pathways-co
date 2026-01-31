@@ -29,6 +29,8 @@ import {
   Target,
   Award,
   Loader,
+  EyeOff,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateCandidateMutation } from "@/app/queries/loginApi";
@@ -60,6 +62,7 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 const PHONE_REGEX = /^\+?[0-9]{7,15}$/;
 const CandidateRegistration = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
@@ -115,18 +118,6 @@ const CandidateRegistration = () => {
       ...prev,
       primarySkills: prev.primarySkills.filter((s) => s !== skill),
     }));
-  };
-
-  const togglePreferredWorkType = (type: string) => {
-    setFormData((prev) => {
-      const exists = prev.preferredWorkType.includes(type);
-      return {
-        ...prev,
-        preferredWorkType: exists
-          ? prev.preferredWorkType.filter((t) => t !== type)
-          : [...prev.preferredWorkType, type],
-      };
-    });
   };
 
   const handleNext = () => {
@@ -203,8 +194,8 @@ const CandidateRegistration = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentStep < totalSteps) {
-      handleNext();
+
+    if (currentStep !== totalSteps) {
       return;
     }
     // Step 4 (final) validation
@@ -311,13 +302,26 @@ const CandidateRegistration = () => {
           <Lock className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
           <Input
             id="password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Create a strong password"
             value={formData.password}
             onChange={(e) => updateFormData("password", e.target.value)}
             className="pl-12 h-12 rounded-xl border-border bg-background"
             required
           />
+          <button
+            type="button"
+            className="absolute right-4 top-3.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors min-h-0 min-w-0"
+            onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword}
+          >
+            {showPassword ? (
+              <EyeOff className="h-5 w-5" />
+            ) : (
+              <Eye className="h-5 w-5" />
+            )}
+          </button>
         </div>
       </div>
     </div>
@@ -344,10 +348,11 @@ const CandidateRegistration = () => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="candidateType" className="text-sm font-medium">
+        <Label className="text-sm font-medium">
           Candidate Type <span className="text-destructive">*</span>
         </Label>
         <Select
+          name="candidateType"
           value={formData.candidateType}
           onValueChange={(value) => updateFormData("candidateType", value)}
         >
@@ -449,6 +454,7 @@ const CandidateRegistration = () => {
                 type="button"
                 className="md:ml-2 text-destructive"
                 onClick={() => removePrimarySkill(skill)}
+                aria-label={`Remove ${skill}`}
               >
                 ✕
               </button>
@@ -461,7 +467,7 @@ const CandidateRegistration = () => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="preferredWorkType" className="text-sm font-medium">
+        <Label className="text-sm font-medium">
           Preferred Work Type <span className="text-destructive">*</span>
         </Label>
         <div className="flex gap-4">
@@ -471,6 +477,7 @@ const CandidateRegistration = () => {
               className="flex items-center space-x-2 cursor-pointer"
             >
               <Checkbox
+                name="preferredWorkType"
                 checked={formData.preferredWorkType.includes(option)}
                 onCheckedChange={(checked) => {
                   setFormData((prev) => ({
@@ -554,7 +561,6 @@ const CandidateRegistration = () => {
             value={formData.availableToJoin}
             onChange={(e) => updateFormData("availableToJoin", e.target.value)}
             className="pl-12 h-12 rounded-xl border-border bg-background"
-            required
           />
         </div>
       </div>
