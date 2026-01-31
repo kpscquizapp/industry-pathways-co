@@ -57,6 +57,7 @@ interface FormData {
 // Validation regex patterns
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const PHONE_REGEX = /^\+?[0-9]{7,15}$/;
 const CandidateRegistration = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
@@ -164,6 +165,10 @@ const CandidateRegistration = () => {
         toast.error("Please fill in all required fields");
         return;
       }
+      if (!PHONE_REGEX.test(formData.mobileNumber.replace(/[\s-]/g, ""))) {
+        toast.error("Please enter a valid mobile number");
+        return;
+      }
     } else if (currentStep === 3) {
       if (
         formData.primarySkills.length === 0 ||
@@ -172,6 +177,10 @@ const CandidateRegistration = () => {
         formData.expectedSalaryMax === null
       ) {
         toast.error("Please fill in all required fields");
+        return;
+      }
+      if (formData.expectedSalaryMin < 0 || formData.expectedSalaryMax < 0) {
+        toast.error("Salary values must be positive");
         return;
       }
       if (
@@ -198,14 +207,9 @@ const CandidateRegistration = () => {
       handleNext();
       return;
     }
-    // Step 3 validation
-    if (
-      formData.preferredWorkType.length === 0 ||
-      formData.expectedSalaryMin === null ||
-      formData.expectedSalaryMax === null ||
-      !formData.availableToJoin
-    ) {
-      toast.error("Please fill in all required fields");
+    // Step 4 (final) validation
+    if (!formData.availableToJoin) {
+      toast.error("Please fill the required field");
       return;
     }
 
@@ -468,7 +472,17 @@ const CandidateRegistration = () => {
             >
               <Checkbox
                 checked={formData.preferredWorkType.includes(option)}
-                onCheckedChange={(checked) => togglePreferredWorkType(option)}
+                onCheckedChange={(checked) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    preferredWorkType: checked
+                      ? [
+                          ...prev.preferredWorkType.filter((t) => t !== option),
+                          option,
+                        ]
+                      : prev.preferredWorkType.filter((t) => t !== option),
+                  }));
+                }}
                 className="min-h-0 min-w-0"
               />
               <span className="text-sm">{option}</span>
@@ -647,7 +661,7 @@ const CandidateRegistration = () => {
       <LandingHeader />
 
       <main className="flex-1 pt-20 pb-12 px-4">
-        <div className="container mx-auto max-w-9xl">
+        <div className="container mx-auto max-w-7xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center mt-8">
             {/* Left Column - Features */}
             <div className="space-y-6 order-2 lg:order-1">
