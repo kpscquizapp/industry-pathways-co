@@ -6,14 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Sparkles, ArrowRight, Mail, Lock, Briefcase, Star, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import { useLoginMutation } from '@/app/queries/loginApi';
+import { useLoginCandidateMutation } from '@/app/queries/loginApi';
 import { useDispatch } from 'react-redux';
 import { setUser } from '@/app/slices/userAuth';
 
 const CandidateLogin = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [login, { isLoading }] = useLoginMutation();
+  const [login, { isLoading }] = useLoginCandidateMutation();
   
   const [formData, setFormData] = useState({
     email: '',

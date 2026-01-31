@@ -30,6 +30,27 @@ export const loginApi = createApi({
         url: "auth/login",
       }),
     }),
+    loginCandidate: builder.mutation({
+      query: (data) => ({
+        method: "POST",
+        body: data,
+        url: "auth/login-candidate",
+      }),
+    }),
+    loginEmployer: builder.mutation({
+      query: (data) => ({
+        method: "POST",
+        body: data,
+        url: "auth/login-employer",
+      }),
+    }),
+    loginHr: builder.mutation({
+      query: (data) => ({
+        method: "POST",
+        body: data,
+        url: "auth/login-hr",
+      }),
+    }),
     getRefreshToken: builder.mutation({
       query: (data) => ({
         headers: getAuthHeaders(),
@@ -55,4 +76,7 @@ export const {
   useLoginMutation,
   useGetRefreshTokenMutation,
   useLogoutMutation,
+  useLoginCandidateMutation,
+  useLoginEmployerMutation,
+  useLoginHrMutation,
 } = loginApi;

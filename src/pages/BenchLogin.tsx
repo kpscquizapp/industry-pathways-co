@@ -6,14 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Sparkles, ArrowRight, Mail, Lock, Users, BarChart3, Zap } from 'lucide-react';
 import { toast } from 'sonner';
-import { useLoginMutation } from '@/app/queries/loginApi';
+import { useLoginEmployerMutation } from '@/app/queries/loginApi';
 import { useDispatch } from 'react-redux';
 import { setUser } from '@/app/slices/userAuth';
 
 const BenchLogin = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [login, { isLoading }] = useLoginMutation();
+  const [login, { isLoading }] = useLoginEmployerMutation();
   
   const [formData, setFormData] = useState({
     email: '',
