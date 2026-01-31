@@ -12,17 +12,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 import {
   Search,
   MoreVertical,
@@ -30,20 +25,14 @@ import {
   Trash2,
   Eye,
   Users,
-  DollarSign,
-  Calendar,
-  Building2,
-  User,
-  Briefcase,
-  MapPin,
-  Clock,
   CheckCircle2,
   XCircle,
   Filter,
+  Clock,
 } from "lucide-react";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useGetBenchResourcesQuery, useDeleteBenchResourceMutation } from "@/app/queries/benchApi";
+import CandidateProfileModal, { CandidateProfile } from "@/components/employer/candidates/CandidateProfileModal";
 
 const ActiveResources = () => {
   const navigate = useNavigate();
@@ -61,6 +50,23 @@ const ActiveResources = () => {
   
   const [selectedResource, setSelectedResource] = useState<any | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  // Mapper function to convert BenchResource to CandidateProfile
+  const mapResourceToCandidateProfile = (resource: any): CandidateProfile => ({
+    id: resource.id,
+    name: resource.resourceName,
+    role: resource.currentRole,
+    hourlyRate: { 
+      min: resource.hourlyRate, 
+      max: resource.hourlyRate 
+    },
+    availability: resource.availableFrom ? new Date(resource.availableFrom).toLocaleDateString() : "Immediate",
+    location: resource.deploymentPreference || "Remote",
+    experience: `${resource.totalExperience} years`,
+    type: 'bench',
+    skills: resource.technicalSkills || [],
+    about: resource.professionalSummary || "",
+  });
 
   const queryParams = {
     page,
@@ -139,7 +145,7 @@ const ActiveResources = () => {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Active</p>
-                  <p className="text-2xl font-bold text-emerald-600">{pagination.total}</p>
+                  <p className="text-2xl font-bold text-emerald-600">{activeCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -457,176 +463,23 @@ const ActiveResources = () => {
           </CardContent>
         </Card>
 
-        {/* Resource Detail Dialog */}
-        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            {selectedResource && (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xl font-bold">
-                      {selectedResource.resourceName?.charAt(0)}
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-slate-800">{selectedResource.resourceName}</h2>
-                      <p className="text-slate-500 font-normal">{selectedResource.currentRole}</p>
-                    </div>
-                    <Badge
-                      className={`ml-auto ${
-                        selectedResource.isActive
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {selectedResource.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-6 mt-6">
-                  {/* Resource Info */}
-                  <Card className="border border-slate-200 rounded-xl">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <User className="h-5 w-5 text-blue-500" />
-                        Resource Details
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-slate-600">{selectedResource.professionalSummary}</p>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <Briefcase className="h-4 w-4 text-slate-400" />
-                          <span>{selectedResource.totalExperience} years experience</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <DollarSign className="h-4 w-4 text-slate-400" />
-                          <span>{selectedResource.hourlyRate}/hr ({selectedResource.currency})</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <Calendar className="h-4 w-4 text-slate-400" />
-                          <span>Available: {new Date(selectedResource.availableFrom).toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <MapPin className="h-4 w-4 text-slate-400" />
-                          <span className="capitalize">{selectedResource.deploymentPreference}</span>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-700 mb-2">Technical Skills</p>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedResource.technicalSkills?.map((skill: string) => (
-                            <Badge
-                              key={skill}
-                              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1"
-                            >
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Assignment Info (if assigned) */}
-                  {selectedResource.assignment && (
-                    <Card className="border border-emerald-200 bg-emerald-50/50 rounded-xl">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2 text-emerald-700">
-                          <Building2 className="h-5 w-5 text-emerald-600" />
-                          Assignment Details
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-sm text-slate-500">Client</p>
-                            <p className="font-semibold text-slate-800">
-                              {selectedResource.assignment.clientName}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-slate-500">Project</p>
-                            <p className="font-semibold text-slate-800">
-                              {selectedResource.assignment.projectName}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-slate-500">Start Date</p>
-                            <p className="font-semibold text-slate-800">
-                              {selectedResource.assignment.startDate}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-slate-500">End Date</p>
-                            <p className="font-semibold text-slate-800">
-                              {selectedResource.assignment.endDate}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="border-t border-emerald-200 pt-4">
-                          <p className="text-sm font-medium text-emerald-700 mb-3">Billing Information</p>
-                          <div className="grid grid-cols-3 gap-4">
-                            <div className="bg-white rounded-xl p-4 text-center border border-emerald-200">
-                              <p className="text-2xl font-bold text-emerald-600">
-                                ${selectedResource.assignment.billingRate}
-                              </p>
-                              <p className="text-xs text-slate-500">Billing Rate/hr</p>
-                            </div>
-                            <div className="bg-white rounded-xl p-4 text-center border border-emerald-200">
-                              <p className="text-2xl font-bold text-slate-800">
-                                {selectedResource.assignment.hoursPerWeek}
-                              </p>
-                              <p className="text-xs text-slate-500">Hours/Week</p>
-                            </div>
-                            <div className="bg-white rounded-xl p-4 text-center border border-emerald-200">
-                              <p className="text-2xl font-bold text-blue-600">
-                                ${selectedResource.assignment.totalBilled.toLocaleString()}
-                              </p>
-                              <p className="text-xs text-slate-500">Total Billed</p>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Not Assigned Info */}
-                  {!selectedResource.assignment && (
-                    <Card className="border border-amber-200 bg-amber-50/50 rounded-xl">
-                      <CardContent className="p-6 text-center">
-                        <Clock className="h-10 w-10 text-amber-500 mx-auto mb-3" />
-                        <p className="font-semibold text-slate-800 mb-1">Currently Available</p>
-                        <p className="text-sm text-slate-500">
-                          This resource is not assigned to any project and is ready for new opportunities.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex justify-end gap-3 pt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsDetailOpen(false)}
-                      className="rounded-xl"
-                    >
-                      Close
-                    </Button>
-                    <Button
-                      onClick={() => handleEditResource(selectedResource.id)}
-                      className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Resource
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
+        {/* Resource Detail Modal */}
+        {selectedResource && (
+          <CandidateProfileModal
+            open={isDetailOpen}
+            onClose={() => setIsDetailOpen(false)}
+            candidate={mapResourceToCandidateProfile(selectedResource)}
+            onScheduleInterview={(candidate) => {
+              toast.info(`Scheduling interview with ${candidate.name}`);
+            }}
+            onShortlist={(candidate) => {
+              toast.success(`${candidate.name} added to shortlist`);
+            }}
+            onSkillTest={(candidate) => {
+              toast.info(`Initiating skill test for ${candidate.name}`);
+            }}
+          />
+        )}
       </div>
     </div>
   );
