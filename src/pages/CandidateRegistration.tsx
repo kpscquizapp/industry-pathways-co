@@ -89,8 +89,7 @@ const CandidateRegistration = () => {
 
   const candidateTypeOptions = [
     "Full-Time Job Seeker",
-    "Contract",
-    "Freelance",
+    "Contract / Freelance Talent",
   ];
 
   const preferredWorkTypeOptions = ["Remote", "Hybrid", "Onsite"];
@@ -328,6 +327,9 @@ const CandidateRegistration = () => {
             )}
           </button>
         </div>
+        <p className="text-xs text-muted-foreground">
+          Must be 8+ characters with uppercase, lowercase, and number
+        </p>
       </div>
     </div>
   );

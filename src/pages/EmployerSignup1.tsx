@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import LandingHeader from "@/components/landing/LandingHeader";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -6,24 +6,57 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Building2,
   Lock,
-  Users,
   ArrowRight,
+  ArrowLeft,
   CheckCircle2,
   Sparkles,
   TrendingUp,
   Target,
+  User,
+  Mail,
+  FileText,
+  Upload,
+  X,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Loader,
 } from "lucide-react";
 import { useCreateEmployerMutation } from "@/app/queries/loginApi";
 import { toast } from "sonner";
 
+interface FormData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  companyName: string;
+  companyDetails: string;
+  companyDocument: File | null;
+}
+
+// Validation regex patterns
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
 const EmployerSignup1 = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [companySize, setCompanySize] = useState("");
-  const [useCase, setUseCase] = useState<string[]>([]);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    companyName: "",
+    companyDetails: "",
+    companyDocument: null,
+  });
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [createEmployer, { isLoading }] = useCreateEmployerMutation();
   const navigate = useNavigate();
 
@@ -33,22 +66,117 @@ const EmployerSignup1 = () => {
     { id: "bench", label: "Bench monetization" },
   ];
 
-  const toggleUseCase = (id: string) => {
-    setUseCase((prev) =>
-      prev.includes(id) ? prev.filter((u) => u !== id) : [...prev, id],
-    );
+  const updateFormData = (field: keyof FormData, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      validateAndSetFile(file);
+    }
+  };
+
+  const validateAndSetFile = (file: File) => {
+    const allowedTypes = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/msword",
+    ];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only PDF and DOCX files are allowed");
+      return;
+    }
+
+    if (file.size > maxSize) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+
+    updateFormData("companyDocument", file);
+    toast.success("Document uploaded successfully");
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      validateAndSetFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const removeFile = () => {
+    updateFormData("companyDocument", null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const validateStep1 = () => {
+    if (
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.email ||
+      !formData.password
+    ) {
+      toast.error("Please fill in all required fields");
+      return false;
+    }
+
+    if (!EMAIL_REGEX.test(formData.email)) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+
+    if (!PASSWORD_REGEX.test(formData.password)) {
+      toast.error(
+        "Password must be at least 8 characters with uppercase, lowercase, and a number",
+      );
+      return false;
+    }
+
+    return true;
+  };
+
+  const validateStep2 = () => {
+    if (!formData.companyName || !formData.companyDocument) {
+      toast.error("Please fill in all required fields");
+      return false;
+    }
+    return true;
+  };
+
+  const handleNext = () => {
+    if (currentStep === 1 && validateStep1()) {
+      setCurrentStep(2);
+    }
+  };
+
+  const handleBack = () => {
+    setCurrentStep(1);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!validateStep2()) return;
+
     try {
-      await createEmployer({
-        email,
-        password,
-        companySize,
-        useCases: useCase,
-      }).unwrap();
+      await createEmployer(formData).unwrap();
       toast.success("Account created successfully!");
       navigate("/employer-login1");
     } catch (error: any) {
@@ -74,7 +202,7 @@ const EmployerSignup1 = () => {
       <LandingHeader />
 
       <main className="flex-1 pt-20 pb-12 px-4">
-        <div className="container mx-auto max-w-9xl">
+        <div className="container mx-auto max-w-[1400px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center mt-8">
             {/* Left Column - Features */}
             <div className="space-y-6 order-2 lg:order-1">
@@ -154,122 +282,331 @@ const EmployerSignup1 = () => {
             <Card className="shadow-xl border-border rounded-2xl overflow-hidden bg-card order-1 lg:order-2">
               <CardContent className="p-8 sm:p-10">
                 <div className="space-y-6">
+                  {/* Header with Step Indicator */}
                   <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-2">
-                      Create Employer Account
-                    </h2>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-2xl font-bold text-foreground">
+                        Create Employer Account
+                      </h2>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`w-8 h-1 rounded-full transition-colors ${
+                            currentStep >= 1 ? "bg-primary" : "bg-border"
+                          }`}
+                        />
+                        <div
+                          className={`w-8 h-1 rounded-full transition-colors ${
+                            currentStep >= 2 ? "bg-primary" : "bg-border"
+                          }`}
+                        />
+                      </div>
+                    </div>
                     <p className="text-muted-foreground text-sm">
-                      Access AI hiring, deployments, and bench monetization in
-                      one secure workspace.
+                      {currentStep === 1
+                        ? "Enter Your Personal Information"
+                        : "Enter Your Company Information"}
                     </p>
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium">
-                        Company Email
-                      </Label>
-                      <div className="relative">
-                        <Building2 className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="name@company.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="pl-12 h-12 rounded-xl border-border bg-background"
-                          required
-                        />
-                      </div>
-                    </div>
+                    {/* Step 1: Personal Information */}
+                    {currentStep === 1 && (
+                      <div className="space-y-5">
+                        {/* Name Fields */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="firstName"
+                              className="text-sm font-medium"
+                            >
+                              First Name{" "}
+                              <span className="text-destructive">*</span>
+                            </Label>
+                            <div className="relative">
+                              <User className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+                              <Input
+                                id="firstName"
+                                type="text"
+                                placeholder="Enter first name"
+                                value={formData.firstName}
+                                onChange={(e) =>
+                                  updateFormData("firstName", e.target.value)
+                                }
+                                className="pl-12 h-12 rounded-xl border-border bg-background"
+                                required
+                              />
+                            </div>
+                          </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="password"
-                          className="text-sm font-medium"
-                        >
-                          Password
-                        </Label>
-                        <div className="relative">
-                          <Lock className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
-                          <Input
-                            id="password"
-                            type="password"
-                            placeholder="Create a strong password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="pl-12 h-12 rounded-xl border-border bg-background"
-                            required
-                          />
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="lastName"
+                              className="text-sm font-medium"
+                            >
+                              Last Name{" "}
+                              <span className="text-destructive">*</span>
+                            </Label>
+                            <div className="relative">
+                              <User className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+                              <Input
+                                id="lastName"
+                                type="text"
+                                placeholder="Enter last name"
+                                value={formData.lastName}
+                                onChange={(e) =>
+                                  updateFormData("lastName", e.target.value)
+                                }
+                                className="pl-12 h-12 rounded-xl border-border bg-background"
+                                required
+                              />
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="company-size"
-                          className="text-sm font-medium"
-                        >
-                          Company Size (Optional)
-                        </Label>
-                        <div className="relative">
-                          <Users className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
-                          <Input
-                            id="company-size"
-                            type="text"
-                            placeholder="e.g. 50-200"
-                            value={companySize}
-                            onChange={(e) => setCompanySize(e.target.value)}
-                            className="pl-12 h-12 rounded-xl border-border bg-background"
-                          />
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">
-                        Primary Use Case
-                      </Label>
-                      <div className="flex flex-wrap gap-2">
-                        {useCases.map((uc) => (
-                          <button
-                            key={uc.id}
-                            type="button"
-                            onClick={() => toggleUseCase(uc.id)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                              useCase.includes(uc.id)
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted text-muted-foreground hover:bg-muted/80"
-                            }`}
+                        {/* Email */}
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="email"
+                            className="text-sm font-medium"
                           >
-                            {uc.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                            Company Email{" "}
+                            <span className="text-destructive">*</span>
+                          </Label>
+                          <div className="relative">
+                            <Mail className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+                            <Input
+                              id="email"
+                              type="email"
+                              placeholder="name@company.com"
+                              value={formData.email}
+                              onChange={(e) =>
+                                updateFormData("email", e.target.value)
+                              }
+                              className="pl-12 h-12 rounded-xl border-border bg-background"
+                              required
+                            />
+                          </div>
+                        </div>
 
-                    <Button
-                      type="submit"
-                      className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl transition-all text-base shadow-lg"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        "Creating account..."
-                      ) : (
-                        <>
-                          Create Employer Account
+                        {/* Password */}
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="password"
+                            className="text-sm font-medium"
+                          >
+                            Password <span className="text-destructive">*</span>
+                          </Label>
+                          <div className="relative">
+                            <Lock className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+                            <Input
+                              id="password"
+                              type={showPassword ? "text" : "password"}
+                              placeholder="Create a strong password"
+                              value={formData.password}
+                              onChange={(e) =>
+                                updateFormData("password", e.target.value)
+                              }
+                              className="pl-12 pr-12 h-12 rounded-xl border-border bg-background"
+                              required
+                            />
+                            <button
+                              type="button"
+                              className="absolute right-4 top-3.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
+                              onClick={() => setShowPassword(!showPassword)}
+                              aria-label={
+                                showPassword ? "Hide password" : "Show password"
+                              }
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Must be 8+ characters with uppercase, lowercase, and
+                            number
+                          </p>
+                        </div>
+
+                        {/* Next Button */}
+                        <Button
+                          type="button"
+                          onClick={handleNext}
+                          className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl transition-all text-base shadow-lg mt-6"
+                        >
+                          Continue to Company Info
                           <ArrowRight className="ml-2 h-5 w-5" />
-                        </>
-                      )}
-                    </Button>
+                        </Button>
+                      </div>
+                    )}
 
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full h-12 rounded-xl border-2 border-border"
-                    >
-                      <Sparkles className="mr-2 h-5 w-5" />
-                      Or request a demo of the employer console
-                    </Button>
+                    {/* Step 2: Company Information */}
+                    {currentStep === 2 && (
+                      <div className="space-y-5">
+                        {/* Company Name */}
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="companyName"
+                            className="text-sm font-medium"
+                          >
+                            Company Name{" "}
+                            <span className="text-destructive">*</span>
+                          </Label>
+                          <div className="relative">
+                            <Building2 className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+                            <Input
+                              id="companyName"
+                              type="text"
+                              placeholder="Enter your company name"
+                              value={formData.companyName}
+                              onChange={(e) =>
+                                updateFormData("companyName", e.target.value)
+                              }
+                              className="pl-12 h-12 rounded-xl border-border bg-background"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        {/* Company Details */}
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="companyDetails"
+                            className="text-sm font-medium"
+                          >
+                            Company Details{" "}
+                            <span className="text-muted-foreground text-xs">
+                              (Optional)
+                            </span>
+                          </Label>
+                          <div className="relative">
+                            <FileText className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+                            <Textarea
+                              id="companyDetails"
+                              placeholder="Tell us about your company, services, and expertise..."
+                              value={formData.companyDetails}
+                              onChange={(e) =>
+                                updateFormData("companyDetails", e.target.value)
+                              }
+                              className="pl-12 min-h-[100px] rounded-xl border-border bg-background resize-none"
+                            />
+                          </div>
+                        </div>
+
+                        {/* File Upload */}
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">
+                            Company Document{" "}
+                            <span className="text-destructive">*</span>
+                          </Label>
+                          <div
+                            className={`relative border-2 border-dashed rounded-xl transition-all ${
+                              dragActive
+                                ? "border-primary bg-primary/5"
+                                : "border-border bg-background"
+                            }`}
+                            onDragEnter={handleDrag}
+                            onDragLeave={handleDrag}
+                            onDragOver={handleDrag}
+                            onDrop={handleDrop}
+                          >
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept=".pdf,.doc,.docx"
+                              onChange={handleFileChange}
+                              className="hidden"
+                              id="companyDocument"
+                            />
+
+                            {!formData.companyDocument ? (
+                              <label
+                                htmlFor="companyDocument"
+                                className="flex flex-col items-center justify-center p-6 cursor-pointer"
+                              >
+                                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                                  <Upload className="h-6 w-6 text-primary" />
+                                </div>
+                                <p className="text-sm font-medium text-foreground mb-1">
+                                  Click to upload or drag and drop
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  PDF or DOCX (max. 10MB)
+                                </p>
+                              </label>
+                            ) : (
+                              <div className="flex items-center justify-between p-4">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <FileText className="h-5 w-5 text-primary" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-foreground truncate">
+                                      {formData.companyDocument.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {(
+                                        formData.companyDocument.size /
+                                        (1024 * 1024)
+                                      ).toFixed(2)}{" "}
+                                      MB
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={removeFile}
+                                  className="flex-shrink-0 h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-start gap-2 mt-2">
+                            <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                            <p className="text-xs text-muted-foreground">
+                              Upload company registration certificate, business
+                              license, or similar verification document
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3 mt-6">
+                          <Button
+                            type="button"
+                            onClick={handleBack}
+                            variant="outline"
+                            className="flex-1 h-12 rounded-xl border-border font-semibold"
+                          >
+                            <ArrowLeft className="mr-2 h-5 w-5" />
+                            Back
+                          </Button>
+                          <Button
+                            type="submit"
+                            className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl transition-all text-base shadow-lg"
+                            disabled={isLoading}
+                          >
+                            {isLoading ? (
+                              <>
+                                <Loader className="mr-2 h-4 w-4 animate-spin" />
+                                Creating account...
+                              </>
+                            ) : (
+                              <>
+                                Create Account
+                                <CheckCircle2 className="ml-2 h-5 w-5" />
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </form>
 
                   <p className="text-center text-sm text-muted-foreground">

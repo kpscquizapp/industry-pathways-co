@@ -13,21 +13,28 @@ export const loginApi = createApi({
       query: (data) => ({
         method: "POST",
         body: data,
-        url: "jobboard/register/employer",
+        url: "/auth/register-employer",
       }),
     }),
     createCandidate: builder.mutation({
       query: (data) => ({
         method: "POST",
         body: data,
-        url: "/auth/register-candidate",
+        url: "/auth/register-hr",
       }),
     }),
-    login: builder.mutation({
+    createHr: builder.mutation({
       query: (data) => ({
         method: "POST",
         body: data,
-        url: "auth/login",
+        url: "/auth/register-candidate",
+      }),
+    }),
+    employerLogin: builder.mutation({
+      query: (data) => ({
+        method: "POST",
+        body: data,
+        url: "/auth/login-employer",
       }),
     }),
     getRefreshToken: builder.mutation({
@@ -52,7 +59,8 @@ export const loginApi = createApi({
 export const {
   useCreateEmployerMutation,
   useCreateCandidateMutation,
-  useLoginMutation,
+  useCreateHrMutation,
+  useEmployerLoginMutation,
   useGetRefreshTokenMutation,
   useLogoutMutation,
 } = loginApi;

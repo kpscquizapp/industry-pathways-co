@@ -40,7 +40,7 @@ const EmployerLogin1 = () => {
 
       dispatch(setUser(mockUser));
       toast.success("Login successful!");
-      navigate("/employer/dashboard");
+      navigate("/employer-dashboard");
       setIsLoading(false);
     }, 500);
   };
