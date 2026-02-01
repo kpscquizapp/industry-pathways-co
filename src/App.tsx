@@ -126,7 +126,6 @@ const App = () => {
                     <Route path="/bench-registration" element={<BenchRegistration />} />
                     <Route path="/bench-login" element={<BenchLogin />} />
                     <Route path="/candidate-login" element={<CandidateLogin />} />
-                    <Route path="/candidate-signup" element={<CandidateSignup />} />
                     <Route path="/profile-visibility" element={<ProfileVisibility />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/jobs" element={<JobSearch />} />

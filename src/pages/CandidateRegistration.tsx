@@ -222,7 +222,7 @@ const CandidateRegistration = () => {
     try {
       await createCandidate(formData).unwrap();
       toast.success("Registration successful! Welcome aboard!");
-      navigate("/contractor/dashboard");
+      navigate("/candidate-login");
     } catch (error: any) {
       toast.error(
         error?.data?.message || "Registration failed. Please try again.",
@@ -677,7 +677,7 @@ const CandidateRegistration = () => {
       <LandingHeader />
 
       <main className="flex-1 pt-20 pb-12 px-4">
-        <div className="container mx-auto max-w-7xl">
+        <div className="container mx-auto max-w-[1400px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center mt-8">
             {/* Left Column - Features */}
             <div className="space-y-6 order-2 lg:order-1">
