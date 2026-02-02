@@ -96,8 +96,16 @@ const PostBenchResource = () => {
   };
 
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const input = e.target
+    const file = input.files?.[0];
     if (!file) return;
+
+    const maxSizeBytes = 5 * 1024 * 1024; // 5MB     
+    if (file.size > maxSizeBytes) {        
+      toast.error("File size must be less than 5MB");   
+      input.value=""
+      return;     
+    }
 
     setFormData({ ...formData, resumeFile: file });
 
