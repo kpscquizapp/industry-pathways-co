@@ -56,10 +56,8 @@ import AppliedCandidates from "./pages/employer/AppliedCandidates";
 import JobDetailsPage from "./pages/employer/JobDetails";
 import CandidateDetailPage from "./pages/employer/CandidateDetailPage";
 
-// New Dashboard Layouts
-import ContractorLayout from "./components/dashboard/ContractorLayout";
-import BenchLayout from "./components/dashboard/BenchLayout";
-import EmployerLayout from "./components/dashboard/EmployerLayout";
+// New Dashboard Layout
+import UnifiedDashboardLayout from "./components/dashboard/UnifiedDashboardLayout";
 
 // New Dashboard Pages
 import ContractorDashboard from "./pages/contractor/ContractorDashboard";
@@ -121,11 +119,11 @@ const App = () => {
                       path="/register-talent"
                       element={<RegisterTalent />}
                     />
-                    <Route path="/employer" element={<EmployerLogin />} />
+                    {/* <Route path="/employer" element={<EmployerLogin />} /> */}
                     <Route path="/employer-login" element={<EmployerLogin />} />
                     <Route path="/employer-signup" element={<EmployerSignup />} />
-                    <Route path="/employer-signup1" element={<EmployerSignup1 />} />
-                    <Route path="/employer-login1" element={<EmployerLogin1 />} />
+                    {/* <Route path="/employer-signup1" element={<EmployerSignup1 />} /> */}
+                    {/* <Route path="/employer-login1" element={<EmployerLogin1 />} /> */}
                     <Route path="/contractor-registration" element={<ContractorRegistration />} />
                     <Route path="/bench-registration" element={<BenchRegistration />} />
                     <Route path="/bench-login" element={<BenchLogin />} />
@@ -161,7 +159,8 @@ const App = () => {
                     <Route path="/saved-jobs" element={<SavedJobs />} />
 
                     {/* NEW: Contractor Dashboard Routes */}
-                    <Route path="/contractor" element={<ContractorLayout />}>
+                    {/* NEW: Contractor Dashboard Routes */}
+                    <Route path="/contractor" element={<UnifiedDashboardLayout role="contractor" />}>
                       <Route index element={<ContractorDashboard />} />
                       <Route path="dashboard" element={<ContractorDashboard />} />
                       <Route path="jobs" element={<ContractorDashboard />} />
@@ -172,7 +171,8 @@ const App = () => {
                     </Route>
 
                     {/* NEW: Bench Resources Dashboard Routes */}
-                    <Route path="/bench" element={<BenchLayout />}>
+                    {/* NEW: Bench Resources Dashboard Routes */}
+                    <Route path="/bench" element={<UnifiedDashboardLayout role="bench" />}>
                       <Route index element={<BenchDashboard />} />
                       <Route path="dashboard" element={<BenchDashboard />} />
                       <Route path="talent" element={<BenchDashboard />} />
@@ -183,7 +183,9 @@ const App = () => {
                     </Route>
 
                     {/* NEW: Hiring Company Dashboard Routes */}
-                    <Route path="/employer" element={<EmployerLayout />}>
+                    {/* NEW: Hiring Company Dashboard Routes */}
+                    <Route path="/employer" element={<UnifiedDashboardLayout role="employer" />}>
+                      <Route index element={<HiringDashboardNew />} />
                       <Route path="dashboard" element={<HiringDashboardNew />} />
                       <Route path="post-job" element={<EmployerPostJob />} />
                       <Route path="ai-shortlists" element={<EmployerAIShortlists />} />

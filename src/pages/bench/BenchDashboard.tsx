@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import SpinnerLoader from '@/components/loader/SpinnerLoader';
 
 const benchTalent = [
   { id: 1, name: 'Sarah Chen', skills: ['React', 'Node.js'], score: 92, status: 'available', matches: 5 },
@@ -24,6 +25,22 @@ const benchTalent = [
 ];
 
 const BenchDashboard = () => {
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <SpinnerLoader className="w-10 h-10 text-primary" />
+        <p className="text-muted-foreground animate-pulse">Fetching bench resources...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Stats Grid */}

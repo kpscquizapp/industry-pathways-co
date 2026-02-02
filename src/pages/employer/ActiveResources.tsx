@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,17 +12,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 import {
   Search,
   MoreVertical,
@@ -30,130 +25,118 @@ import {
   Trash2,
   Eye,
   Users,
-  DollarSign,
-  Calendar,
-  Building2,
-  User,
-  Briefcase,
-  MapPin,
-  Clock,
   CheckCircle2,
   XCircle,
   Filter,
+  Clock,
 } from "lucide-react";
-import { toast } from "sonner";
-
-// Mock data for resources
-const mockResources = [
-  {
-    id: "1",
-    name: "John D.",
-    role: "Senior Java Developer",
-    skills: ["Java Spring Boot", "Microservices", "Kubernetes", "PostgreSQL"],
-    experience: "8-10 years",
-    rate: 75,
-    currency: "USD",
-    status: "assigned",
-    availableFrom: "2024-01-15",
-    locationPreference: ["Remote", "Hybrid"],
-    summary: "Experienced Java developer with expertise in building scalable microservices architecture. Led multiple enterprise projects with 99.9% uptime.",
-    assignment: {
-      clientName: "TechCorp Inc.",
-      projectName: "Cloud Migration Platform",
-      billingRate: 95,
-      startDate: "2024-02-01",
-      endDate: "2024-08-31",
-      hoursPerWeek: 40,
-      totalBilled: 28500,
-    },
-  },
-  {
-    id: "2",
-    name: "Sarah M.",
-    role: "React Frontend Developer",
-    skills: ["React", "TypeScript", "Next.js", "Tailwind CSS"],
-    experience: "5-8 years",
-    rate: 65,
-    currency: "USD",
-    status: "available",
-    availableFrom: "2024-01-10",
-    locationPreference: ["Remote"],
-    summary: "Frontend specialist with a passion for creating beautiful, accessible user interfaces. Strong focus on performance optimization.",
-    assignment: null,
-  },
-  {
-    id: "3",
-    name: "Mike R.",
-    role: "DevOps Engineer",
-    skills: ["AWS", "Docker", "Terraform", "CI/CD", "Python"],
-    experience: "5-8 years",
-    rate: 80,
-    currency: "USD",
-    status: "assigned",
-    availableFrom: "2024-01-20",
-    locationPreference: ["Remote", "On-site"],
-    summary: "DevOps expert specializing in cloud infrastructure and automation. Reduced deployment time by 80% in previous engagements.",
-    assignment: {
-      clientName: "FinanceHub LLC",
-      projectName: "Infrastructure Modernization",
-      billingRate: 100,
-      startDate: "2024-01-25",
-      endDate: "2024-06-30",
-      hoursPerWeek: 40,
-      totalBilled: 16000,
-    },
-  },
-  {
-    id: "4",
-    name: "Emily K.",
-    role: "Data Scientist",
-    skills: ["Python", "TensorFlow", "SQL", "Machine Learning"],
-    experience: "3-5 years",
-    rate: 70,
-    currency: "USD",
-    status: "available",
-    availableFrom: "2024-02-01",
-    locationPreference: ["Hybrid"],
-    summary: "Data scientist with expertise in building predictive models and deriving actionable insights from complex datasets.",
-    assignment: null,
-  },
-];
+import { useNavigate } from "react-router-dom";
+import { useGetBenchResourcesQuery, useDeleteBenchResourceMutation } from "@/app/queries/benchApi";
+import CandidateProfileModal, { CandidateProfile } from "@/components/employer/candidates/CandidateProfileModal";
 
 const ActiveResources = () => {
-  const [resources, setResources] = useState(mockResources);
+  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedResource, setSelectedResource] = useState<typeof mockResources[0] | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [filterStatus, setFilterStatus] = useState<"all" | "assigned" | "available">("all");
+  const [filterSkills, setFilterSkills] = useState("");
+  const [deploymentPreference, setDeploymentPreference] = useState("");
+  const [minExperience, setMinExperience] = useState("");
+  const [maxExperience, setMaxExperience] = useState("");
+  const [minRate, setMinRate] = useState("");
+  const [maxRate, setMaxRate] = useState("");
+  const [availableFrom, setAvailableFrom] = useState("");
+  const [isActive, setIsActive] = useState<boolean | string>("true");
 
-  const filteredResources = resources.filter((resource) => {
-    const matchesSearch =
-      resource.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      resource.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      resource.skills.some((skill) =>
-        skill.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    const matchesFilter =
-      filterStatus === "all" || resource.status === filterStatus;
-    return matchesSearch && matchesFilter;
+  useEffect(() => {
+    setPage(1);
+  }, [
+    searchQuery,
+    filterSkills,
+    deploymentPreference,
+    minExperience,
+    maxExperience,
+    minRate,
+    maxRate,
+    availableFrom,
+    isActive,
+  ]);
+  
+  type BenchResource = {
+  id: number;
+  resourceName: string;
+  currentRole: string;
+  hourlyRate: number;
+  availableFrom?: string | null;
+  deploymentPreference?: string | null;
+  totalExperience: number;
+  isActive: boolean;
+  technicalSkills?: string[];
+  professionalSummary?: string;
+};
+
+  const [selectedResource, setSelectedResource] = useState<BenchResource | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  // Mapper function to convert BenchResource to CandidateProfile
+  const mapResourceToCandidateProfile = (resource: BenchResource): CandidateProfile => ({
+    id: resource.id,
+    name: resource.resourceName,
+    role: resource.currentRole,
+    hourlyRate: { 
+      min: resource.hourlyRate, 
+      max: resource.hourlyRate 
+    },
+    availability: resource.availableFrom ? new Date(resource.availableFrom).toLocaleDateString() : "Immediate",
+    location: resource.deploymentPreference || "Remote",
+    experience: `${resource.totalExperience} years`,
+    type: 'bench',
+    skills: resource.technicalSkills || [],
+    about: resource.professionalSummary || "",
   });
 
-  const handleViewResource = (resource: typeof mockResources[0]) => {
+  const queryParams = {
+    page,
+    limit,
+    search: searchQuery || undefined,
+    skills: filterSkills || undefined,
+    deploymentPreference: deploymentPreference || undefined,
+    minExperience: minExperience || undefined,
+    maxExperience: maxExperience || undefined,
+    minRate: minRate || undefined,
+    maxRate: maxRate || undefined,
+    availableFrom: availableFrom || undefined,
+    isActive: isActive === "all" ? undefined : isActive === "true",
+  };
+
+  const { data: apiData, isLoading, isError, refetch } = useGetBenchResourcesQuery(queryParams);
+  const resources: BenchResource[] = apiData?.data || [];
+  const pagination = apiData?.pagination || { total: 0, page: 1, totalPages: 1, limit: 10 };
+
+  const [deleteBenchResource] = useDeleteBenchResourceMutation();
+
+  const handleViewResource = (resource: any) => {
     setSelectedResource(resource);
     setIsDetailOpen(true);
   };
 
-  const handleDeleteResource = (id: string) => {
-    setResources(resources.filter((r) => r.id !== id));
-    toast.success("Resource removed successfully");
+  const handleDeleteResource = async (id: number | string) => {
+    try {
+      await deleteBenchResource(id).unwrap();
+      toast.success("Resource removed successfully");
+      // refetch(); // Not needed if tags are correctly set in RTK Query
+    } catch (error) {
+      toast.error("Failed to remove resource");
+      console.error("Failed to delete resource:", error);
+    }
   };
 
-  const handleEditResource = (id: string) => {
-    toast.info("Edit functionality coming soon");
+  const handleEditResource = (id: number) => {
+    navigate(`/employer-dashboard/post-bench-resource?edit=${id}`);
   };
 
-  const assignedCount = resources.filter((r) => r.status === "assigned").length;
-  const availableCount = resources.filter((r) => r.status === "available").length;
+  const activeCount = resources.filter((r: any) => r.isActive).length;
+  const inactiveCount = resources.filter((r: any) => !r.isActive).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
@@ -176,7 +159,7 @@ const ActiveResources = () => {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Total Resources</p>
-                  <p className="text-2xl font-bold text-slate-800">{resources.length}</p>
+                  <p className="text-2xl font-bold text-slate-800">{pagination.total}</p>
                 </div>
               </div>
             </CardContent>
@@ -188,8 +171,8 @@ const ActiveResources = () => {
                   <CheckCircle2 className="h-6 w-6 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Assigned</p>
-                  <p className="text-2xl font-bold text-emerald-600">{assignedCount}</p>
+                  <p className="text-sm text-slate-500">Active</p>
+                  <p className="text-2xl font-bold text-emerald-600">{activeCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -201,50 +184,143 @@ const ActiveResources = () => {
                   <Clock className="h-6 w-6 text-amber-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Available</p>
-                  <p className="text-2xl font-bold text-amber-600">{availableCount}</p>
+                  <p className="text-sm text-slate-500">Page</p>
+                  <p className="text-2xl font-bold text-amber-600">{pagination.page} / {pagination.totalPages}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Search and Filters */}
+        {/* Search and Advanced Filters */}
         <Card className="border-0 shadow-lg rounded-2xl bg-white overflow-hidden">
-          <CardContent className="p-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <CardContent className="p-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
-                  placeholder="Search by name, role, or skills..."
+                  placeholder="Search name, role..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 rounded-xl border-slate-200"
+                  className="pl-9 h-10 rounded-xl border-slate-200"
+                />
+              </div>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Skills (react, node...)"
+                  value={filterSkills}
+                  onChange={(e) => setFilterSkills(e.target.value)}
+                  className="pl-9 h-10 rounded-xl border-slate-200"
                 />
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant={filterStatus === "all" ? "default" : "outline"}
-                  onClick={() => setFilterStatus("all")}
-                  className="rounded-xl"
-                >
-                  All
-                </Button>
-                <Button
-                  variant={filterStatus === "assigned" ? "default" : "outline"}
-                  onClick={() => setFilterStatus("assigned")}
-                  className="rounded-xl"
-                >
-                  Assigned
-                </Button>
-                <Button
-                  variant={filterStatus === "available" ? "default" : "outline"}
-                  onClick={() => setFilterStatus("available")}
-                  className="rounded-xl"
-                >
-                  Available
-                </Button>
+                <Input
+                  placeholder="Min Exp"
+                  type="number"
+                  value={minExperience}
+                  onChange={(e) => setMinExperience(e.target.value)}
+                  className="h-10 rounded-xl border-slate-200"
+                />
+                <Input
+                  placeholder="Max Exp"
+                  type="number"
+                  value={maxExperience}
+                  onChange={(e) => setMaxExperience(e.target.value)}
+                  className="h-10 rounded-xl border-slate-200"
+                />
               </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Min Rate"
+                  type="number"
+                  value={minRate}
+                  onChange={(e) => setMinRate(e.target.value)}
+                  className="h-10 rounded-xl border-slate-200"
+                />
+                <Input
+                  placeholder="Max Rate"
+                  type="number"
+                  value={maxRate}
+                  onChange={(e) => setMaxRate(e.target.value)}
+                  className="h-10 rounded-xl border-slate-200"
+                />
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-500">Status:</span>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant={isActive === "true" ? "default" : "outline"}
+                    onClick={() => setIsActive("true")}
+                    className="rounded-lg h-8 px-3 text-xs"
+                  >
+                    Active
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={isActive === "false" ? "default" : "outline"}
+                    onClick={() => setIsActive("false")}
+                    className="rounded-lg h-8 px-3 text-xs"
+                  >
+                    Inactive
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={isActive === "all" ? "default" : "outline"}
+                    onClick={() => setIsActive("all")}
+                    className="rounded-lg h-8 px-3 text-xs"
+                  >
+                    All
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-500">Preference:</span>
+                <select
+                  value={deploymentPreference}
+                  onChange={(e) => setDeploymentPreference(e.target.value)}
+                  className="h-8 rounded-lg border-slate-200 text-xs px-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">All</option>
+                  <option value="remote">Remote</option>
+                  <option value="onsite">On-site</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-500">Available Before:</span>
+                <Input
+                  type="date"
+                  value={availableFrom}
+                  onChange={(e) => setAvailableFrom(e.target.value)}
+                  className="h-8 rounded-lg border-slate-200 text-xs px-2 w-32"
+                />
+              </div>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery("");
+                  setFilterSkills("");
+                  setDeploymentPreference("");
+                  setMinExperience("");
+                  setMaxExperience("");
+                  setMinRate("");
+                  setMaxRate("");
+                  setAvailableFrom("");
+                  setIsActive("true");
+                }}
+                className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 font-medium ml-auto"
+              >
+                Clear all filters
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -252,19 +328,30 @@ const ActiveResources = () => {
         {/* Resources Table */}
         <Card className="border-0 shadow-lg rounded-2xl bg-white overflow-hidden">
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50 hover:bg-slate-50">
-                  <TableHead className="font-semibold text-slate-700">Resource</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Skills</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Experience</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Rate</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Status</TableHead>
-                  <TableHead className="font-semibold text-slate-700 text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredResources.map((resource) => (
+            {isLoading ? (
+              <div className="p-20 text-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
+                <p className="mt-4 text-slate-500">Loading resources...</p>
+              </div>
+            ) : isError ? (
+              <div className="p-20 text-center">
+                <XCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+                <p className="text-slate-500">Error loading resources. Please try again.</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50 hover:bg-slate-50">
+                    <TableHead className="font-semibold text-slate-700">Resource</TableHead>
+                    <TableHead className="font-semibold text-slate-700">Skills</TableHead>
+                    <TableHead className="font-semibold text-slate-700">Experience</TableHead>
+                    <TableHead className="font-semibold text-slate-700">Rate</TableHead>
+                    <TableHead className="font-semibold text-slate-700">Status</TableHead>
+                    <TableHead className="font-semibold text-slate-700 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {resources.map((resource: any) => (
                   <TableRow
                     key={resource.id}
                     className="hover:bg-blue-50/50 cursor-pointer transition-colors"
@@ -273,17 +360,17 @@ const ActiveResources = () => {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">
-                          {resource.name.charAt(0)}
+                          {resource.resourceName.charAt(0)}
                         </div>
                         <div>
-                          <p className="font-semibold text-slate-800">{resource.name}</p>
-                          <p className="text-sm text-slate-500">{resource.role}</p>
+                          <p className="font-semibold text-slate-800">{resource.resourceName}</p>
+                          <p className="text-sm text-slate-500">{resource.currentRole}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
-                        {resource.skills.slice(0, 2).map((skill) => (
+                        {resource.technicalSkills?.slice(0, 2).map((skill: string) => (
                           <Badge
                             key={skill}
                             className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs"
@@ -291,29 +378,29 @@ const ActiveResources = () => {
                             {skill}
                           </Badge>
                         ))}
-                        {resource.skills.length > 2 && (
+                        {resource.technicalSkills?.length > 2 && (
                           <Badge className="bg-slate-100 text-slate-600 text-xs">
-                            +{resource.skills.length - 2}
+                            +{resource.technicalSkills.length - 2}
                           </Badge>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-slate-600">{resource.experience}</TableCell>
+                    <TableCell className="text-slate-600">{resource.totalExperience} years</TableCell>
                     <TableCell>
                       <span className="font-semibold text-slate-800">
-                        ${resource.rate}
+                        {resource.hourlyRate}
                       </span>
                       <span className="text-slate-500">/hr</span>
                     </TableCell>
                     <TableCell>
                       <Badge
                         className={`${
-                          resource.status === "assigned"
+                          resource.isActive
                             ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                            : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                            : "bg-red-100 text-red-700 hover:bg-red-200"
                         }`}
                       >
-                        {resource.status === "assigned" ? "Assigned" : "Available"}
+                        {resource.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -345,8 +432,56 @@ const ActiveResources = () => {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
-            {filteredResources.length === 0 && (
+              </Table>
+            )}
+            
+            {/* Pagination Controls */}
+            {!isLoading && !isError && pagination.totalPages > 1 && (
+              <div className="flex items-center justify-between p-4 border-t border-slate-100 bg-slate-50/30">
+                <div className="text-sm text-slate-500">
+                  Showing <span className="font-medium text-slate-700">{(page - 1) * limit + 1}</span> to{" "}
+                  <span className="font-medium text-slate-700">
+                    {Math.min(page * limit, pagination.total)}
+                  </span>{" "}
+                  of <span className="font-medium text-slate-700">{pagination.total}</span> resources
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page === 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="rounded-lg h-8"
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center gap-2">
+                    {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
+                      <Button
+                        key={p}
+                        variant={page === p ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPage(p)}
+                        className={`w-8 h-8 rounded-lg ${page === p ? "" : "text-slate-600"}`}
+                      >
+                        {p}
+                      </Button>
+                    ))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page === pagination.totalPages}
+                    onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                    className="rounded-lg h-8"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {!isLoading && !isError && resources.length === 0 && (
               <div className="p-12 text-center">
                 <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-500">No resources found</p>
@@ -355,176 +490,23 @@ const ActiveResources = () => {
           </CardContent>
         </Card>
 
-        {/* Resource Detail Dialog */}
-        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            {selectedResource && (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xl font-bold">
-                      {selectedResource.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-slate-800">{selectedResource.name}</h2>
-                      <p className="text-slate-500 font-normal">{selectedResource.role}</p>
-                    </div>
-                    <Badge
-                      className={`ml-auto ${
-                        selectedResource.status === "assigned"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-amber-100 text-amber-700"
-                      }`}
-                    >
-                      {selectedResource.status === "assigned" ? "Assigned" : "Available"}
-                    </Badge>
-                  </DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-6 mt-6">
-                  {/* Resource Info */}
-                  <Card className="border border-slate-200 rounded-xl">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <User className="h-5 w-5 text-blue-500" />
-                        Resource Details
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-slate-600">{selectedResource.summary}</p>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <Briefcase className="h-4 w-4 text-slate-400" />
-                          <span>{selectedResource.experience}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <DollarSign className="h-4 w-4 text-slate-400" />
-                          <span>${selectedResource.rate}/hr ({selectedResource.currency})</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <Calendar className="h-4 w-4 text-slate-400" />
-                          <span>Available: {selectedResource.availableFrom}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <MapPin className="h-4 w-4 text-slate-400" />
-                          <span>{selectedResource.locationPreference.join(", ")}</span>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-700 mb-2">Skills</p>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedResource.skills.map((skill) => (
-                            <Badge
-                              key={skill}
-                              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1"
-                            >
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Assignment Info (if assigned) */}
-                  {selectedResource.assignment && (
-                    <Card className="border border-emerald-200 bg-emerald-50/50 rounded-xl">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2 text-emerald-700">
-                          <Building2 className="h-5 w-5 text-emerald-600" />
-                          Assignment Details
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-sm text-slate-500">Client</p>
-                            <p className="font-semibold text-slate-800">
-                              {selectedResource.assignment.clientName}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-slate-500">Project</p>
-                            <p className="font-semibold text-slate-800">
-                              {selectedResource.assignment.projectName}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-slate-500">Start Date</p>
-                            <p className="font-semibold text-slate-800">
-                              {selectedResource.assignment.startDate}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-slate-500">End Date</p>
-                            <p className="font-semibold text-slate-800">
-                              {selectedResource.assignment.endDate}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="border-t border-emerald-200 pt-4">
-                          <p className="text-sm font-medium text-emerald-700 mb-3">Billing Information</p>
-                          <div className="grid grid-cols-3 gap-4">
-                            <div className="bg-white rounded-xl p-4 text-center border border-emerald-200">
-                              <p className="text-2xl font-bold text-emerald-600">
-                                ${selectedResource.assignment.billingRate}
-                              </p>
-                              <p className="text-xs text-slate-500">Billing Rate/hr</p>
-                            </div>
-                            <div className="bg-white rounded-xl p-4 text-center border border-emerald-200">
-                              <p className="text-2xl font-bold text-slate-800">
-                                {selectedResource.assignment.hoursPerWeek}
-                              </p>
-                              <p className="text-xs text-slate-500">Hours/Week</p>
-                            </div>
-                            <div className="bg-white rounded-xl p-4 text-center border border-emerald-200">
-                              <p className="text-2xl font-bold text-blue-600">
-                                ${selectedResource.assignment.totalBilled.toLocaleString()}
-                              </p>
-                              <p className="text-xs text-slate-500">Total Billed</p>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Not Assigned Info */}
-                  {!selectedResource.assignment && (
-                    <Card className="border border-amber-200 bg-amber-50/50 rounded-xl">
-                      <CardContent className="p-6 text-center">
-                        <Clock className="h-10 w-10 text-amber-500 mx-auto mb-3" />
-                        <p className="font-semibold text-slate-800 mb-1">Currently Available</p>
-                        <p className="text-sm text-slate-500">
-                          This resource is not assigned to any project and is ready for new opportunities.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex justify-end gap-3 pt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsDetailOpen(false)}
-                      className="rounded-xl"
-                    >
-                      Close
-                    </Button>
-                    <Button
-                      onClick={() => handleEditResource(selectedResource.id)}
-                      className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Resource
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
+        {/* Resource Detail Modal */}
+        {selectedResource && (
+          <CandidateProfileModal
+            open={isDetailOpen}
+            onClose={() => setIsDetailOpen(false)}
+            candidate={mapResourceToCandidateProfile(selectedResource)}
+            onScheduleInterview={(candidate) => {
+              toast.info(`Scheduling interview with ${candidate.name}`);
+            }}
+            onShortlist={(candidate) => {
+              toast.success(`${candidate.name} added to shortlist`);
+            }}
+            onSkillTest={(candidate) => {
+              toast.info(`Initiating skill test for ${candidate.name}`);
+            }}
+          />
+        )}
       </div>
     </div>
   );

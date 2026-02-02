@@ -1,0 +1,308 @@
+import React from "react";
+import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
+import {
+  PlusCircle,
+  Users,
+  ClipboardCheck,
+  Video,
+  FileText,
+  Settings,
+  Sparkles,
+  Bell,
+  LogOut,
+  User,
+  LayoutDashboard,
+  Briefcase,
+  TrendingUp,
+  FileCheck,
+  DollarSign,
+  BarChart3,
+  CreditCard,
+  Plus,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
+
+type DashboardRole = "contractor" | "bench" | "employer";
+
+interface UnifiedDashboardLayoutProps {
+  role: DashboardRole;
+}
+
+const getMenuItems = (role: DashboardRole) => {
+  switch (role) {
+    case "contractor":
+      return [
+        {
+          icon: LayoutDashboard,
+          label: "Dashboard",
+          href: "/contractor/dashboard",
+        },
+        { icon: Briefcase, label: "Job Matches", href: "/contractor/jobs" },
+        { icon: FileCheck, label: "Skill Tests", href: "/contractor/tests" },
+        {
+          icon: Video,
+          label: "AI Interviews",
+          href: "/contractor/interviews",
+          isAI: true,
+        },
+        { icon: User, label: "Profile", href: "/contractor/profile" },
+        { icon: DollarSign, label: "Earnings", href: "/contractor/earnings" },
+      ];
+    case "bench":
+      return [
+        { icon: LayoutDashboard, label: "Dashboard", href: "/bench/dashboard" },
+        { icon: Users, label: "Bench Talent", href: "/bench/talent" },
+        { icon: Briefcase, label: "Job Matches", href: "/bench/matches" },
+        { icon: BarChart3, label: "Analytics", href: "/bench/analytics" },
+        { icon: FileText, label: "Contracts", href: "/bench/contracts" },
+        { icon: CreditCard, label: "Billing", href: "/bench/billing" },
+      ];
+    case "employer":
+      return [
+        {
+          icon: LayoutDashboard,
+          label: "Dashboard",
+          href: "/employer/dashboard",
+        },
+        { icon: PlusCircle, label: "Post Job", href: "/employer/post-job" },
+        {
+          icon: Users,
+          label: "AI Shortlists",
+          href: "/employer/ai-shortlists",
+          isAI: true,
+        },
+        {
+          icon: ClipboardCheck,
+          label: "Skill Tests",
+          href: "/employer/skill-tests",
+        },
+        {
+          icon: Video,
+          label: "AI Interviews",
+          href: "/employer/ai-interviews",
+          isAI: true,
+        },
+        { icon: FileText, label: "Contracts", href: "/employer/contracts" },
+        { icon: Settings, label: "Settings", href: "/employer/settings" },
+      ];
+    default:
+      return [];
+  }
+};
+
+const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+  const menuItems = getMenuItems(role);
+
+  const handleLogout = () => {
+    logout();
+    navigate(
+      role === "employer"
+        ? "/employer-login"
+        : role === "bench"
+          ? "/bench-login"
+          : "/candidate-login",
+    );
+  };
+
+  const getRoleBadge = () => {
+    switch (role) {
+      case "contractor":
+        return "Contractor";
+      case "bench":
+        return "Bench Resource";
+      case "employer":
+        return "Hiring Company";
+      default:
+        return "";
+    }
+  };
+
+  return (
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-border bg-background"
+    >
+      <SidebarHeader className="border-b border-border p-4">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+            <Sparkles className="h-5 w-5 text-primary-foreground" />
+          </div>
+          {!isCollapsed && (
+            <span className="text-xl font-bold tracking-tight text-foreground">
+              HIRION
+            </span>
+          )}
+        </Link>
+      </SidebarHeader>
+
+      <SidebarContent className="p-3">
+        <SidebarMenu>
+          {menuItems.map((item) => {
+            const isDashboard = item.href === `/${role}/dashboard`;
+            const isActive =
+              location.pathname === item.href ||
+              (isDashboard && location.pathname === `/${role}`) ||
+              (!isDashboard && location.pathname.startsWith(item.href));
+
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  tooltip={item.label}
+                  className={cn(
+                    "w-full justify-start gap-3 px-3 py-2.5 rounded-xl transition-all",
+                    isActive
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  )}
+                >
+                  <Link to={item.href}>
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    {!isCollapsed && (
+                      <span className="font-medium">{item.label}</span>
+                    )}
+                    {item.isAI && !isCollapsed && (
+                      <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-primary/20 text-primary rounded-full font-semibold">
+                        AI
+                      </span>
+                    )}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t border-border p-3">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className={cn(
+                "flex items-center gap-3 w-full p-2 rounded-xl hover:bg-muted transition-colors",
+                isCollapsed && "justify-center",
+              )}
+            >
+              <Avatar className="h-9 w-9 bg-primary flex-shrink-0">
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
+                  {user?.name?.charAt(0) ||
+                    user?.email?.charAt(0) ||
+                    role.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              {!isCollapsed && (
+                <div className="text-left flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {user?.name ||
+                      (role === "employer" ? "InnovateLab Inc." : "John Doe")}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {getRoleBadge()}
+                  </p>
+                </div>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="top" className="w-56">
+            <DropdownMenuItem>
+              <User className="h-4 w-4 mr-2" />
+              Profile
+            </DropdownMenuItem>
+            {role === "employer" && (
+              <DropdownMenuItem asChild>
+                <Link to={`/${role}/settings`}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="text-destructive"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarFooter>
+    </Sidebar>
+  );
+};
+
+const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <UnifiedSidebarContent role={role} />
+
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="sticky top-0 z-40 h-16 bg-background border-b border-border flex items-center justify-between px-6">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5 text-muted-foreground" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
+              </Button>
+              {role === "employer" && (
+                <Button size="sm" className="rounded-xl hidden md:flex" asChild>
+                  <Link to="/employer/post-job">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Post Job
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </header>
+
+          <main className="flex-1 p-6 overflow-auto">
+            <React.Suspense
+              fallback={
+                <div className="flex items-center justify-center h-full">
+                  <SpinnerLoader className="w-8 h-8 text-primary" />
+                </div>
+              }
+            >
+              <Outlet />
+            </React.Suspense>
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+};
+
+export default UnifiedDashboardLayout;
