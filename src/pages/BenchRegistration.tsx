@@ -62,6 +62,7 @@ const BenchRegistration = () => {
       const maxSizeBytes = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSizeBytes) {
         toast.error("File size must be less than 10MB");
+        setCompanyDocument(null)
         return;
       }
       setCompanyDocument(file);
