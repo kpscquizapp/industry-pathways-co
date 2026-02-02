@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,12 +47,39 @@ const ActiveResources = () => {
   const [maxRate, setMaxRate] = useState("");
   const [availableFrom, setAvailableFrom] = useState("");
   const [isActive, setIsActive] = useState<boolean | string>("true");
+
+  useEffect(() => {
+    setPage(1);
+  }, [
+    searchQuery,
+    filterSkills,
+    deploymentPreference,
+    minExperience,
+    maxExperience,
+    minRate,
+    maxRate,
+    availableFrom,
+    isActive,
+  ]);
   
-  const [selectedResource, setSelectedResource] = useState<any | null>(null);
+  type BenchResource = {
+  id: number;
+  resourceName: string;
+  currentRole: string;
+  hourlyRate: number;
+  availableFrom?: string | null;
+  deploymentPreference?: string | null;
+  totalExperience: number;
+  isActive: boolean;
+  technicalSkills?: string[];
+  professionalSummary?: string;
+};
+
+  const [selectedResource, setSelectedResource] = useState<BenchResource | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   // Mapper function to convert BenchResource to CandidateProfile
-  const mapResourceToCandidateProfile = (resource: any): CandidateProfile => ({
+  const mapResourceToCandidateProfile = (resource: BenchResource): CandidateProfile => ({
     id: resource.id,
     name: resource.resourceName,
     role: resource.currentRole,
@@ -83,7 +110,7 @@ const ActiveResources = () => {
   };
 
   const { data: apiData, isLoading, isError, refetch } = useGetBenchResourcesQuery(queryParams);
-  const resources = apiData?.data || [];
+  const resources: BenchResource[] = apiData?.data || [];
   const pagination = apiData?.pagination || { total: 0, page: 1, totalPages: 1, limit: 10 };
 
   const [deleteBenchResource] = useDeleteBenchResourceMutation();
@@ -454,7 +481,7 @@ const ActiveResources = () => {
               </div>
             )}
 
-            {!isLoading && resources.length === 0 && (
+            {!isLoading && !isError && resources.length === 0 && (
               <div className="p-12 text-center">
                 <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-500">No resources found</p>

@@ -185,6 +185,7 @@ const App = () => {
                     {/* NEW: Hiring Company Dashboard Routes */}
                     {/* NEW: Hiring Company Dashboard Routes */}
                     <Route path="/employer" element={<UnifiedDashboardLayout role="employer" />}>
+                      <Route index element={<HiringDashboardNew />} />
                       <Route path="dashboard" element={<HiringDashboardNew />} />
                       <Route path="post-job" element={<EmployerPostJob />} />
                       <Route path="ai-shortlists" element={<EmployerAIShortlists />} />

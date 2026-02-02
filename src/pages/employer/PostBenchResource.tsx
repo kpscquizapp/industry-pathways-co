@@ -36,7 +36,7 @@ const PostBenchResource = () => {
   const [currentStep, setCurrentStep] = useState(2);
   
   const [extractResume, { isLoading: isExtracting }] = useExtractResumeMutation();
-  const [postBenchResource] = usePostBenchResourceMutation();
+  const [postBenchResource, { isLoading: isSubmitting }] = usePostBenchResourceMutation();
 
   const steps = [
     { number: 1, title: "Company Profile", completed: true },
@@ -86,6 +86,7 @@ const PostBenchResource = () => {
   };
 
   const mapExperience = (years: number) => {
+    if (years < 0 || !Number.isFinite(years)) return "0-1";
     if (years < 1) return "0-1";
     if (years <= 3) return "1-3";
     if (years <= 5) return "3-5";
@@ -460,9 +461,11 @@ const PostBenchResource = () => {
               </Button>
               <Button 
                 onClick={handleProceed}
+                disabled={isSubmitting}
                 className="px-10 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium shadow-lg shadow-blue-500/30 transition-all hover:shadow-xl hover:shadow-blue-500/40"
               >
                 Proceed to Review
+                {isSubmitting ? "Submitting..." : "Proceed to Review"}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>

@@ -209,7 +209,7 @@ const EmployerLogin = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2 py-2">
+                  {/* <div className="flex items-center space-x-2 py-2">
                     <Checkbox 
                       id="keep-signed-in" 
                       checked={keepSignedIn}
@@ -218,8 +218,8 @@ const EmployerLogin = () => {
                     />
                     <label htmlFor="keep-signed-in" className="text-sm font-medium leading-none text-slate-500 dark:text-slate-400 cursor-pointer select-none">
                       Keep me signed in
-                    </label>
-                  </div>
+                    </label> */}
+                  {/* </div> */}
 
                   <Button 
                     type="submit" 

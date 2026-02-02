@@ -3,13 +3,33 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, Sparkles, ArrowRight, Mail, Lock, Users, TrendingUp, Shield, User } from 'lucide-react';
+import { Sparkles, ArrowRight, Mail, Lock, Users, TrendingUp, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLoginEmployerMutation } from '@/app/queries/loginApi';
 import { useDispatch } from 'react-redux';
 import { setUser } from '@/app/slices/userAuth';
 import SpinnerLoader from '@/components/loader/SpinnerLoader';
 
+const FEATURES = [
+  { 
+    icon: Users, 
+    title: 'Bench Talent Pool', 
+    description: 'Maximize ROI by listing your idle resources.',
+    color: 'bg-emerald-500/20 text-emerald-400'
+  },
+  { 
+    icon: TrendingUp, 
+    title: 'AI-Powered Matching', 
+    description: 'Our engine finds the perfect projects for your bench.',
+    color: 'bg-emerald-500/20 text-emerald-400'
+  },
+  { 
+    icon: Shield, 
+    title: 'Secure Contracts', 
+    description: 'Automated legal and billing workflows.',
+    color: 'bg-primary/20 text-primary'
+  },
+] as const;
 const BenchLogin = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -41,26 +61,26 @@ const BenchLogin = () => {
     }
   };
 
-  const features = [
-    { 
-      icon: Users, 
-      title: 'Bench Talent Pool', 
-      description: 'Maximize ROI by listing your idle resources.',
-      color: 'bg-emerald-500/20 text-emerald-400'
-    },
-    { 
-      icon: TrendingUp, 
-      title: 'AI-Powered Matching', 
-      description: 'Our engine finds the perfect projects for your bench.',
-      color: 'bg-emerald-500/20 text-emerald-400'
-    },
-    { 
-      icon: Shield, 
-      title: 'Secure Contracts', 
-      description: 'Automated legal and billing workflows.',
-      color: 'bg-primary/20 text-primary'
-    },
-  ];
+  // const features = [
+  //   { 
+  //     icon: Users, 
+  //     title: 'Bench Talent Pool', 
+  //     description: 'Maximize ROI by listing your idle resources.',
+  //     color: 'bg-emerald-500/20 text-emerald-400'
+  //   },
+  //   { 
+  //     icon: TrendingUp, 
+  //     title: 'AI-Powered Matching', 
+  //     description: 'Our engine finds the perfect projects for your bench.',
+  //     color: 'bg-emerald-500/20 text-emerald-400'
+  //   },
+  //   { 
+  //     icon: Shield, 
+  //     title: 'Secure Contracts', 
+  //     description: 'Automated legal and billing workflows.',
+  //     color: 'bg-primary/20 text-primary'
+  //   },
+  // ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
@@ -96,7 +116,7 @@ const BenchLogin = () => {
 
         <div className="relative z-10 space-y-6">
           <div className="grid gap-4">
-            {features.map((feature, index) => (
+            {FEATURES.map((feature, index) => (
               <div 
                 key={index} 
                 className="group flex items-start gap-4 p-5 bg-white/[0.02] backdrop-blur-sm border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300"
@@ -138,10 +158,11 @@ const BenchLogin = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Work Email</Label>
+                    <Label htmlFor="email" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Work Email</Label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                       <Input
+                        id="email"
                         name="email"
                         type="email"
                         placeholder="employer@agency.com"
@@ -155,7 +176,7 @@ const BenchLogin = () => {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Password</Label>
+                      <Label htmlFor="password" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Password</Label>
                     <Link to="/forgot-password" title="Forgot Password" className="text-xs font-bold text-primary hover:opacity-80 transition-opacity">
                         Forgot password?
                       </Link>
@@ -163,6 +184,7 @@ const BenchLogin = () => {
                     <div className="relative group">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                       <Input
+                        id="password"
                         name="password"
                         type="password"
                         placeholder="••••••••"

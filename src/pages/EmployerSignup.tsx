@@ -58,7 +58,14 @@ const EmployerSignup = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setCompanyDocument(e.target.files[0]);
+      const file = e.target.files[0];
+      const maxBytes = 10 * 1024 * 1024;
+      if (file.size > maxBytes) {
+        toast.error("File size must be 10MB or less");
+        e.target.value = "";
+        return;
+      }
+      setCompanyDocument(file);
     }
   };
 

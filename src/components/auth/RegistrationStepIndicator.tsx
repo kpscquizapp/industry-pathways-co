@@ -9,14 +9,14 @@ interface Step {
 interface RegistrationStepIndicatorProps {
   currentStep: number;
   totalSteps: number;
-  steps: Step[];
+  steps: { title: string }[];
 }
 
 const RegistrationStepIndicator: React.FC<RegistrationStepIndicatorProps> = ({
   currentStep,
-  totalSteps,
   steps,
 }) => {
+  const totalSteps = steps.length;
   return (
     <div className="mb-10 w-full px-1">
       <div className="flex items-center justify-between mb-8 overflow-x-auto pb-2 scrollbar-none gap-4">
@@ -50,7 +50,7 @@ const RegistrationStepIndicator: React.FC<RegistrationStepIndicatorProps> = ({
       <div className="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
         <div
           className="h-full bg-primary transition-all duration-500 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-          style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
+          style={{ width: `${totalSteps <= 1 ? 100 : ((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
         />
       </div>
     </div>

@@ -1,25 +1,25 @@
-import React from 'react';
-import { 
-  X, 
-  Download, 
-  DollarSign, 
-  Clock, 
-  MapPin, 
-  Briefcase, 
+import React from "react";
+import {
+  X,
+  Download,
+  DollarSign,
+  Clock,
+  MapPin,
+  Briefcase,
   Globe,
   Award,
   Star,
   ExternalLink,
   FileText,
   Smartphone,
-  ShoppingCart
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+  ShoppingCart,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 
 export interface CandidateProfile {
   id: number;
@@ -35,7 +35,7 @@ export interface CandidateProfile {
   location: string;
   experience: string;
   englishLevel?: string;
-  type: 'individual' | 'bench';
+  type: "individual" | "bench";
   company?: string;
   skills: string[];
   certifications?: { name: string; issuer: string; year: string }[];
@@ -52,7 +52,7 @@ export interface CandidateProfile {
     name: string;
     description: string;
     technologies: string[];
-    icon: 'smartphone' | 'shopping';
+    icon: "smartphone" | "shopping";
   }[];
 }
 
@@ -65,7 +65,13 @@ interface CandidateProfileModalProps {
   onSkillTest?: (candidate: CandidateProfile) => void;
 }
 
-const ScoreCircle = ({ score, size = 64 }: { score: number; size?: number }) => {
+const ScoreCircle = ({
+  score,
+  size = 64,
+}: {
+  score: number;
+  size?: number;
+}) => {
   const strokeWidth = 4;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -93,7 +99,7 @@ const ScoreCircle = ({ score, size = 64 }: { score: number; size?: number }) => 
           style={{
             strokeDasharray: circumference,
             strokeDashoffset: offset,
-            transition: 'stroke-dashoffset 0.5s ease-in-out'
+            transition: "stroke-dashoffset 0.5s ease-in-out",
           }}
         />
       </svg>
@@ -132,17 +138,27 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
               <Avatar className="h-24 w-24 mx-auto mb-4 border-4 border-background shadow-lg">
                 <AvatarImage src={candidate.avatar} />
                 <AvatarFallback className="text-2xl font-semibold bg-primary/10 text-primary">
-                  {candidate.name.split(' ').map(n => n[0]).join('')}
+                  {candidate.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
                 </AvatarFallback>
               </Avatar>
-              <h2 className="text-xl font-bold text-foreground">{candidate.name}</h2>
+              <h2 className="text-xl font-bold text-foreground">
+                {candidate.name}
+              </h2>
               <p className="text-muted-foreground">{candidate.role}</p>
-              
+
               <div className="flex items-center justify-center gap-2 mt-3">
-                {candidate.type === 'bench' && (
-                  <Badge className="bg-primary/10 text-primary border-0">BENCH RESOURCE</Badge>
+                {candidate.type === "bench" && (
+                  <Badge className="bg-primary/10 text-primary border-0">
+                    BENCH RESOURCE
+                  </Badge>
                 )}
-                <Badge variant="outline" className="border-primary/30 text-primary">
+                <Badge
+                  variant="outline"
+                  className="border-primary/30 text-primary"
+                >
                   <Star className="h-3 w-3 mr-1 fill-primary" />
                   Top 5% Match
                 </Badge>
@@ -152,7 +168,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
             {/* Action Buttons */}
             <div className="space-y-3 mb-6">
               {onScheduleInterview && (
-                <Button 
+                <Button
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
                   onClick={() => onScheduleInterview(candidate)}
                 >
@@ -171,44 +187,62 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                   <DollarSign className="h-4 w-4" />
                   <span>Hourly Rate</span>
                 </div>
-                <span className="font-semibold text-primary">${candidate.hourlyRate.min} - ${candidate.hourlyRate.max} / hr</span>
+                <span className="font-semibold text-primary">
+                  ${candidate.hourlyRate.min} - ${candidate.hourlyRate.max} / hr
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Clock className="h-4 w-4" />
                   <span>Availability</span>
                 </div>
-                <span className="font-semibold text-primary">{candidate.availability}</span>
+                <span className="font-semibold text-primary">
+                  {candidate.availability}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="h-4 w-4" />
                   <span>Location</span>
                 </div>
-                <span className="font-medium text-foreground">{candidate.location}</span>
+                <span className="font-medium text-foreground">
+                  {candidate.location}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Briefcase className="h-4 w-4" />
                   <span>Experience</span>
                 </div>
-                <span className="font-medium text-foreground">{candidate.experience}</span>
+                <span className="font-medium text-foreground">
+                  {candidate.experience}
+                </span>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Globe className="h-4 w-4" />
-                  <span>English</span>
+              {candidate.englishLevel && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Globe className="h-4 w-4" />
+                    <span>English</span>
+                  </div>
+                  <span className="font-medium text-foreground">
+                    {candidate.englishLevel}
+                  </span>
                 </div>
-                <span className="font-medium text-foreground">{candidate.englishLevel}</span>
-              </div>
+              )}
             </div>
 
             {/* Skills */}
             <div className="mt-6">
-              <h3 className="font-semibold text-foreground mb-3">Skills & Tech</h3>
+              <h3 className="font-semibold text-foreground mb-3">
+                Skills & Tech
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {candidate.skills.map((skill) => (
-                  <Badge key={skill} variant="secondary" className="bg-muted text-muted-foreground">
+                  <Badge
+                    key={skill}
+                    variant="secondary"
+                    className="bg-muted text-muted-foreground"
+                  >
                     {skill}
                   </Badge>
                 ))}
@@ -216,34 +250,61 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
             </div>
 
             {/* Certifications */}
-            {candidate.certifications && candidate.certifications.length > 0 && (
-              <div className="mt-6">
-                <h3 className="font-semibold text-foreground mb-3">Certifications</h3>
-                <div className="space-y-3">
-                  {candidate.certifications.map((cert, idx) => (
-                    <div key={idx} className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
-                        <Award className="h-4 w-4 text-destructive" />
+            {candidate.certifications &&
+              candidate.certifications.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="font-semibold text-foreground mb-3">
+                    Certifications
+                  </h3>
+                  <div className="space-y-3">
+                    {candidate.certifications.map((cert, idx) => (
+                      <div key={idx} className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                          <Award className="h-4 w-4 text-destructive" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground text-sm">
+                            {cert.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Issued {cert.year}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-foreground text-sm">{cert.name}</p>
-                        <p className="text-xs text-muted-foreground">Issued {cert.year}</p>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
 
           {/* Right Content */}
           <div className="flex-1 p-6">
             <Tabs defaultValue="overview">
               <TabsList className="bg-muted/50 rounded-xl p-1 mb-6">
-                <TabsTrigger value="overview" className="rounded-lg px-6 data-[state=active]:bg-background">Overview</TabsTrigger>
-                <TabsTrigger value="projects" className="rounded-lg px-6 data-[state=active]:bg-background">Projects</TabsTrigger>
-                <TabsTrigger value="assessment" className="rounded-lg px-6 data-[state=active]:bg-background">Assessment Report</TabsTrigger>
-                <TabsTrigger value="resume" className="rounded-lg px-6 data-[state=active]:bg-background">Resume</TabsTrigger>
+                <TabsTrigger
+                  value="overview"
+                  className="rounded-lg px-6 data-[state=active]:bg-background"
+                >
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger
+                  value="projects"
+                  className="rounded-lg px-6 data-[state=active]:bg-background"
+                >
+                  Projects
+                </TabsTrigger>
+                <TabsTrigger
+                  value="assessment"
+                  className="rounded-lg px-6 data-[state=active]:bg-background"
+                >
+                  Assessment Report
+                </TabsTrigger>
+                <TabsTrigger
+                  value="resume"
+                  className="rounded-lg px-6 data-[state=active]:bg-background"
+                >
+                  Resume
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-6">
@@ -255,8 +316,13 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                         <div className="flex items-center gap-4">
                           <ScoreCircle score={candidate.matchScore} />
                           <div>
-                            <h3 className="font-semibold text-lg text-foreground">AI Matching Score</h3>
-                            <p className="text-sm text-muted-foreground">Based on your project requirements for "Senior Mobile Developer".</p>
+                            <h3 className="font-semibold text-lg text-foreground">
+                              AI Matching Score
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Based on your project requirements for "Senior
+                              Mobile Developer".
+                            </p>
                           </div>
                         </div>
                         <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
@@ -264,9 +330,24 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                         </Button>
                       </div>
                       <div className="grid grid-cols-3 gap-4">
-                        {candidate.technicalScore !== undefined && <ScoreBar label="Technical Skill" score={candidate.technicalScore} />}
-                        {candidate.communicationScore !== undefined && <ScoreBar label="Communication" score={candidate.communicationScore} />}
-                        {candidate.problemSolvingScore !== undefined && <ScoreBar label="Problem Solving" score={candidate.problemSolvingScore} />}
+                        {candidate.technicalScore !== undefined && (
+                          <ScoreBar
+                            label="Technical Skill"
+                            score={candidate.technicalScore}
+                          />
+                        )}
+                        {candidate.communicationScore !== undefined && (
+                          <ScoreBar
+                            label="Communication"
+                            score={candidate.communicationScore}
+                          />
+                        )}
+                        {candidate.problemSolvingScore !== undefined && (
+                          <ScoreBar
+                            label="Problem Solving"
+                            score={candidate.problemSolvingScore}
+                          />
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -276,49 +357,75 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                 {candidate.about && (
                   <Card className="border-border">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-lg text-foreground">About Candidate</CardTitle>
+                      <CardTitle className="text-lg text-foreground">
+                        About Candidate
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-muted-foreground leading-relaxed">{candidate.about}</p>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {candidate.about}
+                      </p>
                     </CardContent>
                   </Card>
                 )}
 
                 {/* Work Experience */}
-                {candidate.workExperience && candidate.workExperience.length > 0 && (
-                  <Card className="border-border">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg text-foreground">Work Experience</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      {candidate.workExperience.map((exp, idx) => (
-                        <div key={idx} className="relative pl-6 border-l-2 border-muted">
-                          <div className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full bg-primary" />
-                          <div className="mb-1">
-                            <h4 className="font-semibold text-foreground">{exp.role}</h4>
-                            <p className="text-primary font-medium">{exp.company}</p>
-                            <p className="text-sm text-muted-foreground">{exp.period} • {exp.location}</p>
+                {candidate.workExperience &&
+                  candidate.workExperience.length > 0 && (
+                    <Card className="border-border">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg text-foreground">
+                          Work Experience
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {candidate.workExperience.map((exp, idx) => (
+                          <div
+                            key={idx}
+                            className="relative pl-6 border-l-2 border-muted"
+                          >
+                            <div className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full bg-primary" />
+                            <div className="mb-1">
+                              <h4 className="font-semibold text-foreground">
+                                {exp.role}
+                              </h4>
+                              <p className="text-primary font-medium">
+                                {exp.company}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {exp.period} • {exp.location}
+                              </p>
+                            </div>
+                            <ul className="mt-2 space-y-1">
+                              {exp.highlights.map((highlight, hIdx) => (
+                                <li
+                                  key={hIdx}
+                                  className="text-sm text-muted-foreground flex items-start gap-2"
+                                >
+                                  <span className="text-muted-foreground">
+                                    -
+                                  </span>
+                                  {highlight}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
-                          <ul className="mt-2 space-y-1">
-                            {exp.highlights.map((highlight, hIdx) => (
-                              <li key={hIdx} className="text-sm text-muted-foreground flex items-start gap-2">
-                                <span className="text-muted-foreground">-</span>
-                                {highlight}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
 
                 {/* Featured Projects */}
                 {candidate.projects && candidate.projects.length > 0 && (
                   <Card className="border-border">
                     <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                      <CardTitle className="text-lg text-foreground">Featured Projects</CardTitle>
-                      <Button variant="link" className="text-primary p-0 h-auto">
+                      <CardTitle className="text-lg text-foreground">
+                        Featured Projects
+                      </CardTitle>
+                      <Button
+                        variant="link"
+                        className="text-primary p-0 h-auto"
+                      >
                         View Portfolio
                         <ExternalLink className="h-3 w-3 ml-1" />
                       </Button>
@@ -328,14 +435,18 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                         {candidate.projects.map((project, idx) => (
                           <div key={idx} className="bg-muted/30 rounded-xl p-4">
                             <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-3">
-                              {project.icon === 'smartphone' ? (
+                              {project.icon === "smartphone" ? (
                                 <Smartphone className="h-6 w-6 text-muted-foreground" />
                               ) : (
                                 <ShoppingCart className="h-6 w-6 text-muted-foreground" />
                               )}
                             </div>
-                            <h4 className="font-semibold text-foreground">{project.name}</h4>
-                            <p className="text-xs text-muted-foreground mt-1">{project.technologies.join(', ')}</p>
+                            <h4 className="font-semibold text-foreground">
+                              {project.name}
+                            </h4>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {project.technologies.join(", ")}
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -355,7 +466,8 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
               <TabsContent value="assessment">
                 <Card className="border-border">
                   <CardContent className="p-6 text-center text-muted-foreground">
-                    Assessment reports will appear here after skill tests are completed.
+                    Assessment reports will appear here after skill tests are
+                    completed.
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -377,19 +489,30 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
         {/* Bottom Action Bar */}
         <div className="sticky bottom-0 bg-card border-t border-border p-4 flex items-center justify-end gap-3">
           {onSkillTest && (
-            <Button variant="outline" className="rounded-xl" onClick={() => onSkillTest(candidate)}>
+            <Button
+              variant="outline"
+              className="rounded-xl"
+              onClick={() => onSkillTest(candidate)}
+            >
               <FileText className="h-4 w-4 mr-2" />
               Schedule Skill Test
             </Button>
           )}
           {onShortlist && (
-            <Button variant="outline" className="rounded-xl text-primary border-primary hover:bg-primary/10" onClick={() => onShortlist(candidate)}>
+            <Button
+              variant="outline"
+              className="rounded-xl text-primary border-primary hover:bg-primary/10"
+              onClick={() => onShortlist(candidate)}
+            >
               <Star className="h-4 w-4 mr-2" />
               Shortlist
             </Button>
           )}
           {onScheduleInterview && (
-            <Button className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => onScheduleInterview(candidate)}>
+            <Button
+              className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={() => onScheduleInterview(candidate)}
+            >
               Book Interview
             </Button>
           )}
