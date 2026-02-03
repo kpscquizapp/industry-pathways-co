@@ -17,8 +17,6 @@ import TalentProfile from "./pages/TalentProfile";
 import RegisterTalent from "./pages/RegisterTalent";
 import EmployerLogin from "./pages/EmployerLogin";
 import EmployerSignup from "./pages/EmployerSignup";
-import EmployerSignup1 from "./pages/EmployerSignup1";
-import EmployerLogin1 from "./pages/EmployerLogin1";
 import ContractorRegistration from "./pages/ContractorRegistration";
 import BenchRegistration from "./pages/BenchRegistration";
 import BenchLogin from "./pages/BenchLogin";
@@ -52,7 +50,6 @@ import JobCandidates from "./pages/employer/JobCandidates";
 import AIInterviewResults from "./pages/employer/AIInterviewResults";
 import JobBoard from "./pages/employer/JobBoard";
 import CreateJob from "./pages/employer/CreateJob";
-import AppliedCandidates from "./pages/employer/AppliedCandidates";
 import JobDetailsPage from "./pages/employer/JobDetails";
 import CandidateDetailPage from "./pages/employer/CandidateDetailPage";
 
@@ -93,10 +90,6 @@ const RefreshTokenHandler = () => {
 };
 
 const App = () => {
-
-  
-
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
@@ -119,17 +112,32 @@ const App = () => {
                       path="/register-talent"
                       element={<RegisterTalent />}
                     />
-                    {/* <Route path="/employer" element={<EmployerLogin />} /> */}
                     <Route path="/employer-login" element={<EmployerLogin />} />
-                    <Route path="/employer-signup" element={<EmployerSignup />} />
-                    {/* <Route path="/employer-signup1" element={<EmployerSignup1 />} /> */}
-                    {/* <Route path="/employer-login1" element={<EmployerLogin1 />} /> */}
-                    <Route path="/contractor-registration" element={<ContractorRegistration />} />
-                    <Route path="/bench-registration" element={<BenchRegistration />} />
+                    <Route
+                      path="/employer-signup"
+                      element={<EmployerSignup />}
+                    />
+                    <Route
+                      path="/contractor-registration"
+                      element={<ContractorRegistration />}
+                    />
+                    <Route
+                      path="/bench-registration"
+                      element={<BenchRegistration />}
+                    />
                     <Route path="/bench-login" element={<BenchLogin />} />
-                    <Route path="/candidate-login" element={<CandidateLogin />} />
-                    <Route path="/candidate-signup" element={<CandidateSignup />} />
-                    <Route path="/profile-visibility" element={<ProfileVisibility />} />
+                    <Route
+                      path="/candidate-login"
+                      element={<CandidateLogin />}
+                    />
+                    <Route
+                      path="/candidate-signup"
+                      element={<CandidateSignup />}
+                    />
+                    <Route
+                      path="/profile-visibility"
+                      element={<ProfileVisibility />}
+                    />
                     <Route path="/register" element={<Register />} />
                     <Route path="/jobs" element={<JobSearch />} />
                     <Route path="/jobs/:id" element={<JobDetails />} />
@@ -159,20 +167,33 @@ const App = () => {
                     <Route path="/saved-jobs" element={<SavedJobs />} />
 
                     {/* NEW: Contractor Dashboard Routes */}
-                    {/* NEW: Contractor Dashboard Routes */}
-                    <Route path="/contractor" element={<UnifiedDashboardLayout role="contractor" />}>
+                    <Route
+                      path="/contractor"
+                      element={<UnifiedDashboardLayout role="contractor" />}
+                    >
                       <Route index element={<ContractorDashboard />} />
-                      <Route path="dashboard" element={<ContractorDashboard />} />
+                      <Route
+                        path="dashboard"
+                        element={<ContractorDashboard />}
+                      />
                       <Route path="jobs" element={<ContractorDashboard />} />
                       <Route path="tests" element={<ContractorDashboard />} />
-                      <Route path="interviews" element={<ContractorDashboard />} />
+                      <Route
+                        path="interviews"
+                        element={<ContractorDashboard />}
+                      />
                       <Route path="profile" element={<ContractorDashboard />} />
-                      <Route path="earnings" element={<ContractorDashboard />} />
+                      <Route
+                        path="earnings"
+                        element={<ContractorDashboard />}
+                      />
                     </Route>
 
                     {/* NEW: Bench Resources Dashboard Routes */}
-                    {/* NEW: Bench Resources Dashboard Routes */}
-                    <Route path="/bench" element={<UnifiedDashboardLayout role="bench" />}>
+                    <Route
+                      path="/bench"
+                      element={<UnifiedDashboardLayout role="bench" />}
+                    >
                       <Route index element={<BenchDashboard />} />
                       <Route path="dashboard" element={<BenchDashboard />} />
                       <Route path="talent" element={<BenchDashboard />} />
@@ -183,14 +204,28 @@ const App = () => {
                     </Route>
 
                     {/* NEW: Hiring Company Dashboard Routes */}
-                    {/* NEW: Hiring Company Dashboard Routes */}
-                    <Route path="/employer" element={<UnifiedDashboardLayout role="employer" />}>
+                    <Route
+                      path="/employer"
+                      element={<UnifiedDashboardLayout role="employer" />}
+                    >
                       <Route index element={<HiringDashboardNew />} />
-                      <Route path="dashboard" element={<HiringDashboardNew />} />
+                      <Route
+                        path="dashboard"
+                        element={<HiringDashboardNew />}
+                      />
                       <Route path="post-job" element={<EmployerPostJob />} />
-                      <Route path="ai-shortlists" element={<EmployerAIShortlists />} />
-                      <Route path="skill-tests" element={<EmployerSkillTests />} />
-                      <Route path="ai-interviews" element={<EmployerAIInterviews />} />
+                      <Route
+                        path="ai-shortlists"
+                        element={<EmployerAIShortlists />}
+                      />
+                      <Route
+                        path="skill-tests"
+                        element={<EmployerSkillTests />}
+                      />
+                      <Route
+                        path="ai-interviews"
+                        element={<EmployerAIInterviews />}
+                      />
                       <Route path="contracts" element={<EmployerContracts />} />
                       <Route path="settings" element={<EmployerSettings />} />
                     </Route>
@@ -207,29 +242,59 @@ const App = () => {
                       <Route path="post-job" element={<PostJob />} />
                       <Route path="hire-fulltime" element={<HireFullTime />} />
                       <Route path="hire-interns" element={<HireInterns />} />
-                      <Route path="contract-hiring" element={<ContractHiring />} />
-                      <Route path="talent-marketplace" element={<TalentMarketplace />} />
-                      <Route path="post-bench-resource" element={<PostBenchResource />} />
-                      <Route path="active-resources" element={<ActiveResources />} />
-                      <Route path="visibility-settings" element={<VisibilitySettings />} />
+                      <Route
+                        path="contract-hiring"
+                        element={<ContractHiring />}
+                      />
+                      <Route
+                        path="talent-marketplace"
+                        element={<TalentMarketplace />}
+                      />
+                      <Route
+                        path="post-bench-resource"
+                        element={<PostBenchResource />}
+                      />
+                      <Route
+                        path="active-resources"
+                        element={<ActiveResources />}
+                      />
+                      <Route
+                        path="visibility-settings"
+                        element={<VisibilitySettings />}
+                      />
                       <Route path="ai-screening" element={<AIScreening />} />
                       <Route path="job/:jobId" element={<JobDetailsPage />} />
-                      <Route path="job/:jobId/candidates" element={<JobCandidates />} />
-                      <Route path="job/:jobId/candidate/:candidateId" element={<CandidateDetailPage />} />
-                      <Route path="interview-results/:candidateId" element={<AIInterviewResults />} />
+                      <Route
+                        path="job/:jobId/candidates"
+                        element={<JobCandidates />}
+                      />
+                      <Route
+                        path="job/:jobId/candidate/:candidateId"
+                        element={<CandidateDetailPage />}
+                      />
+                      <Route
+                        path="interview-results/:candidateId"
+                        element={<AIInterviewResults />}
+                      />
                     </Route>
 
                     {/* Standalone employer routes (redirect to dashboard) */}
                     <Route path="/post-job" element={<EmployerLayoutOld />}>
                       <Route index element={<PostJob />} />
                     </Route>
-                    <Route path="/hire-fulltime" element={<EmployerLayoutOld />}>
+                    <Route
+                      path="/hire-fulltime"
+                      element={<EmployerLayoutOld />}
+                    >
                       <Route index element={<HireFullTime />} />
                     </Route>
                     <Route path="/hire-interns" element={<EmployerLayoutOld />}>
                       <Route index element={<HireInterns />} />
                     </Route>
-                    <Route path="/contract-hiring" element={<EmployerLayoutOld />}>
+                    <Route
+                      path="/contract-hiring"
+                      element={<EmployerLayoutOld />}
+                    >
                       <Route index element={<ContractHiring />} />
                     </Route>
                     <Route

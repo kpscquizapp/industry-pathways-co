@@ -109,6 +109,10 @@ const CandidateSignup = () => {
         toast.error("Please fill in all required fields");
         return false;
       }
+      if (formData.password.length < 8) {
+        toast.error("Password must be at least 8 characters");
+        return false;
+      }
       if (formData.password !== formData.confirmPassword) {
         toast.error("Passwords do not match");
         return false;
@@ -662,7 +666,7 @@ const CandidateSignup = () => {
                         type="button"
                         onClick={prevStep}
                         variant="outline"
-                        className="flex-1 h-14 text-lg font-bold rounded-2xl border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
+                        className="flex-1 h-14 text-lg font-bold rounded-2xl border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-50"
                       >
                         <ChevronLeft className="w-5 h-5 mr-1" />
                         Back

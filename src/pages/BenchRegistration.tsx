@@ -62,7 +62,7 @@ const BenchRegistration = () => {
       const maxSizeBytes = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSizeBytes) {
         toast.error("File size must be less than 10MB");
-        setCompanyDocument(null)
+        setCompanyDocument(null);
         return;
       }
       setCompanyDocument(file);
@@ -477,7 +477,7 @@ const BenchRegistration = () => {
                         type="button"
                         onClick={prevStep}
                         variant="outline"
-                        className="flex-1 h-14 text-lg font-bold rounded-2xl border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
+                        className="flex-1 h-14 text-lg font-bold rounded-2xl border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-50"
                       >
                         <ChevronLeft className="w-5 h-5 mr-1" />
                         Back
