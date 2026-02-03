@@ -1,43 +1,54 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Sparkles, ArrowRight, Mail, Lock, Users, TrendingUp, Shield } from 'lucide-react';
-import { toast } from 'sonner';
-import { useLoginEmployerMutation } from '@/app/queries/loginApi';
-import { useDispatch } from 'react-redux';
-import { setUser } from '@/app/slices/userAuth';
-import SpinnerLoader from '@/components/loader/SpinnerLoader';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Sparkles,
+  ArrowRight,
+  Mail,
+  Lock,
+  Users,
+  TrendingUp,
+  Shield,
+} from "lucide-react";
+import { toast } from "sonner";
+import {
+  useLoginEmployerMutation,
+  useLoginHrMutation,
+} from "@/app/queries/loginApi";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/app/slices/userAuth";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 
 const FEATURES = [
-  { 
-    icon: Users, 
-    title: 'Bench Talent Pool', 
-    description: 'Maximize ROI by listing your idle resources.',
-    color: 'bg-emerald-500/20 text-emerald-400'
+  {
+    icon: Users,
+    title: "Bench Talent Pool",
+    description: "Maximize ROI by listing your idle resources.",
+    color: "bg-emerald-500/20 text-emerald-400",
   },
-  { 
-    icon: TrendingUp, 
-    title: 'AI-Powered Matching', 
-    description: 'Our engine finds the perfect projects for your bench.',
-    color: 'bg-emerald-500/20 text-emerald-400'
+  {
+    icon: TrendingUp,
+    title: "AI-Powered Matching",
+    description: "Our engine finds the perfect projects for your bench.",
+    color: "bg-emerald-500/20 text-emerald-400",
   },
-  { 
-    icon: Shield, 
-    title: 'Secure Contracts', 
-    description: 'Automated legal and billing workflows.',
-    color: 'bg-primary/20 text-primary'
+  {
+    icon: Shield,
+    title: "Secure Contracts",
+    description: "Automated legal and billing workflows.",
+    color: "bg-primary/20 text-primary",
   },
 ] as const;
 const BenchLogin = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [login, { isLoading }] = useLoginEmployerMutation();
-  
+  const [login, { isLoading }] = useLoginHrMutation();
+
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,35 +63,16 @@ const BenchLogin = () => {
         email: formData.email,
         password: formData.password,
       }).unwrap();
-      
+
       dispatch(setUser(result));
-      toast.success('Welcome back!');
-      navigate('/bench/dashboard');
+      toast.success("Welcome back!");
+      navigate("/bench/dashboard");
     } catch (error: any) {
-      toast.error(error?.data?.message || 'Invalid credentials. Please try again.');
+      toast.error(
+        error?.data?.message || "Invalid credentials. Please try again.",
+      );
     }
   };
-
-  // const features = [
-  //   { 
-  //     icon: Users, 
-  //     title: 'Bench Talent Pool', 
-  //     description: 'Maximize ROI by listing your idle resources.',
-  //     color: 'bg-emerald-500/20 text-emerald-400'
-  //   },
-  //   { 
-  //     icon: TrendingUp, 
-  //     title: 'AI-Powered Matching', 
-  //     description: 'Our engine finds the perfect projects for your bench.',
-  //     color: 'bg-emerald-500/20 text-emerald-400'
-  //   },
-  //   { 
-  //     icon: Shield, 
-  //     title: 'Secure Contracts', 
-  //     description: 'Automated legal and billing workflows.',
-  //     color: 'bg-primary/20 text-primary'
-  //   },
-  // ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
@@ -88,28 +80,36 @@ const BenchLogin = () => {
       <div className="hidden lg:flex lg:w-[50%] bg-[#080b14] p-12 flex-col justify-between relative overflow-hidden shrink-0 border-r border-white/5">
         <div className="absolute top-[-10%] right-[-10%] w-[80%] h-[80%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-500/10 rounded-full blur-[100px]" />
-        
+
         <div className="relative z-10">
           <Link to="/" className="flex items-center gap-3 mb-20 group">
             <div className="w-12 h-12 bg-gradient-to-br from-primary to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
               <Sparkles className="h-6 w-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-white tracking-tight">HIRION</span>
+            <span className="text-2xl font-bold text-white tracking-tight">
+              HIRION
+            </span>
           </Link>
 
           <div className="space-y-8 max-w-lg">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-              <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">Staffing Partner Hub</span>
+              <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">
+                Staffing Partner Hub
+              </span>
             </div>
-            
+
             <h1 className="text-5xl xl:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
-              Welcome Back,<br />
-              <span className="bg-gradient-to-r from-primary via-emerald-400 to-green-400 bg-clip-text text-transparent">Partner</span>
+              Welcome Back,
+              <br />
+              <span className="bg-gradient-to-r from-primary via-emerald-400 to-green-400 bg-clip-text text-transparent">
+                Partner
+              </span>
             </h1>
-            
+
             <p className="text-xl text-white/50 leading-relaxed font-light">
-              Access your bench talent dashboard and manage your resource listings.
+              Access your bench talent dashboard and manage your resource
+              listings.
             </p>
           </div>
         </div>
@@ -117,16 +117,22 @@ const BenchLogin = () => {
         <div className="relative z-10 space-y-6">
           <div className="grid gap-4">
             {FEATURES.map((feature, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="group flex items-start gap-4 p-5 bg-white/[0.02] backdrop-blur-sm border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300"
               >
-                <div className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+                <div
+                  className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
+                >
                   <feature.icon className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-lg mb-1">{feature.title}</h3>
-                  <p className="text-sm text-white/40 leading-relaxed">{feature.description}</p>
+                  <h3 className="font-bold text-white text-lg mb-1">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm text-white/40 leading-relaxed">
+                    {feature.description}
+                  </p>
                 </div>
               </div>
             ))}
@@ -143,22 +149,33 @@ const BenchLogin = () => {
                 <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-xl shadow-primary/20">
                   <Sparkles className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xl font-bold tracking-tighter text-slate-900 dark:text-white">HIRION</span>
+                <span className="text-xl font-bold tracking-tighter text-slate-900 dark:text-white">
+                  HIRION
+                </span>
               </Link>
             </div>
 
             <div className="relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 to-emerald-500/10 rounded-[36px] blur-xl opacity-50 dark:opacity-20" />
-              
+
               <div className="relative bg-white dark:bg-[#0a0a0a] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-white/[0.05] p-8 md:p-10">
                 <div className="mb-10 text-center lg:text-left">
-                  <h3 className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">Sign In</h3>
-                  <p className="text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">Enter your partner credentials below.</p>
+                  <h3 className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
+                    Sign In
+                  </h3>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
+                    Enter your partner credentials below.
+                  </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Work Email</Label>
+                    <Label
+                      htmlFor="email"
+                      className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1"
+                    >
+                      Work Email
+                    </Label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                       <Input
@@ -176,8 +193,17 @@ const BenchLogin = () => {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Password</Label>
-                    <Link to="/forgot-password" title="Forgot Password" className="text-xs font-bold text-primary hover:opacity-80 transition-opacity">
+                      <Label
+                        htmlFor="password"
+                        className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1"
+                      >
+                        Password
+                      </Label>
+                      <Link
+                        to="/forgot-password"
+                        title="Forgot Password"
+                        className="text-xs font-bold text-primary hover:opacity-80 transition-opacity"
+                      >
                         Forgot password?
                       </Link>
                     </div>
@@ -196,8 +222,8 @@ const BenchLogin = () => {
                     </div>
                   </div>
 
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full h-14 text-lg font-bold mt-4 rounded-2xl bg-primary text-white hover:opacity-90 shadow-2xl shadow-primary/10 transition-all active:scale-[0.98] group"
                     disabled={isLoading}
                   >
@@ -217,8 +243,11 @@ const BenchLogin = () => {
 
                 <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/[0.03] flex flex-col items-center gap-4">
                   <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
-                    New to Hirion?{' '}
-                    <Link to="/bench-registration" className="text-primary hover:text-primary/80 transition-colors underline-offset-8 underline decoration-primary/30">
+                    New to Hirion?{" "}
+                    <Link
+                      to="/bench-registration"
+                      className="text-primary hover:text-primary/80 transition-colors underline-offset-8 underline decoration-primary/30"
+                    >
                       Partner Registration
                     </Link>
                   </p>

@@ -22,27 +22,32 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "@/app/slices/userAuth";
+import { RootState } from "@/app/store";
+import { useLoginEmployerMutation } from "@/app/queries/loginApi";
 
 const EmployerLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [keepSignedIn, setKeepSignedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const { user, login } = useAuth();
+  const dispatch = useDispatch();
+  const userDetails = useSelector((state: RootState) => state.user.userDetails);
   const navigate = useNavigate();
 
+  const [login, { isLoading: isLoadingLogin }] = useLoginEmployerMutation();
+
   useEffect(() => {
-    if (user && user.role === "employer") {
+    if (userDetails && userDetails.role === "employer") {
       navigate("/employer-dashboard");
     }
-  }, [user, navigate]);
+  }, [userDetails, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
     try {
-      const success = await login(email, password, "employer");
+      const success = await login({ email, password }).unwrap();
+      dispatch(setUser(success));
       if (success) {
         toast.success("Welcome back!");
         navigate("/employer-dashboard");
@@ -51,8 +56,6 @@ const EmployerLogin = () => {
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -61,28 +64,32 @@ const EmployerLogin = () => {
       id: useId(),
       icon: Zap,
       title: "AI technical fit score",
-      description: "Skip up to three rounds with 0-100 fit scores from coding tests and assessments.",
+      description:
+        "Skip up to three rounds with 0-100 fit scores from coding tests and assessments.",
       color: "bg-blue-500/20 text-blue-400",
     },
     {
       id: useId(),
       icon: Target,
       title: "Bench-to-billable",
-      description: "List idle talent, get matched to contract demand, and turn bench into a profit center.",
+      description:
+        "List idle talent, get matched to contract demand, and turn bench into a profit center.",
       color: "bg-green-500/20 text-green-400",
     },
     {
       id: useId(),
       icon: Users,
       title: "AI skill filtering",
-      description: "Only validated experts surface to your recruiters across permanent & contract roles.",
+      description:
+        "Only validated experts surface to your recruiters across permanent & contract roles.",
       color: "bg-purple-500/20 text-purple-400",
     },
     {
       id: useId(),
       icon: TrendingUp,
       title: "Growth ecosystem",
-      description: "Career path visualization and continuous upskilling keep your best engaged.",
+      description:
+        "Career path visualization and continuous upskilling keep your best engaged.",
       color: "bg-orange-500/20 text-orange-400",
     },
   ];
@@ -99,28 +106,35 @@ const EmployerLogin = () => {
       <div className="hidden lg:flex lg:w-[50%] bg-[#080b14] p-12 flex-col justify-between relative overflow-hidden shrink-0 border-r border-white/5">
         <div className="absolute top-[-10%] right-[-10%] w-[80%] h-[80%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-green-500/10 rounded-full blur-[100px]" />
-        
+
         <div className="relative z-10">
           <Link to="/" className="flex items-center gap-3 mb-20 group">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-green-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform duration-300">
               <Building2 className="h-6 w-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-white tracking-tight">HIRION</span>
+            <span className="text-2xl font-bold text-white tracking-tight">
+              HIRION
+            </span>
           </Link>
 
           <div className="space-y-8 max-w-lg">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
               <Shield className="h-3 w-3 text-green-400" />
-              <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">Enterprise Grade Platform</span>
+              <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">
+                Enterprise Grade Platform
+              </span>
             </div>
-            
+
             <h1 className="text-5xl xl:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
               Move Beyond <br />
-              <span className="bg-gradient-to-r from-blue-400 via-green-400 to-emerald-400 bg-clip-text text-transparent">Resumes.</span>
+              <span className="bg-gradient-to-r from-blue-400 via-green-400 to-emerald-400 bg-clip-text text-transparent">
+                Resumes.
+              </span>
             </h1>
-            
+
             <p className="text-xl text-white/50 leading-relaxed font-light">
-              Sign in to manage hiring, deployments, and bench monetization from a single, AI-enabled workspace.
+              Sign in to manage hiring, deployments, and bench monetization from
+              a single, AI-enabled workspace.
             </p>
           </div>
         </div>
@@ -128,15 +142,21 @@ const EmployerLogin = () => {
         <div className="relative z-10 space-y-8">
           <div className="grid grid-cols-2 gap-4">
             {features.map((feature) => (
-              <div 
-                key={feature.id} 
+              <div
+                key={feature.id}
                 className="group p-4 bg-white/[0.02] backdrop-blur-sm border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300"
               >
-                <div className={`w-10 h-10 ${feature.color} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                <div
+                  className={`w-10 h-10 ${feature.color} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}
+                >
                   <feature.icon className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-white text-sm mb-1">{feature.title}</h3>
-                <p className="text-[11px] text-white/40 leading-relaxed">{feature.description}</p>
+                <h3 className="font-bold text-white text-sm mb-1">
+                  {feature.title}
+                </h3>
+                <p className="text-[11px] text-white/40 leading-relaxed">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
@@ -145,7 +165,9 @@ const EmployerLogin = () => {
             {stats.map((stat) => (
               <div key={stat.id} className="text-center">
                 <p className="text-2xl font-bold text-white">{stat.value}</p>
-                <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">{stat.label}</p>
+                <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
+                  {stat.label}
+                </p>
               </div>
             ))}
           </div>
@@ -161,7 +183,9 @@ const EmployerLogin = () => {
                 <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-xl shadow-blue-500/20">
                   <Building2 className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xl font-bold tracking-tighter text-slate-900 dark:text-white">HIRION</span>
+                <span className="text-xl font-bold tracking-tighter text-slate-900 dark:text-white">
+                  HIRION
+                </span>
               </Link>
             </div>
 
@@ -169,13 +193,19 @@ const EmployerLogin = () => {
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/10 to-green-500/10 rounded-[36px] blur-xl opacity-50 dark:opacity-20" />
               <div className="relative bg-white dark:bg-[#0a0a0a] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-white/[0.05] p-8 md:p-10 md:min-w-[32rem] ">
                 <div className="mb-10">
-                  <h3 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">Employer Login</h3>
-                  <p className="text-slate-500 dark:text-slate-400 font-medium">Access your enterprise talent dashboard.</p>
+                  <h3 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
+                    Employer Login
+                  </h3>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium">
+                    Access your enterprise talent dashboard.
+                  </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">Work Email</Label>
+                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
+                      Work Email
+                    </Label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-all duration-300" />
                       <Input
@@ -191,8 +221,14 @@ const EmployerLogin = () => {
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center mb-1">
-                      <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">Password</Label>
-                      <Link to="/forgot-password" virtual-link="forgot-password" className="text-[10px] font-bold text-blue-600 hover:text-blue-500 uppercase tracking-wider">
+                      <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
+                        Password
+                      </Label>
+                      <Link
+                        to="/forgot-password"
+                        virtual-link="forgot-password"
+                        className="text-[10px] font-bold text-blue-600 hover:text-blue-500 uppercase tracking-wider"
+                      >
                         Forgot?
                       </Link>
                     </div>
@@ -221,12 +257,12 @@ const EmployerLogin = () => {
                     </label> */}
                   {/* </div> */}
 
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full h-14 text-lg font-bold mt-4 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black hover:opacity-90 shadow-2xl shadow-slate-900/10 dark:shadow-white/5 transition-all active:scale-[0.98] group"
-                    disabled={isLoading}
+                    disabled={isLoadingLogin}
                   >
-                    {isLoading ? (
+                    {isLoadingLogin ? (
                       <div className="flex items-center gap-3">
                         <Sparkles className="w-5 h-5 animate-pulse" />
                         <span>Verifying...</span>
@@ -252,15 +288,18 @@ const EmployerLogin = () => {
 
                 <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/[0.03] flex flex-col items-center gap-4">
                   <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
-                    Don't have an account yet?{' '}
-                    <Link to="/employer-signup" className="text-blue-600 dark:text-blue-400 hover:opacity-80 transition-colors underline-offset-8 underline decoration-blue-500/30">
+                    Don't have an account yet?{" "}
+                    <Link
+                      to="/employer-signup"
+                      className="text-blue-600 dark:text-blue-400 hover:opacity-80 transition-colors underline-offset-8 underline decoration-blue-500/30"
+                    >
                       Sign up here
                     </Link>
                   </p>
                 </div>
               </div>
             </div>
-            
+
             <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-600 font-medium tracking-wide leading-relaxed">
               From resumes to real results. From hiring to deployment. <br />
               Enterprise-grade talent ecosystem.
