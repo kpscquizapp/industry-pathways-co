@@ -109,6 +109,10 @@ const CandidateSignup = () => {
         toast.error("Please fill in all required fields");
         return false;
       }
+      if (formData.password.length < 8) {
+        toast.error("Password must be at least 8 characters");
+        return false;
+      }
       if (formData.password !== formData.confirmPassword) {
         toast.error("Passwords do not match");
         return false;

@@ -13,10 +13,7 @@ import {
   Shield,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  useLoginEmployerMutation,
-  useLoginHrMutation,
-} from "@/app/queries/loginApi";
+import { useLoginHrMutation } from "@/app/queries/loginApi";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/app/slices/userAuth";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";

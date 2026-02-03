@@ -167,7 +167,6 @@ const App = () => {
                     <Route path="/saved-jobs" element={<SavedJobs />} />
 
                     {/* NEW: Contractor Dashboard Routes */}
-                    {/* NEW: Contractor Dashboard Routes */}
                     <Route
                       path="/contractor"
                       element={<UnifiedDashboardLayout role="contractor" />}
@@ -191,7 +190,6 @@ const App = () => {
                     </Route>
 
                     {/* NEW: Bench Resources Dashboard Routes */}
-                    {/* NEW: Bench Resources Dashboard Routes */}
                     <Route
                       path="/bench"
                       element={<UnifiedDashboardLayout role="bench" />}
@@ -205,7 +203,6 @@ const App = () => {
                       <Route path="billing" element={<BenchDashboard />} />
                     </Route>
 
-                    {/* NEW: Hiring Company Dashboard Routes */}
                     {/* NEW: Hiring Company Dashboard Routes */}
                     <Route
                       path="/employer"

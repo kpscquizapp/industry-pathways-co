@@ -47,8 +47,8 @@ const EmployerLogin = () => {
 
     try {
       const success = await login({ email, password }).unwrap();
-      dispatch(setUser(success));
       if (success) {
+        dispatch(setUser(success));
         toast.success("Welcome back!");
         navigate("/employer-dashboard");
       } else {
@@ -203,12 +203,16 @@ const EmployerLogin = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
+                    <Label
+                      htmlFor="employer-email"
+                      className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1"
+                    >
                       Work Email
                     </Label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-all duration-300" />
                       <Input
+                        id="employer-email"
                         type="email"
                         placeholder="name@company.com"
                         value={email}
@@ -221,7 +225,10 @@ const EmployerLogin = () => {
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center mb-1">
-                      <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
+                      <Label
+                        htmlFor="employer-password"
+                        className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1"
+                      >
                         Password
                       </Label>
                       <Link
@@ -235,6 +242,7 @@ const EmployerLogin = () => {
                     <div className="relative group">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-all duration-300" />
                       <Input
+                        id="employer-password"
                         type="password"
                         placeholder="••••••••"
                         value={password}
