@@ -176,13 +176,13 @@ const EmployerSignup = () => {
 
   const stats = [
     {
-      id: useId(),
+      id: "stat-time-to-hire",
       value: "-40%",
       label: "Time to Hire",
       sub: "with AI scoring",
     },
     {
-      id: useId(),
+      id: "stat-bench-util",
       value: "↑ 30%",
       label: "Bench Utilization",
       sub: "revenue growth",

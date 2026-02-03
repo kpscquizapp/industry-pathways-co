@@ -30,6 +30,7 @@ const Index = () => {
       sections.forEach((section) => {
         observer.unobserve(section);
       });
+      observer.disconnect();
     };
   }, []);
 
