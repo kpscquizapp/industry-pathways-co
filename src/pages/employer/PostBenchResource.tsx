@@ -78,7 +78,7 @@ const PostBenchResource = () => {
     setFormData({ ...formData, skills: formData.skills.filter(s => s !== skill) });
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       addSkill();
@@ -161,7 +161,7 @@ const PostBenchResource = () => {
 
       // Final submission to backend
       const formDataToSend = new FormData();
-      formDataToSend.append("resourceName", formData.resourceName);
+      formDataToSend.append("resourceName", trimmedResourceName);
       formDataToSend.append("currentRole", formData.currentRole);
       formDataToSend.append("totalExperience", formData.totalExperience);
       formDataToSend.append("technicalSkills", JSON.stringify(formData.skills));
@@ -328,7 +328,7 @@ const PostBenchResource = () => {
                     placeholder="Type skill and press enter..."
                     value={skillInput}
                     onChange={(e) => setSkillInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    onKeyDown={handleKeyDown}
                     className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
                   />
                   <div className="flex flex-wrap gap-2 mt-3">
@@ -489,7 +489,6 @@ const PostBenchResource = () => {
                 disabled={isSubmitting}
                 className="px-10 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium shadow-lg shadow-blue-500/30 transition-all hover:shadow-xl hover:shadow-blue-500/40"
               >
-                Proceed to Review
                 {isSubmitting ? "Submitting..." : "Proceed to Review"}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
