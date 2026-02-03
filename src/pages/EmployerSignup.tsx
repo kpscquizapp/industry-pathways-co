@@ -64,6 +64,7 @@ const EmployerSignup = () => {
       const maxBytes = 10 * 1024 * 1024;
       if (file.size > maxBytes) {
         toast.error("File size must be 10MB or less");
+        setCompanyDocument(null);
         e.target.value = "";
         return;
       }
@@ -431,8 +432,10 @@ const EmployerSignup = () => {
                           <div
                             onClick={() => fileInputRef.current?.click()}
                             onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ")
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
                                 fileInputRef.current?.click();
+                              }
                             }}
                             role="button"
                             tabIndex={0}
