@@ -144,7 +144,7 @@ const EmployerSignup = () => {
       toast.success(
         "Registration successful! Welcome to the enterprise platform.",
       );
-      navigate("/employer-dashboard");
+      navigate("/employer-login");
     } catch (error: any) {
       toast.error(
         error?.data?.message ||
