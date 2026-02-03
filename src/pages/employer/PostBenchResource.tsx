@@ -142,6 +142,23 @@ const PostBenchResource = () => {
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
+      const trimmedResourceName = formData.resourceName.trim();
+      if (!trimmedResourceName) {
+        toast.error("Resource name is required");
+        return;
+      }
+
+      if (formData.skills.length === 0) {
+        toast.error("At least one technical skill is required");
+        return;
+      }
+
+      const hasLocationPreference = Object.values(formData.locationPreferences).some((v) => v);
+      if (!hasLocationPreference) {
+        toast.error("At least one location preference is required");
+        return;
+      }
+
       // Final submission to backend
       const formDataToSend = new FormData();
       formDataToSend.append("resourceName", formData.resourceName);
