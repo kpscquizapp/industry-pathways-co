@@ -154,54 +154,7 @@ const VisibilitySettings = () => {
           </CardContent>
         </Card>
 
-        {/* Contact & Inquiry Settings */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white">
-          <CardHeader className="pb-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-emerald-50/50">
-            <CardTitle className="flex items-center gap-3 text-lg font-semibold text-slate-800">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
-                <Shield className="h-4 w-4 text-white" />
-              </div>
-              Contact & Inquiry Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {/* Allow Direct Contact */}
-            <div className="flex items-center justify-between p-5 border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-              <div className="flex items-start gap-4">
-                <div className="p-2.5 rounded-xl bg-green-100">
-                  <Zap className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-slate-800">Allow Direct Contact</p>
-                  <p className="text-sm text-slate-500 mt-0.5">Let potential clients contact you directly from the marketplace</p>
-                </div>
-              </div>
-              <Switch
-                checked={settings.allowDirectContact}
-                onCheckedChange={(checked) => updateSetting("allowDirectContact", checked)}
-                className="data-[state=checked]:bg-emerald-500"
-              />
-            </div>
-
-            {/* Allow Bench Inquiries */}
-            <div className="flex items-center justify-between p-5 hover:bg-slate-50/50 transition-colors">
-              <div className="flex items-start gap-4">
-                <div className="p-2.5 rounded-xl bg-teal-100">
-                  <CheckCircle className="h-5 w-5 text-teal-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-slate-800">Allow Bench Inquiries</p>
-                  <p className="text-sm text-slate-500 mt-0.5">Receive inquiry requests for individual bench resources</p>
-                </div>
-              </div>
-              <Switch
-                checked={settings.allowBenchInquiries}
-                onCheckedChange={(checked) => updateSetting("allowBenchInquiries", checked)}
-                className="data-[state=checked]:bg-emerald-500"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        
 
         {/* Premium Features */}
         <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50">

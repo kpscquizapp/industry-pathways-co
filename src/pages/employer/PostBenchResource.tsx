@@ -46,22 +46,22 @@ const PostBenchResource = () => {
   ];
 
   const [formData, setFormData] = useState({
-    resourceName: "John D.",
+    resourceName: "",
     currentRole: "",
     totalExperience: "",
     employeeId: "",
-    skills: ["Java Spring Boot", "Microservices", "Kubernetes", "PostgreSQL"] as string[],
+    skills: [] as string[],
     professionalSummary: "",
     hourlyRate: "",
     currency: "USD - US Dollar",
     availableFrom: "",
     minimumDuration: "1 Month",
     locationPreferences: {
-      remote: true,
-      hybrid: true,
+      remote: false,
+      hybrid: false,
       onSite: false
     },
-    requireNonSolicitation: true,
+    requireNonSolicitation: false,
     resumeFile: null as File | null
   });
   
