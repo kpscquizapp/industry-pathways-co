@@ -8,26 +8,22 @@ const EmployerLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen  bg-neutral-50 ">
-      <div className="flex ">
+    <div className="min-h-screen bg-neutral-50">
       <EmployerSidebar 
         collapsed={sidebarCollapsed} 
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
       />
-     <div className="flex flex-1 flex-col">
       <div 
         className={cn(
-          "transition-all duration-300",
-          // sidebarCollapsed ? "ml-20" : "ml-64"
+          "flex flex-col min-h-screen transition-all duration-300",
+          sidebarCollapsed ? "ml-20" : "ml-64"
         )}
       >
         <EmployerHeader />
-        <main className="p-6 ">
+        <main className="flex-1 p-6 overflow-auto">
           <Outlet />
         </main>
       </div>
-       </div>
-       </div>
     </div>
   );
 };
