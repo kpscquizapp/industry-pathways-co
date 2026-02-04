@@ -61,6 +61,8 @@ import UnifiedDashboardLayout from "./components/dashboard/UnifiedDashboardLayou
 import ContractorDashboard from "./pages/contractor/ContractorDashboard";
 import ContractorProfile from "./pages/contractor/ContractorProfile";
 import ContractorSettings from "./pages/contractor/ContractorSettings";
+import ContractorSkillTests from "./pages/contractor/ContractorSkillTests";
+import ContractorAIInterviews from "./pages/contractor/ContractorAIInterviews";
 import BenchDashboard from "./pages/bench/BenchDashboard";
 import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
 import EmployerPostJob from "./pages/employer/EmployerPostJob";
@@ -183,10 +185,10 @@ const App = () => {
                         path="dashboard"
                         element={<ContractorDashboard />}
                       />
-                      <Route path="tests" element={<ContractorDashboard />} />
+                      <Route path="tests" element={<ContractorSkillTests />} />
                       <Route
                         path="interviews"
-                        element={<ContractorDashboard />}
+                        element={<ContractorAIInterviews />}
                       />
                       <Route path="profile" element={<ContractorProfile />} />
                       <Route path="settings" element={<ContractorSettings />} />
