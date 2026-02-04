@@ -182,7 +182,7 @@ const LandingHeader = () => {
                       : "hover:bg-white/10",
                   )}
                 >
-                  <Link to="/employer-login1">
+                  <Link to="/employer-login">
                     <LogIn className="w-4 h-4 mr-2" />
                     Login
                   </Link>
@@ -192,7 +192,7 @@ const LandingHeader = () => {
                   size="sm"
                   className="rounded-xl bg-primary hover:bg-primary/90"
                 >
-                  <Link to="/employer-signup1">Hire Talent</Link>
+                  <Link to="/employer-signup">Hire Talent</Link>
                 </Button>
               </>
             )}
@@ -228,21 +228,21 @@ const LandingHeader = () => {
               Home
             </Link>
             <Link
-              to="/contractor/dashboard"
+              to={`${user?.role === "candidate" ? "/contractor/dashboard" : "/candidate-signup"}`}
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
               For Contractors
             </Link>
             <Link
-              to="/bench/dashboard"
+              to={`${user?.role === "hr" ? "/bench/dashboard" : "/bench-registration"}`}
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
               For Bench Resources
             </Link>
             <Link
-              to="/employer/dashboard"
+              to={`${user?.role === "employer" ? "/employer-dashboard" : "/employer-signup"}`}
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
