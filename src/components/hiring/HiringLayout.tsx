@@ -53,7 +53,7 @@ const HiringLayout = () => {
                   <span className="absolute top-1 right-1 w-2 h-2 bg-indigo-500 rounded-full" />
                 </Button>
 
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center gap-2 px-2">
                       <Avatar className="h-8 w-8 bg-gradient-to-br from-indigo-500 to-purple-600">
