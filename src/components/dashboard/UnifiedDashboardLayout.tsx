@@ -68,6 +68,7 @@ const getMenuItems = (role: DashboardRole) => {
           isAI: true,
         },
         { icon: User, label: "Profile", href: "/contractor/profile" },
+        { icon: Settings, label: "Settings", href: "/contractor/settings" },
       ];
     case "bench":
       return [
