@@ -35,7 +35,7 @@ const ProfileMenu = ({
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className={btnClass}>
             <Avatar className="h-8 w-8">

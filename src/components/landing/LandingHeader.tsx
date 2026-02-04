@@ -84,7 +84,7 @@ const LandingHeader = () => {
             </Link>
 
             {/* How It Works */}
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger
                 className={cn(
                   "flex items-center gap-1 px-4 py-2 rounded-lg font-medium transition-colors",
@@ -97,7 +97,8 @@ const LandingHeader = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="center"
-                className="w-56 bg-card border border-border"
+                sideOffset={8}
+                className="w-56 bg-card border border-border shadow-lg z-[100]"
               >
                 <DropdownMenuItem asChild>
                   <Link
