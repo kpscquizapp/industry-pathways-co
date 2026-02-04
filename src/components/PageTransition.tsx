@@ -27,8 +27,7 @@ const PageTransition = ({ children }: PageTransitionProps) => {
   return (
     <div
       className={cn(
-        "transition-all h-screen  duration-300 ease-out overflow-y-scroll [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
-        // isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+        "transition-all duration-300 ease-out min-h-screen",
       )}
     >
       {children}
