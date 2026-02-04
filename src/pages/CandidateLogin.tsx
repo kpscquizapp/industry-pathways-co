@@ -35,7 +35,7 @@ const CandidateLogin = () => {
       
       dispatch(setUser(result));
       toast.success('Welcome back!');
-      navigate('/contractor/dashboard');
+      navigate('/candidate-profile-setup');
     } catch (error: any) {
       toast.error(error?.data?.message || 'Invalid credentials. Please try again.');
     }

@@ -22,6 +22,7 @@ import BenchRegistration from "./pages/BenchRegistration";
 import BenchLogin from "./pages/BenchLogin";
 import CandidateLogin from "./pages/CandidateLogin";
 import CandidateSignup from "./pages/CandidateSignup";
+import CandidateProfileSetup from "./pages/CandidateProfileSetup";
 import ProfileVisibility from "./pages/ProfileVisibility";
 import Register from "./pages/Register";
 import JobSearch from "./pages/JobSearch";
@@ -133,6 +134,10 @@ const App = () => {
                     <Route
                       path="/candidate-signup"
                       element={<CandidateSignup />}
+                    />
+                    <Route
+                      path="/candidate-profile-setup"
+                      element={<CandidateProfileSetup />}
                     />
                     <Route
                       path="/profile-visibility"
