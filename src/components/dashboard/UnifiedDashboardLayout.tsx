@@ -60,7 +60,6 @@ const getMenuItems = (role: DashboardRole) => {
           label: "Dashboard",
           href: "/contractor/dashboard",
         },
-        { icon: Briefcase, label: "Job Matches", href: "/contractor/jobs" },
         { icon: FileCheck, label: "Skill Tests", href: "/contractor/tests" },
         {
           icon: Video,
@@ -69,7 +68,6 @@ const getMenuItems = (role: DashboardRole) => {
           isAI: true,
         },
         { icon: User, label: "Profile", href: "/contractor/profile" },
-        { icon: DollarSign, label: "Earnings", href: "/contractor/earnings" },
       ];
     case "bench":
       return [
