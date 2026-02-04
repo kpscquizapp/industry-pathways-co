@@ -19,11 +19,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSelector } from "react-redux";
+import { RootState } from "@/app/store";
 
 const LandingHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const user = useSelector((state: any) => state.user.userDetails);
+  const user = useSelector((state: RootState) => state.user.userDetails);
   const navigation = useNavigate();
   const location = useLocation();
 
@@ -163,10 +164,9 @@ const LandingHeader = () => {
                 variant="default"
                 size="sm"
                 className="rounded-xl"
+                onClick={() => handleRoleBasedNavigation(user.role)}
               >
-                <Button onClick={() => handleRoleBasedNavigation(user.role)}>
-                  Dashboard
-                </Button>
+                Dashboard
               </Button>
             ) : (
               <>
@@ -254,11 +254,12 @@ const LandingHeader = () => {
                 <Button
                   asChild
                   className="w-full rounded-xl"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleRoleBasedNavigation(user.role);
+                  }}
                 >
-                  <Button onClick={() => handleRoleBasedNavigation(user.role)}>
-                    Dashboard
-                  </Button>
+                  Dashboard
                 </Button>
               ) : (
                 <>
