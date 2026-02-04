@@ -22,7 +22,6 @@ import BenchRegistration from "./pages/BenchRegistration";
 import BenchLogin from "./pages/BenchLogin";
 import CandidateLogin from "./pages/CandidateLogin";
 import CandidateSignup from "./pages/CandidateSignup";
-import CandidateProfileSetup from "./pages/CandidateProfileSetup";
 import ProfileVisibility from "./pages/ProfileVisibility";
 import Register from "./pages/Register";
 import JobSearch from "./pages/JobSearch";
@@ -60,6 +59,7 @@ import UnifiedDashboardLayout from "./components/dashboard/UnifiedDashboardLayou
 // New Dashboard Pages
 import ContractorDashboard from "./pages/contractor/ContractorDashboard";
 import ContractorProfile from "./pages/contractor/ContractorProfile";
+import ContractorSettings from "./pages/contractor/ContractorSettings";
 import BenchDashboard from "./pages/bench/BenchDashboard";
 import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
 import EmployerPostJob from "./pages/employer/EmployerPostJob";
@@ -137,10 +137,6 @@ const App = () => {
                       element={<CandidateSignup />}
                     />
                     <Route
-                      path="/candidate-profile-setup"
-                      element={<CandidateProfileSetup />}
-                    />
-                    <Route
                       path="/profile-visibility"
                       element={<ProfileVisibility />}
                     />
@@ -182,12 +178,13 @@ const App = () => {
                         path="dashboard"
                         element={<ContractorDashboard />}
                       />
+                      <Route path="profile" element={<ContractorProfile />} />
                       <Route path="tests" element={<ContractorDashboard />} />
                       <Route
                         path="interviews"
                         element={<ContractorDashboard />}
                       />
-                      <Route path="profile" element={<ContractorProfile />} />
+                      <Route path="settings" element={<ContractorSettings />} />
                     </Route>
 
                     {/* NEW: Bench Resources Dashboard Routes */}

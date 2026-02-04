@@ -34,8 +34,17 @@ const CandidateLogin = () => {
       }).unwrap();
       
       dispatch(setUser(result));
-      toast.success('Welcome back!');
-      navigate('/contractor/dashboard');
+      
+      // Check if this is first login (profile not completed)
+      const isFirstLogin = result?.isFirstLogin || !result?.profileCompleted;
+      
+      if (isFirstLogin) {
+        toast.success('Welcome! Please complete your profile.');
+        navigate('/contractor/profile');
+      } else {
+        toast.success('Welcome back!');
+        navigate('/contractor/dashboard');
+      }
     } catch (error: any) {
       toast.error(error?.data?.message || 'Invalid credentials. Please try again.');
     }
