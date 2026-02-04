@@ -1,25 +1,37 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Briefcase, 
   TrendingUp, 
   FileCheck, 
   Video, 
-  Star,
   ChevronRight,
-  Sparkles,
-  Target,
-  Clock
+  Clock,
+  Eye,
+  Calendar,
+  Building2,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import SpinnerLoader from '@/components/loader/SpinnerLoader';
 
-const recommendedJobs = [
-  { id: 1, title: 'Senior React Developer', company: 'TechCorp', match: 94, duration: '6 months', testRequired: true },
-  { id: 2, title: 'Full Stack Engineer', company: 'InnovateLab', match: 89, duration: '3 months', testRequired: false },
-  { id: 3, title: 'Frontend Specialist', company: 'DataFlow', match: 87, duration: '12 months', testRequired: true },
+const interviewInvitations = [
+  { id: 1, company: 'TechCorp', role: 'Senior React Developer', scheduledDate: '2024-02-10', status: 'pending' },
+  { id: 2, company: 'InnovateLab', role: 'Full Stack Engineer', scheduledDate: '2024-02-12', status: 'confirmed' },
+];
+
+const skillTestInvitations = [
+  { id: 1, company: 'DataFlow', role: 'Frontend Specialist', testName: 'React Advanced', deadline: '2024-02-08', duration: '45 min' },
+  { id: 2, company: 'CloudSys', role: 'UI Developer', testName: 'JavaScript Fundamentals', deadline: '2024-02-15', duration: '30 min' },
+];
+
+const profileViews = [
+  { id: 1, company: 'TechCorp', viewedAt: '2 hours ago', recruiterName: 'Sarah Johnson' },
+  { id: 2, company: 'InnovateLab', viewedAt: '5 hours ago', recruiterName: 'Mike Chen' },
+  { id: 3, company: 'DataFlow', viewedAt: '1 day ago', recruiterName: 'Emily Davis' },
 ];
 
 const ContractorDashboard = () => {
@@ -46,10 +58,10 @@ const ContractorDashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold mb-2">Welcome back, John! 👋</h2>
-            <p className="text-white/80">You have 3 new job matches waiting for you.</p>
+            <p className="text-white/80">You have 2 new interview invitations and 2 skill tests pending.</p>
           </div>
-          <Button variant="secondary" className="bg-white text-primary hover:bg-white/90">
-            View All Matches
+          <Button variant="secondary" className="bg-white text-primary hover:bg-white/90" asChild>
+            <Link to="/contractor/profile">Complete Profile</Link>
           </Button>
         </div>
       </div>
@@ -59,40 +71,12 @@ const ContractorDashboard = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                <Briefcase className="w-6 h-6 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">12</p>
-                <p className="text-sm text-muted-foreground">Active Applications</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Target className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">87</p>
-                <p className="text-sm text-muted-foreground">Skill Score</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
                 <Video className="w-6 h-6 text-purple-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">92</p>
-                <p className="text-sm text-muted-foreground">Interview Score</p>
+                <p className="text-2xl font-bold">2</p>
+                <p className="text-sm text-muted-foreground">Interview Invites</p>
               </div>
             </div>
           </CardContent>
@@ -105,152 +89,207 @@ const ContractorDashboard = () => {
                 <FileCheck className="w-6 h-6 text-orange-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">5</p>
-                <p className="text-sm text-muted-foreground">Tests Completed</p>
+                <p className="text-2xl font-bold">2</p>
+                <p className="text-sm text-muted-foreground">Pending Tests</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                <Eye className="w-6 h-6 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">12</p>
+                <p className="text-sm text-muted-foreground">Profile Views</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">87</p>
+                <p className="text-sm text-muted-foreground">Skill Score</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Recommended Jobs */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                AI-Recommended Jobs
-              </CardTitle>
-              <Link to="/contractor/jobs" className="text-sm text-primary hover:underline flex items-center gap-1">
-                View All <ChevronRight className="w-4 h-4" />
-              </Link>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {recommendedJobs.map((job) => (
-                <div key={job.id} className="p-4 border border-border rounded-xl hover:border-primary/30 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground">{job.title}</h3>
-                      <p className="text-sm text-muted-foreground">{job.company}</p>
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {job.duration}
-                        </span>
-                        {job.testRequired && (
-                          <span className="text-xs bg-orange-500/10 text-orange-600 px-2 py-0.5 rounded-full">
-                            Test Required
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-2">
-                        <div className="w-12 h-12 rounded-full border-4 border-primary flex items-center justify-center">
-                          <span className="text-sm font-bold text-primary">{job.match}%</span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">Match</p>
-                    </div>
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Interview Invitations */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Video className="w-5 h-5 text-primary" />
+              AI Interview Invitations
+            </CardTitle>
+            <Link to="/contractor/interviews" className="text-sm text-primary hover:underline flex items-center gap-1">
+              View All <ChevronRight className="w-4 h-4" />
+            </Link>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {interviewInvitations.map((invite) => (
+              <div key={invite.id} className="p-4 border border-border rounded-xl hover:border-primary/30 transition-colors">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h3 className="font-semibold text-foreground">{invite.role}</h3>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Building2 className="w-3 h-3" />
+                      {invite.company}
+                    </p>
                   </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button size="sm" className="flex-1 rounded-lg">Apply Now</Button>
-                    {job.testRequired && (
-                      <Button size="sm" variant="outline" className="rounded-lg">Take Test</Button>
+                  <Badge variant={invite.status === 'confirmed' ? 'default' : 'secondary'}>
+                    {invite.status === 'confirmed' ? (
+                      <><CheckCircle2 className="w-3 h-3 mr-1" /> Confirmed</>
+                    ) : (
+                      <><AlertCircle className="w-3 h-3 mr-1" /> Pending</>
                     )}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                  <Calendar className="w-4 h-4" />
+                  <span>{invite.scheduledDate}</span>
+                </div>
+                <div className="flex gap-2">
+                  {invite.status === 'pending' ? (
+                    <>
+                      <Button size="sm" className="flex-1 rounded-lg">Accept</Button>
+                      <Button size="sm" variant="outline" className="rounded-lg">Reschedule</Button>
+                    </>
+                  ) : (
+                    <Button size="sm" className="flex-1 rounded-lg">Join Interview</Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Skill Test Invitations */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <FileCheck className="w-5 h-5 text-primary" />
+              Skill Test Invitations
+            </CardTitle>
+            <Link to="/contractor/tests" className="text-sm text-primary hover:underline flex items-center gap-1">
+              View All <ChevronRight className="w-4 h-4" />
+            </Link>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {skillTestInvitations.map((test) => (
+              <div key={test.id} className="p-4 border border-border rounded-xl hover:border-primary/30 transition-colors">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h3 className="font-semibold text-foreground">{test.testName}</h3>
+                    <p className="text-sm text-muted-foreground">{test.role}</p>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Building2 className="w-3 h-3" />
+                      {test.company}
+                    </p>
                   </div>
+                </div>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    {test.duration}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    Due: {test.deadline}
+                  </span>
+                </div>
+                <Button size="sm" className="w-full rounded-lg">Take Test</Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Profile Views */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-primary" />
+              Recent Profile Views
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {profileViews.map((view) => (
+                <div key={view.id} className="flex items-center justify-between p-3 border border-border rounded-xl hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Building2 className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{view.company}</p>
+                      <p className="text-sm text-muted-foreground">{view.recruiterName}</p>
+                    </div>
+                  </div>
+                  <span className="text-sm text-muted-foreground">{view.viewedAt}</span>
                 </div>
               ))}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Skill Gap Insights */}
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary" />
-                Skill Gap Insights
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>React.js</span>
-                  <span className="text-primary font-medium">Expert</span>
-                </div>
-                <Progress value={95} className="h-2" />
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Skill Progress
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <div className="flex justify-between text-sm mb-2">
+                <span>React.js</span>
+                <span className="text-primary font-medium">Expert</span>
               </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>TypeScript</span>
-                  <span className="text-primary font-medium">Advanced</span>
-                </div>
-                <Progress value={85} className="h-2" />
+              <Progress value={95} className="h-2" />
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-2">
+                <span>TypeScript</span>
+                <span className="text-primary font-medium">Advanced</span>
               </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Node.js</span>
-                  <span className="text-orange-500 font-medium">Intermediate</span>
-                </div>
-                <Progress value={65} className="h-2" />
+              <Progress value={85} className="h-2" />
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-2">
+                <span>Node.js</span>
+                <span className="text-orange-500 font-medium">Intermediate</span>
               </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>AWS</span>
-                  <span className="text-red-500 font-medium">Needs Work</span>
-                </div>
-                <Progress value={40} className="h-2" />
+              <Progress value={65} className="h-2" />
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-2">
+                <span>AWS</span>
+                <span className="text-red-500 font-medium">Needs Work</span>
               </div>
+              <Progress value={40} className="h-2" />
+            </div>
 
-              <div className="pt-4 border-t border-border">
-                <p className="text-sm text-muted-foreground mb-3">
-                  Improve your AWS skills to unlock 15+ more job matches
-                </p>
-                <Button variant="outline" size="sm" className="w-full rounded-lg">
-                  Take AWS Assessment
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Interview Feedback */}
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Video className="w-5 h-5 text-primary" />
-                Latest Interview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-4">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-green-400 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl font-bold text-white">92</span>
-                </div>
-                <p className="font-semibold">Great Performance!</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Strong technical depth & communication
-                </p>
-              </div>
-              <div className="grid grid-cols-3 gap-2 mt-4">
-                <div className="text-center p-2 bg-muted/50 rounded-lg">
-                  <p className="text-lg font-bold text-primary">94</p>
-                  <p className="text-xs text-muted-foreground">Technical</p>
-                </div>
-                <div className="text-center p-2 bg-muted/50 rounded-lg">
-                  <p className="text-lg font-bold text-primary">90</p>
-                  <p className="text-xs text-muted-foreground">Communication</p>
-                </div>
-                <div className="text-center p-2 bg-muted/50 rounded-lg">
-                  <p className="text-lg font-bold text-primary">91</p>
-                  <p className="text-xs text-muted-foreground">Confidence</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <div className="pt-4 border-t border-border">
+              <Button variant="outline" size="sm" className="w-full rounded-lg" asChild>
+                <Link to="/contractor/tests">View All Tests</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
