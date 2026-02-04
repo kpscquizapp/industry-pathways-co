@@ -15,6 +15,7 @@ import {
   Briefcase,
   TrendingUp,
   FileCheck,
+  DollarSign,
   BarChart3,
   CreditCard,
   Plus,
@@ -67,7 +68,6 @@ const getMenuItems = (role: DashboardRole) => {
           isAI: true,
         },
         { icon: User, label: "Profile", href: "/contractor/profile" },
-        { icon: Settings, label: "Settings", href: "/contractor/settings" },
       ];
     case "bench":
       return [

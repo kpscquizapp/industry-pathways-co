@@ -60,7 +60,6 @@ import UnifiedDashboardLayout from "./components/dashboard/UnifiedDashboardLayou
 // New Dashboard Pages
 import ContractorDashboard from "./pages/contractor/ContractorDashboard";
 import ContractorProfile from "./pages/contractor/ContractorProfile";
-import ContractorSettings from "./pages/contractor/ContractorSettings";
 import BenchDashboard from "./pages/bench/BenchDashboard";
 import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
 import EmployerPostJob from "./pages/employer/EmployerPostJob";
@@ -189,7 +188,6 @@ const App = () => {
                         element={<ContractorDashboard />}
                       />
                       <Route path="profile" element={<ContractorProfile />} />
-                      <Route path="settings" element={<ContractorSettings />} />
                     </Route>
 
                     {/* NEW: Bench Resources Dashboard Routes */}
