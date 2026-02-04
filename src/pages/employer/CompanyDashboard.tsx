@@ -25,81 +25,44 @@ import {
 const CompanyDashboard = () => {
   const kpiData = [
     {
-      title: 'Matches Received',
-      value: '47',
-      description: 'AI-suggested profiles for open jobs',
-      target: '5-10 per job',
-      change: '+12',
+      title: 'Bench Utilization',
+      value: '72%',
+      description: 'Posted bench resources contracted',
+      change: '+15%',
+      trend: 'up',
+      icon: Gauge,
+      gradient: 'from-teal-500 to-emerald-600',
+      bgGradient: 'from-teal-50 to-emerald-50'
+    },
+    {
+      title: 'Active Resources',
+      value: '24',
+      description: 'Currently listed on marketplace',
+      change: '+3',
       trend: 'up',
       icon: Users,
-      gradient: 'from-violet-500 to-purple-600',
-      bgGradient: 'from-violet-50 to-purple-50'
-    },
-    {
-      title: 'Avg AI Resume Score',
-      value: '78%',
-      description: 'Mean score of shortlisted candidates',
-      target: 'Target: >75%',
-      change: '+5%',
-      trend: 'up',
-      icon: Award,
-      gradient: 'from-emerald-500 to-teal-600',
-      bgGradient: 'from-emerald-50 to-teal-50'
-    },
-    {
-      title: 'Skill Test Pass Rate',
-      value: '52%',
-      description: 'Candidates passing initiated tests',
-      target: 'Target: 40-60%',
-      change: '+8%',
-      trend: 'up',
-      icon: ClipboardCheck,
       gradient: 'from-blue-500 to-cyan-600',
       bgGradient: 'from-blue-50 to-cyan-50'
     },
     {
-      title: 'AI Interview Success',
-      value: '58%',
-      description: 'Interviews leading to offers',
-      target: 'Target: 50%',
-      change: '+3%',
+      title: 'Profile Views',
+      value: '156',
+      description: 'Views this week',
+      change: '+28',
       trend: 'up',
-      icon: Bot,
-      gradient: 'from-indigo-500 to-blue-600',
-      bgGradient: 'from-indigo-50 to-blue-50'
+      icon: Eye,
+      gradient: 'from-violet-500 to-purple-600',
+      bgGradient: 'from-violet-50 to-purple-50'
     },
     {
-      title: 'Bench Utilization',
-      value: '72%',
-      description: 'Posted bench resources contracted',
-      target: 'Target: >60%',
-      change: '+15%',
+      title: 'Contract Requests',
+      value: '8',
+      description: 'Pending review',
+      change: '+2',
       trend: 'up',
-      icon: Gauge,
+      icon: Handshake,
       gradient: 'from-orange-500 to-amber-600',
       bgGradient: 'from-orange-50 to-amber-50'
-    },
-    {
-      title: 'Cost per Hire',
-      value: '$380',
-      description: 'Average cost per successful contract',
-      target: 'Target: <$500',
-      change: '-$45',
-      trend: 'up',
-      icon: DollarSign,
-      gradient: 'from-green-500 to-emerald-600',
-      bgGradient: 'from-green-50 to-emerald-50'
-    },
-    {
-      title: 'Response Time',
-      value: '18h',
-      description: 'Avg hours to first interaction',
-      target: 'Target: <24 hours',
-      change: '-4h',
-      trend: 'up',
-      icon: Timer,
-      gradient: 'from-pink-500 to-rose-600',
-      bgGradient: 'from-pink-50 to-rose-50'
     },
   ];
 
@@ -140,9 +103,9 @@ const CompanyDashboard = () => {
         </Button>
       </div>
 
-      {/* KPI Cards - 2 rows */}
+      {/* KPI Cards - Single row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        {kpiData.slice(0, 4).map((kpi, index) => (
+        {kpiData.map((kpi, index) => (
           <Card key={index} className={`border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-gradient-to-br ${kpi.bgGradient} group`}>
             <CardContent className="p-5">
               <div className="flex items-start justify-between mb-4">
@@ -159,41 +122,6 @@ const CompanyDashboard = () => {
               <p className="text-3xl font-bold text-slate-800 mb-1">{kpi.value}</p>
               <p className="text-sm font-medium text-slate-700">{kpi.title}</p>
               <p className="text-xs text-slate-500 mt-1">{kpi.description}</p>
-              <div className="mt-3 pt-3 border-t border-slate-200/50">
-                <span className="text-xs font-medium text-emerald-600 flex items-center gap-1">
-                  <Target className="h-3 w-3" />
-                  {kpi.target}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {kpiData.slice(4).map((kpi, index) => (
-          <Card key={index} className={`border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-gradient-to-br ${kpi.bgGradient}`}>
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between mb-4">
-                <div className={`p-3 rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg`}>
-                  <kpi.icon className="h-5 w-5 text-white" />
-                </div>
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-                  kpi.trend === 'up' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                }`}>
-                  {kpi.trend === 'up' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                  {kpi.change}
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-slate-800 mb-1">{kpi.value}</p>
-              <p className="text-sm font-medium text-slate-700">{kpi.title}</p>
-              <p className="text-xs text-slate-500 mt-1">{kpi.description}</p>
-              <div className="mt-3 pt-3 border-t border-slate-200/50">
-                <span className="text-xs font-medium text-emerald-600 flex items-center gap-1">
-                  <Target className="h-3 w-3" />
-                  {kpi.target}
-                </span>
-              </div>
             </CardContent>
           </Card>
         ))}
