@@ -72,6 +72,14 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
     try {
       const { data, error } = await viewResume({ resumeId: resume.id });
 
+      // Stale response check
+      if (
+        latestRequestIdRef.current !== null &&
+        latestRequestIdRef.current !== resume.id
+      ) {
+        return;
+      }
+
       if (error || !data) {
         throw new Error("Failed to fetch resume");
       }
@@ -369,7 +377,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-12 h-12 md:w-16 md:h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <LoaderCircle className="w-12 h-12 md:w-16 md:h-16 animate-spin text-blue-600 mx-auto mb-4" />
                     <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base">
                       Loading preview...
                     </p>

@@ -10,6 +10,12 @@ import CandidateProfileUpdate from "../CandidateProfileUpdate";
 import ResumeManager from "../ResumeManager";
 import BarLoader from "@/components/loader/BarLoader";
 
+const getSafeProjectUrl = (value?: string) => {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return /^https?:\/\//i.test(trimmed) ? trimmed : undefined;
+};
+
 const ContractorProfile = () => {
   const {
     data: response,
@@ -41,7 +47,7 @@ const ContractorProfile = () => {
                 >
                   <CardContent className="p-4 sm:p-6 text-center">
                     <Avatar className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 shadow-xl ring-4 ring-white/90 dark:ring-slate-700/90">
-                      <AvatarImage src={data?.avatar || ""} />
+                      <AvatarImage src={data?.avatar ?? undefined} />
                       <AvatarFallback>Avatar</AvatarFallback>
                     </Avatar>
                     <h2 className="text-base sm:text-lg lg:text-xl font-bold mb-1 dark:text-slate-100 break-words">
@@ -333,45 +339,49 @@ const ContractorProfile = () => {
                               (
                                 { title, techStack, projectUrl, description },
                                 pIndex,
-                              ) => (
-                                <Card
-                                  id={`AiMatchedProfile-${candidateId}-project-${pIndex}`}
-                                  className="border dark:border-slate-700 dark:bg-slate-800 w-full"
-                                  key={`${title}-${pIndex}`}
-                                >
-                                  <CardContent className="p-4 sm:p-6">
-                                    <div className="w-full h-24 sm:h-32 bg-gray-100 dark:bg-slate-700/50 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                                      <div className="w-10 h-14 sm:w-12 sm:h-16 border-2 border-gray-300 dark:border-slate-500 rounded flex items-center justify-center text-2xl dark:text-slate-300">
-                                        {projectUrl ? "🌐" : "📂"}
+                              ) => {
+                                const safeProjectUrl =
+                                  getSafeProjectUrl(projectUrl);
+                                return (
+                                  <Card
+                                    id={`AiMatchedProfile-${candidateId}-project-${pIndex}`}
+                                    className="border dark:border-slate-700 dark:bg-slate-800 w-full"
+                                    key={`${title}-${pIndex}`}
+                                  >
+                                    <CardContent className="p-4 sm:p-6">
+                                      <div className="w-full h-24 sm:h-32 bg-gray-100 dark:bg-slate-700/50 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                                        <div className="w-10 h-14 sm:w-12 sm:h-16 border-2 border-gray-300 dark:border-slate-500 rounded flex items-center justify-center text-2xl dark:text-slate-300">
+                                          {projectUrl ? "🌐" : "📂"}
+                                        </div>
                                       </div>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                      <h4 className="font-bold mb-1 sm:mb-2 text-sm sm:text-base dark:text-slate-100 break-words">
-                                        {title}
-                                      </h4>
-                                      {projectUrl && (
-                                        <a
-                                          href={projectUrl}
-                                          rel="noopener noreferrer"
-                                          target="_blank"
-                                          className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words mb-1 font-semibold hover:underline"
-                                        >
-                                          Link
-                                        </a>
-                                      )}
-                                    </div>
-                                    <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
-                                      {Array.isArray(techStack)
-                                        ? techStack.join(", ")
-                                        : techStack}
-                                    </p>
+                                      <div className="flex items-center justify-between">
+                                        <h4 className="font-bold mb-1 sm:mb-2 text-sm sm:text-base dark:text-slate-100 break-words">
+                                          {title}
+                                        </h4>
+                                        {safeProjectUrl && (
+                                          <a
+                                            href={safeProjectUrl}
+                                            rel="noopener noreferrer"
+                                            target="_blank"
+                                            className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words mb-1 font-semibold hover:underline"
+                                          >
+                                            Link
+                                          </a>
+                                        )}
+                                      </div>
+                                      <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
+                                        {Array.isArray(techStack)
+                                          ? techStack.join(", ")
+                                          : techStack}
+                                      </p>
 
-                                    <p className="mt-3 text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
-                                      {description}
-                                    </p>
-                                  </CardContent>
-                                </Card>
-                              ),
+                                      <p className="mt-3 text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
+                                        {description}
+                                      </p>
+                                    </CardContent>
+                                  </Card>
+                                );
+                              },
                             )
                           ) : (
                             <p className="text-sm text-gray-500 dark:text-slate-400 col-span-2">
