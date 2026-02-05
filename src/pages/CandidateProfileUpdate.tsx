@@ -288,11 +288,19 @@ const CandidateProfileUpdate = ({
 
     // Find the skill to remove
     const filteredSkill = data?.candidateProfile?.skills?.find(
-      (skill) => skill.name.toLowerCase() === skillToRemove.toLowerCase(),
+      (skill: string | { name: string }) =>
+        typeof skill === "string"
+          ? skill.toLowerCase() === skillToRemove.toLowerCase()
+          : (skill as { name: string }).name.toLowerCase() ===
+            skillToRemove.toLowerCase(),
     );
 
     // Guard clause: skill not found (local, not persisted)
-    if (filteredSkill == null || filteredSkill.id == null) {
+    if (
+      filteredSkill == null ||
+      typeof filteredSkill === "string" ||
+      filteredSkill.id == null
+    ) {
       // Not persisted yet — animate local removal with spinner for a short moment
       const localIndex = formData.skills.findIndex(
         (s) => s.toLowerCase() === skillToRemove.toLowerCase(),
