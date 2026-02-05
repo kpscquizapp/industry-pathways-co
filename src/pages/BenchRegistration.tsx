@@ -21,13 +21,13 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useRegisterEmployerMutation } from "@/app/queries/loginApi";
+import { useRegisterHrMutation } from "@/app/queries/loginApi";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import RegistrationStepIndicator from "@/components/auth/RegistrationStepIndicator";
 
 const BenchRegistration = () => {
   const navigate = useNavigate();
-  const [registerEmployer, { isLoading }] = useRegisterEmployerMutation();
+  const [registerHr, { isLoading }] = useRegisterHrMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -127,7 +127,7 @@ const BenchRegistration = () => {
     submitData.append("companyDocument", companyDocument);
 
     try {
-      await registerEmployer(submitData).unwrap();
+      await registerHr(submitData).unwrap();
       toast.success("Registration successful! Please login to continue.");
       navigate("/bench-login");
     } catch (error: any) {
