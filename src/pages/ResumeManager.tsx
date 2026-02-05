@@ -18,6 +18,12 @@ type Resume = {
   uploadedAt: string;
 };
 
+// Helper to determine if a resume should be treated as a PDF (by MIME type or filename).
+const isPdfFile = (resume?: Resume | null): boolean =>
+  !!resume &&
+  (resume.mimeType === "application/pdf" ||
+    resume.originalName.toLowerCase().endsWith(".pdf"));
+
 type ResumeManagerProps = {
   resumes: Resume[];
   // Optional: remove if the parent cannot provide a meaningful resume-specific loading state.
@@ -84,9 +90,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
         throw new Error("Failed to fetch resume");
       }
 
-      const isPdf =
-        resume.mimeType === "application/pdf" ||
-        resume.originalName.toLowerCase().endsWith(".pdf");
+      const isPdf = isPdfFile(resume);
 
       // Mobile → open PDF in new tab
       if (isMobile && isPdf) {
@@ -350,13 +354,11 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
 
             {/* Modal Body - PDF Preview */}
             <div className="flex-1 bg-slate-100 dark:bg-slate-800 overflow-hidden">
-              {previewUrl &&
-              (selectedResume?.mimeType === "application/pdf" ||
-                selectedResume?.originalName.toLowerCase().endsWith(".pdf")) ? (
+              {previewUrl && isPdfFile(selectedResume) ? (
                 <iframe
                   src={previewUrl}
                   className="w-full h-full border-0"
-                  title={selectedResume.originalName}
+                  title={selectedResume?.originalName}
                 />
               ) : previewUrl ? (
                 <div className="w-full h-full flex items-center justify-center p-4">
