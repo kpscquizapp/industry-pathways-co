@@ -48,7 +48,7 @@ const LandingHeader = () => {
     if (role === "hr") navigation("/bench/dashboard");
     if (role === "candidate") navigation("/contractor/dashboard");
   };
-  console.log(user);
+
   return (
     <header
       className={cn(
@@ -175,11 +175,7 @@ const LandingHeader = () => {
                   asChild
                   variant="ghost"
                   size="sm"
-                  className={cn(
-                    "rounded-xl",
-                    textColor,
-                    "hover:bg-white/10",
-                  )}
+                  className={cn("rounded-xl", textColor, "hover:bg-white/10")}
                 >
                   <Link to="/employer-login">
                     <LogIn className="w-4 h-4 mr-2" />
@@ -251,7 +247,6 @@ const LandingHeader = () => {
             <div className="pt-4 border-t border-border space-y-2">
               {user ? (
                 <Button
-                  asChild
                   className="w-full rounded-xl"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
@@ -268,7 +263,7 @@ const LandingHeader = () => {
                     className="w-full rounded-xl"
                   >
                     <Link
-                      to="/employer-login1"
+                      to="/employer-login"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Login
@@ -276,7 +271,7 @@ const LandingHeader = () => {
                   </Button>
                   <Button asChild className="w-full rounded-xl">
                     <Link
-                      to="/employer-signup1"
+                      to="/employer-signup"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Hire Talent

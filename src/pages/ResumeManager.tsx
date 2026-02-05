@@ -30,10 +30,8 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
   // API calls
   const [uploadResume, { isLoading: isLoadingResumeUpload }] =
     useUploadResumeMutation();
-  const [viewResume, { isLoading: isLoadingResumeView }] =
-    useLazyViewResumeQuery();
-  const [removeResume, { isLoading: isLoadingResumeRemove }] =
-    useRemoveResumeMutation();
+  const [viewResume] = useLazyViewResumeQuery();
+  const [removeResume] = useRemoveResumeMutation();
 
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -105,18 +103,6 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
     if (isMobile && isModalOpen) clearPreview();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Only react to viewport changes, not modal state
   }, [isMobile]);
-  const handleOpenInTab = async (resume: Resume) => {
-    try {
-      const { data, error } = await viewResume({ resumeId: resume.id });
-      if (error) throw new Error("Failed to fetch resume");
-      if (data) {
-        window.open(data, "_blank");
-      }
-    } catch (error) {
-      console.error("Error opening resume in tab:", error);
-      toast.error("Failed to open resume");
-    }
-  };
 
   // Cleanup blob URLs
   useEffect(() => {
@@ -383,18 +369,9 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center">
                     <div className="w-12 h-12 md:w-16 md:h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base mb-2">
+                    <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base">
                       Loading preview...
                     </p>
-                    {previewUrl && (
-                      <a
-                        href={previewUrl}
-                        download={selectedResume?.originalName}
-                        className="text-blue-600 dark:text-blue-400 hover:underline text-sm md:text-base"
-                      >
-                        Download PDF directly
-                      </a>
-                    )}
                   </div>
                 </div>
               )}

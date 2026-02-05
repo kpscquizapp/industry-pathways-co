@@ -1,6 +1,4 @@
-import React, { useId } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,7 +13,7 @@ import BarLoader from "@/components/loader/BarLoader";
 const ContractorProfile = () => {
   const {
     data: response,
-    isLoading: isLoadingResumeList,
+    isLoading: isLoadingProfile,
     isError,
   } = useGetProfileQuery();
   const data = response?.data;
@@ -24,7 +22,7 @@ const ContractorProfile = () => {
 
   return (
     <div className="min-h-screen flex flex-col dark:bg-slate-900">
-      {isLoadingResumeList ? (
+      {isLoadingProfile ? (
         <BarLoader />
       ) : isError ? (
         <div className="w-full h-screen flex items-center justify-center">
@@ -101,7 +99,9 @@ const ContractorProfile = () => {
                           <span className="truncate">Experience</span>
                         </span>
                         <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
-                          {profile?.yearsExperience + " Years" || "None"}
+                          {profile?.yearsExperience != null
+                            ? `${profile.yearsExperience} Years`
+                            : "None"}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
@@ -387,7 +387,7 @@ const ContractorProfile = () => {
                           resumes={
                             profile && profile.resumes ? profile.resumes : []
                           }
-                          isLoadingResumeList={isLoadingResumeList}
+                          isLoadingResumeList={isLoadingProfile}
                         />
                       </CardContent>
                     </Card>
