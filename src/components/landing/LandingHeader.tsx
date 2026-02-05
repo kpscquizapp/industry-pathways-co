@@ -38,9 +38,10 @@ const LandingHeader = () => {
 
   const isHomePage = location.pathname === "/";
   const headerBg = isScrolled
-    ? "bg-[hsl(222,47%,11%)]/98 backdrop-blur-xl border-b border-white/10 shadow-lg"
+    ? "bg-white/55 backdrop-blur-xl border-b border-black/10 shadow-lg"
     : "bg-transparent";
-  const textColor = "text-white";
+  const textColor = isScrolled ? "text-slate-900" : "text-white";
+  const authHoverBg = isScrolled ? "hover:bg-black/5" : "hover:bg-white/10";
 
   const handleRoleBasedNavigation = (role: string) => {
     if (!role) return;
@@ -176,7 +177,7 @@ const LandingHeader = () => {
                   className={cn(
                     "rounded-xl",
                     textColor,
-                    "hover:bg-white/10",
+                    authHoverBg,
                   )}
                 >
                   <Link to="/employer-login">
