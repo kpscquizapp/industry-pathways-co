@@ -252,7 +252,7 @@ const ContractorProfile = () => {
                         </h3>
                         {(profile?.workExperiences?.length ?? 0) > 0 ? (
                           <div className="space-y-6">
-                            {profile?.workExperiences.map((entry, index) => {
+                            {profile?.workExperiences?.map((entry, index) => {
                               const {
                                 role,
                                 companyName,
@@ -269,7 +269,7 @@ const ContractorProfile = () => {
                                   className="flex gap-3 sm:gap-4"
                                 >
                                   <div
-                                    className={`w-1 ${index === 0 ? "bg-blue-500 dark:bg-blue-1" : "bg-gray-300 dark:bg-slate-600"}  rounded-full flex-shrink-0`}
+                                    className={`w-1 ${index === 0 ? "bg-green-600 dark:bg-green-1" : "bg-gray-300 dark:bg-slate-600"}  rounded-full flex-shrink-0`}
                                   ></div>
                                   <div className="flex-1 min-w-0">
                                     <h4 className="font-bold text-sm sm:text-base dark:text-slate-100 break-words">

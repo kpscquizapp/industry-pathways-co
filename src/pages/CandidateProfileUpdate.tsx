@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
@@ -79,6 +80,16 @@ const CandidateProfileUpdate = ({
   const [removeCertificate] = useRemoveCertificateMutation();
 
   const [skillInput, setSkillInput] = useState("");
+  const [removingSkillId, setRemovingSkillId] = useState<number | null>(null);
+  const [removingWorkExperienceId, setRemovingWorkExperienceId] = useState<
+    number | null
+  >(null);
+  const [removingProjectId, setRemovingProjectId] = useState<number | null>(
+    null,
+  );
+  const [removingCertificateId, setRemovingCertificateId] = useState<
+    number | null
+  >(null);
 
   const skills =
     data?.candidateProfile?.skills?.map((skill) =>
@@ -278,6 +289,7 @@ const CandidateProfileUpdate = ({
       return;
     }
 
+    setRemovingSkillId(Number(filteredSkill.id));
     try {
       await removeSkill(Number(filteredSkill.id)).unwrap();
       toast.success("Skill removed successfully!");
@@ -292,6 +304,8 @@ const CandidateProfileUpdate = ({
       const errorMessage =
         err?.data?.message || err?.message || "Failed to remove skill";
       toast.error(errorMessage);
+    } finally {
+      setRemovingSkillId(null);
     }
   };
 
@@ -333,6 +347,7 @@ const CandidateProfileUpdate = ({
       return;
     }
 
+    setRemovingWorkExperienceId(Number(id));
     try {
       await removeWorkExperience(id).unwrap();
       toast.success("Work experience removed successfully!");
@@ -347,6 +362,8 @@ const CandidateProfileUpdate = ({
         err?.message ||
         "Failed to remove work experience";
       toast.error(errorMessage);
+    } finally {
+      setRemovingWorkExperienceId(null);
     }
   };
 
@@ -386,6 +403,7 @@ const CandidateProfileUpdate = ({
       return;
     }
 
+    setRemovingProjectId(Number(id));
     try {
       await removeProject(id).unwrap();
       toast.success("Project removed successfully!");
@@ -398,6 +416,8 @@ const CandidateProfileUpdate = ({
       const errorMessage =
         err?.data?.message || err?.message || "Failed to remove project";
       toast.error(errorMessage);
+    } finally {
+      setRemovingProjectId(null);
     }
   };
 
@@ -437,6 +457,7 @@ const CandidateProfileUpdate = ({
       return;
     }
 
+    setRemovingCertificateId(Number(id));
     try {
       await removeCertificate(id).unwrap();
       toast.success("Certificate removed successfully!");
@@ -449,6 +470,8 @@ const CandidateProfileUpdate = ({
       const errorMessage =
         err?.data?.message || err?.message || "Failed to remove certificate";
       toast.error(errorMessage);
+    } finally {
+      setRemovingCertificateId(null);
     }
   };
 
@@ -748,21 +771,36 @@ const CandidateProfileUpdate = ({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {formData.skills.map((name, index) => (
-              <span
-                key={`${name}-${index}`}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm"
-              >
-                {name}
-                <button
-                  type="button"
-                  onClick={() => removeSkills(name)}
-                  className="hover:text-teal-900 min-w-0 min-h-0"
+            {formData.skills.map((name, index) => {
+              const skillObj = data?.candidateProfile?.skills?.find((s) =>
+                typeof s === "string"
+                  ? false
+                  : s.name.toLowerCase() === name.toLowerCase(),
+              );
+              const skillId = skillObj?.id ?? null;
+
+              return (
+                <span
+                  key={`${name}-${index}`}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm"
                 >
-                  <X className="w-4 h-4" />
-                </button>
-              </span>
-            ))}
+                  {name}
+                  {skillId && removingSkillId === Number(skillId) ? (
+                    <div className="ml-2 flex items-center justify-center">
+                      <SpinnerLoader className="text-red-600" />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => removeSkills(name)}
+                      className="hover:text-teal-900 min-w-0 min-h-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </span>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -792,13 +830,19 @@ const CandidateProfileUpdate = ({
               <h3 className="font-medium text-gray-700 dark:text-white">
                 Experience #{index + 1}
               </h3>
-              <button
-                type="button"
-                onClick={() => removeWorkExperiences(exp.id, index)}
-                className="text-red-600 hover:text-red-800"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              {exp.id != null && removingWorkExperienceId === exp.id ? (
+                <div className="flex items-center justify-center">
+                  <SpinnerLoader className="text-red-600" />
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => removeWorkExperiences(exp.id, index)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -923,13 +967,19 @@ const CandidateProfileUpdate = ({
               <h3 className="font-medium text-gray-700 dark:text-white">
                 Project #{index + 1}
               </h3>
-              <button
-                type="button"
-                onClick={() => removeProjects(project.id, index)}
-                className="text-red-600 hover:text-red-800"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              {project.id != null && removingProjectId === project.id ? (
+                <div className="flex items-center justify-center">
+                  <SpinnerLoader className="text-red-600" />
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => removeProjects(project.id, index)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              )}
             </div>
 
             <Input
@@ -1026,13 +1076,19 @@ const CandidateProfileUpdate = ({
               <h3 className="font-medium text-gray-700 dark:text-white">
                 Certification #{index + 1}
               </h3>
-              <button
-                type="button"
-                onClick={() => removeCertification(cert.id, index)}
-                className="text-red-600 hover:text-red-800"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              {cert.id != null && removingCertificateId === cert.id ? (
+                <div className="flex items-center justify-center">
+                  <SpinnerLoader className="text-red-600" />
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => removeCertification(cert.id, index)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1109,7 +1165,14 @@ const CandidateProfileUpdate = ({
           disabled={isUpdating}
           className="flex-1 items-center gap-2 px-4 py-2  bg-primary text-white rounded-md hover:bg-primary/90 transition text-base"
         >
-          {isUpdating ? "Updating..." : "Update Profile"}
+          {isUpdating ? (
+            <div className="flex items-center justify-center gap-2">
+              <SpinnerLoader />
+              Updating...
+            </div>
+          ) : (
+            "Update Profile"
+          )}
         </button>
         <button
           onClick={() => {
