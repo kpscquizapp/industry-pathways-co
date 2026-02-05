@@ -20,7 +20,8 @@ type Resume = {
 
 type ResumeManagerProps = {
   resumes: Resume[];
-  isLoadingResumeList: boolean;
+  // Optional: remove if the parent cannot provide a meaningful resume-specific loading state.
+  isLoadingResumeList?: boolean;
 };
 
 const ResumeManager: React.FC<ResumeManagerProps> = ({

@@ -221,7 +221,7 @@ const ContractorProfile = () => {
                       Resume
                     </TabsTrigger>
                     <TabsTrigger
-                      value="assessment"
+                      value="edit-profile"
                       className="text-xs sm:text-sm whitespace-nowrap dark:data-[state=active]:bg-slate-900 dark:data-[state=active]:text-slate-100"
                     >
                       Edit Profile
@@ -321,6 +321,7 @@ const ContractorProfile = () => {
                           </h3>
                           <Button
                             variant="link"
+                            disabled
                             className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm p-0 whitespace-nowrap"
                           >
                             View Portfolio
@@ -360,7 +361,9 @@ const ContractorProfile = () => {
                                       )}
                                     </div>
                                     <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
-                                      {techStack}
+                                      {Array.isArray(techStack)
+                                        ? techStack.join(", ")
+                                        : techStack}
                                     </p>
 
                                     <p className="mt-3 text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
@@ -387,13 +390,12 @@ const ContractorProfile = () => {
                           resumes={
                             profile && profile.resumes ? profile.resumes : []
                           }
-                          isLoadingResumeList={isLoadingProfile}
                         />
                       </CardContent>
                     </Card>
                   </TabsContent>
 
-                  <TabsContent value="assessment" className="space-y-4">
+                  <TabsContent value="edit-profile" className="space-y-4">
                     <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
                       <CardContent className="p-6">
                         {data ? (
