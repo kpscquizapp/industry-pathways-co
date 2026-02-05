@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Upload, Eye, Trash2, FileText, X } from "lucide-react";
+import { Upload, Eye, Trash2, FileText, X, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -8,6 +8,7 @@ import {
   useUploadResumeMutation,
 } from "@/app/queries/profileApi";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Resume = {
   id: number;
@@ -19,18 +20,29 @@ type Resume = {
 
 type ResumeManagerProps = {
   resumes: Resume[];
+  isLoadingResumeList: boolean;
 };
 
-const ResumeManager: React.FC<ResumeManagerProps> = ({ resumes }) => {
+const ResumeManager: React.FC<ResumeManagerProps> = ({
+  resumes,
+  isLoadingResumeList,
+}) => {
   // API calls
-  const [uploadResume] = useUploadResumeMutation();
-  const [viewResume] = useLazyViewResumeQuery();
-  const [removeResume] = useRemoveResumeMutation();
+  const [uploadResume, { isLoading: isLoadingResumeUpload }] =
+    useUploadResumeMutation();
+  const [viewResume, { isLoading: isLoadingResumeView }] =
+    useLazyViewResumeQuery();
+  const [removeResume, { isLoading: isLoadingResumeRemove }] =
+    useRemoveResumeMutation();
 
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const latestRequestIdRef = useRef<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loadingViewId, setLoadingViewId] = useState<number | null>(null);
+  const [loadingDeleteId, setLoadingDeleteId] = useState<number | null>(null);
+
+  const isMobile = useIsMobile();
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -57,36 +69,52 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ resumes }) => {
   };
 
   const handleView = async (resume: Resume) => {
-    const requestId = resume.id;
-    latestRequestIdRef.current = requestId;
-    setSelectedResume(resume);
-    setIsModalOpen(true);
-
-    // Clean up previous blob URL
-    revokePreviewUrl(previewUrl);
-    setPreviewUrl(null);
-
+    setLoadingViewId(resume.id);
     try {
       const { data, error } = await viewResume({ resumeId: resume.id });
 
-      if (error) {
+      if (error || !data) {
         throw new Error("Failed to fetch resume");
       }
 
-      if (data && latestRequestIdRef.current === requestId) {
-        setPreviewUrl(data); // data is already a blob URL string
-      } else if (data) {
-        // Stale response - revoke the unused blob URL
-        revokePreviewUrl(data);
+      const isPdf =
+        resume.mimeType === "application/pdf" ||
+        resume.originalName.toLowerCase().endsWith(".pdf");
+
+      // Mobile → open PDF in new tab
+      if (isMobile && isPdf) {
+        window.open(data, "_blank");
+        return;
+      }
+
+      // Desktop → modal preview
+      latestRequestIdRef.current = resume.id;
+      setSelectedResume(resume);
+      setIsModalOpen(true);
+
+      revokePreviewUrl(previewUrl);
+      setPreviewUrl(data);
+    } catch (err) {
+      console.error("Error loading resume:", err);
+      toast.error("Failed to open resume");
+    } finally {
+      setLoadingViewId(null);
+    }
+  };
+  useEffect(() => {
+    if (isMobile && isModalOpen) clearPreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only react to viewport changes, not modal state
+  }, [isMobile]);
+  const handleOpenInTab = async (resume: Resume) => {
+    try {
+      const { data, error } = await viewResume({ resumeId: resume.id });
+      if (error) throw new Error("Failed to fetch resume");
+      if (data) {
+        window.open(data, "_blank");
       }
     } catch (error) {
-      if (latestRequestIdRef.current !== requestId) {
-        return; // stale error, ignore
-      }
-      console.error("Error loading resume:", error);
-      toast.error("Failed to load resume preview");
-      setSelectedResume(null);
-      setIsModalOpen(false);
+      console.error("Error opening resume in tab:", error);
+      toast.error("Failed to open resume");
     }
   };
 
@@ -96,6 +124,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ resumes }) => {
   }, [previewUrl]);
 
   const handleDelete = async (resumeId: number) => {
+    setLoadingDeleteId(resumeId);
     const wasSelected = selectedResume?.id === resumeId;
     try {
       await removeResume(resumeId).unwrap();
@@ -106,6 +135,8 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ resumes }) => {
     } catch (error) {
       console.error("Error deleting resume:", error);
       toast.error("Failed to delete resume.");
+    } finally {
+      setLoadingDeleteId(null);
     }
   };
 
@@ -114,13 +145,23 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ resumes }) => {
     const file = input.files?.[0];
     if (!file) return;
 
-    const maxBytes = 5 * 1024 * 1024;
+    const maxBytes = 2 * 1024 * 1024;
     const allowedTypes = [
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
-    if (file.size > maxBytes || !allowedTypes.includes(file.type)) {
-      toast.error("Please upload a PDF or DOCX file up to 5MB.");
+
+    // Separate validation checks for better error messages
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Please upload a PDF or DOCX file.");
+      input.value = "";
+      return;
+    }
+
+    if (file.size > maxBytes) {
+      toast.error(
+        `File size must be under 2MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.`,
+      );
       input.value = "";
       return;
     }
@@ -133,7 +174,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ resumes }) => {
       toast.success("Resume uploaded successfully!");
     } catch (error) {
       console.error("Error uploading resume:", error);
-      toast.error("Failed to upload resume.");
+      toast.error("Failed to upload resume. Please try again.");
     } finally {
       input.value = "";
     }
@@ -153,21 +194,32 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ resumes }) => {
                 Upload Your Resume
               </h3>
               <p className="text-xs md:text-sm text-slate-500 mb-6 dark:text-slate-400">
-                Supported formats: PDF, DOCX <br /> Maximum size: 5MB
+                Supported formats: PDF, DOCX <br /> Maximum size: 2MB
               </p>
-              <label htmlFor="file-upload" className="cursor-pointer">
-                <div className="inline-flex items-center px-4 md:px-6 py-2 md:py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 text-sm md:text-base">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Choose File
+              {isLoadingResumeUpload ? (
+                <div className="flex flex-col items-center gap-2">
+                  <LoaderCircle className="animate-spin w-8 h-8 text-primary" />
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                    Uploading resume...
+                  </p>
                 </div>
-              </label>
-              <input
-                id="file-upload"
-                type="file"
-                accept=".pdf,.docx"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
+              ) : (
+                <>
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    <div className="inline-flex items-center px-4 md:px-6 py-2 md:py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 text-sm md:text-base">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Choose File
+                    </div>
+                  </label>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept=".pdf,.docx"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </>
+              )}
             </div>
           </div>
 
@@ -178,58 +230,88 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ resumes }) => {
             </h2>
 
             <div className="space-y-3">
-              {resumes.length === 0 && (
-                <p className="text-sm text-slate-500 text-center py-8 dark:text-slate-400">
-                  No resumes uploaded yet. Upload your first resume above.
-                </p>
-              )}
-              {resumes.map((resume) => (
-                <Card
-                  key={resume.id}
-                  className="p-3 md:p-4 border border-slate-200 hover:border-slate-300 transition-colors duration-200 dark:border-slate-700 dark:hover:border-slate-600"
-                >
-                  <div className="flex items-start gap-3 mb-3">
-                    <FileText className="w-5 h-5 text-red-500 flex-shrink-0 mt-1" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-800 truncate text-sm md:text-base dark:text-white">
-                        {resume.originalName}
-                      </p>
-                      <p className="text-xs md:text-sm text-slate-500 mt-1 dark:text-slate-400">
-                        {(resume.fileSize / (1024 * 1024)).toFixed(1)} MB •
-                        Uploaded{" "}
-                        {new Intl.DateTimeFormat("default", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }).format(new Date(resume.uploadedAt))}
-                      </p>
-                    </div>
-                  </div>
+              {isLoadingResumeList ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                  <LoaderCircle className="animate-spin w-8 h-8 text-primary" />
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Loading your resumes...
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {resumes.length === 0 && (
+                    <p className="text-sm text-slate-500 text-center py-8 dark:text-slate-400">
+                      No resumes uploaded yet. Upload your first resume above.
+                    </p>
+                  )}
+                  {resumes.map((resume) => (
+                    <Card
+                      key={resume.id}
+                      className="p-3 md:p-4 border border-slate-200 hover:border-slate-300 transition-colors duration-200 dark:border-slate-700 dark:hover:border-slate-600"
+                    >
+                      <div className="flex items-start gap-3 mb-3">
+                        <FileText className="w-5 h-5 text-red-500 flex-shrink-0 mt-1" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-slate-800 truncate text-sm md:text-base dark:text-white">
+                            {resume.originalName}
+                          </p>
+                          <p className="text-xs md:text-sm text-slate-500 mt-1 dark:text-slate-400">
+                            {(resume.fileSize / (1024 * 1024)).toFixed(1)} MB •
+                            Uploaded{" "}
+                            {new Intl.DateTimeFormat("default", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }).format(new Date(resume.uploadedAt))}
+                          </p>
+                        </div>
+                      </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleView(resume)}
-                      className="flex-1 text-xs md:text-sm"
-                    >
-                      <Eye className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                      View
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(resume.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs md:text-sm"
-                    >
-                      <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </Card>
-              ))}
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleView(resume)}
+                          disabled={
+                            loadingViewId !== null || loadingDeleteId !== null
+                          }
+                          className="flex-1 text-xs md:text-sm flex items-center justify-center gap-2"
+                        >
+                          {loadingViewId === resume.id ? (
+                            <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
+                          ) : (
+                            <>
+                              <Eye className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                              View
+                            </>
+                          )}
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={
+                            loadingViewId !== null || loadingDeleteId !== null
+                          }
+                          onClick={() => handleDelete(resume.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs md:text-sm"
+                        >
+                          {loadingDeleteId === resume.id ? (
+                            <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
+                          ) : (
+                            <>
+                              <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                              Delete
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -273,7 +355,9 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ resumes }) => {
 
             {/* Modal Body - PDF Preview */}
             <div className="flex-1 bg-slate-100 dark:bg-slate-800 overflow-hidden">
-              {previewUrl && selectedResume?.mimeType === "application/pdf" ? (
+              {previewUrl &&
+              (selectedResume?.mimeType === "application/pdf" ||
+                selectedResume?.originalName.toLowerCase().endsWith(".pdf")) ? (
                 <iframe
                   src={previewUrl}
                   className="w-full h-full border-0"
@@ -299,9 +383,18 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ resumes }) => {
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center">
                     <div className="w-12 h-12 md:w-16 md:h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base">
+                    <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base mb-2">
                       Loading preview...
                     </p>
+                    {previewUrl && (
+                      <a
+                        href={previewUrl}
+                        download={selectedResume?.originalName}
+                        className="text-blue-600 dark:text-blue-400 hover:underline text-sm md:text-base"
+                      >
+                        Download PDF directly
+                      </a>
+                    )}
                   </div>
                 </div>
               )}
