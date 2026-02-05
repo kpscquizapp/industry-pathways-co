@@ -3,9 +3,7 @@ import Cookies from "js-cookie";
 
 export const config = {
   //TODO: need to change this base url when deploying to production
-  baseURL: "http://44.222.35.138/api/api/v1/", // "http://44.222.35.138/api/api/v1/",
-  // DEV SERVER
-  // baseURL: "http://44.222.35.138/api/api/v1/",
+  baseURL: import.meta.env.VITE_ATS_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },

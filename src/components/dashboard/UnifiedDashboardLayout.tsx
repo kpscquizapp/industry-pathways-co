@@ -43,6 +43,7 @@ import {
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import useLogout from "@/hooks/useLogout";
 import { useSelector } from "react-redux";
+import { RootState } from "@/app/store";
 
 type DashboardRole = "contractor" | "bench" | "employer";
 
@@ -118,7 +119,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const menuItems = getMenuItems(role);
   const navigate = useNavigate();
   const [handleLogout, isLoading] = useLogout();
-  const user = useSelector((state: any) => state.user.userDetails);
+  const user = useSelector((state: RootState) => state.user.userDetails);
 
   const handleProfile = () => {
     if (user.role === "hr") {

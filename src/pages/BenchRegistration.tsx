@@ -21,10 +21,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  useRegisterEmployerMutation,
-  useRegisterHrMutation,
-} from "@/app/queries/loginApi";
+import { useRegisterHrMutation } from "@/app/queries/loginApi";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import RegistrationStepIndicator from "@/components/auth/RegistrationStepIndicator";
 
