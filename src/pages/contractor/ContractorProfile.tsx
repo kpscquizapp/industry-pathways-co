@@ -1,479 +1,429 @@
-import React, { useState, useRef } from 'react';
-import { 
-  User, 
-  Upload, 
-  FileText, 
-  CheckCircle2, 
-  AlertCircle,
-  Briefcase,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  DollarSign,
-  Clock,
-  X,
-  Sparkles,
-  Save
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import SpinnerLoader from '@/components/loader/SpinnerLoader';
+import { useId } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Clock, DollarSign, Globe, MapPin, Briefcase } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useGetProfileQuery } from "@/app/queries/profileApi";
+import CandidateProfileUpdate from "../CandidateProfileUpdate";
+import ResumeManager from "../ResumeManager";
+import BarLoader from "@/components/loader/BarLoader";
+
+const getSafeProjectUrl = (value?: string) => {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return /^https?:\/\//i.test(trimmed) ? trimmed : undefined;
+};
 
 const ContractorProfile = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [resumeUploaded, setResumeUploaded] = useState(false);
-  const [extractedSkills, setExtractedSkills] = useState<string[]>([]);
-
-  const [formData, setFormData] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 (555) 000-1234',
-    location: 'San Francisco, CA',
-    title: 'Senior React Developer',
-    bio: '',
-    hourlyRate: '85',
-    availability: 'immediate',
-    yearsExperience: '5',
-  });
-
-  const [skills, setSkills] = useState<string[]>(['React.js', 'TypeScript', 'Node.js', 'AWS']);
-  const [skillInput, setSkillInput] = useState('');
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 600);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const profileCompletion = React.useMemo(() => {
-    let score = 0;
-    if (formData.firstName && formData.lastName) score += 15;
-    if (formData.email) score += 10;
-    if (formData.phone) score += 10;
-    if (formData.title) score += 15;
-    if (formData.bio) score += 10;
-    if (formData.hourlyRate) score += 10;
-    if (skills.length >= 3) score += 15;
-    if (resumeUploaded) score += 15;
-    return score;
-  }, [formData, skills, resumeUploaded]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('File size must be less than 5MB');
-        return;
-      }
-      
-      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!allowedTypes.includes(file.type)) {
-        toast.error('Please upload a PDF or Word document');
-        return;
-      }
-
-      setResumeFile(file);
-      setResumeUploaded(true);
-      
-      // Simulate skill extraction
-      setTimeout(() => {
-        const mockExtractedSkills = ['JavaScript', 'React', 'Node.js', 'TypeScript', 'MongoDB', 'REST APIs'];
-        setExtractedSkills(mockExtractedSkills);
-        toast.success('Resume uploaded! Skills extracted successfully.');
-      }, 1500);
-    }
-  };
-
-  const handleRemoveResume = () => {
-    setResumeFile(null);
-    setResumeUploaded(false);
-    setExtractedSkills([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const addSkill = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && skillInput.trim()) {
-      e.preventDefault();
-      if (!skills.includes(skillInput.trim())) {
-        setSkills([...skills, skillInput.trim()]);
-      }
-      setSkillInput('');
-    }
-  };
-
-  const removeSkill = (skillToRemove: string) => {
-    setSkills(skills.filter(s => s !== skillToRemove));
-  };
-
-  const addExtractedSkills = () => {
-    const newSkills = extractedSkills.filter(s => !skills.includes(s));
-    setSkills([...skills, ...newSkills]);
-    setExtractedSkills([]);
-    toast.success('Skills added to your profile!');
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsSaving(false);
-    toast.success('Profile saved successfully!');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <SpinnerLoader className="w-10 h-10 text-primary" />
-        <p className="text-muted-foreground animate-pulse">Loading your profile...</p>
-      </div>
-    );
-  }
+  const {
+    data: response,
+    isLoading: isLoadingProfile,
+    isError,
+  } = useGetProfileQuery();
+  const data = response?.data;
+  const profile = data?.candidateProfile;
+  const candidateId = useId();
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Profile Completion Banner */}
-      <Card className="bg-gradient-to-r from-primary/10 to-emerald-500/10 border-primary/20">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-semibold text-foreground">Profile Completion</h3>
-              <p className="text-sm text-muted-foreground">Complete your profile to get better job matches</p>
-            </div>
-            <div className="text-3xl font-bold text-primary">{profileCompletion}%</div>
-          </div>
-          <Progress value={profileCompletion} className="h-2" />
-        </CardContent>
-      </Card>
-
-      {/* Resume Upload Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
-            Resume Upload
-            {resumeUploaded && (
-              <Badge variant="secondary" className="ml-2 bg-green-500/10 text-green-600">
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Uploaded
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.doc,.docx"
-            onChange={handleResumeUpload}
-            className="hidden"
-          />
-          
-          {!resumeUploaded ? (
-            <div 
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group"
-            >
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <Upload className="w-8 h-8 text-primary" />
-              </div>
-              <h4 className="font-semibold text-foreground mb-2">Upload Your Resume</h4>
-              <p className="text-sm text-muted-foreground mb-4">
-                Drag and drop or click to upload (PDF, DOC, DOCX - Max 5MB)
-              </p>
-              <Button variant="outline" className="rounded-xl">
-                Select File
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{resumeFile?.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {resumeFile ? `${(resumeFile.size / 1024).toFixed(1)} KB` : ''}
+    <div className="min-h-screen flex flex-col dark:bg-slate-900">
+      {isLoadingProfile ? (
+        <BarLoader />
+      ) : isError ? (
+        <div className="w-full h-screen flex items-center justify-center">
+          <div className="text-red-600">Error loading profile</div>
+        </div>
+      ) : (
+        <div className="w-full dark:bg-slate-900">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
+              {/* Left Sidebar */}
+              <div className="lg:col-span-3 space-y-4">
+                {/* Profile Card */}
+                <Card
+                  id={candidateId}
+                  className="dark:bg-slate-800 dark:border-slate-700 w-full"
+                >
+                  <CardContent className="p-4 sm:p-6 text-center">
+                    <Avatar className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 shadow-xl ring-4 ring-white/90 dark:ring-slate-700/90">
+                      <AvatarImage src={data?.avatar ?? undefined} />
+                      <AvatarFallback>Avatar</AvatarFallback>
+                    </Avatar>
+                    <h2 className="text-base sm:text-lg lg:text-xl font-bold mb-1 dark:text-slate-100 break-words">
+                      {data?.firstName} {data?.lastName}
+                    </h2>
+                    <p className="text-gray-600 dark:text-slate-400 text-xs sm:text-sm mb-3 font-semibold break-words">
+                      {profile?.headline ?? data?.title ?? "—"}
                     </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    Replace
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={handleRemoveResume}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {extractedSkills.length > 0 && (
-                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                  <div className="flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <h4 className="font-medium text-emerald-700 dark:text-emerald-400 mb-2">
-                        AI Extracted Skills
-                      </h4>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {extractedSkills.map((skill) => (
-                          <Badge key={skill} variant="secondary" className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
-                            {skill}
-                          </Badge>
-                        ))}
-                      </div>
-                      <Button size="sm" variant="outline" onClick={addExtractedSkills} className="border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/10">
-                        Add All to Profile
-                      </Button>
+                    <div className="flex flex-wrap gap-2 justify-center mb-4">
+                      <Badge className="bg-green-100 text-green-700 hover:bg-green-100 font-bold text-xs">
+                        {profile?.profileType === "bench"
+                          ? "BENCH RESOURCE"
+                          : "CONTRACT RESOURCE"}
+                      </Badge>
                     </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Personal Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5 text-primary" />
-            Personal Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>First Name</Label>
-              <Input 
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                className="rounded-xl"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Last Name</Label>
-              <Input 
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                className="rounded-xl"
-              />
-            </div>
-          </div>
+                    {/* Details Card */}
+                    <div className="border-t-2 border-t-gray-200 dark:border-t-slate-700 mt-6 sm:mt-8" />
+                    <div className="p-0 my-6 sm:my-8 space-y-3">
+                      {profile?.hourlyRateMin != null &&
+                        profile?.hourlyRateMax != null && (
+                          <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
+                            <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
+                              <DollarSign className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate">Hourly Rate</span>
+                            </span>
+                            <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
+                              ${profile.hourlyRateMin} - $
+                              {profile.hourlyRateMax}
+                              /hr
+                            </span>
+                          </div>
+                        )}
+                      <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
+                        <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
+                          <Clock className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">Availability</span>
+                        </span>
+                        <span className="font-semibold text-green-600 whitespace-nowrap text-right capitalize">
+                          {profile?.availableIn || "None"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
+                        <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
+                          <MapPin className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">Location</span>
+                        </span>
+                        <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right max-w-[50%] truncate">
+                          {profile?.location || "None"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
+                        <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
+                          <Briefcase className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">Experience</span>
+                        </span>
+                        <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
+                          {profile?.yearsExperience != null
+                            ? `${profile.yearsExperience} Years`
+                            : "None"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
+                        <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
+                          <Globe className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">English</span>
+                        </span>
+                        <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
+                          {profile?.englishProficiency || "None"}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="pl-10 rounded-xl"
-                />
+                {/* Skills Card */}
+                <Card
+                  id={`AiMatchedProfile-${candidateId}-skillsCard`}
+                  className="dark:bg-slate-800 dark:border-slate-700 w-full"
+                >
+                  <CardContent className="p-4 sm:p-6">
+                    <h3 className="font-bold mb-3 text-sm sm:text-base dark:text-slate-100">
+                      Skills & Tech
+                    </h3>
+                    <div
+                      id={`AiMatchedProfile-${candidateId}-skills`}
+                      className="flex flex-wrap gap-2"
+                    >
+                      {profile?.skills?.length ? (
+                        profile.skills.map((skill, index) => {
+                          const name =
+                            typeof skill === "string" ? skill : skill.name;
+                          const id =
+                            typeof skill === "string" ? undefined : skill.id;
+                          if (!name) return null;
+                          return (
+                            <Badge
+                              key={id ?? name ?? index}
+                              variant="secondary"
+                              className="bg-gray-100 text-xs dark:bg-slate-700 dark:text-slate-200"
+                            >
+                              {name}
+                            </Badge>
+                          );
+                        })
+                      ) : (
+                        <span className="text-xs text-gray-500 dark:text-slate-400">
+                          No skills listed
+                        </span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Certifications Card */}
+                <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
+                  <CardContent className="p-4 sm:p-6">
+                    <h3 className="font-bold mb-3 text-sm sm:text-base dark:text-slate-100">
+                      Certifications
+                    </h3>
+                    <div className="space-y-3">
+                      {profile?.certifications?.length ? (
+                        profile.certifications.map(
+                          ({ name, issueDate }, cIndex) => (
+                            <div
+                              id={`AiMatchedProfile-${candidateId}-cert-${cIndex}`}
+                              className="flex items-start gap-2 sm:gap-3"
+                              key={`${name}-${cIndex}`}
+                            >
+                              <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center flex-shrink-0 dark:bg-blue-900/40">
+                                <span role="img" aria-label="diploma">
+                                  🎓
+                                </span>
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-semibold text-xs sm:text-sm dark:text-slate-200 break-words">
+                                  {name}
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                  {issueDate}
+                                </p>
+                              </div>
+                            </div>
+                          ),
+                        )
+                      ) : (
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
+                            🎓
+                          </div>
+                          <div>
+                            <p className="font-semibold text-xs my-auto sm:text-sm text-gray-500">
+                              No Certifications
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Main Content */}
+              <div className="lg:col-span-9 min-w-0">
+                <Tabs defaultValue="overview" className="space-y-4 w-full">
+                  <TabsList className="w-full justify-start overflow-x-auto dark:bg-slate-800 dark:text-slate-400 flex-nowrap">
+                    <TabsTrigger
+                      value="overview"
+                      className="text-xs sm:text-sm dark:data-[state=active]:bg-slate-900 dark:data-[state=active]:text-slate-100"
+                    >
+                      Overview
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="resume"
+                      className="text-xs sm:text-sm dark:data-[state=active]:bg-slate-900 dark:data-[state=active]:text-slate-100"
+                    >
+                      Resume
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="edit-profile"
+                      className="text-xs sm:text-sm whitespace-nowrap dark:data-[state=active]:bg-slate-900 dark:data-[state=active]:text-slate-100"
+                    >
+                      Edit Profile
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="overview" className="space-y-4">
+                    {/* About Candidate */}
+                    <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
+                      <CardContent className="p-4 sm:p-6">
+                        <h3 className="text-base sm:text-lg font-bold mb-3 dark:text-slate-100">
+                          About Candidate
+                        </h3>
+                        <p
+                          className="text-sm sm:text-base text-gray-700 dark:text-slate-300 mb-3 break-words"
+                          style={{ lineHeight: "1.8" }}
+                        >
+                          {profile?.bio ?? "No bio"}
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Work Experience */}
+                    <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
+                      <CardContent className="p-4 sm:p-6">
+                        <h3 className="text-base sm:text-lg font-bold mb-4 dark:text-slate-100">
+                          Work Experience
+                        </h3>
+                        {(profile?.workExperiences?.length ?? 0) > 0 ? (
+                          <div className="space-y-6">
+                            {profile?.workExperiences?.map((entry, index) => {
+                              const {
+                                role,
+                                companyName,
+                                startDate,
+                                endDate,
+                                location,
+                                description,
+                              } = entry;
+                              const entryId = `${candidateId}-work-${index}`;
+                              return (
+                                <div
+                                  key={entryId}
+                                  id={entryId}
+                                  className="flex gap-3 sm:gap-4"
+                                >
+                                  <div
+                                    className={`w-1 ${index === 0 ? "bg-green-600 dark:bg-green-1" : "bg-gray-300 dark:bg-slate-600"}  rounded-full flex-shrink-0`}
+                                  ></div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-sm sm:text-base dark:text-slate-100 break-words">
+                                      {role}
+                                    </h4>
+                                    <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mb-1 font-semibold break-words">
+                                      {companyName}
+                                    </p>
+                                    <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-2 break-words">
+                                      {startDate} - {endDate ?? "Present"} •{" "}
+                                      {location}
+                                    </p>
+                                    <div className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 space-y-1">
+                                      {(Array.isArray(description)
+                                        ? description
+                                        : description
+                                          ? description
+                                              .split(/\r?\n/)
+                                              .filter(Boolean)
+                                          : []
+                                      ).map((bullet, bIndex) => (
+                                        <p
+                                          key={`${entryId}-bullet-${bIndex}`}
+                                          className="break-words"
+                                        >
+                                          {bullet}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-sm sm:text-base text-gray-700 dark:text-slate-300">
+                            No work experience
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Featured Projects */}
+                    <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4 gap-2">
+                          <h3 className="text-base sm:text-lg font-bold dark:text-slate-100">
+                            Featured Projects
+                          </h3>
+                          <Button
+                            variant="link"
+                            disabled
+                            className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm p-0 whitespace-nowrap"
+                          >
+                            View Portfolio
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                          {profile?.projects?.length ? (
+                            profile.projects.map(
+                              (
+                                { title, techStack, projectUrl, description },
+                                pIndex,
+                              ) => {
+                                const safeProjectUrl =
+                                  getSafeProjectUrl(projectUrl);
+                                return (
+                                  <Card
+                                    id={`AiMatchedProfile-${candidateId}-project-${pIndex}`}
+                                    className="border dark:border-slate-700 dark:bg-slate-800 w-full"
+                                    key={`${title}-${pIndex}`}
+                                  >
+                                    <CardContent className="p-4 sm:p-6">
+                                      <div className="w-full h-24 sm:h-32 bg-gray-100 dark:bg-slate-700/50 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                                        <div className="w-10 h-14 sm:w-12 sm:h-16 border-2 border-gray-300 dark:border-slate-500 rounded flex items-center justify-center text-2xl dark:text-slate-300">
+                                          {projectUrl ? "🌐" : "📂"}
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center justify-between">
+                                        <h4 className="font-bold mb-1 sm:mb-2 text-sm sm:text-base dark:text-slate-100 break-words">
+                                          {title}
+                                        </h4>
+                                        {safeProjectUrl && (
+                                          <a
+                                            href={safeProjectUrl}
+                                            rel="noopener noreferrer"
+                                            target="_blank"
+                                            className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words mb-1 font-semibold hover:underline"
+                                          >
+                                            Link
+                                          </a>
+                                        )}
+                                      </div>
+                                      <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
+                                        {Array.isArray(techStack)
+                                          ? techStack.join(", ")
+                                          : techStack}
+                                      </p>
+
+                                      <p className="mt-3 text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
+                                        {description}
+                                      </p>
+                                    </CardContent>
+                                  </Card>
+                                );
+                              },
+                            )
+                          ) : (
+                            <p className="text-sm text-gray-500 dark:text-slate-400 col-span-2">
+                              No projects yet
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="resume" className="space-y-4">
+                    <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
+                      <CardContent className="p-6 text-center text-gray-500 dark:text-slate-400">
+                        <ResumeManager
+                          resumes={
+                            profile && profile.resumes ? profile.resumes : []
+                          }
+                        />
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="edit-profile" className="space-y-4">
+                    <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
+                      <CardContent className="p-6">
+                        {data ? (
+                          <CandidateProfileUpdate data={data} />
+                        ) : (
+                          <p className="text-center text-gray-500 dark:text-slate-400">
+                            Profile data unavailable
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Phone</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  name="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className="pl-10 rounded-xl"
-                />
-              </div>
-            </div>
           </div>
-
-          <div className="space-y-2">
-            <Label>Location</Label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                name="location"
-                value={formData.location}
-                onChange={handleInputChange}
-                className="pl-10 rounded-xl"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Professional Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Briefcase className="w-5 h-5 text-primary" />
-            Professional Details
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label>Professional Title</Label>
-            <Input 
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              placeholder="e.g. Senior React Developer"
-              className="rounded-xl"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Bio</Label>
-            <Textarea 
-              name="bio"
-              value={formData.bio}
-              onChange={handleInputChange}
-              placeholder="Tell us about yourself and your expertise..."
-              className="rounded-xl min-h-[100px]"
-            />
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Hourly Rate ($)</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  name="hourlyRate"
-                  type="number"
-                  value={formData.hourlyRate}
-                  onChange={handleInputChange}
-                  className="pl-10 rounded-xl"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Availability</Label>
-              <Select value={formData.availability} onValueChange={(v) => setFormData({...formData, availability: v})}>
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="immediate">Immediate</SelectItem>
-                  <SelectItem value="2-weeks">2 Weeks</SelectItem>
-                  <SelectItem value="1-month">1 Month</SelectItem>
-                  <SelectItem value="not-available">Not Available</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Years of Experience</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  name="yearsExperience"
-                  type="number"
-                  value={formData.yearsExperience}
-                  onChange={handleInputChange}
-                  className="pl-10 rounded-xl"
-                />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Skills Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-primary" />
-            Skills
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Add Skills</Label>
-            <Input 
-              value={skillInput}
-              onChange={(e) => setSkillInput(e.target.value)}
-              onKeyDown={addSkill}
-              placeholder="Type a skill and press Enter"
-              className="rounded-xl"
-            />
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill) => (
-              <Badge 
-                key={skill} 
-                variant="secondary"
-                className="px-3 py-1.5 text-sm cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors group"
-                onClick={() => removeSkill(skill)}
-              >
-                {skill}
-                <X className="w-3 h-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Badge>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button 
-          onClick={handleSave} 
-          disabled={isSaving}
-          className="rounded-xl px-8"
-          size="lg"
-        >
-          {isSaving ? (
-            <>
-              <SpinnerLoader className="w-4 h-4 mr-2" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4 mr-2" />
-              Save Profile
-            </>
-          )}
-        </Button>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
