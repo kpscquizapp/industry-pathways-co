@@ -161,6 +161,7 @@ const CandidateProfileUpdate = ({
       data?.candidateProfile?.workExperiences?.map(
         ({
           id,
+          localId,
           companyName,
           role,
           employmentType,
@@ -170,6 +171,7 @@ const CandidateProfileUpdate = ({
           location,
         }) => ({
           id,
+          localId,
           companyName,
           role,
           employmentType,
@@ -185,8 +187,17 @@ const CandidateProfileUpdate = ({
   const projects = useMemo(
     () =>
       data?.candidateProfile?.projects?.map(
-        ({ id, title, description, techStack, projectUrl, isFeatured }) => ({
+        ({
           id,
+          localId,
+          title,
+          description,
+          techStack,
+          projectUrl,
+          isFeatured,
+        }) => ({
+          id,
+          localId,
           title,
           description,
           techStack,
@@ -200,8 +211,17 @@ const CandidateProfileUpdate = ({
   const certification = useMemo(
     () =>
       data?.candidateProfile?.certifications?.map(
-        ({ id, name, issueDate, issuedBy, expiryDate, credentialUrl }) => ({
+        ({
           id,
+          localId,
+          name,
+          issueDate,
+          issuedBy,
+          expiryDate,
+          credentialUrl,
+        }) => ({
+          id,
+          localId,
           name,
           issueDate,
           issuedBy,
@@ -632,11 +652,11 @@ const CandidateProfileUpdate = ({
 
     const payload = {
       ...formData,
-      certifications: formData.certifications.map((cert) => ({
+      certifications: formData.certifications.map(({ localId, ...cert }) => ({
         ...cert,
         expiryDate: cleanDate(cert.expiryDate),
       })),
-      projects: formData.projects.map((project) => ({
+      projects: formData.projects.map(({ localId, ...project }) => ({
         ...project,
         techStack: Array.isArray(project.techStack)
           ? project.techStack
@@ -645,7 +665,7 @@ const CandidateProfileUpdate = ({
               .map((s) => s.trim())
               .filter(Boolean),
       })),
-      workExperiences: formData.workExperiences.map((exp) => ({
+      workExperiences: formData.workExperiences.map(({ localId, ...exp }) => ({
         ...exp,
         description: Array.isArray(exp.description)
           ? exp.description.join("\n")
