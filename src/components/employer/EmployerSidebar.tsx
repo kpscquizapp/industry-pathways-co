@@ -39,7 +39,7 @@ const EmployerSidebar = ({ collapsed, onToggle }: EmployerSidebarProps) => {
   return (
     <aside 
       className={cn(
-        "sticky top-0 left-0  h-screen bg-navy-900 text-white flex flex-col transition-all duration-300 z-50",
+        "fixed top-0 left-0 h-screen bg-slate-900 text-white flex flex-col transition-all duration-300 z-50 flex-shrink-0",
         collapsed ? "w-20" : "w-64"
       )}
     >
