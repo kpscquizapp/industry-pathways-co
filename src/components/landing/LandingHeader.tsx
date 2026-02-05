@@ -84,24 +84,21 @@ const LandingHeader = () => {
             </Link>
 
             {/* How It Works */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "flex items-center gap-1 px-4 py-2 rounded-lg font-medium transition-colors",
-                    textColor,
-                    "hover:bg-primary/10",
-                  )}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  How It Works
-                  <ChevronDown className="w-4 h-4" />
-                </Button>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger
+                className={cn(
+                  "flex items-center gap-1 px-4 py-2 rounded-lg font-medium transition-colors",
+                  textColor,
+                  "hover:bg-primary/10",
+                )}
+              >
+                How It Works
+                <ChevronDown className="w-4 h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                align="start"
-                className="w-56 bg-card border border-border"
+                align="center"
+                sideOffset={8}
+                className="w-56 bg-card border border-border shadow-lg z-[100]"
               >
                 <DropdownMenuItem asChild>
                   <Link

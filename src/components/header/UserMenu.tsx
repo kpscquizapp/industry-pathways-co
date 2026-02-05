@@ -18,7 +18,7 @@ const UserMenu = () => {
   if (!user) return null;
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger className="focus:outline-none">
         <Avatar className="h-10 w-10 bg-teal-600 cursor-pointer hover:ring-2 hover:ring-teal-400 transition-all">
           <AvatarFallback className="bg-teal-600 text-white font-semibold">

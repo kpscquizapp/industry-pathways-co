@@ -203,7 +203,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border p-3">
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <button
               className={cn(
