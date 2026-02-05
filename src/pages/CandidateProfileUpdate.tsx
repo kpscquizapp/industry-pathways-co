@@ -21,6 +21,58 @@ type Skill = {
   name: string;
 };
 
+type WorkExperienceForm = {
+  id: number | null;
+  localId?: string;
+  companyName: string;
+  role: string;
+  employmentType: string;
+  startDate: string;
+  endDate: string | null;
+  description: string | string[];
+  location: string;
+};
+
+type ProjectForm = {
+  id: number | null;
+  localId?: string;
+  title: string;
+  description: string;
+  techStack: string[] | string;
+  projectUrl: string;
+  isFeatured: boolean;
+};
+
+type CertificationForm = {
+  id: number | null;
+  localId?: string;
+  name: string;
+  issuedBy: string;
+  issueDate: string;
+  expiryDate?: string | null;
+  credentialUrl: string;
+};
+
+interface FormDataState {
+  firstName: string;
+  lastName: string;
+  email: string;
+  location: string;
+  availability: string;
+  bio: string;
+  yearsExperience: string | number;
+  skills: string[];
+  headline: string;
+  resourceType: string;
+  availableIn: string;
+  englishProficiency: string;
+  hourlyRateMin: number | string;
+  hourlyRateMax: number | string;
+  workExperiences: WorkExperienceForm[];
+  projects: ProjectForm[];
+  certifications: CertificationForm[];
+}
+
 interface CandidateProfileUpdateProps {
   data: {
     firstName: string;
@@ -40,6 +92,7 @@ interface CandidateProfileUpdateProps {
       hourlyRateMax?: number | string;
       workExperiences?: Array<{
         id: number | null;
+        localId?: string;
         companyName: string;
         role: string;
         employmentType: string;
@@ -50,6 +103,7 @@ interface CandidateProfileUpdateProps {
       }>;
       projects?: Array<{
         id: number | null;
+        localId?: string;
         title: string;
         description: string;
         techStack: string[];
@@ -58,6 +112,7 @@ interface CandidateProfileUpdateProps {
       }>;
       certifications?: Array<{
         id: number | null;
+        localId?: string;
         name: string;
         issuedBy: string;
         issueDate: string;
@@ -157,7 +212,7 @@ const CandidateProfileUpdate = ({
     [data],
   );
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataState>({
     firstName: data?.firstName || "",
     lastName: data?.lastName || "",
     email: data?.email || "",
@@ -302,16 +357,14 @@ const CandidateProfileUpdate = ({
       filteredSkill.id == null
     ) {
       // Not persisted yet — animate local removal with spinner for a short moment
-      const localIndex = formData.skills.findIndex(
-        (s) => s.toLowerCase() === skillToRemove.toLowerCase(),
-      );
-      if (localIndex === -1) return;
-      const localKey = `local-skill-${localIndex}`;
-      setRemovingSkillId(localKey);
+      const localName = skillToRemove;
+      setRemovingSkillId(localName);
       setTimeout(() => {
         setFormData((prev) => ({
           ...prev,
-          skills: prev.skills.filter((_, i) => i !== localIndex),
+          skills: prev.skills.filter(
+            (s) => s.toLowerCase() !== localName.toLowerCase(),
+          ),
         }));
         setRemovingSkillId(null);
       }, 180);
@@ -339,6 +392,9 @@ const CandidateProfileUpdate = ({
     }
   };
 
+  const createLocalId = (prefix = "local") =>
+    `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
   const addWorkExperience = () => {
     setFormData((prev) => ({
       ...prev,
@@ -346,6 +402,7 @@ const CandidateProfileUpdate = ({
         ...prev.workExperiences,
         {
           id: null,
+          localId: createLocalId("we"),
           companyName: "",
           role: "",
           employmentType: "",
@@ -370,12 +427,26 @@ const CandidateProfileUpdate = ({
   const removeWorkExperiences = async (id: number | null, index?: number) => {
     if (id == null) {
       if (index == null) return;
-      const localKey = `local-we-${index}`;
+      const item = formData.workExperiences[index];
+      // Use stable local id when available, otherwise create one and set it on the item
+      const localKey = item?.localId ? item.localId : createLocalId("we");
+
+      if (!item?.localId) {
+        setFormData((prev) => ({
+          ...prev,
+          workExperiences: prev.workExperiences.map((we, i) =>
+            i === index ? { ...we, localId: localKey } : we,
+          ),
+        }));
+      }
+
       setRemovingWorkExperienceId(localKey);
       setTimeout(() => {
         setFormData((prev) => ({
           ...prev,
-          workExperiences: prev.workExperiences.filter((_, i) => i !== index),
+          workExperiences: prev.workExperiences.filter(
+            (we) => we.id != null || we.localId !== localKey,
+          ),
         }));
         setRemovingWorkExperienceId(null);
       }, 180);
@@ -410,6 +481,7 @@ const CandidateProfileUpdate = ({
         ...prev.projects,
         {
           id: null,
+          localId: createLocalId("project"),
           title: "",
           description: "",
           techStack: [],
@@ -432,12 +504,25 @@ const CandidateProfileUpdate = ({
   const removeProjects = async (id: number | null, index?: number) => {
     if (id == null) {
       if (index == null) return;
-      const localKey = `local-project-${index}`;
+      const item = formData.projects[index];
+      const localKey = item?.localId ? item.localId : createLocalId("project");
+
+      if (!item?.localId) {
+        setFormData((prev) => ({
+          ...prev,
+          projects: prev.projects.map((p, i) =>
+            i === index ? { ...p, localId: localKey } : p,
+          ),
+        }));
+      }
+
       setRemovingProjectId(localKey);
       setTimeout(() => {
         setFormData((prev) => ({
           ...prev,
-          projects: prev.projects.filter((_, i) => i !== index),
+          projects: prev.projects.filter(
+            (p) => p.id != null || p.localId !== localKey,
+          ),
         }));
         setRemovingProjectId(null);
       }, 180);
@@ -470,6 +555,7 @@ const CandidateProfileUpdate = ({
         ...prev.certifications,
         {
           id: null,
+          localId: createLocalId("cert"),
           name: "",
           issuedBy: "",
           issueDate: "",
@@ -492,12 +578,25 @@ const CandidateProfileUpdate = ({
   const removeCertification = async (id: number | null, index?: number) => {
     if (id == null) {
       if (index == null) return;
-      const localKey = `local-cert-${index}`;
+      const item = formData.certifications[index];
+      const localKey = item?.localId ? item.localId : createLocalId("cert");
+
+      if (!item?.localId) {
+        setFormData((prev) => ({
+          ...prev,
+          certifications: prev.certifications.map((c, i) =>
+            i === index ? { ...c, localId: localKey } : c,
+          ),
+        }));
+      }
+
       setRemovingCertificateId(localKey);
       setTimeout(() => {
         setFormData((prev) => ({
           ...prev,
-          certifications: prev.certifications.filter((_, i) => i !== index),
+          certifications: prev.certifications.filter(
+            (c) => c.id != null || c.localId !== localKey,
+          ),
         }));
         setRemovingCertificateId(null);
       }, 180);
@@ -831,12 +930,12 @@ const CandidateProfileUpdate = ({
 
               return (
                 <span
-                  key={`${name}-${index}`}
+                  key={name}
                   className="inline-flex items-center gap-1 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm"
                 >
                   {name}
                   {(() => {
-                    const localSkillKey = `local-skill-${index}`;
+                    const localSkillKey = name;
                     if (skillId != null) {
                       return removingSkillId === skillId ? (
                         <div className="ml-2 flex items-center justify-center">
@@ -892,7 +991,7 @@ const CandidateProfileUpdate = ({
 
         {formData.workExperiences.map((exp, index) => (
           <div
-            key={index}
+            key={exp.localId ?? exp.id ?? index}
             className="p-4 border dark:border-2 border-gray-200 rounded-lg space-y-3 bg-gray-50 dark:bg-slate-800 dark:border-slate-700"
           >
             <div className="flex justify-between items-center">
@@ -900,7 +999,7 @@ const CandidateProfileUpdate = ({
                 Experience #{index + 1}
               </h3>
               {(() => {
-                const localKey = `local-we-${index}`;
+                const localKey = exp?.localId ?? `local-we-${index}`;
                 const isRemoving =
                   exp.id != null
                     ? removingWorkExperienceId === exp.id
@@ -1036,7 +1135,7 @@ const CandidateProfileUpdate = ({
 
         {formData.projects.map((project, index) => (
           <div
-            key={index}
+            key={project.localId ?? project.id ?? index}
             className="p-4 border dark:border-2 border-gray-200 rounded-lg space-y-3 bg-gray-50 dark:bg-slate-800 dark:border-slate-700"
           >
             <div className="flex justify-between items-center">
@@ -1044,7 +1143,7 @@ const CandidateProfileUpdate = ({
                 Project #{index + 1}
               </h3>
               {(() => {
-                const localKey = `local-project-${index}`;
+                const localKey = project?.localId ?? `local-project-${index}`;
                 const isRemoving =
                   project.id != null
                     ? removingProjectId === project.id
@@ -1152,7 +1251,7 @@ const CandidateProfileUpdate = ({
 
         {formData.certifications.map((cert, index) => (
           <div
-            key={index}
+            key={cert.localId ?? cert.id ?? index}
             className="p-4 border dark:border-2 border-gray-200 rounded-lg space-y-3 bg-gray-50 dark:bg-slate-800 dark:border-slate-700"
           >
             <div className="flex justify-between items-center">
@@ -1160,7 +1259,7 @@ const CandidateProfileUpdate = ({
                 Certification #{index + 1}
               </h3>
               {(() => {
-                const localKey = `local-cert-${index}`;
+                const localKey = cert?.localId ?? `local-cert-${index}`;
                 const isRemoving =
                   cert.id != null
                     ? removingCertificateId === cert.id
