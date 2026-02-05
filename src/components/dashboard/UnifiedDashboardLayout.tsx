@@ -122,10 +122,13 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const user = useSelector((state: RootState) => state.user.userDetails);
 
   const handleProfile = () => {
+    if (!user?.role) return;
     if (user.role === "hr") {
       navigate("/bench/dashboard");
     } else if (user.role === "candidate") {
-      navigate("/contractor/profile");
+      navigate("/contractor/dashboard");
+    } else {
+      navigate(`*`);
     }
   };
 
