@@ -103,6 +103,7 @@ const LandingHeader = () => {
                   <Link
                     to={`${user?.role === "candidate" ? "/contractor/dashboard" : "/candidate-signup"}`}
                     className="flex items-center gap-3 p-3"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <User className="w-4 h-4 text-primary" />
                     <div>
@@ -117,6 +118,7 @@ const LandingHeader = () => {
                   <Link
                     to={`${user?.role === "hr" ? "/bench/dashboard" : "/bench-registration"}`}
                     className="flex items-center gap-3 p-3"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Building2 className="w-4 h-4 text-primary" />
                     <div>
@@ -131,6 +133,7 @@ const LandingHeader = () => {
                   <Link
                     to={`${user?.role === "employer" ? "/employer-dashboard" : "/employer-signup"}`}
                     className="flex items-center gap-3 p-3"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Briefcase className="w-4 h-4 text-primary" />
                     <div>
@@ -160,7 +163,6 @@ const LandingHeader = () => {
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <Button
-                asChild
                 variant="default"
                 size="sm"
                 className="rounded-xl"
@@ -250,7 +252,6 @@ const LandingHeader = () => {
             <div className="pt-4 border-t border-border space-y-2">
               {user ? (
                 <Button
-                  asChild
                   className="w-full rounded-xl"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
@@ -267,7 +268,7 @@ const LandingHeader = () => {
                     className="w-full rounded-xl"
                   >
                     <Link
-                      to="/employer-login1"
+                      to="/employer-login"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Login
@@ -275,7 +276,7 @@ const LandingHeader = () => {
                   </Button>
                   <Button asChild className="w-full rounded-xl">
                     <Link
-                      to="/employer-signup1"
+                      to="/employer-signup"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Hire Talent

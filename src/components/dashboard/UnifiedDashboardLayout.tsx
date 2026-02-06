@@ -13,9 +13,7 @@ import {
   User,
   LayoutDashboard,
   Briefcase,
-  TrendingUp,
   FileCheck,
-  DollarSign,
   BarChart3,
   CreditCard,
   Plus,
@@ -30,7 +28,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   SidebarProvider,
   Sidebar,
@@ -44,6 +41,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
+import useLogout from "@/hooks/useLogout";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store";
 
 type DashboardRole = "contractor" | "bench" | "employer";
 
@@ -114,21 +114,22 @@ const getMenuItems = (role: DashboardRole) => {
 
 const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const menuItems = getMenuItems(role);
+  const navigate = useNavigate();
+  const [handleLogout, isLoading] = useLogout();
+  const user = useSelector((state: RootState) => state.user.userDetails);
 
-  const handleLogout = () => {
-    logout();
-    navigate(
-      role === "employer"
-        ? "/employer-login"
-        : role === "bench"
-          ? "/bench-login"
-          : "/candidate-login",
-    );
+  const handleProfile = () => {
+    if (!user?.role) return;
+    if (user.role === "hr") {
+      navigate("/bench/dashboard");
+    } else if (user.role === "candidate") {
+      navigate("/contractor/dashboard");
+    } else {
+      navigate(`*`);
+    }
   };
 
   const getRoleBadge = () => {
@@ -213,7 +214,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
             >
               <Avatar className="h-9 w-9 bg-primary flex-shrink-0">
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
-                  {user?.name?.charAt(0) ||
+                  {user?.firstName?.charAt(0) ||
                     user?.email?.charAt(0) ||
                     role.charAt(0).toUpperCase()}
                 </AvatarFallback>
@@ -221,8 +222,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
               {!isCollapsed && (
                 <div className="text-left flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
-                    {user?.name ||
-                      (role === "employer" ? "InnovateLab Inc." : "John Doe")}
+                    {user?.firstName} {user?.lastName}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {getRoleBadge()}
@@ -232,7 +232,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="top" className="w-56">
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleProfile}>
               <User className="h-4 w-4 mr-2" />
               Profile
             </DropdownMenuItem>
@@ -248,9 +248,10 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
             <DropdownMenuItem
               onClick={handleLogout}
               className="text-destructive"
+              disabled={isLoading}
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Logout
+              {isLoading ? "Logging out..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

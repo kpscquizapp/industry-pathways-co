@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { X, Plus, Trash2, Briefcase, Award, FolderGit2 } from "lucide-react";
 import {
   useRemoveCertificateMutation,
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
@@ -19,6 +20,58 @@ type Skill = {
   id: number;
   name: string;
 };
+
+type WorkExperienceForm = {
+  id: number | null;
+  localId?: string;
+  companyName: string;
+  role: string;
+  employmentType: string;
+  startDate: string;
+  endDate: string | null;
+  description: string | string[];
+  location: string;
+};
+
+type ProjectForm = {
+  id: number | null;
+  localId?: string;
+  title: string;
+  description: string;
+  techStack: string[] | string;
+  projectUrl: string;
+  isFeatured: boolean;
+};
+
+type CertificationForm = {
+  id: number | null;
+  localId?: string;
+  name: string;
+  issuedBy: string;
+  issueDate: string;
+  expiryDate?: string | null;
+  credentialUrl: string;
+};
+
+interface FormDataState {
+  firstName: string;
+  lastName: string;
+  email: string;
+  location: string;
+  availability: string;
+  bio: string;
+  yearsExperience: string | number;
+  skills: string[];
+  headline: string;
+  resourceType: string;
+  availableIn: string;
+  englishProficiency: string;
+  hourlyRateMin: number | string;
+  hourlyRateMax: number | string;
+  workExperiences: WorkExperienceForm[];
+  projects: ProjectForm[];
+  certifications: CertificationForm[];
+}
 
 interface CandidateProfileUpdateProps {
   data: {
@@ -39,6 +92,7 @@ interface CandidateProfileUpdateProps {
       hourlyRateMax?: number | string;
       workExperiences?: Array<{
         id: number | null;
+        localId?: string;
         companyName: string;
         role: string;
         employmentType: string;
@@ -49,6 +103,7 @@ interface CandidateProfileUpdateProps {
       }>;
       projects?: Array<{
         id: number | null;
+        localId?: string;
         title: string;
         description: string;
         techStack: string[];
@@ -57,6 +112,7 @@ interface CandidateProfileUpdateProps {
       }>;
       certifications?: Array<{
         id: number | null;
+        localId?: string;
         name: string;
         issuedBy: string;
         issueDate: string;
@@ -79,60 +135,104 @@ const CandidateProfileUpdate = ({
   const [removeCertificate] = useRemoveCertificateMutation();
 
   const [skillInput, setSkillInput] = useState("");
+  const [removingSkillId, setRemovingSkillId] = useState<
+    string | number | null
+  >(null);
+  const [removingWorkExperienceId, setRemovingWorkExperienceId] = useState<
+    string | number | null
+  >(null);
+  const [removingProjectId, setRemovingProjectId] = useState<
+    string | number | null
+  >(null);
+  const [removingCertificateId, setRemovingCertificateId] = useState<
+    string | number | null
+  >(null);
 
-  const skills =
-    data?.candidateProfile?.skills?.map((skill) =>
-      typeof skill === "string" ? skill : skill.name,
-    ) || [];
+  const skills = useMemo(
+    () =>
+      data?.candidateProfile?.skills?.map((skill) =>
+        typeof skill === "string" ? skill : skill.name,
+      ) || [],
+    [data],
+  );
 
-  const workExperiences =
-    data?.candidateProfile?.workExperiences?.map(
-      ({
-        id,
-        companyName,
-        role,
-        employmentType,
-        startDate,
-        endDate,
-        description,
-        location,
-      }) => ({
-        id,
-        companyName,
-        role,
-        employmentType,
-        startDate,
-        endDate,
-        description,
-        location,
-      }),
-    ) || [];
+  const workExperiences = useMemo(
+    () =>
+      data?.candidateProfile?.workExperiences?.map(
+        ({
+          id,
+          localId,
+          companyName,
+          role,
+          employmentType,
+          startDate,
+          endDate,
+          description,
+          location,
+        }) => ({
+          id,
+          localId,
+          companyName,
+          role,
+          employmentType,
+          startDate,
+          endDate,
+          description,
+          location,
+        }),
+      ) || [],
+    [data],
+  );
 
-  const projects =
-    data?.candidateProfile?.projects?.map(
-      ({ id, title, description, techStack, projectUrl, isFeatured }) => ({
-        id,
-        title,
-        description,
-        techStack,
-        projectUrl,
-        isFeatured,
-      }),
-    ) || [];
+  const projects = useMemo(
+    () =>
+      data?.candidateProfile?.projects?.map(
+        ({
+          id,
+          localId,
+          title,
+          description,
+          techStack,
+          projectUrl,
+          isFeatured,
+        }) => ({
+          id,
+          localId,
+          title,
+          description,
+          techStack,
+          projectUrl,
+          isFeatured,
+        }),
+      ) || [],
+    [data],
+  );
 
-  const certification =
-    data?.candidateProfile?.certifications?.map(
-      ({ id, name, issueDate, issuedBy, expiryDate, credentialUrl }) => ({
-        id,
-        name,
-        issueDate,
-        issuedBy,
-        expiryDate,
-        credentialUrl,
-      }),
-    ) || [];
+  const certification = useMemo(
+    () =>
+      data?.candidateProfile?.certifications?.map(
+        ({
+          id,
+          localId,
+          name,
+          issueDate,
+          issuedBy,
+          expiryDate,
+          credentialUrl,
+        }) => ({
+          id,
+          localId,
+          name,
+          issueDate,
+          issuedBy,
+          expiryDate,
+          credentialUrl,
+        }),
+      ) || [],
+    [data],
+  );
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataState>({
     firstName: data?.firstName || "",
     lastName: data?.lastName || "",
     email: data?.email || "",
@@ -189,7 +289,7 @@ const CandidateProfileUpdate = ({
       projects: projects || [],
       certifications: certification || [],
     });
-  }, [data]);
+  }, [data, skills, workExperiences, projects, certification]);
 
   const availabilityOptions = [
     "freelance",
@@ -263,21 +363,35 @@ const CandidateProfileUpdate = ({
 
     // Find the skill to remove
     const filteredSkill = data?.candidateProfile?.skills?.find(
-      (skill) => skill.name.toLowerCase() === skillToRemove.toLowerCase(),
+      (skill: string | { name: string }) =>
+        typeof skill === "string"
+          ? skill.toLowerCase() === skillToRemove.toLowerCase()
+          : (skill as { name: string }).name.toLowerCase() ===
+            skillToRemove.toLowerCase(),
     );
 
-    // Guard clause: skill not found
-    if (filteredSkill == null || filteredSkill.id == null) {
-      // Not persisted yet — remove locally
-      setFormData((prev) => ({
-        ...prev,
-        skills: prev.skills.filter(
-          (s) => s.toLowerCase() !== skillToRemove.toLowerCase(),
-        ),
-      }));
+    // Guard clause: skill not found (local, not persisted)
+    if (
+      filteredSkill == null ||
+      typeof filteredSkill === "string" ||
+      filteredSkill.id == null
+    ) {
+      // Not persisted yet — animate local removal with spinner for a short moment
+      const localName = skillToRemove;
+      setRemovingSkillId(localName);
+      setTimeout(() => {
+        setFormData((prev) => ({
+          ...prev,
+          skills: prev.skills.filter(
+            (s) => s.toLowerCase() !== localName.toLowerCase(),
+          ),
+        }));
+        setRemovingSkillId(null);
+      }, 180);
       return;
     }
 
+    setRemovingSkillId(Number(filteredSkill.id));
     try {
       await removeSkill(Number(filteredSkill.id)).unwrap();
       toast.success("Skill removed successfully!");
@@ -289,11 +403,17 @@ const CandidateProfileUpdate = ({
         ),
       }));
     } catch (err) {
+      const error = err as { data?: { message?: string }; message?: string };
       const errorMessage =
-        err?.data?.message || err?.message || "Failed to remove skill";
+        error?.data?.message || error?.message || "Failed to remove skill";
       toast.error(errorMessage);
+    } finally {
+      setRemovingSkillId(null);
     }
   };
+
+  const createLocalId = (prefix = "local") =>
+    `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   const addWorkExperience = () => {
     setFormData((prev) => ({
@@ -302,6 +422,7 @@ const CandidateProfileUpdate = ({
         ...prev.workExperiences,
         {
           id: null,
+          localId: createLocalId("we"),
           companyName: "",
           role: "",
           employmentType: "",
@@ -326,13 +447,33 @@ const CandidateProfileUpdate = ({
   const removeWorkExperiences = async (id: number | null, index?: number) => {
     if (id == null) {
       if (index == null) return;
-      setFormData((prev) => ({
-        ...prev,
-        workExperiences: prev.workExperiences.filter((_, i) => i !== index),
-      }));
+      const item = formData.workExperiences[index];
+      // Use stable local id when available, otherwise create one and set it on the item
+      const localKey = item?.localId ? item.localId : createLocalId("we");
+
+      if (!item?.localId) {
+        setFormData((prev) => ({
+          ...prev,
+          workExperiences: prev.workExperiences.map((we, i) =>
+            i === index ? { ...we, localId: localKey } : we,
+          ),
+        }));
+      }
+
+      setRemovingWorkExperienceId(localKey);
+      setTimeout(() => {
+        setFormData((prev) => ({
+          ...prev,
+          workExperiences: prev.workExperiences.filter(
+            (we) => we.id != null || we.localId !== localKey,
+          ),
+        }));
+        setRemovingWorkExperienceId(null);
+      }, 180);
       return;
     }
 
+    setRemovingWorkExperienceId(Number(id));
     try {
       await removeWorkExperience(id).unwrap();
       toast.success("Work experience removed successfully!");
@@ -342,11 +483,14 @@ const CandidateProfileUpdate = ({
         workExperiences: prev.workExperiences.filter((exp) => exp.id !== id),
       }));
     } catch (err) {
+      const error = err as { data?: { message?: string }; message?: string };
       const errorMessage =
-        err?.data?.message ||
-        err?.message ||
+        error?.data?.message ||
+        error?.message ||
         "Failed to remove work experience";
       toast.error(errorMessage);
+    } finally {
+      setRemovingWorkExperienceId(null);
     }
   };
 
@@ -357,6 +501,7 @@ const CandidateProfileUpdate = ({
         ...prev.projects,
         {
           id: null,
+          localId: createLocalId("project"),
           title: "",
           description: "",
           techStack: [],
@@ -379,13 +524,32 @@ const CandidateProfileUpdate = ({
   const removeProjects = async (id: number | null, index?: number) => {
     if (id == null) {
       if (index == null) return;
-      setFormData((prev) => ({
-        ...prev,
-        projects: prev.projects.filter((_, i) => i !== index),
-      }));
+      const item = formData.projects[index];
+      const localKey = item?.localId ? item.localId : createLocalId("project");
+
+      if (!item?.localId) {
+        setFormData((prev) => ({
+          ...prev,
+          projects: prev.projects.map((p, i) =>
+            i === index ? { ...p, localId: localKey } : p,
+          ),
+        }));
+      }
+
+      setRemovingProjectId(localKey);
+      setTimeout(() => {
+        setFormData((prev) => ({
+          ...prev,
+          projects: prev.projects.filter(
+            (p) => p.id != null || p.localId !== localKey,
+          ),
+        }));
+        setRemovingProjectId(null);
+      }, 180);
       return;
     }
 
+    setRemovingProjectId(Number(id));
     try {
       await removeProject(id).unwrap();
       toast.success("Project removed successfully!");
@@ -395,9 +559,12 @@ const CandidateProfileUpdate = ({
         projects: prev.projects.filter((proj) => proj.id !== id),
       }));
     } catch (err) {
+      const error = err as { data?: { message?: string }; message?: string };
       const errorMessage =
-        err?.data?.message || err?.message || "Failed to remove project";
+        error?.data?.message || error?.message || "Failed to remove project";
       toast.error(errorMessage);
+    } finally {
+      setRemovingProjectId(null);
     }
   };
 
@@ -408,6 +575,7 @@ const CandidateProfileUpdate = ({
         ...prev.certifications,
         {
           id: null,
+          localId: createLocalId("cert"),
           name: "",
           issuedBy: "",
           issueDate: "",
@@ -430,13 +598,32 @@ const CandidateProfileUpdate = ({
   const removeCertification = async (id: number | null, index?: number) => {
     if (id == null) {
       if (index == null) return;
-      setFormData((prev) => ({
-        ...prev,
-        certifications: prev.certifications.filter((_, i) => i !== index),
-      }));
+      const item = formData.certifications[index];
+      const localKey = item?.localId ? item.localId : createLocalId("cert");
+
+      if (!item?.localId) {
+        setFormData((prev) => ({
+          ...prev,
+          certifications: prev.certifications.map((c, i) =>
+            i === index ? { ...c, localId: localKey } : c,
+          ),
+        }));
+      }
+
+      setRemovingCertificateId(localKey);
+      setTimeout(() => {
+        setFormData((prev) => ({
+          ...prev,
+          certifications: prev.certifications.filter(
+            (c) => c.id != null || c.localId !== localKey,
+          ),
+        }));
+        setRemovingCertificateId(null);
+      }, 180);
       return;
     }
 
+    setRemovingCertificateId(Number(id));
     try {
       await removeCertificate(id).unwrap();
       toast.success("Certificate removed successfully!");
@@ -446,9 +633,14 @@ const CandidateProfileUpdate = ({
         certifications: prev.certifications.filter((cert) => cert.id !== id),
       }));
     } catch (err) {
+      const error = err as { data?: { message?: string }; message?: string };
       const errorMessage =
-        err?.data?.message || err?.message || "Failed to remove certificate";
+        error?.data?.message ||
+        error?.message ||
+        "Failed to remove certificate";
       toast.error(errorMessage);
+    } finally {
+      setRemovingCertificateId(null);
     }
   };
 
@@ -460,11 +652,11 @@ const CandidateProfileUpdate = ({
 
     const payload = {
       ...formData,
-      certifications: formData.certifications.map((cert) => ({
+      certifications: formData.certifications.map(({ localId, ...cert }) => ({
         ...cert,
         expiryDate: cleanDate(cert.expiryDate),
       })),
-      projects: formData.projects.map((project) => ({
+      projects: formData.projects.map(({ localId, ...project }) => ({
         ...project,
         techStack: Array.isArray(project.techStack)
           ? project.techStack
@@ -473,7 +665,7 @@ const CandidateProfileUpdate = ({
               .map((s) => s.trim())
               .filter(Boolean),
       })),
-      workExperiences: formData.workExperiences.map((exp) => ({
+      workExperiences: formData.workExperiences.map(({ localId, ...exp }) => ({
         ...exp,
         description: Array.isArray(exp.description)
           ? exp.description.join("\n")
@@ -748,21 +940,55 @@ const CandidateProfileUpdate = ({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {formData.skills.map((name, index) => (
-              <span
-                key={`${name}-${index}`}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm"
-              >
-                {name}
-                <button
-                  type="button"
-                  onClick={() => removeSkills(name)}
-                  className="hover:text-teal-900 min-w-0 min-h-0"
+            {formData.skills.map((name, index) => {
+              const skillObj = data?.candidateProfile?.skills?.find((s) =>
+                typeof s === "string"
+                  ? false
+                  : s.name.toLowerCase() === name.toLowerCase(),
+              );
+              const skillId = skillObj?.id ?? null;
+
+              return (
+                <span
+                  key={name}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm"
                 >
-                  <X className="w-4 h-4" />
-                </button>
-              </span>
-            ))}
+                  {name}
+                  {(() => {
+                    const localSkillKey = name;
+                    if (skillId != null) {
+                      return removingSkillId === skillId ? (
+                        <div className="ml-2 flex items-center justify-center">
+                          <SpinnerLoader className="text-red-600" />
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => removeSkills(name)}
+                          className="hover:text-teal-900 min-w-0 min-h-0"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      );
+                    }
+
+                    return removingSkillId === localSkillKey ? (
+                      <div className="ml-2 flex items-center justify-center">
+                        <SpinnerLoader className="text-red-600" />
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => removeSkills(name)}
+                        className="hover:text-teal-900 min-w-0 min-h-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    );
+                  })()}
+                </span>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -785,20 +1011,33 @@ const CandidateProfileUpdate = ({
 
         {formData.workExperiences.map((exp, index) => (
           <div
-            key={index}
+            key={exp.localId ?? exp.id ?? index}
             className="p-4 border dark:border-2 border-gray-200 rounded-lg space-y-3 bg-gray-50 dark:bg-slate-800 dark:border-slate-700"
           >
             <div className="flex justify-between items-center">
               <h3 className="font-medium text-gray-700 dark:text-white">
                 Experience #{index + 1}
               </h3>
-              <button
-                type="button"
-                onClick={() => removeWorkExperiences(exp.id, index)}
-                className="text-red-600 hover:text-red-800"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              {(() => {
+                const localKey = exp?.localId ?? `local-we-${index}`;
+                const isRemoving =
+                  exp.id != null
+                    ? removingWorkExperienceId === exp.id
+                    : removingWorkExperienceId === localKey;
+                return isRemoving ? (
+                  <div className="flex items-center justify-center">
+                    <SpinnerLoader className="text-red-600" />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => removeWorkExperiences(exp.id, index)}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                );
+              })()}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -916,20 +1155,33 @@ const CandidateProfileUpdate = ({
 
         {formData.projects.map((project, index) => (
           <div
-            key={index}
+            key={project.localId ?? project.id ?? index}
             className="p-4 border dark:border-2 border-gray-200 rounded-lg space-y-3 bg-gray-50 dark:bg-slate-800 dark:border-slate-700"
           >
             <div className="flex justify-between items-center">
               <h3 className="font-medium text-gray-700 dark:text-white">
                 Project #{index + 1}
               </h3>
-              <button
-                type="button"
-                onClick={() => removeProjects(project.id, index)}
-                className="text-red-600 hover:text-red-800"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              {(() => {
+                const localKey = project?.localId ?? `local-project-${index}`;
+                const isRemoving =
+                  project.id != null
+                    ? removingProjectId === project.id
+                    : removingProjectId === localKey;
+                return isRemoving ? (
+                  <div className="flex items-center justify-center">
+                    <SpinnerLoader className="text-red-600" />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => removeProjects(project.id, index)}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                );
+              })()}
             </div>
 
             <Input
@@ -1019,20 +1271,33 @@ const CandidateProfileUpdate = ({
 
         {formData.certifications.map((cert, index) => (
           <div
-            key={index}
+            key={cert.localId ?? cert.id ?? index}
             className="p-4 border dark:border-2 border-gray-200 rounded-lg space-y-3 bg-gray-50 dark:bg-slate-800 dark:border-slate-700"
           >
             <div className="flex justify-between items-center">
               <h3 className="font-medium text-gray-700 dark:text-white">
                 Certification #{index + 1}
               </h3>
-              <button
-                type="button"
-                onClick={() => removeCertification(cert.id, index)}
-                className="text-red-600 hover:text-red-800"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              {(() => {
+                const localKey = cert?.localId ?? `local-cert-${index}`;
+                const isRemoving =
+                  cert.id != null
+                    ? removingCertificateId === cert.id
+                    : removingCertificateId === localKey;
+                return isRemoving ? (
+                  <div className="flex items-center justify-center">
+                    <SpinnerLoader className="text-red-600" />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => removeCertification(cert.id, index)}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                );
+              })()}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1109,7 +1374,14 @@ const CandidateProfileUpdate = ({
           disabled={isUpdating}
           className="flex-1 items-center gap-2 px-4 py-2  bg-primary text-white rounded-md hover:bg-primary/90 transition text-base"
         >
-          {isUpdating ? "Updating..." : "Update Profile"}
+          {isUpdating ? (
+            <div className="flex items-center justify-center gap-2">
+              <SpinnerLoader />
+              Updating...
+            </div>
+          ) : (
+            "Update Profile"
+          )}
         </button>
         <button
           onClick={() => {
