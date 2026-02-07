@@ -3,8 +3,8 @@ import Cookies from "js-cookie";
 
 export const config = {
   //TODO: need to change this base url when deploying to production
-  // baseURL: `${import.meta.env.VITE_BASE_URL}/api/v1`,
-  baseURL:'http://44.222.35.138/api/api/v1',
+  // baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/v1`,
+  baseURL: "http://44.222.35.138/api/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
@@ -13,8 +13,16 @@ export const config = {
 export function authHeader() {
   // const userInfo = localStorage.getItem('userInfo');
   const userInfo = Cookies.get("userInfo");
-  const token = userInfo ? JSON.parse(userInfo).token : null;
-  // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IlNhcm9qaW5pIE1hcmlhIiwiZW1haWwiOiJqYXlha3VtYXJ0cnNAZ21haWwuY29tIiwic2Vzc2lvblRva2VuIjoiTVRFM05ETXhOak14TlRNMU16Yz0iLCJwaG9uZSI6Ijc4MjkwOTU3NzciLCJpYXQiOjE3NDMxNjMxNTMsImV4cCI6MTc0NTc1NTE1M30.wVROpIp2gGG8nfbokYAUt1jHatUCxpj4vyKo6ZdxZcg';
+  let token: string | null = null;
+  if (userInfo) {
+    try {
+      token = JSON.parse(userInfo).token ?? null;
+    } catch {
+      // Malformed cookie — treat as unauthenticated
+      token = null;
+    }
+  }
+
   if (token) {
     return "Bearer " + token;
   } else {

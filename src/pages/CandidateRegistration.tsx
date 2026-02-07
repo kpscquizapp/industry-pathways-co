@@ -87,11 +87,7 @@ const CandidateRegistration = () => {
 
   const totalSteps = 4;
 
-  const candidateTypeOptions = [
-    "Full-Time Job Seeker",
-    "Contract",
-    "Freelance",
-  ];
+  const candidateTypeOptions = ["Full-Time Job Seeker", "Contract / Freelance"];
 
   const preferredWorkTypeOptions = ["Remote", "Hybrid", "Onsite"];
 

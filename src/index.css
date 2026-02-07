@@ -107,6 +107,7 @@
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;
+    scrollbar-gutter: stable;
   }
   
   body {
@@ -118,18 +119,24 @@
     overflow-x: hidden;
   }
 
-  /* Fix for Radix UI scroll lock causing whitespace on right */
-  body[data-scroll-locked] {
-    overflow: hidden !important;
-    padding-right: 0 !important;
-    margin-right: 0 !important;
-  }
 
-  html[data-scroll-locked] {
-    overflow: hidden !important;
-    padding-right: 0 !important;
-    margin-right: 0 !important;
-  }
+/* Prevent Radix scroll lock without forcing scrollbars */
+
+/* Hide focus guards */
+[data-radix-focus-guard] {
+  display: none !important;
+}
+
+/* Compensate for scrollbar width when it appears/disappears */
+body {
+  width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Ensure select content appears above everything */
+[data-radix-select-content] {
+  z-index: 9999;
+}
 
   #root {
     min-height: 100vh;
