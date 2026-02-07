@@ -642,6 +642,7 @@ const PostBenchResource = () => {
                 variant="outline"
                 onClick={handleSaveDraft}
                 className="px-8 h-12 rounded-xl border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-600 font-medium"
+                disabled={isSubmitting}
               >
                 Save Draft
               </Button>

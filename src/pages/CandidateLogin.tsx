@@ -33,7 +33,7 @@ const CandidateLogin = () => {
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,10 +64,12 @@ const CandidateLogin = () => {
         );
         navigate("/contractor/dashboard");
       }
-    } catch (error: any) {
-      toast.error(
-        error?.data?.message || "Invalid credentials. Please try again.",
-      );
+    } catch (error: unknown) {
+      const message =
+        error && typeof error === "object" && "data" in error
+          ? (error as { data?: { message?: string } }).data?.message
+          : undefined;
+      toast.error(message || "Invalid credentials. Please try again.");
     }
   };
 
