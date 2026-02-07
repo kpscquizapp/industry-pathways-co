@@ -113,7 +113,7 @@ const PostBenchResource = () => {
       return;
     }
 
-    setFormData({ ...formData, resumeFile: file });
+    setFormData((prev) => ({ ...prev, resumeFile: file }));
 
     try {
       const result = await extractResume(file).unwrap();
@@ -137,6 +137,8 @@ const PostBenchResource = () => {
     } catch (error) {
       console.error("OCR API error:", error);
       toast.error("Error connecting to OCR service");
+      setFormData((prev) => ({ ...prev, resumeFile: null }));
+      input.value = "";
     }
   };
 
@@ -466,9 +468,8 @@ const PostBenchResource = () => {
                       Hourly Rate (Client Billable)
                     </Label>
                     <div className="relative">
-                      {" "}
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
-                        {currencySymbols[formData.currency] ?? "$"}{" "}
+                        {currencySymbols[formData.currency] ?? "$"}
                       </span>
                       <Input
                         type="number"

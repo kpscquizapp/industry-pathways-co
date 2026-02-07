@@ -67,9 +67,13 @@ const CandidateLogin = () => {
         navigate("/contractor/dashboard");
       }
     } catch (error: unknown) {
-      const message = isFetchBaseQueryError(error)
-        ? (error.data as { message?: string })?.message
-        : undefined;
+      const message =
+        isFetchBaseQueryError(error) &&
+        typeof error.data === "object" &&
+        error.data !== null &&
+        "message" in error.data
+          ? (error.data as { message: string }).message
+          : undefined;
       toast.error(message || "Invalid credentials. Please try again.");
     }
   };
