@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useId } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import LandingHeader from "@/components/landing/LandingHeader";
-import LandingFooter from "@/components/landing/LandingFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Building2,
   Mail,
@@ -20,7 +16,6 @@ import {
   Sparkles,
   Shield,
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "@/app/slices/userAuth";
@@ -49,7 +44,7 @@ const EmployerLogin = () => {
       const success = await login({ email, password }).unwrap();
       if (success) {
         dispatch(setUser(success));
-        toast.success("Welcome back!");
+        toast.success(`Welcome back ${success?.user?.firstName}!`);
         navigate("/employer-dashboard");
       } else {
         toast.error("Invalid credentials");

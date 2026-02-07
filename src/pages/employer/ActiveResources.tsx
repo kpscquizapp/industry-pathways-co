@@ -31,8 +31,13 @@ import {
   Clock,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useGetBenchResourcesQuery, useDeleteBenchResourceMutation } from "@/app/queries/benchApi";
-import CandidateProfileModal, { CandidateProfile } from "@/components/employer/candidates/CandidateProfileModal";
+import {
+  useGetBenchResourcesQuery,
+  useDeleteBenchResourceMutation,
+} from "@/app/queries/benchApi";
+import CandidateProfileModal, {
+  CandidateProfile,
+} from "@/components/employer/candidates/CandidateProfileModal";
 
 const ActiveResources = () => {
   const navigate = useNavigate();
@@ -61,36 +66,41 @@ const ActiveResources = () => {
     availableFrom,
     isActive,
   ]);
-  
-  type BenchResource = {
-  id: number;
-  resourceName: string;
-  currentRole: string;
-  hourlyRate: number;
-  availableFrom?: string | null;
-  deploymentPreference?: string | null;
-  totalExperience: number;
-  isActive: boolean;
-  technicalSkills?: string[];
-  professionalSummary?: string;
-};
 
-  const [selectedResource, setSelectedResource] = useState<BenchResource | null>(null);
+  type BenchResource = {
+    id: number;
+    resourceName: string;
+    currentRole: string;
+    hourlyRate: number;
+    availableFrom?: string | null;
+    deploymentPreference?: string | null;
+    totalExperience: number;
+    isActive: boolean;
+    technicalSkills?: string[];
+    professionalSummary?: string;
+  };
+
+  const [selectedResource, setSelectedResource] =
+    useState<BenchResource | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   // Mapper function to convert BenchResource to CandidateProfile
-  const mapResourceToCandidateProfile = (resource: BenchResource): CandidateProfile => ({
+  const mapResourceToCandidateProfile = (
+    resource: BenchResource,
+  ): CandidateProfile => ({
     id: resource.id,
     name: resource.resourceName,
     role: resource.currentRole,
-    hourlyRate: { 
-      min: resource.hourlyRate, 
-      max: resource.hourlyRate 
+    hourlyRate: {
+      min: resource.hourlyRate,
+      max: resource.hourlyRate,
     },
-    availability: resource.availableFrom ? new Date(resource.availableFrom).toLocaleDateString() : "Immediate",
+    availability: resource.availableFrom
+      ? new Date(resource.availableFrom).toLocaleDateString()
+      : "Immediate",
     location: resource.deploymentPreference || "Remote",
     experience: `${resource.totalExperience} years`,
-    type: 'bench',
+    type: "bench",
     skills: resource.technicalSkills || [],
     about: resource.professionalSummary || "",
   });
@@ -109,9 +119,19 @@ const ActiveResources = () => {
     isActive: isActive === "all" ? undefined : isActive === "true",
   };
 
-  const { data: apiData, isLoading, isError, refetch } = useGetBenchResourcesQuery(queryParams);
+  const {
+    data: apiData,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetBenchResourcesQuery(queryParams);
   const resources: BenchResource[] = apiData?.data || [];
-  const pagination = apiData?.pagination || { total: 0, page: 1, totalPages: 1, limit: 10 };
+  const pagination = apiData?.pagination || {
+    total: 0,
+    page: 1,
+    totalPages: 1,
+    limit: 10,
+  };
 
   const [deleteBenchResource] = useDeleteBenchResourceMutation();
 
@@ -144,8 +164,12 @@ const ActiveResources = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Active Resources</h1>
-            <p className="text-slate-500">Manage your bench talent and assignments</p>
+            <h1 className="text-2xl font-bold text-slate-800">
+              Active Resources
+            </h1>
+            <p className="text-slate-500">
+              Manage your bench talent and assignments
+            </p>
           </div>
         </div>
 
@@ -159,7 +183,9 @@ const ActiveResources = () => {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Total Resources</p>
-                  <p className="text-2xl font-bold text-slate-800">{pagination.total}</p>
+                  <p className="text-2xl font-bold text-slate-800">
+                    {pagination.total}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -172,7 +198,9 @@ const ActiveResources = () => {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Active</p>
-                  <p className="text-2xl font-bold text-emerald-600">{activeCount}</p>
+                  <p className="text-2xl font-bold text-emerald-600">
+                    {activeCount}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -185,7 +213,9 @@ const ActiveResources = () => {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Page</p>
-                  <p className="text-2xl font-bold text-amber-600">{pagination.page} / {pagination.totalPages}</p>
+                  <p className="text-2xl font-bold text-amber-600">
+                    {pagination.page} / {pagination.totalPages}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -247,10 +277,12 @@ const ActiveResources = () => {
                 />
               </div>
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-500">Status:</span>
+                <span className="text-sm font-medium text-slate-500">
+                  Status:
+                </span>
                 <div className="flex gap-1">
                   <Button
                     size="sm"
@@ -280,7 +312,9 @@ const ActiveResources = () => {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-500">Preference:</span>
+                <span className="text-sm font-medium text-slate-500">
+                  Preference:
+                </span>
                 <select
                   value={deploymentPreference}
                   onChange={(e) => setDeploymentPreference(e.target.value)}
@@ -294,7 +328,9 @@ const ActiveResources = () => {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-500">Available Before:</span>
+                <span className="text-sm font-medium text-slate-500">
+                  Available Before:
+                </span>
                 <Input
                   type="date"
                   value={availableFrom}
@@ -336,114 +372,164 @@ const ActiveResources = () => {
             ) : isError ? (
               <div className="p-20 text-center">
                 <XCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-                <p className="text-slate-500">Error loading resources. Please try again.</p>
+                <p className="text-slate-500">
+                  Error loading resources. Please try again.
+                </p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50 hover:bg-slate-50">
-                    <TableHead className="font-semibold text-slate-700">Resource</TableHead>
-                    <TableHead className="font-semibold text-slate-700">Skills</TableHead>
-                    <TableHead className="font-semibold text-slate-700">Experience</TableHead>
-                    <TableHead className="font-semibold text-slate-700">Rate</TableHead>
-                    <TableHead className="font-semibold text-slate-700">Status</TableHead>
-                    <TableHead className="font-semibold text-slate-700 text-right">Actions</TableHead>
+                    <TableHead className="font-semibold text-slate-700">
+                      Resource
+                    </TableHead>
+                    <TableHead className="font-semibold text-slate-700">
+                      Skills
+                    </TableHead>
+                    <TableHead className="font-semibold text-slate-700">
+                      Experience
+                    </TableHead>
+                    <TableHead className="font-semibold text-slate-700">
+                      Rate
+                    </TableHead>
+                    <TableHead className="font-semibold text-slate-700">
+                      Status
+                    </TableHead>
+                    <TableHead className="font-semibold text-slate-700 text-right">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {resources.map((resource: any) => (
-                  <TableRow
-                    key={resource.id}
-                    className="hover:bg-blue-50/50 cursor-pointer transition-colors"
-                    onClick={() => handleViewResource(resource)}
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">
-                          {resource.resourceName.charAt(0)}
+                    <TableRow
+                      key={resource.id}
+                      className="hover:bg-blue-50/50 cursor-pointer transition-colors"
+                      onClick={() => handleViewResource(resource)}
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">
+                            {resource.resourceName.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-800">
+                              {resource.resourceName}
+                            </p>
+                            <p className="text-sm text-slate-500">
+                              {resource.currentRole}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-slate-800">{resource.resourceName}</p>
-                          <p className="text-sm text-slate-500">{resource.currentRole}</p>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {resource.technicalSkills
+                            ?.slice(0, 2)
+                            .map((skill: string) => (
+                              <Badge
+                                key={skill}
+                                className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs"
+                              >
+                                {skill}
+                              </Badge>
+                            ))}
+                          {resource.technicalSkills?.length > 2 && (
+                            <Badge className="bg-slate-100 text-slate-600 text-xs">
+                              +{resource.technicalSkills.length - 2}
+                            </Badge>
+                          )}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {resource.technicalSkills?.slice(0, 2).map((skill: string) => (
-                          <Badge
-                            key={skill}
-                            className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs"
+                      </TableCell>
+                      <TableCell className="text-slate-600">
+                        {resource.totalExperience} years
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-semibold text-slate-800">
+                          {resource.hourlyRate}
+                        </span>
+                        <span className="text-slate-500">/hr</span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={`${
+                            resource.isActive
+                              ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                              : "bg-red-100 text-red-700 hover:bg-red-200"
+                          }`}
+                        >
+                          {resource.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu modal={false}>
+                          <DropdownMenuTrigger
+                            asChild
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            {skill}
-                          </Badge>
-                        ))}
-                        {resource.technicalSkills?.length > 2 && (
-                          <Badge className="bg-slate-100 text-slate-600 text-xs">
-                            +{resource.technicalSkills.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-slate-600">{resource.totalExperience} years</TableCell>
-                    <TableCell>
-                      <span className="font-semibold text-slate-800">
-                        {resource.hourlyRate}
-                      </span>
-                      <span className="text-slate-500">/hr</span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={`${
-                          resource.isActive
-                            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                            : "bg-red-100 text-red-700 hover:bg-red-200"
-                        }`}
-                      >
-                        {resource.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu modal={false}>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewResource(resource); }}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditResource(resource.id); }}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => { e.stopPropagation(); handleDeleteResource(resource.id); }}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewResource(resource);
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditResource(resource.id);
+                              }}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteResource(resource.id);
+                              }}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
               </Table>
             )}
-            
+
             {/* Pagination Controls */}
             {!isLoading && !isError && pagination.totalPages > 1 && (
               <div className="flex items-center justify-between p-4 border-t border-slate-100 bg-slate-50/30">
                 <div className="text-sm text-slate-500">
-                  Showing <span className="font-medium text-slate-700">{(page - 1) * limit + 1}</span> to{" "}
+                  Showing{" "}
+                  <span className="font-medium text-slate-700">
+                    {(page - 1) * limit + 1}
+                  </span>{" "}
+                  to{" "}
                   <span className="font-medium text-slate-700">
                     {Math.min(page * limit, pagination.total)}
                   </span>{" "}
-                  of <span className="font-medium text-slate-700">{pagination.total}</span> resources
+                  of{" "}
+                  <span className="font-medium text-slate-700">
+                    {pagination.total}
+                  </span>{" "}
+                  resources
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -456,7 +542,10 @@ const ActiveResources = () => {
                     Previous
                   </Button>
                   <div className="flex items-center gap-2">
-                    {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
+                    {Array.from(
+                      { length: pagination.totalPages },
+                      (_, i) => i + 1,
+                    ).map((p) => (
                       <Button
                         key={p}
                         variant={page === p ? "default" : "outline"}
@@ -472,7 +561,9 @@ const ActiveResources = () => {
                     variant="outline"
                     size="sm"
                     disabled={page === pagination.totalPages}
-                    onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                    onClick={() =>
+                      setPage((p) => Math.min(pagination.totalPages, p + 1))
+                    }
                     className="rounded-lg h-8"
                   >
                     Next

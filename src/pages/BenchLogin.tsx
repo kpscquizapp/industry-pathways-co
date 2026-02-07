@@ -62,7 +62,7 @@ const BenchLogin = () => {
       }).unwrap();
 
       dispatch(setUser(result));
-      toast.success("Welcome back!");
+      toast.success(`Welcome back ${result?.user?.firstName}!`);
       navigate("/bench/dashboard");
     } catch (error: any) {
       toast.error(

@@ -50,9 +50,9 @@ const CandidateSignup = () => {
     mobileNumber: "",
     candidateType: "Full-Time Job Seeker",
     primaryJobRole: "",
-    yearsExperience: 0,
-    expectedSalaryMin: 0,
-    expectedSalaryMax: 0,
+    yearsExperience: null,
+    expectedSalaryMin: null,
+    expectedSalaryMax: null,
     availableToJoin: "Immediate",
     password: "",
     confirmPassword: "",
@@ -455,9 +455,10 @@ const CandidateSignup = () => {
                             <Input
                               name="yearsExperience"
                               type="number"
+                              placeholder="E.g. 2 years"
                               min="0"
                               className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
-                              value={formData.yearsExperience}
+                              value={formData.yearsExperience || ""}
                               onChange={handleInputChange}
                               required
                             />
@@ -533,7 +534,7 @@ const CandidateSignup = () => {
                               name="expectedSalaryMin"
                               type="number"
                               className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
-                              value={formData.expectedSalaryMin}
+                              value={formData.expectedSalaryMin || ""}
                               onChange={handleInputChange}
                               required
                             />
@@ -549,7 +550,7 @@ const CandidateSignup = () => {
                               name="expectedSalaryMax"
                               type="number"
                               className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
-                              value={formData.expectedSalaryMax}
+                              value={formData.expectedSalaryMax || ""}
                               onChange={handleInputChange}
                               required
                             />
