@@ -12,6 +12,9 @@ import {
   Star,
   ShieldCheck,
   LayoutDashboard,
+  AlertCircle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLoginCandidateMutation } from "@/app/queries/loginApi";
@@ -20,10 +23,33 @@ import { setUser } from "@/app/slices/userAuth";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 
+// ==================== TYPE GUARDS ====================
 function isFetchBaseQueryError(error: unknown): error is FetchBaseQueryError {
   return typeof error === "object" && error != null && "data" in error;
 }
 
+// ==================== VALIDATION ====================
+const VALIDATION = {
+  email: {
+    regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    validate: (email: string) => {
+      if (!email || !email.trim()) return "Email address is required";
+      if (!VALIDATION.email.regex.test(email)) {
+        return "Please enter a valid email address";
+      }
+      return null;
+    },
+  },
+  password: {
+    validate: (password: string) => {
+      if (!password) return "Password is required";
+      if (password.length < 3) return "Password is too short";
+      return null;
+    },
+  },
+};
+
+// ==================== COMPONENT ====================
 const CandidateLogin = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -34,16 +60,86 @@ const CandidateLogin = () => {
     password: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    validateField(field);
+  };
+
+  const validateField = (field: string) => {
+    let error: string | null = null;
+
+    if (field === "email") {
+      error = VALIDATION.email.validate(formData.email);
+    } else if (field === "password") {
+      error = VALIDATION.password.validate(formData.password);
+    }
+
+    if (error) {
+      setFieldErrors((prev) => ({ ...prev, [field]: error }));
+      return false;
+    } else {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+      return true;
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    const emailError = VALIDATION.email.validate(formData.email);
+    if (emailError) errors.email = emailError;
+
+    const passwordError = VALIDATION.password.validate(formData.password);
+    if (passwordError) errors.password = passwordError;
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setTouched({ email: true, password: true });
+
+      // Show the first error in a toast
+      const firstError = Object.values(errors)[0];
+      toast.error(firstError);
+
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate form before submitting
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       const result = await login({
-        email: formData.email,
+        email: formData.email.toLowerCase().trim(), // Sanitize email
         password: formData.password,
       }).unwrap();
 
@@ -62,19 +158,57 @@ const CandidateLogin = () => {
         navigate("/contractor/profile");
       } else {
         toast.success(
-          `Welcome back${result?.user?.firstName ? ` ${result.user.firstName}` : ""}!`,
+          `Welcome back${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
         );
         navigate("/contractor/dashboard");
       }
     } catch (error: unknown) {
-      const message =
-        isFetchBaseQueryError(error) &&
-        typeof error.data === "object" &&
-        error.data !== null &&
-        "message" in error.data
-          ? (error.data as { message: string }).message
-          : undefined;
-      toast.error(message || "Invalid credentials. Please try again.");
+      console.error("Login error:", error);
+
+      // Extract error message
+      let errorMessage = "Login failed. Please try again.";
+
+      if (isFetchBaseQueryError(error)) {
+        // Handle different status codes
+        if (error.status === 401) {
+          errorMessage =
+            "Invalid email or password. Please check your credentials and try again.";
+        } else if (error.status === 404) {
+          errorMessage =
+            "No account found with this email. Please sign up first.";
+        } else if (error.status === 403) {
+          errorMessage =
+            "Your account has been suspended. Please contact support.";
+        } else if (error.status === 429) {
+          errorMessage =
+            "Too many login attempts. Please try again in a few minutes.";
+        } else if (error.status === 500 || error.status === 503) {
+          errorMessage =
+            "Server error. Please try again later or contact support.";
+        } else if (
+          typeof error.data === "object" &&
+          error.data !== null &&
+          "message" in error.data &&
+          typeof (error.data as { message: string }).message === "string"
+        ) {
+          errorMessage = (error.data as { message: string }).message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      }
+
+      toast.error(errorMessage);
+
+      // Mark fields as having errors for better UX
+      if (
+        errorMessage.toLowerCase().includes("email") ||
+        errorMessage.toLowerCase().includes("password")
+      ) {
+        setFieldErrors({
+          email: " ",
+          password: " ",
+        });
+      }
     }
   };
 
@@ -99,6 +233,17 @@ const CandidateLogin = () => {
       color: "bg-green-500/20 text-green-400",
     },
   ];
+
+  // Helper component for error messages
+  const ErrorMessage = ({ error }: { error?: string }) => {
+    if (!error) return null;
+    return (
+      <div className="flex items-start gap-2 mt-1.5 text-red-500 dark:text-red-400">
+        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+        <span className="text-xs font-medium">{error}</span>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
@@ -140,7 +285,7 @@ const CandidateLogin = () => {
           </div>
         </div>
 
-        <div className="relative z-10 space-y-6">
+        <div className="relative z-10 space-y-6 mt-12">
           <div className="grid gap-4">
             {features.map((feature) => (
               <div
@@ -170,6 +315,7 @@ const CandidateLogin = () => {
       <div className="flex-1 flex flex-col bg-[#fafafa] dark:bg-[#030303] overflow-y-auto">
         <div className="flex-1 flex items-center justify-center p-6 lg:p-12 xl:p-16">
           <div className="w-full max-w-[500px]">
+            {/* Mobile Logo */}
             <div className="lg:hidden mb-12 flex flex-col items-center">
               <Link to="/" className="flex items-center gap-2 mb-6">
                 <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-xl shadow-primary/20">
@@ -189,30 +335,41 @@ const CandidateLogin = () => {
                   <h3 className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
                     Sign In
                   </h3>
-                  <p className="text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
+                  <p className="text-slate-500 dark:text-slate-400 font-medium">
                     Enter your candidate credentials below.
                   </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Email Field */}
                   <div className="space-y-2">
                     <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
                       Email Address
                     </Label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300 z-10" />
                       <Input
                         name="email"
                         type="email"
                         placeholder="you@example.com"
-                        className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                        autoComplete="email"
+                        className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                          fieldErrors.email && touched.email
+                            ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                            : ""
+                        }`}
                         value={formData.email}
                         onChange={handleInputChange}
+                        onBlur={() => handleBlur("email")}
                         required
                       />
                     </div>
+                    {touched.email && (
+                      <ErrorMessage error={fieldErrors.email} />
+                    )}
                   </div>
 
+                  {/* Password Field */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
@@ -227,22 +384,46 @@ const CandidateLogin = () => {
                       </Link>
                     </div>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300 z-10" />
                       <Input
                         name="password"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
-                        className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                        autoComplete="current-password"
+                        className={`h-12 pl-12 pr-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                          fieldErrors.password && touched.password
+                            ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                            : ""
+                        }`}
                         value={formData.password}
                         onChange={handleInputChange}
+                        onBlur={() => handleBlur("password")}
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors z-10"
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </button>
                     </div>
+                    {touched.password && (
+                      <ErrorMessage error={fieldErrors.password} />
+                    )}
                   </div>
 
+                  {/* Submit Button */}
                   <Button
                     type="submit"
-                    className="w-full h-14 text-lg font-bold mt-4 rounded-2xl bg-primary dark:bg-primary text-white hover:opacity-90 shadow-2xl shadow-primary/10 transition-all active:scale-[0.98] group"
+                    className="w-full h-14 text-lg font-bold mt-4 rounded-2xl bg-primary dark:bg-primary text-white hover:opacity-90 shadow-2xl shadow-primary/10 transition-all active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -259,6 +440,7 @@ const CandidateLogin = () => {
                   </Button>
                 </form>
 
+                {/* Footer Links */}
                 <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/[0.03] flex flex-col items-center gap-4">
                   <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
                     New to Hirion?{" "}
@@ -269,6 +451,29 @@ const CandidateLogin = () => {
                       Create Contractor Account
                     </Link>
                   </p>
+
+                  <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-slate-500">
+                    <Link
+                      to="/help"
+                      className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                    >
+                      Need Help?
+                    </Link>
+                    <span>•</span>
+                    <Link
+                      to="/terms"
+                      className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                    >
+                      Terms
+                    </Link>
+                    <span>•</span>
+                    <Link
+                      to="/privacy"
+                      className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                    >
+                      Privacy
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

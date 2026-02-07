@@ -1,5 +1,13 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { X, Plus, Trash2, Briefcase, Award, FolderGit2 } from "lucide-react";
+import {
+  X,
+  Plus,
+  Trash2,
+  Briefcase,
+  Award,
+  FolderGit2,
+  AlertCircle,
+} from "lucide-react";
 import {
   useRemoveCertificateMutation,
   useRemoveProjectMutation,
@@ -14,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 
+// ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
 type Skill = {
@@ -61,7 +70,7 @@ interface FormDataState {
   availability: string;
   bio: string;
   yearsExperience: string | number;
-  skills: string[];
+  primarySkills: string[];
   headline: string;
   resourceType: string;
   availableIn: string;
@@ -83,7 +92,7 @@ interface CandidateProfileUpdateProps {
       availability?: string;
       bio?: string;
       yearsExperience?: string | number;
-      skills?: Skill[];
+      primarySkills?: Skill[];
       headline?: string;
       resourceType?: string;
       availableIn?: string;
@@ -123,10 +132,152 @@ interface CandidateProfileUpdateProps {
   };
 }
 
+// ==================== VALIDATION ====================
+const VALIDATION = {
+  name: {
+    minLength: 1,
+    maxLength: 50,
+    regex: /^[a-zA-Z\s\-']+$/,
+    validate: (name: string, fieldName: string) => {
+      if (!name || !name.trim()) return `${fieldName} is required`;
+      if (name.trim().length > 50)
+        return `${fieldName} must be less than 50 characters`;
+      if (!VALIDATION.name.regex.test(name)) {
+        return `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`;
+      }
+      return null;
+    },
+  },
+  email: {
+    regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    maxLength: 254,
+    validate: (email: string) => {
+      if (!email) return "Email is required";
+      if (email.length > 254) return "Email must be less than 254 characters";
+      if (!VALIDATION.email.regex.test(email))
+        return "Please enter a valid email address";
+      return null;
+    },
+  },
+  headline: {
+    maxLength: 100,
+    validate: (headline: string) => {
+      if (headline && headline.length > 100)
+        return "Headline must be less than 100 characters";
+      return null;
+    },
+  },
+  bio: {
+    maxLength: 1000,
+    validate: (bio: string) => {
+      if (bio && bio.length > 1000)
+        return "Bio must be less than 1000 characters";
+      return null;
+    },
+  },
+  experience: {
+    min: 0,
+    max: 70,
+    validate: (years: number | string) => {
+      if (years === "" || years == null) return null; // Optional field
+      const num = Number(years);
+      if (isNaN(num)) return "Years of experience must be a number";
+      if (!Number.isInteger(num))
+        return "Years of experience must be a whole number";
+      if (num < 0) return "Years of experience cannot be negative";
+      if (num > 70) return "Years of experience must be less than 70";
+      return null;
+    },
+  },
+  hourlyRate: {
+    min: 0,
+    max: 10000,
+    validate: (min: number | string, max: number | string) => {
+      if ((min === "" || min == null) && (max === "" || max == null))
+        return null; // Both optional
+
+      const minNum = Number(min);
+      const maxNum = Number(max);
+
+      if (min !== "" && min != null) {
+        if (isNaN(minNum)) return "Minimum rate must be a number";
+        if (minNum < 0) return "Minimum rate cannot be negative";
+        if (minNum > 10000)
+          return "Minimum rate exceeds reasonable limit ($10,000/hr)";
+      }
+
+      if (max !== "" && max != null) {
+        if (isNaN(maxNum)) return "Maximum rate must be a number";
+        if (maxNum < 0) return "Maximum rate cannot be negative";
+        if (maxNum > 10000)
+          return "Maximum rate exceeds reasonable limit ($10,000/hr)";
+      }
+
+      if (min !== "" && max !== "" && min != null && max != null) {
+        if (minNum > maxNum) return "Minimum rate cannot exceed maximum rate";
+      }
+
+      return null;
+    },
+  },
+  url: {
+    validate: (url: string) => {
+      if (!url || url.trim() === "") return null; // Optional
+      try {
+        new URL(url);
+        return null;
+      } catch {
+        return "Please enter a valid URL (e.g., https://example.com)";
+      }
+    },
+  },
+  date: {
+    validate: (
+      startDate: string,
+      endDate: string | null,
+      fieldName: string = "date",
+    ) => {
+      if (!startDate) return `Start date is required for ${fieldName}`;
+
+      const start = new Date(startDate);
+      const now = new Date();
+
+      if (start > now) {
+        return "Start date cannot be in the future";
+      }
+
+      if (endDate) {
+        const end = new Date(endDate);
+        if (end < start) {
+          return "End date cannot be before start date";
+        }
+        if (end > now) {
+          return "End date cannot be in the future";
+        }
+      }
+
+      return null;
+    },
+  },
+  skill: {
+    minCount: 1,
+    maxCount: 50,
+    maxLength: 50,
+    validate: (skills: string[]) => {
+      if (skills.length === 0) return "Please add at least one skill";
+      if (skills.length > 50) return "You can add a maximum of 50 skills";
+      const invalidSkill = skills.find((s) => s.length > 50);
+      if (invalidSkill) return "Each skill must be less than 50 characters";
+      return null;
+    },
+  },
+};
+
+// ==================== COMPONENT ====================
 const CandidateProfileUpdate = ({
   data,
 }: CandidateProfileUpdateProps): JSX.Element => {
-  // api calls
+  // API calls
   const [updateProfile, { isLoading: isUpdating, isError: updateError }] =
     useUpdateProfileMutation();
   const [removeSkill] = useRemoveSkillMutation();
@@ -135,6 +286,7 @@ const CandidateProfileUpdate = ({
   const [removeCertificate] = useRemoveCertificateMutation();
 
   const [skillInput, setSkillInput] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [removingSkillId, setRemovingSkillId] = useState<
     string | number | null
   >(null);
@@ -150,7 +302,7 @@ const CandidateProfileUpdate = ({
 
   const skills = useMemo(
     () =>
-      data?.candidateProfile?.skills?.map((skill) =>
+      data?.candidateProfile?.primarySkills?.map((skill) =>
         typeof skill === "string" ? skill : skill.name,
       ) || [],
     [data],
@@ -240,7 +392,7 @@ const CandidateProfileUpdate = ({
     availability: data?.candidateProfile.availability || "",
     bio: data?.candidateProfile.bio || "",
     yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-    skills: skills,
+    primarySkills: skills || [],
     headline: data?.candidateProfile.headline || "",
     resourceType: data?.candidateProfile.resourceType || "",
     availableIn: data?.candidateProfile.availableIn || "",
@@ -270,7 +422,7 @@ const CandidateProfileUpdate = ({
       availability: data?.candidateProfile.availability || "",
       bio: data?.candidateProfile.bio || "",
       yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-      skills: skills,
+      primarySkills: skills || [],
       headline: data?.candidateProfile.headline || "",
       resourceType: data?.candidateProfile.resourceType || "",
       availableIn: data?.candidateProfile.availableIn || "",
@@ -319,6 +471,15 @@ const CandidateProfileUpdate = ({
   const handleInputChange = (e: ChangeEvent<FormElement>) => {
     const { name, value } = e.target;
 
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+
     switch (name) {
       case "hourlyRateMin":
       case "hourlyRateMax":
@@ -340,29 +501,56 @@ const CandidateProfileUpdate = ({
 
   const addSkill = () => {
     const name = skillInput.trim();
+
+    if (!name) {
+      toast.error("Please enter a skill name");
+      return;
+    }
+
+    if (name.length > 50) {
+      toast.error("Skill name must be less than 50 characters");
+      return;
+    }
+
+    if (formData.primarySkills.length >= 50) {
+      toast.error("You can add a maximum of 50 skills");
+      return;
+    }
+
     if (
-      name &&
-      !formData.skills.some(
+      formData.primarySkills.some(
         (skill) => skill.toLowerCase() === name.toLowerCase(),
       )
     ) {
-      setFormData((prevData) => ({
-        ...prevData,
-        skills: [...prevData.skills, name],
-      }));
-      setSkillInput("");
+      toast.error("This skill has already been added");
+      return;
+    }
+
+    setFormData((prevData) => ({
+      ...prevData,
+      primarySkills: [...prevData.primarySkills, name],
+    }));
+    setSkillInput("");
+
+    // Clear skills error if it exists
+    if (fieldErrors.primarySkills) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.primarySkills;
+        return newErrors;
+      });
     }
   };
 
   const removeSkills = async (skillToRemove: string) => {
     // Guard clause: prevent removing the last skill
-    if (formData.skills.length <= 1) {
+    if (formData.primarySkills.length <= 1) {
       toast.warning("You must have at least one skill");
       return;
     }
 
     // Find the skill to remove
-    const filteredSkill = data?.candidateProfile?.skills?.find(
+    const filteredSkill = data?.candidateProfile?.primarySkills?.find(
       (skill: string | { name: string }) =>
         typeof skill === "string"
           ? skill.toLowerCase() === skillToRemove.toLowerCase()
@@ -382,7 +570,7 @@ const CandidateProfileUpdate = ({
       setTimeout(() => {
         setFormData((prev) => ({
           ...prev,
-          skills: prev.skills.filter(
+          primarySkills: prev.primarySkills.filter(
             (s) => s.toLowerCase() !== localName.toLowerCase(),
           ),
         }));
@@ -398,7 +586,7 @@ const CandidateProfileUpdate = ({
 
       setFormData((prev) => ({
         ...prev,
-        skills: prev.skills.filter(
+        primarySkills: prev.primarySkills.filter(
           (s) => s.toLowerCase() !== skillToRemove.toLowerCase(),
         ),
       }));
@@ -644,7 +832,118 @@ const CandidateProfileUpdate = ({
     }
   };
 
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Validate basic fields
+    const firstNameError = VALIDATION.name.validate(
+      formData.firstName,
+      "First name",
+    );
+    if (firstNameError) errors.firstName = firstNameError;
+
+    const lastNameError = VALIDATION.name.validate(
+      formData.lastName,
+      "Last name",
+    );
+    if (lastNameError) errors.lastName = lastNameError;
+
+    const emailError = VALIDATION.email.validate(formData.email);
+    if (emailError) errors.email = emailError;
+
+    const headlineError = VALIDATION.headline.validate(formData.headline);
+    if (headlineError) errors.headline = headlineError;
+
+    const bioError = VALIDATION.bio.validate(formData.bio);
+    if (bioError) errors.bio = bioError;
+
+    const experienceError = VALIDATION.experience.validate(
+      formData.yearsExperience,
+    );
+    if (experienceError) errors.yearsExperience = experienceError;
+
+    const rateError = VALIDATION.hourlyRate.validate(
+      formData.hourlyRateMin,
+      formData.hourlyRateMax,
+    );
+    if (rateError) errors.hourlyRate = rateError;
+
+    const skillsError = VALIDATION.skill.validate(formData.primarySkills);
+    if (skillsError) errors.primarySkills = skillsError;
+
+    // Validate work experiences
+    formData.workExperiences.forEach((exp, index) => {
+      if (exp.companyName || exp.role || exp.startDate) {
+        // If any field is filled
+        if (!exp.companyName)
+          errors[`workExp_${index}_company`] = "Company name is required";
+        if (!exp.role) errors[`workExp_${index}_role`] = "Role is required";
+        if (!exp.startDate)
+          errors[`workExp_${index}_startDate`] = "Start date is required";
+
+        const dateError = VALIDATION.date.validate(
+          exp.startDate,
+          exp.endDate,
+          "work experience",
+        );
+        if (dateError) errors[`workExp_${index}_dates`] = dateError;
+      }
+    });
+
+    // Validate projects
+    formData.projects.forEach((project, index) => {
+      if (project.title || project.description) {
+        // If any field is filled
+        if (!project.title)
+          errors[`project_${index}_title`] = "Project title is required";
+        if (!project.description)
+          errors[`project_${index}_description`] =
+            "Project description is required";
+
+        if (project.projectUrl) {
+          const urlError = VALIDATION.url.validate(project.projectUrl);
+          if (urlError) errors[`project_${index}_url`] = urlError;
+        }
+      }
+    });
+
+    // Validate certifications
+    formData.certifications.forEach((cert, index) => {
+      if (cert.name || cert.issuedBy || cert.issueDate) {
+        // If any field is filled
+        if (!cert.name)
+          errors[`cert_${index}_name`] = "Certification name is required";
+        if (!cert.issuedBy)
+          errors[`cert_${index}_issuer`] = "Issuer is required";
+        if (!cert.issueDate)
+          errors[`cert_${index}_issueDate`] = "Issue date is required";
+
+        if (cert.credentialUrl) {
+          const urlError = VALIDATION.url.validate(cert.credentialUrl);
+          if (urlError) errors[`cert_${index}_url`] = urlError;
+        }
+      }
+    });
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+
+      // Show the first error in a toast
+      const firstError = Object.values(errors)[0];
+      toast.error(firstError);
+
+      return false;
+    }
+
+    setFieldErrors({});
+    return true;
+  };
+
   const handleSubmit = () => {
+    if (!validateForm()) {
+      return;
+    }
+
     const cleanDate = (date: string | null | undefined) => {
       if (!date || date.trim() === "") return null;
       return date;
@@ -652,34 +951,72 @@ const CandidateProfileUpdate = ({
 
     const payload = {
       ...formData,
-      certifications: formData.certifications.map(({ localId, ...cert }) => ({
-        ...cert,
-        expiryDate: cleanDate(cert.expiryDate),
-      })),
-      projects: formData.projects.map(({ localId, ...project }) => ({
-        ...project,
-        techStack: Array.isArray(project.techStack)
-          ? project.techStack
-          : String(project.techStack ?? "")
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean),
-      })),
-      workExperiences: formData.workExperiences.map(({ localId, ...exp }) => ({
-        ...exp,
-        description: Array.isArray(exp.description)
-          ? exp.description.join("\n")
-          : String(exp.description ?? ""),
-      })),
+      // Sanitize data before sending
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      email: formData.email.toLowerCase().trim(),
+      location: formData.location.trim(),
+      headline: formData.headline.trim(),
+      bio: formData.bio.trim(),
+      certifications: formData.certifications
+        .filter((cert) => cert.name && cert.issuedBy && cert.issueDate) // Only include completed certifications
+        .map(({ localId, ...cert }) => ({
+          ...cert,
+          name: cert.name.trim(),
+          issuedBy: cert.issuedBy.trim(),
+          credentialUrl: cert.credentialUrl.trim(),
+          expiryDate: cleanDate(cert.expiryDate),
+        })),
+      projects: formData.projects
+        .filter((project) => project.title && project.description) // Only include completed projects
+        .map(({ localId, ...project }) => ({
+          ...project,
+          title: project.title.trim(),
+          description: project.description.trim(),
+          projectUrl: project.projectUrl.trim(),
+          techStack: Array.isArray(project.techStack)
+            ? project.techStack
+            : String(project.techStack ?? "")
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean),
+        })),
+      workExperiences: formData.workExperiences
+        .filter((exp) => exp.companyName && exp.role && exp.startDate) // Only include completed experiences
+        .map(({ localId, ...exp }) => ({
+          ...exp,
+          companyName: exp.companyName.trim(),
+          role: exp.role.trim(),
+          location: exp.location.trim(),
+          description: Array.isArray(exp.description)
+            ? exp.description.join("\n")
+            : String(exp.description ?? "").trim(),
+        })),
     };
+
     updateProfile(payload)
       .unwrap()
       .then(() => {
         toast.success("Profile updated successfully!");
+        setFieldErrors({}); // Clear all errors on success
       })
       .catch((err) => {
-        toast.error(err?.data?.message || "Failed to update profile");
+        console.error("Profile update error:", err);
+        const errorMessage =
+          err?.data?.message || "Failed to update profile. Please try again.";
+        toast.error(errorMessage);
       });
+  };
+
+  // Helper component for error messages
+  const ErrorMessage = ({ error }: { error?: string }) => {
+    if (!error) return null;
+    return (
+      <div className="flex items-start gap-2 mt-1.5 text-red-500 dark:text-red-400">
+        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+        <span className="text-xs font-medium">{error}</span>
+      </div>
+    );
   };
 
   return (
@@ -694,46 +1031,62 @@ const CandidateProfileUpdate = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left pb-2">
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                First Name
+                First Name *
               </Label>
               <Input
                 type="text"
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleInputChange}
+                maxLength={50}
                 required
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors.firstName
+                    ? "border-red-500 dark:border-red-500"
+                    : ""
+                }`}
               />
+              <ErrorMessage error={fieldErrors.firstName} />
             </div>
 
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Last Name
+                Last Name *
               </Label>
               <Input
                 type="text"
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleInputChange}
+                maxLength={50}
                 required
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors.lastName
+                    ? "border-red-500 dark:border-red-500"
+                    : ""
+                }`}
               />
+              <ErrorMessage error={fieldErrors.lastName} />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left pb-2">
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Email
+                Email *
               </Label>
               <Input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
+                maxLength={254}
                 required
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors.email ? "border-red-500 dark:border-red-500" : ""
+                }`}
               />
+              <ErrorMessage error={fieldErrors.email} />
             </div>
 
             <div>
@@ -745,9 +1098,15 @@ const CandidateProfileUpdate = ({
                 name="headline"
                 value={formData.headline}
                 onChange={handleInputChange}
+                maxLength={100}
                 placeholder="e.g., Senior Full Stack Developer"
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors.headline
+                    ? "border-red-500 dark:border-red-500"
+                    : ""
+                }`}
               />
+              <ErrorMessage error={fieldErrors.headline} />
             </div>
           </div>
         </div>
@@ -804,8 +1163,14 @@ const CandidateProfileUpdate = ({
                 value={formData.yearsExperience}
                 onChange={handleInputChange}
                 min="0"
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                max="70"
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors.yearsExperience
+                    ? "border-red-500 dark:border-red-500"
+                    : ""
+                }`}
               />
+              <ErrorMessage error={fieldErrors.yearsExperience} />
             </div>
 
             <div>
@@ -879,7 +1244,12 @@ const CandidateProfileUpdate = ({
                 value={formData.hourlyRateMin}
                 onChange={handleInputChange}
                 min="0"
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                max="10000"
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors.hourlyRate
+                    ? "border-red-500 dark:border-red-500"
+                    : ""
+                }`}
               />
             </div>
 
@@ -893,10 +1263,16 @@ const CandidateProfileUpdate = ({
                 value={formData.hourlyRateMax}
                 onChange={handleInputChange}
                 min="0"
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                max="10000"
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors.hourlyRate
+                    ? "border-red-500 dark:border-red-500"
+                    : ""
+                }`}
               />
             </div>
           </div>
+          <ErrorMessage error={fieldErrors.hourlyRate} />
 
           <div>
             <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
@@ -906,17 +1282,26 @@ const CandidateProfileUpdate = ({
               name="bio"
               value={formData.bio}
               onChange={handleInputChange}
+              maxLength={1000}
               rows={4}
-              className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white leading-6"
+              className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white leading-6 ${
+                fieldErrors.bio ? "border-red-500 dark:border-red-500" : ""
+              }`}
               placeholder="Tell us about yourself..."
             />
+            <div className="flex justify-between items-center mt-1">
+              <ErrorMessage error={fieldErrors.bio} />
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {formData.bio.length} / 1000
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Skills */}
         <div className="space-y-4 text-left">
           <h2 className="text-xl font-semibold text-gray-800 border-b pb-6 text-left dark:border-b-gray-600 dark:text-white">
-            Skills & Tech
+            Skills & Tech *
           </h2>
 
           <div className="flex gap-2">
@@ -927,8 +1312,13 @@ const CandidateProfileUpdate = ({
               onKeyDown={(e) =>
                 e.key === "Enter" && (e.preventDefault(), addSkill())
               }
+              maxLength={50}
               placeholder="Add a skill (e.g., TypeScript)"
-              className="flex-1 px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+              className={`flex-1 px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                fieldErrors.primarySkills
+                  ? "border-red-500 dark:border-red-500"
+                  : ""
+              }`}
             />
             <Button
               type="button"
@@ -938,13 +1328,15 @@ const CandidateProfileUpdate = ({
               <Plus className="w-5 h-5" />
             </Button>
           </div>
+          <ErrorMessage error={fieldErrors.primarySkills} />
 
           <div className="flex flex-wrap gap-2">
-            {formData.skills.map((name, index) => {
-              const skillObj = data?.candidateProfile?.skills?.find((s) =>
-                typeof s === "string"
-                  ? false
-                  : s.name.toLowerCase() === name.toLowerCase(),
+            {formData.primarySkills.map((name, index) => {
+              const skillObj = data?.candidateProfile?.primarySkills?.find(
+                (s) =>
+                  typeof s === "string"
+                    ? false
+                    : s.name.toLowerCase() === name.toLowerCase(),
               );
               const skillId = skillObj?.id ?? null;
 
@@ -966,6 +1358,7 @@ const CandidateProfileUpdate = ({
                           type="button"
                           onClick={() => removeSkills(name)}
                           className="hover:text-teal-900 min-w-0 min-h-0"
+                          aria-label={`Remove ${name}`}
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -981,6 +1374,7 @@ const CandidateProfileUpdate = ({
                         type="button"
                         onClick={() => removeSkills(name)}
                         className="hover:text-teal-900 min-w-0 min-h-0"
+                        aria-label={`Remove ${name}`}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -989,7 +1383,17 @@ const CandidateProfileUpdate = ({
                 </span>
               );
             })}
+            {formData.primarySkills.length === 0 && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                No skills added yet. Add at least one skill.
+              </p>
+            )}
           </div>
+          {formData.primarySkills.length > 0 && (
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {formData.primarySkills.length} / 50 skills added
+            </p>
+          )}
         </div>
       </div>
 
@@ -1033,6 +1437,7 @@ const CandidateProfileUpdate = ({
                     type="button"
                     onClick={() => removeWorkExperiences(exp.id, index)}
                     className="text-red-600 hover:text-red-800"
+                    aria-label="Remove work experience"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -1041,24 +1446,36 @@ const CandidateProfileUpdate = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Input
-                type="text"
-                placeholder="Company Name"
-                value={exp.companyName}
-                onChange={(e) =>
-                  updateWorkExperience(index, "companyName", e.target.value)
-                }
-                className="px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
-              />
-              <Input
-                type="text"
-                placeholder="Role/Title"
-                value={exp.role}
-                onChange={(e) =>
-                  updateWorkExperience(index, "role", e.target.value)
-                }
-                className="px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
-              />
+              <div>
+                <Input
+                  type="text"
+                  placeholder="Company Name *"
+                  value={exp.companyName}
+                  onChange={(e) =>
+                    updateWorkExperience(index, "companyName", e.target.value)
+                  }
+                  className={`px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                    fieldErrors[`workExp_${index}_company`]
+                      ? "border-red-500"
+                      : ""
+                  }`}
+                />
+                <ErrorMessage error={fieldErrors[`workExp_${index}_company`]} />
+              </div>
+              <div>
+                <Input
+                  type="text"
+                  placeholder="Role/Title *"
+                  value={exp.role}
+                  onChange={(e) =>
+                    updateWorkExperience(index, "role", e.target.value)
+                  }
+                  className={`px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                    fieldErrors[`workExp_${index}_role`] ? "border-red-500" : ""
+                  }`}
+                />
+                <ErrorMessage error={fieldErrors[`workExp_${index}_role`]} />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1090,7 +1507,7 @@ const CandidateProfileUpdate = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label className="block text-xs text-gray-600 mb-1 dark:text-white">
-                  Start Date
+                  Start Date *
                 </Label>
                 <input
                   type="date"
@@ -1098,7 +1515,14 @@ const CandidateProfileUpdate = ({
                   onChange={(e) =>
                     updateWorkExperience(index, "startDate", e.target.value)
                   }
-                  className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                  className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                    fieldErrors[`workExp_${index}_startDate`]
+                      ? "border-red-500"
+                      : ""
+                  }`}
+                />
+                <ErrorMessage
+                  error={fieldErrors[`workExp_${index}_startDate`]}
                 />
               </div>
               <div>
@@ -1119,6 +1543,7 @@ const CandidateProfileUpdate = ({
                 />
               </div>
             </div>
+            <ErrorMessage error={fieldErrors[`workExp_${index}_dates`]} />
 
             <Textarea
               placeholder="Description of your role and achievements..."
@@ -1135,6 +1560,12 @@ const CandidateProfileUpdate = ({
             />
           </div>
         ))}
+
+        {formData.workExperiences.length === 0 && (
+          <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center py-4">
+            No work experience added yet. Click "Add Experience" to get started.
+          </p>
+        )}
       </div>
 
       {/* Projects */}
@@ -1177,6 +1608,7 @@ const CandidateProfileUpdate = ({
                     type="button"
                     onClick={() => removeProjects(project.id, index)}
                     className="text-red-600 hover:text-red-800"
+                    aria-label="Remove project"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -1184,23 +1616,37 @@ const CandidateProfileUpdate = ({
               })()}
             </div>
 
-            <Input
-              type="text"
-              placeholder="Project Title"
-              value={project.title}
-              onChange={(e) => updateProject(index, "title", e.target.value)}
-              className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white"
-            />
+            <div>
+              <Input
+                type="text"
+                placeholder="Project Title *"
+                value={project.title}
+                onChange={(e) => updateProject(index, "title", e.target.value)}
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors[`project_${index}_title`] ? "border-red-500" : ""
+                }`}
+              />
+              <ErrorMessage error={fieldErrors[`project_${index}_title`]} />
+            </div>
 
-            <Textarea
-              placeholder="Project Description"
-              value={project.description}
-              onChange={(e) =>
-                updateProject(index, "description", e.target.value)
-              }
-              rows={2}
-              className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white"
-            />
+            <div>
+              <Textarea
+                placeholder="Project Description *"
+                value={project.description}
+                onChange={(e) =>
+                  updateProject(index, "description", e.target.value)
+                }
+                rows={2}
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors[`project_${index}_description`]
+                    ? "border-red-500"
+                    : ""
+                }`}
+              />
+              <ErrorMessage
+                error={fieldErrors[`project_${index}_description`]}
+              />
+            </div>
 
             <Input
               type="text"
@@ -1226,15 +1672,20 @@ const CandidateProfileUpdate = ({
               className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white"
             />
 
-            <Input
-              type="url"
-              placeholder="Project URL"
-              value={project.projectUrl}
-              onChange={(e) =>
-                updateProject(index, "projectUrl", e.target.value)
-              }
-              className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white"
-            />
+            <div>
+              <Input
+                type="url"
+                placeholder="Project URL (e.g., https://github.com/username/project)"
+                value={project.projectUrl}
+                onChange={(e) =>
+                  updateProject(index, "projectUrl", e.target.value)
+                }
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors[`project_${index}_url`] ? "border-red-500" : ""
+                }`}
+              />
+              <ErrorMessage error={fieldErrors[`project_${index}_url`]} />
+            </div>
 
             <Label className="flex items-center gap-2 dark:text-white">
               <Input
@@ -1251,6 +1702,12 @@ const CandidateProfileUpdate = ({
             </Label>
           </div>
         ))}
+
+        {formData.projects.length === 0 && (
+          <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center py-4">
+            No projects added yet. Click "Add Project" to showcase your work.
+          </p>
+        )}
       </div>
 
       {/* Certifications */}
@@ -1293,6 +1750,7 @@ const CandidateProfileUpdate = ({
                     type="button"
                     onClick={() => removeCertification(cert.id, index)}
                     className="text-red-600 hover:text-red-800"
+                    aria-label="Remove certification"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -1301,30 +1759,40 @@ const CandidateProfileUpdate = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Input
-                type="text"
-                placeholder="Certification Name"
-                value={cert.name}
-                onChange={(e) =>
-                  updateCertification(index, "name", e.target.value)
-                }
-                className="px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white"
-              />
-              <Input
-                type="text"
-                placeholder="Issued By"
-                value={cert.issuedBy}
-                onChange={(e) =>
-                  updateCertification(index, "issuedBy", e.target.value)
-                }
-                className="px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white"
-              />
+              <div>
+                <Input
+                  type="text"
+                  placeholder="Certification Name *"
+                  value={cert.name}
+                  onChange={(e) =>
+                    updateCertification(index, "name", e.target.value)
+                  }
+                  className={`px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                    fieldErrors[`cert_${index}_name`] ? "border-red-500" : ""
+                  }`}
+                />
+                <ErrorMessage error={fieldErrors[`cert_${index}_name`]} />
+              </div>
+              <div>
+                <Input
+                  type="text"
+                  placeholder="Issued By *"
+                  value={cert.issuedBy}
+                  onChange={(e) =>
+                    updateCertification(index, "issuedBy", e.target.value)
+                  }
+                  className={`px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                    fieldErrors[`cert_${index}_issuer`] ? "border-red-500" : ""
+                  }`}
+                />
+                <ErrorMessage error={fieldErrors[`cert_${index}_issuer`]} />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label className="block text-xs text-gray-600 mb-1 dark:text-white">
-                  Issue Date
+                  Issue Date *
                 </Label>
                 <input
                   type="date"
@@ -1332,8 +1800,13 @@ const CandidateProfileUpdate = ({
                   onChange={(e) =>
                     updateCertification(index, "issueDate", e.target.value)
                   }
-                  className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white"
+                  className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                    fieldErrors[`cert_${index}_issueDate`]
+                      ? "border-red-500"
+                      : ""
+                  }`}
                 />
+                <ErrorMessage error={fieldErrors[`cert_${index}_issueDate`]} />
               </div>
               <div>
                 <Label className="block text-xs text-gray-600 mb-1 dark:text-white">
@@ -1354,17 +1827,29 @@ const CandidateProfileUpdate = ({
               </div>
             </div>
 
-            <Input
-              type="url"
-              placeholder="Credential URL"
-              value={cert.credentialUrl}
-              onChange={(e) =>
-                updateCertification(index, "credentialUrl", e.target.value)
-              }
-              className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white"
-            />
+            <div>
+              <Input
+                type="url"
+                placeholder="Credential URL (e.g., https://coursera.org/verify/...)"
+                value={cert.credentialUrl}
+                onChange={(e) =>
+                  updateCertification(index, "credentialUrl", e.target.value)
+                }
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors[`cert_${index}_url`] ? "border-red-500" : ""
+                }`}
+              />
+              <ErrorMessage error={fieldErrors[`cert_${index}_url`]} />
+            </div>
           </div>
         ))}
+
+        {formData.certifications.length === 0 && (
+          <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center py-4">
+            No certifications added yet. Click "Add Certification" to highlight
+            your credentials.
+          </p>
+        )}
       </div>
 
       {/* Submit Button */}
@@ -1372,7 +1857,7 @@ const CandidateProfileUpdate = ({
         <button
           onClick={handleSubmit}
           disabled={isUpdating}
-          className="flex-1 items-center gap-2 px-4 py-2  bg-primary text-white rounded-md hover:bg-primary/90 transition text-base"
+          className="flex-1 items-center gap-2 px-4 py-2  bg-primary text-white rounded-md hover:bg-primary/90 transition text-base disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isUpdating ? (
             <div className="flex items-center justify-center gap-2">
@@ -1393,7 +1878,7 @@ const CandidateProfileUpdate = ({
               availability: data?.candidateProfile.availability || "",
               bio: data?.candidateProfile.bio || "",
               yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-              skills: skills || [],
+              primarySkills: skills || [],
               headline: data?.candidateProfile.headline || "",
               resourceType: data?.candidateProfile.resourceType || "",
               availableIn: data?.candidateProfile.availableIn || "",
@@ -1413,6 +1898,8 @@ const CandidateProfileUpdate = ({
               projects: projects || [],
               certifications: certification || [],
             });
+            setFieldErrors({}); // Clear errors on cancel
+            toast.info("Changes discarded");
           }}
           type="button"
           className="px-6 py-3 border border-gray-300 rounded-md hover:bg-red-600 hover:text-white transition font-medium dark:border-gray-600"
@@ -1421,7 +1908,13 @@ const CandidateProfileUpdate = ({
         </button>
       </div>
       {updateError && (
-        <p className="text-red-600 text-sm mt-2">Failed to update profile</p>
+        <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-red-600 dark:text-red-400 text-sm font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            Failed to update profile. Please try again or contact support if the
+            issue persists.
+          </p>
+        </div>
       )}
     </div>
   );
