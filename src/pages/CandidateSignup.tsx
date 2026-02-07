@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
 
 // ==================== VALIDATION PATTERNS ====================
 const VALIDATION = {
@@ -66,6 +67,8 @@ const VALIDATION = {
         return "Password must contain at least one uppercase letter";
       if (!/\d/.test(password))
         return "Password must contain at least one number";
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(password))
+        return "Password must contain at least one special character";
       return null;
     },
   },
@@ -440,17 +443,6 @@ const CandidateSignup = () => {
     { title: "Profile" },
     { title: "Preferences" },
   ];
-
-  // Helper component for error messages
-  const ErrorMessage = ({ error }: { error?: string }) => {
-    if (!error) return null;
-    return (
-      <div className="flex items-start gap-2 mt-1.5 text-red-500 dark:text-red-400">
-        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-        <span className="text-xs font-medium">{error}</span>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">

@@ -22,6 +22,7 @@ import { useDispatch } from "react-redux";
 import { setUser } from "@/app/slices/userAuth";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
 
 // ==================== TYPE GUARDS ====================
 function isFetchBaseQueryError(error: unknown): error is FetchBaseQueryError {
@@ -205,8 +206,8 @@ const CandidateLogin = () => {
         errorMessage.toLowerCase().includes("password")
       ) {
         setFieldErrors({
-          email: " ",
-          password: " ",
+          email: "Please check your credentials",
+          password: "Please check your credentials",
         });
       }
     }
@@ -233,17 +234,6 @@ const CandidateLogin = () => {
       color: "bg-green-500/20 text-green-400",
     },
   ];
-
-  // Helper component for error messages
-  const ErrorMessage = ({ error }: { error?: string }) => {
-    if (!error) return null;
-    return (
-      <div className="flex items-start gap-2 mt-1.5 text-red-500 dark:text-red-400">
-        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-        <span className="text-xs font-medium">{error}</span>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">

@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
 
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -137,7 +138,7 @@ const VALIDATION = {
   name: {
     minLength: 1,
     maxLength: 50,
-    regex: /^[a-zA-Z\s\-']+$/,
+    regex: /^[\p{L}\s\-']+$/u,
     validate: (name: string, fieldName: string) => {
       if (!name || !name.trim()) return `${fieldName} is required`;
       if (name.trim().length > 50)
@@ -624,6 +625,15 @@ const CandidateProfileUpdate = ({
   };
 
   const updateWorkExperience = (index: number, field: string, value: any) => {
+    // Clear field-specific validation error
+    const errorKey = `workExp_${index}_${field === "companyName" ? "company" : field}`;
+    if (fieldErrors[errorKey]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[errorKey];
+        return newErrors;
+      });
+    }
     setFormData((prev) => ({
       ...prev,
       workExperiences: prev.workExperiences.map((exp, i) =>
@@ -633,6 +643,15 @@ const CandidateProfileUpdate = ({
   };
 
   const removeWorkExperiences = async (id: number | null, index?: number) => {
+    // Clear any stale validation errors for this and subsequent work experiences
+    setFieldErrors((prev) => {
+      const newErrors = { ...prev };
+      Object.keys(newErrors)
+        .filter((key) => key.startsWith("workExp_"))
+        .forEach((key) => delete newErrors[key]);
+      return newErrors;
+    });
+
     if (id == null) {
       if (index == null) return;
       const item = formData.workExperiences[index];
@@ -710,6 +729,15 @@ const CandidateProfileUpdate = ({
   };
 
   const removeProjects = async (id: number | null, index?: number) => {
+    // Clear any stale validation errors for this and subsequent projects
+    setFieldErrors((prev) => {
+      const newErrors = { ...prev };
+      Object.keys(newErrors)
+        .filter((key) => key.startsWith("projects"))
+        .forEach((key) => delete newErrors[key]);
+      return newErrors;
+    });
+
     if (id == null) {
       if (index == null) return;
       const item = formData.projects[index];
@@ -784,6 +812,15 @@ const CandidateProfileUpdate = ({
   };
 
   const removeCertification = async (id: number | null, index?: number) => {
+    // Clear any stale validation errors for this and subsequent certifications
+    setFieldErrors((prev) => {
+      const newErrors = { ...prev };
+      Object.keys(newErrors)
+        .filter((key) => key.startsWith("certifications"))
+        .forEach((key) => delete newErrors[key]);
+      return newErrors;
+    });
+
     if (id == null) {
       if (index == null) return;
       const item = formData.certifications[index];
@@ -880,13 +917,14 @@ const CandidateProfileUpdate = ({
         if (!exp.role) errors[`workExp_${index}_role`] = "Role is required";
         if (!exp.startDate)
           errors[`workExp_${index}_startDate`] = "Start date is required";
-
-        const dateError = VALIDATION.date.validate(
-          exp.startDate,
-          exp.endDate,
-          "work experience",
-        );
-        if (dateError) errors[`workExp_${index}_dates`] = dateError;
+        else {
+          const dateError = VALIDATION.date.validate(
+            exp.startDate,
+            exp.endDate,
+            "work experience",
+          );
+          if (dateError) errors[`workExp_${index}_dates`] = dateError;
+        }
       }
     });
 
@@ -1006,17 +1044,6 @@ const CandidateProfileUpdate = ({
           err?.data?.message || "Failed to update profile. Please try again.";
         toast.error(errorMessage);
       });
-  };
-
-  // Helper component for error messages
-  const ErrorMessage = ({ error }: { error?: string }) => {
-    if (!error) return null;
-    return (
-      <div className="flex items-start gap-2 mt-1.5 text-red-500 dark:text-red-400">
-        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-        <span className="text-xs font-medium">{error}</span>
-      </div>
-    );
   };
 
   return (
