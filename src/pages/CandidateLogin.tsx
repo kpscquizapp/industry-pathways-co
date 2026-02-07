@@ -9,11 +9,8 @@ import {
   ArrowRight,
   Mail,
   Lock,
-  Briefcase,
   Star,
-  Clock,
   ShieldCheck,
-  Rocket,
   LayoutDashboard,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -21,6 +18,11 @@ import { useLoginCandidateMutation } from "@/app/queries/loginApi";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/app/slices/userAuth";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
+import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+
+function isFetchBaseQueryError(error: unknown): error is FetchBaseQueryError {
+  return typeof error === "object" && error != null && "data" in error;
+}
 
 const CandidateLogin = () => {
   const navigate = useNavigate();
@@ -65,10 +67,9 @@ const CandidateLogin = () => {
         navigate("/contractor/dashboard");
       }
     } catch (error: unknown) {
-      const message =
-        error && typeof error === "object" && "data" in error
-          ? (error as { data?: { message?: string } }).data?.message
-          : undefined;
+      const message = isFetchBaseQueryError(error)
+        ? (error.data as { message?: string })?.message
+        : undefined;
       toast.error(message || "Invalid credentials. Please try again.");
     }
   };

@@ -14,19 +14,31 @@ const LandingFooter = () => {
         links: [
           {
             label: "Join Marketplace",
-            href: `${user?.role === "candidate" ? "/contractor/dashboard" : "/candidate-login"}`,
+            href:
+              user?.role === "candidate"
+                ? "/contractor/dashboard"
+                : "/candidate-login",
           },
           {
             label: "Skill Tests",
-            href: `${user?.role === "candidate" ? "/contractor/tests" : "/candidate-login"}`,
+            href:
+              user?.role === "candidate"
+                ? "/contractor/tests"
+                : "/candidate-login",
           },
           {
             label: "AI Interviews",
-            href: `${user?.role === "candidate" ? "/contractor/interviews" : "/candidate-login"}`,
+            href:
+              user?.role === "candidate"
+                ? "/contractor/interviews"
+                : "/candidate-login",
           },
           {
             label: "Profile",
-            href: `${user?.role === "candidate" ? "/contractor/profile" : "/candidate-login"}`,
+            href:
+              user?.role === "candidate"
+                ? "/contractor/profile"
+                : "/candidate-login",
           },
         ],
       },
@@ -35,15 +47,21 @@ const LandingFooter = () => {
         links: [
           {
             label: "Hire Talent",
-            href: `${user?.role === "employer" ? "/employer/dashboard" : "/employer-login"}`,
+            href:
+              user?.role === "employer"
+                ? "/employer/dashboard"
+                : "/employer-login",
           },
           {
             label: "List Bench Resources",
-            href: `${user?.role === "hr" ? "/bench/talent" : "/bench-login"}`,
+            href: user?.role === "hr" ? "/bench/talent" : "/bench-login",
           },
           {
             label: "Post a Job",
-            href: `${user?.role === "employer" ? "/employer/dashboard" : "/employer-login"}`,
+            href:
+              user?.role === "employer"
+                ? "/employer/dashboard"
+                : "/employer-login",
           },
           { label: "Pricing", href: "#pricing" },
         ],

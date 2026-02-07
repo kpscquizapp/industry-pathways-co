@@ -84,6 +84,13 @@ const PostBenchResource = () => {
     }
   };
 
+  const currencySymbols: Record<string, string> = {
+    "USD - US Dollar": "$",
+    "EUR - Euro": "€",
+    "GBP - British Pound": "£",
+    "INR - Indian Rupee": "₹",
+  };
+
   const mapExperience = (years: number) => {
     if (years < 0 || !Number.isFinite(years)) return "0-1";
     if (years < 1) return "0-1";
@@ -459,8 +466,9 @@ const PostBenchResource = () => {
                       Hourly Rate (Client Billable)
                     </Label>
                     <div className="relative">
+                      +{" "}
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
-                        $
+                        + {currencySymbols[formData.currency] ?? "$"}+{" "}
                       </span>
                       <Input
                         type="number"
@@ -615,7 +623,7 @@ const PostBenchResource = () => {
                     onCheckedChange={(checked) =>
                       setFormData({
                         ...formData,
-                        requireNonSolicitation: checked as boolean,
+                        requireNonSolicitation: checked === true,
                       })
                     }
                     className="mt-0.5 border-blue-300 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
