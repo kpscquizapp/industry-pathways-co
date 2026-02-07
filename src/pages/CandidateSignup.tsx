@@ -36,6 +36,11 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
+// Validation regex patterns
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const PHONE_REGEX = /^\+?[0-9]{7,15}$/;
+
 const CandidateSignup = () => {
   const navigate = useNavigate();
   const [createCandidate, { isLoading }] = useCreateCandidateMutation();
@@ -55,9 +60,9 @@ const CandidateSignup = () => {
     expectedSalaryMax: null,
     availableToJoin: "Immediate",
     password: "",
-    confirmPassword: "",
   });
 
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [primarySkills, setPrimarySkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
   const [preferredWorkType, setPreferredWorkType] = useState<string[]>([
@@ -109,13 +114,28 @@ const CandidateSignup = () => {
         toast.error("Please fill in all required fields");
         return false;
       }
-      if (formData.password.length < 8) {
-        toast.error("Password must be at least 8 characters");
-        return false;
+      // Email validation
+      if (!EMAIL_REGEX.test(formData.email)) {
+        toast.error("Please enter a valid email address");
+        return;
       }
-      if (formData.password !== formData.confirmPassword) {
+
+      if (!PHONE_REGEX.test(formData.mobileNumber.replace(/[\s-]/g, ""))) {
+        toast.error("Please enter a valid mobile number");
+        return;
+      }
+
+      if (formData.password !== confirmPassword) {
         toast.error("Passwords do not match");
         return false;
+      }
+
+      // Password validation
+      if (!PASSWORD_REGEX.test(formData.password)) {
+        toast.error(
+          "Password must be at least 8 characters with uppercase, lowercase, and a number",
+        );
+        return;
       }
     } else if (currentStep === 2) {
       if (!formData.primaryJobRole || primarySkills.length === 0) {
@@ -158,7 +178,8 @@ const CandidateSignup = () => {
     };
 
     try {
-      await createCandidate(payload).unwrap();
+      // await createCandidate(payload).unwrap();
+      console.log(payload);
       toast.success("Registration successful! Please login to continue.");
       navigate("/candidate-login");
     } catch (error: any) {
@@ -407,8 +428,10 @@ const CandidateSignup = () => {
                               type="password"
                               placeholder="••••••••"
                               className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
-                              value={formData.confirmPassword}
-                              onChange={handleInputChange}
+                              value={confirmPassword}
+                              onChange={(e) =>
+                                setConfirmPassword(e.target.value)
+                              }
                               required
                             />
                           </div>
