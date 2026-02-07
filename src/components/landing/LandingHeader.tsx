@@ -37,10 +37,12 @@ const LandingHeader = () => {
   }, []);
 
   const isHomePage = location.pathname === "/";
-  const headerBg = isScrolled
-    ? "bg-[hsl(222,47%,11%)]/98 backdrop-blur-xl border-b border-white/10 shadow-lg"
+  const isSolidHeader = isScrolled || !isHomePage;
+  const headerBg = isSolidHeader
+    ? "bg-white/55 backdrop-blur-md border-b border-black/10 shadow-lg dark:bg-[hsl(222,47%,11%)]/[1] dark:border-white/10"
     : "bg-transparent";
-  const textColor = "text-white";
+  const textColor = isSolidHeader ? "text-slate-900 dark:text-white" : "text-white";
+  const ghostHoverBg = isSolidHeader ? "hover:bg-slate-900/10 dark:hover:bg-white/10" : "hover:bg-white/10";
 
   const handleRoleBasedNavigation = (role: string) => {
     if (!role) return;
@@ -175,7 +177,7 @@ const LandingHeader = () => {
                   asChild
                   variant="ghost"
                   size="sm"
-                  className={cn("rounded-xl", textColor, "hover:bg-white/10")}
+                  className={cn("rounded-xl", textColor, ghostHoverBg)}
                 >
                   <Link to="/employer-login">
                     <LogIn className="w-4 h-4 mr-2" />
