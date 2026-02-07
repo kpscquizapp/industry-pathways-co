@@ -48,13 +48,20 @@ const CandidateLogin = () => {
       dispatch(setUser(result));
 
       // Check if this is first login (profile not completed)
-      const isFirstLogin = result?.isFirstLogin || !result?.profileCompleted;
+      const isFirstLogin =
+        typeof result?.profileCompleted === "boolean"
+          ? !result.profileCompleted
+          : result?.isFirstLogin === true;
 
       if (isFirstLogin) {
-        toast.success(`Welcome back ${result?.user?.firstName}!`);
+        toast.success(
+          `Welcome${result?.user?.firstName ? ` ${result.user.firstName}` : ""}! Let's complete your profile.`,
+        );
         navigate("/contractor/profile");
       } else {
-        toast.success("Welcome back!");
+        toast.success(
+          `Welcome back${result?.user?.firstName ? ` ${result.user.firstName}` : ""}!`,
+        );
         navigate("/contractor/dashboard");
       }
     } catch (error: any) {

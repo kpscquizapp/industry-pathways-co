@@ -33,19 +33,11 @@ import { usePostBenchResourceMutation } from "@/app/queries/benchApi";
 
 const PostBenchResource = () => {
   const navigate = useNavigate();
-  // const [currentStep, setCurrentStep] = useState(2);
 
   const [extractResume, { isLoading: isExtracting }] =
     useExtractResumeMutation();
   const [postBenchResource, { isLoading: isSubmitting }] =
     usePostBenchResourceMutation();
-
-  const steps = [
-    { number: 1, title: "Company Profile", completed: true },
-    { number: 2, title: "Resource Details", current: true },
-    { number: 3, title: "Contract Terms", completed: false },
-    { number: 4, title: "Review & Publish", completed: false },
-  ];
 
   const [formData, setFormData] = useState({
     resourceName: "",
@@ -70,20 +62,21 @@ const PostBenchResource = () => {
   const [skillInput, setSkillInput] = useState("");
 
   const addSkill = () => {
-    if (skillInput.trim() && !formData.skills.includes(skillInput.trim())) {
-      setFormData({
-        ...formData,
-        skills: [...formData.skills, skillInput.trim()],
+    const trimmed = skillInput.trim();
+    if (trimmed) {
+      setFormData((prev) => {
+        if (prev.skills.includes(trimmed)) return prev;
+        return { ...prev, skills: [...prev.skills, trimmed] };
       });
       setSkillInput("");
     }
   };
 
   const removeSkill = (skill: string) => {
-    setFormData({
-      ...formData,
-      skills: formData.skills.filter((s) => s !== skill),
-    });
+    setFormData((prev) => ({
+      ...prev,
+      skills: prev.skills.filter((s) => s !== skill),
+    }));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -160,6 +153,16 @@ const PostBenchResource = () => {
       return;
     }
 
+    if (!formData.hourlyRate.trim()) {
+      toast.error("Hourly rate is required");
+      return;
+    }
+
+    if (!formData.totalExperience) {
+      toast.error("Total experience is required");
+      return;
+    }
+
     const hasLocationPreference = Object.values(
       formData.locationPreferences,
     ).some((v) => v);
@@ -203,6 +206,7 @@ const PostBenchResource = () => {
       });
       navigate("/employer-dashboard/talent-marketplace");
     } catch (error) {
+      console.error("Failed to post bench resource:", error);
       toast.error("Failed to post bench resource");
     }
   };
@@ -461,6 +465,9 @@ const PostBenchResource = () => {
                         $
                       </span>
                       <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
                         placeholder="e.g. 45"
                         value={formData.hourlyRate}
                         onChange={(e) =>
@@ -586,7 +593,7 @@ const PostBenchResource = () => {
                               ...formData,
                               locationPreferences: {
                                 ...formData.locationPreferences,
-                                [loc.id]: checked,
+                                [loc.id]: checked === true,
                               },
                             })
                           }
@@ -645,7 +652,7 @@ const PostBenchResource = () => {
                 disabled={isSubmitting}
                 className="px-10 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium shadow-lg shadow-blue-500/30 transition-all hover:shadow-xl hover:shadow-blue-500/40"
               >
-                {isSubmitting ? "Submitting..." : "Proceed to Review"}
+                {isSubmitting ? "Submitting..." : "Publish Resource"}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>

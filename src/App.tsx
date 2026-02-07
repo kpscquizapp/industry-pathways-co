@@ -153,10 +153,10 @@ const App = () => {
                       path="/forgot-password"
                       element={<ForgotPassword />}
                     />
-                    <Route
+                    {/* <Route
                       path="/candidate-register"
                       element={<CandidateRegistration />}
-                    />
+                    /> */}
                     <Route path="/profile" element={<CandidateProfile />} />
                     <Route
                       path="/job-recommendations"

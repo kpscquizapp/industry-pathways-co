@@ -118,12 +118,10 @@
     overflow-x: hidden;
   }
 
+
 /* Prevent Radix scroll lock without forcing scrollbars */
-body[data-scroll-locked] {
-  overflow: auto !important;
-  padding-right: 0 !important;
-  margin-right: 0 !important;
-  pointer-events: auto !important;
+html {
+  scrollbar-gutter: stable; /* Add this rule */
 }
 
 /* Hide focus guards */

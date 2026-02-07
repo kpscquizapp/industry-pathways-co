@@ -2,69 +2,73 @@ import { Link } from "react-router-dom";
 import { Sparkles, Mail, Phone, Linkedin, Twitter, Github } from "lucide-react";
 import { RootState } from "@/app/store";
 import { useSelector } from "react-redux";
+import { useMemo } from "react";
 
 const LandingFooter = () => {
   const user = useSelector((state: RootState) => state.user.userDetails);
 
-  const footerLinks = {
-    forContractors: {
-      title: "For Contractors",
-      links: [
-        {
-          label: "Join Marketplace",
-          href: `${user?.role === "candidate" ? "/contractor/dashboard" : "/candidate-login"}`,
-        },
-        {
-          label: "Skill Tests",
-          href: `${user?.role === "candidate" ? "/contractor/tests" : "/candidate-login"}`,
-        },
-        {
-          label: "AI Interviews",
-          href: `${user?.role === "candidate" ? "/contractor/interviews" : "/candidate-login"}`,
-        },
-        {
-          label: "Profile",
-          href: `${user?.role === "candidate" ? "/contractor/profile" : "/candidate-login"}`,
-        },
-      ],
-    },
-    forCompanies: {
-      title: "For Companies",
-      links: [
-        {
-          label: "Hire Talent",
-          href: `${user?.role === "employer" ? "/employer/dashboard" : "/employer-login"}`,
-        },
-        {
-          label: "List Bench Resources",
-          href: `${user?.role === "hr" ? "/bench/talent" : "/bench-login"}`,
-        },
-        {
-          label: "Post a Job",
-          href: `${user?.role === "employer" ? "/employer/dashboard" : "/employer-login"}`,
-        },
-        { label: "Pricing", href: "#pricing" },
-      ],
-    },
-    resources: {
-      title: "Resources",
-      links: [
-        { label: "Documentation", href: "#docs" },
-        { label: "API Reference", href: "#api" },
-        { label: "Blog", href: "#blog" },
-        { label: "Support", href: "#support" },
-      ],
-    },
-    legal: {
-      title: "Legal",
-      links: [
-        { label: "Privacy Policy", href: "#privacy" },
-        { label: "Terms of Service", href: "#terms" },
-        { label: "Compliance", href: "#compliance" },
-        { label: "Security", href: "#security" },
-      ],
-    },
-  };
+  const footerLinks = useMemo(
+    () => ({
+      forContractors: {
+        title: "For Contractors",
+        links: [
+          {
+            label: "Join Marketplace",
+            href: `${user?.role === "candidate" ? "/contractor/dashboard" : "/candidate-login"}`,
+          },
+          {
+            label: "Skill Tests",
+            href: `${user?.role === "candidate" ? "/contractor/tests" : "/candidate-login"}`,
+          },
+          {
+            label: "AI Interviews",
+            href: `${user?.role === "candidate" ? "/contractor/interviews" : "/candidate-login"}`,
+          },
+          {
+            label: "Profile",
+            href: `${user?.role === "candidate" ? "/contractor/profile" : "/candidate-login"}`,
+          },
+        ],
+      },
+      forCompanies: {
+        title: "For Companies",
+        links: [
+          {
+            label: "Hire Talent",
+            href: `${user?.role === "employer" ? "/employer/dashboard" : "/employer-login"}`,
+          },
+          {
+            label: "List Bench Resources",
+            href: `${user?.role === "hr" ? "/bench/talent" : "/bench-login"}`,
+          },
+          {
+            label: "Post a Job",
+            href: `${user?.role === "employer" ? "/employer/dashboard" : "/employer-login"}`,
+          },
+          { label: "Pricing", href: "#pricing" },
+        ],
+      },
+      resources: {
+        title: "Resources",
+        links: [
+          { label: "Documentation", href: "#docs" },
+          { label: "API Reference", href: "#api" },
+          { label: "Blog", href: "#blog" },
+          { label: "Support", href: "#support" },
+        ],
+      },
+      legal: {
+        title: "Legal",
+        links: [
+          { label: "Privacy Policy", href: "#privacy" },
+          { label: "Terms of Service", href: "#terms" },
+          { label: "Compliance", href: "#compliance" },
+          { label: "Security", href: "#security" },
+        ],
+      },
+    }),
+    [user?.role],
+  );
 
   return (
     <footer className="bg-navy-900 text-white pt-20 pb-8">
@@ -109,12 +113,21 @@ const LandingFooter = () => {
               <ul className="space-y-3">
                 {section.links.map((link) => (
                   <li key={link.label}>
-                    <Link
-                      to={link.href}
-                      className="text-white/60 hover:text-white transition-colors text-sm"
-                    >
-                      {link.label}
-                    </Link>
+                    {link.href.startsWith("#") ? (
+                      <a
+                        href={link.href}
+                        className="text-white/60 hover:text-white transition-colors text-sm"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link
+                        to={link.href}
+                        className="text-white/60 hover:text-white transition-colors text-sm"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

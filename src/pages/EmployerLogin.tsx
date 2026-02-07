@@ -44,7 +44,9 @@ const EmployerLogin = () => {
       const success = await login({ email, password }).unwrap();
       if (success) {
         dispatch(setUser(success));
-        toast.success(`Welcome back ${success?.user?.firstName}!`);
+        toast.success(
+          `Welcome back${success?.user?.firstName ? ` ${success.user.firstName}` : ""}!`,
+        );
         navigate("/employer-dashboard");
       } else {
         toast.error("Invalid credentials");
@@ -56,7 +58,6 @@ const EmployerLogin = () => {
 
   const features = [
     {
-      id: useId(),
       icon: Zap,
       title: "AI technical fit score",
       description:
@@ -64,7 +65,6 @@ const EmployerLogin = () => {
       color: "bg-blue-500/20 text-blue-400",
     },
     {
-      id: useId(),
       icon: Target,
       title: "Bench-to-billable",
       description:
@@ -72,7 +72,6 @@ const EmployerLogin = () => {
       color: "bg-green-500/20 text-green-400",
     },
     {
-      id: useId(),
       icon: Users,
       title: "AI skill filtering",
       description:
@@ -80,7 +79,6 @@ const EmployerLogin = () => {
       color: "bg-purple-500/20 text-purple-400",
     },
     {
-      id: useId(),
       icon: TrendingUp,
       title: "Growth ecosystem",
       description:
@@ -90,9 +88,9 @@ const EmployerLogin = () => {
   ];
 
   const stats = [
-    { id: useId(), value: "40%", label: "Reduction in hiring time" },
-    { id: useId(), value: "3x", label: "Faster deployment" },
-    { id: useId(), value: "100%", label: "Skills verified" },
+    { value: "40%", label: "Reduction in hiring time" },
+    { value: "3x", label: "Faster deployment" },
+    { value: "100%", label: "Skills verified" },
   ];
 
   return (
@@ -138,7 +136,7 @@ const EmployerLogin = () => {
           <div className="grid grid-cols-2 gap-4">
             {features.map((feature) => (
               <div
-                key={feature.id}
+                key={feature.title}
                 className="group p-4 bg-white/[0.02] backdrop-blur-sm border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300"
               >
                 <div
@@ -158,7 +156,7 @@ const EmployerLogin = () => {
 
           <div className="flex items-center justify-between p-6 bg-white/[0.02] border border-white/5 rounded-2xl">
             {stats.map((stat) => (
-              <div key={stat.id} className="text-center">
+              <div key={stat.label} className="text-center">
                 <p className="text-2xl font-bold text-white">{stat.value}</p>
                 <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
                   {stat.label}
