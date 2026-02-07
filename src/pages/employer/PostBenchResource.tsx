@@ -466,9 +466,9 @@ const PostBenchResource = () => {
                       Hourly Rate (Client Billable)
                     </Label>
                     <div className="relative">
-                      +{" "}
+                      {" "}
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
-                        + {currencySymbols[formData.currency] ?? "$"}+{" "}
+                        {currencySymbols[formData.currency] ?? "$"}{" "}
                       </span>
                       <Input
                         type="number"
