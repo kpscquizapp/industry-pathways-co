@@ -17,7 +17,6 @@ import {
 import {
   Upload,
   FileText,
-  CheckCircle2,
   Lightbulb,
   X,
   User,
@@ -25,7 +24,6 @@ import {
   AlertCircle,
   ArrowRight,
   DollarSign,
-  Building2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useExtractResumeMutation } from "@/app/queries/atsApi";

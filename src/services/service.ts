@@ -13,7 +13,15 @@ export const config = {
 export function authHeader() {
   // const userInfo = localStorage.getItem('userInfo');
   const userInfo = Cookies.get("userInfo");
-  const token = userInfo ? JSON.parse(userInfo).token : null;
+  let token: string | null = null;
+  if (userInfo) {
+    try {
+      token = JSON.parse(userInfo).token ?? null;
+    } catch {
+      // Malformed cookie — treat as unauthenticated
+      token = null;
+    }
+  }
 
   if (token) {
     return "Bearer " + token;

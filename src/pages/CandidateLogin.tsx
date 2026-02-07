@@ -135,9 +135,9 @@ const CandidateLogin = () => {
 
         <div className="relative z-10 space-y-6">
           <div className="grid gap-4">
-            {features.map((feature, index) => (
+            {features.map((feature) => (
               <div
-                key={index}
+                key={feature.title}
                 className="group flex items-start gap-4 p-5 bg-white/[0.02] backdrop-blur-sm border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300"
               >
                 <div

@@ -144,19 +144,19 @@ const LandingFooter = () => {
           {/* Social links */}
           <div className="flex items-center gap-4">
             <a
-              href="#"
+              // href="#"
               className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
             >
               <Linkedin className="w-4 h-4 text-white/60" />
             </a>
             <a
-              href="#"
+              // href="#"
               className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
             >
               <Twitter className="w-4 h-4 text-white/60" />
             </a>
             <a
-              href="#"
+              // href="#"
               className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
             >
               <Github className="w-4 h-4 text-white/60" />

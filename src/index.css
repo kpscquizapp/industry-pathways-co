@@ -107,6 +107,7 @@
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;
+    scrollbar-gutter: stable;
   }
   
   body {
@@ -120,9 +121,6 @@
 
 
 /* Prevent Radix scroll lock without forcing scrollbars */
-html {
-  scrollbar-gutter: stable; /* Add this rule */
-}
 
 /* Hide focus guards */
 [data-radix-focus-guard] {
