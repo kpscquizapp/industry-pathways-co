@@ -41,8 +41,12 @@ const LandingHeader = () => {
   const headerBg = isSolidHeader
     ? "bg-white/55 backdrop-blur-md border-b border-black/10 shadow-lg dark:bg-[hsl(222,47%,11%)]/[1] dark:border-white/10"
     : "bg-transparent";
-  const textColor = isSolidHeader ? "text-slate-900 dark:text-white" : "text-white";
-  const ghostHoverBg = isSolidHeader ? "hover:bg-slate-900/10 dark:hover:bg-white/10" : "hover:bg-white/10";
+  const textColor = isSolidHeader
+    ? "text-slate-900 dark:text-white"
+    : "text-white";
+  const ghostHoverBg = isSolidHeader
+    ? "hover:bg-slate-900/10 dark:hover:bg-white/10"
+    : "hover:bg-white/10";
 
   const handleRoleBasedNavigation = (role: string) => {
     if (!role) return;
