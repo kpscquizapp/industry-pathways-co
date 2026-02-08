@@ -482,7 +482,9 @@ const CandidateProfileUpdate = ({
       const hasMatch = errorKeysToCheck.some((key) => prev[key]);
       if (!hasMatch) return prev;
       const newErrors = { ...prev };
-      errorKeysToCheck.forEach((key) => delete newErrors[key]);
+      errorKeysToCheck.forEach((key) => {
+        delete newErrors[key];
+      });
       return newErrors;
     });
 
@@ -829,6 +831,21 @@ const CandidateProfileUpdate = ({
   };
 
   const updateCertification = (index: number, field: string, value: any) => {
+    const errorKeyMap: Record<string, string> = {
+      name: "name",
+      issuedBy: "issuer",
+      issueDate: "issueDate",
+      credentialUrl: "url",
+    };
+    const errorKey = `cert_${index}_${errorKeyMap[field] ?? field}`;
+    if (fieldErrors[errorKey]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[errorKey];
+        return newErrors;
+      });
+    }
+
     setFormData((prev) => ({
       ...prev,
       certifications: prev.certifications.map((cert, i) =>

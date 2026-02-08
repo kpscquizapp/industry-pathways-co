@@ -410,9 +410,7 @@ const CandidateSignup = () => {
 
       // Handle specific error cases
       const err = error as { data?: { message?: string }; status?: number };
-      if (err?.data?.message) {
-        toast.error(err.data.message);
-      } else if (err?.status === 409) {
+      if (err?.status === 409) {
         toast.error(
           "An account with this email already exists. Please login instead.",
         );
@@ -420,6 +418,8 @@ const CandidateSignup = () => {
         toast.error(
           "Invalid registration data. Please check your inputs and try again.",
         );
+      } else if (err?.data?.message) {
+        toast.error(err.data.message);
       } else {
         toast.error(
           "Registration failed. Please try again or contact support if the issue persists.",
