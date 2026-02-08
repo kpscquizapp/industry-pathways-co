@@ -19,13 +19,8 @@ import { useLoginCandidateMutation } from "@/app/queries/loginApi";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/app/slices/userAuth";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
-import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
-
-// ==================== TYPE GUARDS ====================
-function isFetchBaseQueryError(error: unknown): error is FetchBaseQueryError {
-  return typeof error === "object" && error != null && "data" in error;
-}
+import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 
 // ==================== VALIDATION ====================
 const VALIDATION = {
@@ -208,13 +203,14 @@ const CandidateLogin = () => {
       toast.error(errorMessage);
 
       // Mark credential fields with errors for auth failures
-      if (
-        isFetchBaseQueryError(error) &&
-        (error.status === 401 || error.status === 404)
-      ) {
+      if (isFetchBaseQueryError(error) && error.status === 401) {
         setFieldErrors({
           email: CREDENTIAL_ERROR_MSG,
           password: CREDENTIAL_ERROR_MSG,
+        });
+      } else if (isFetchBaseQueryError(error) && error.status === 404) {
+        setFieldErrors({
+          email: "No account found with this email",
         });
       }
     }

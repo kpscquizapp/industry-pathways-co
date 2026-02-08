@@ -419,7 +419,33 @@ const CandidateProfileUpdate = ({
 
   useEffect(() => {
     if (!data) return;
-    setFormData(handleForm());
+    setFormData({
+      firstName: data?.firstName || "",
+      lastName: data?.lastName || "",
+      email: data?.email || "",
+      location: data?.candidateProfile.location || "",
+      availability: data?.candidateProfile.availability || "",
+      bio: data?.candidateProfile.bio || "",
+      yearsExperience: data?.candidateProfile.yearsExperience ?? "",
+      primarySkills: primarySkills || [],
+      headline: data?.candidateProfile.headline || "",
+      resourceType: data?.candidateProfile.resourceType || "",
+      availableIn: data?.candidateProfile.availableIn || "",
+      englishProficiency: data?.candidateProfile.englishProficiency || "",
+      hourlyRateMin:
+        data?.candidateProfile.hourlyRateMin == null ||
+        data?.candidateProfile.hourlyRateMin === ""
+          ? ""
+          : Number(data?.candidateProfile.hourlyRateMin),
+      hourlyRateMax:
+        data?.candidateProfile.hourlyRateMax == null ||
+        data?.candidateProfile.hourlyRateMax === ""
+          ? ""
+          : Number(data?.candidateProfile.hourlyRateMax),
+      workExperiences: workExperiences || [],
+      projects: projects || [],
+      certifications: certification || [],
+    });
   }, [data, primarySkills, workExperiences, projects, certification]);
 
   const availabilityOptions = [
@@ -982,12 +1008,14 @@ const CandidateProfileUpdate = ({
           errors[`cert_${index}_issuer`] = "Issuer is required";
         if (!cert.issueDate)
           errors[`cert_${index}_issueDate`] = "Issue date is required";
-        else if (cert.expiryDate) {
-          const issue = new Date(cert.issueDate);
-          const expiry = new Date(cert.expiryDate);
-          if (expiry < issue) {
-            errors[`cert_${index}_expiryDate`] =
-              "Expiry date cannot be before issue date";
+        else {
+          const dateError = VALIDATION.date.validate(
+            cert.issueDate,
+            cert.expiryDate ?? null,
+            "certification",
+          );
+          if (dateError) {
+            errors[`cert_${index}_expiryDate`] = dateError;
           }
         }
         if (cert.credentialUrl) {
@@ -1904,6 +1932,7 @@ const CandidateProfileUpdate = ({
       {/* Submit Button */}
       <div className="flex gap-4 pt-4 ">
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={isUpdating}
           className="flex-1 items-center gap-2 px-4 py-2  bg-primary text-white rounded-md hover:bg-primary/90 transition text-base disabled:opacity-50 disabled:cursor-not-allowed"

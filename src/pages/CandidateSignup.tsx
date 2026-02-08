@@ -16,12 +16,9 @@ import {
   Rocket,
   Target,
   DollarSign,
-  Calendar,
   ChevronRight,
   ChevronLeft,
   X,
-  Check,
-  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateCandidateMutation } from "@/app/queries/loginApi";
@@ -37,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
+import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 
 // ==================== VALIDATION PATTERNS ====================
 const VALIDATION = {
@@ -117,7 +115,6 @@ const VALIDATION = {
         return "Years of experience is required";
       if (!Number.isInteger(years))
         return "Years of experience must be a whole number";
-      if (isNaN(years)) return "Please enter valid years of experience";
       if (years < 0) return "Years of experience cannot be negative";
       if (years > 70) return "Years of experience must be less than 70";
       return null;
@@ -409,17 +406,21 @@ const CandidateSignup = () => {
       console.error("Registration error:", error);
 
       // Handle specific error cases
-      const err = error as { data?: { message?: string }; status?: number };
-      if (err?.status === 409) {
+      if (isFetchBaseQueryError(error) && error.status === 409) {
         toast.error(
           "An account with this email already exists. Please login instead.",
         );
-      } else if (err?.status === 400) {
+      } else if (isFetchBaseQueryError(error) && error.status === 400) {
         toast.error(
           "Invalid registration data. Please check your inputs and try again.",
         );
-      } else if (err?.data?.message) {
-        toast.error(err.data.message);
+      } else if (
+        isFetchBaseQueryError(error) &&
+        typeof error.data === "object" &&
+        error.data !== null &&
+        "message" in error.data
+      ) {
+        toast.error((error.data as { message: string }).message);
       } else {
         toast.error(
           "Registration failed. Please try again or contact support if the issue persists.",
