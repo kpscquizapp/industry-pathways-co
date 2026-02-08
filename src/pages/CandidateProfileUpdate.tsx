@@ -1893,7 +1893,11 @@ const CandidateProfileUpdate = ({
                       e.target.value || null,
                     )
                   }
-                  className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white"
+                  className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                    fieldErrors[`cert_${index}_expiryDate`]
+                      ? "border-red-500"
+                      : ""
+                  }`}
                 />
                 <ErrorMessage error={fieldErrors[`cert_${index}_expiryDate`]} />
               </div>
