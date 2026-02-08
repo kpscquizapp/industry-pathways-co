@@ -36,9 +36,8 @@ const LandingHeader = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isHomePage = location.pathname === "/";
   const headerBg = isScrolled
-    ? "bg-[hsl(222,47%,11%)]/98 backdrop-blur-xl border-b border-white/10 shadow-lg"
+    ? "bg-navy-900/80 backdrop-blur-xl border-b border-white/10 shadow-lg"
     : "bg-transparent";
   const textColor = "text-white";
 

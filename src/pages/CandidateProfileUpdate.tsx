@@ -978,7 +978,14 @@ const CandidateProfileUpdate = ({
           errors[`cert_${index}_issuer`] = "Issuer is required";
         if (!cert.issueDate)
           errors[`cert_${index}_issueDate`] = "Issue date is required";
-
+        else if (cert.expiryDate) {
+          const issue = new Date(cert.issueDate);
+          const expiry = new Date(cert.expiryDate);
+          if (expiry < issue) {
+            errors[`cert_${index}_expiryDate`] =
+              "Expiry date cannot be before issue date";
+          }
+        }
         if (cert.credentialUrl) {
           const urlError = VALIDATION.url.validate(cert.credentialUrl);
           if (urlError) errors[`cert_${index}_url`] = urlError;
