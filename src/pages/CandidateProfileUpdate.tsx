@@ -1,11 +1,4 @@
-import {
-  ChangeEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
   X,
   Plus,
@@ -567,29 +560,17 @@ const CandidateProfileUpdate = ({
     ) {
       // Not persisted yet — animate local removal with spinner for a short moment
       const localName = skillToRemove;
-      const isMountedRef = useRef(true);
 
       setRemovingSkillId(localName);
-
-      useEffect(() => {
-        const timeoutId = setTimeout(() => {
-          if (isMountedRef.current) {
-            setFormData((prev) => ({
-              ...prev,
-              primarySkills: prev.primarySkills.filter(
-                (s) => s.toLowerCase() !== localName.toLowerCase(),
-              ),
-            }));
-            setRemovingSkillId(null);
-          }
-        }, 180);
-
-        return () => {
-          isMountedRef.current = false;
-          clearTimeout(timeoutId);
-        };
-      }, [isMountedRef, localName, setFormData, setRemovingSkillId]);
-
+      setTimeout(() => {
+        setFormData((prev) => ({
+          ...prev,
+          primarySkills: prev.primarySkills.filter(
+            (s) => s.toLowerCase() !== localName.toLowerCase(),
+          ),
+        }));
+        setRemovingSkillId(null);
+      }, 180);
       return;
     }
 
@@ -690,28 +671,16 @@ const CandidateProfileUpdate = ({
         }));
       }
 
-      const isMountedRef = useRef(true);
-
       setRemovingWorkExperienceId(localKey);
-
-      useEffect(() => {
-        const timeoutId = setTimeout(() => {
-          if (isMountedRef.current) {
-            setFormData((prev) => ({
-              ...prev,
-              workExperiences: prev.workExperiences.filter(
-                (we) => we.id != null || we.localId !== localKey,
-              ),
-            }));
-            setRemovingWorkExperienceId(null);
-          }
-        }, 180);
-
-        return () => {
-          isMountedRef.current = false;
-          clearTimeout(timeoutId);
-        };
-      }, [isMountedRef, localKey, setFormData, setRemovingWorkExperienceId]);
+      setTimeout(() => {
+        setFormData((prev) => ({
+          ...prev,
+          workExperiences: prev.workExperiences.filter(
+            (we) => we.id != null || we.localId !== localKey,
+          ),
+        }));
+        setRemovingWorkExperienceId(null);
+      }, 180);
       return;
     }
 
@@ -802,28 +771,16 @@ const CandidateProfileUpdate = ({
         }));
       }
 
-      const isMountedRef = useRef(true);
       setRemovingProjectId(localKey);
-
-      useEffect(() => {
-        const timeoutId = setTimeout(() => {
-          if (isMountedRef.current) {
-            setFormData((prev) => ({
-              ...prev,
-              projects: prev.projects.filter(
-                (p) => p.id != null || p.localId !== localKey,
-              ),
-            }));
-            setRemovingProjectId(null);
-          }
-        }, 180);
-
-        return () => {
-          isMountedRef.current = false;
-          clearTimeout(timeoutId);
-        };
-      }, [isMountedRef, localKey, setFormData, setRemovingWorkExperienceId]);
-
+      setTimeout(() => {
+        setFormData((prev) => ({
+          ...prev,
+          projects: prev.projects.filter(
+            (p) => p.id != null || p.localId !== localKey,
+          ),
+        }));
+        setRemovingProjectId(null);
+      }, 180);
       return;
     }
 
@@ -920,28 +877,16 @@ const CandidateProfileUpdate = ({
         }));
       }
 
-      const isMountedRef = useRef(true);
       setRemovingCertificateId(localKey);
-
-      useEffect(() => {
-        const timeoutId = setTimeout(() => {
-          if (isMountedRef.current) {
-            setFormData((prev) => ({
-              ...prev,
-              certifications: prev.certifications.filter(
-                (c) => c.id != null || c.localId !== localKey,
-              ),
-            }));
-            setRemovingCertificateId(null);
-          }
-        }, 180);
-
-        return () => {
-          isMountedRef.current = false;
-          clearTimeout(timeoutId);
-        };
-      }, [isMountedRef, localKey, setFormData, setRemovingCertificateId]);
-
+      setTimeout(() => {
+        setFormData((prev) => ({
+          ...prev,
+          certifications: prev.certifications.filter(
+            (c) => c.id != null || c.localId !== localKey,
+          ),
+        }));
+        setRemovingCertificateId(null);
+      }, 180);
       return;
     }
 
