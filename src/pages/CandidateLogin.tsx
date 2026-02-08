@@ -112,6 +112,9 @@ const CandidateLogin = () => {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
+    // Always mark all fields as touched on submit attempt
+    setTouched({ email: true, password: true });
+
     const emailError = VALIDATION.email.validate(formData.email);
     if (emailError) errors.email = emailError;
 
@@ -120,7 +123,6 @@ const CandidateLogin = () => {
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      setTouched({ email: true, password: true });
 
       // Show the first error in a toast
       const firstError = Object.values(errors)[0];
@@ -443,29 +445,6 @@ const CandidateLogin = () => {
                       Create Contractor Account
                     </Link>
                   </p>
-
-                  <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-slate-500">
-                    <Link
-                      to="/help"
-                      className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                    >
-                      Need Help?
-                    </Link>
-                    <span>•</span>
-                    <Link
-                      to="/terms"
-                      className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                    >
-                      Terms
-                    </Link>
-                    <span>•</span>
-                    <Link
-                      to="/privacy"
-                      className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                    >
-                      Privacy
-                    </Link>
-                  </div>
                 </div>
               </div>
             </div>

@@ -301,7 +301,7 @@ const CandidateProfileUpdate = ({
     string | number | null
   >(null);
 
-  const skills = useMemo(
+  const primarySkills = useMemo(
     () =>
       data?.candidateProfile?.primarySkills?.map((skill) =>
         typeof skill === "string" ? skill : skill.name,
@@ -393,7 +393,7 @@ const CandidateProfileUpdate = ({
     availability: data?.candidateProfile.availability || "",
     bio: data?.candidateProfile.bio || "",
     yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-    primarySkills: skills || [],
+    primarySkills: primarySkills || [],
     headline: data?.candidateProfile.headline || "",
     resourceType: data?.candidateProfile.resourceType || "",
     availableIn: data?.candidateProfile.availableIn || "",
@@ -423,7 +423,7 @@ const CandidateProfileUpdate = ({
       availability: data?.candidateProfile.availability || "",
       bio: data?.candidateProfile.bio || "",
       yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-      primarySkills: skills || [],
+      primarySkills: primarySkills || [],
       headline: data?.candidateProfile.headline || "",
       resourceType: data?.candidateProfile.resourceType || "",
       availableIn: data?.candidateProfile.availableIn || "",
@@ -442,7 +442,7 @@ const CandidateProfileUpdate = ({
       projects: projects || [],
       certifications: certification || [],
     });
-  }, [data, skills, workExperiences, projects, certification]);
+  }, [data, primarySkills, workExperiences, projects, certification]);
 
   const availabilityOptions = [
     "freelance",
@@ -473,13 +473,18 @@ const CandidateProfileUpdate = ({
     const { name, value } = e.target;
 
     // Clear field error when user starts typing
-    if (fieldErrors[name]) {
-      setFieldErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
+    const errorKeysToCheck = [name];
+    // hourlyRate error is stored under a shared key
+    if (name === "hourlyRateMin" || name === "hourlyRateMax") {
+      errorKeysToCheck.push("hourlyRate");
     }
+    setFieldErrors((prev) => {
+      const hasMatch = errorKeysToCheck.some((key) => prev[key]);
+      if (!hasMatch) return prev;
+      const newErrors = { ...prev };
+      errorKeysToCheck.forEach((key) => delete newErrors[key]);
+      return newErrors;
+    });
 
     switch (name) {
       case "hourlyRateMin":
@@ -726,6 +731,19 @@ const CandidateProfileUpdate = ({
   };
 
   const updateProject = (index: number, field: string, value: any) => {
+    const errorKeyMap: Record<string, string> = {
+      title: "title",
+      description: "description",
+      projectUrl: "url",
+    };
+    const errorKey = `project_${index}_${errorKeyMap[field] ?? field}`;
+    if (fieldErrors[errorKey]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[errorKey];
+        return newErrors;
+      });
+    }
     setFormData((prev) => ({
       ...prev,
       projects: prev.projects.map((proj, i) =>
@@ -1049,7 +1067,15 @@ const CandidateProfileUpdate = ({
       setFieldErrors({}); // Clear all errors on success
     } catch (err: unknown) {
       console.error("Profile update error:", err);
-      const errorMessage = "Failed to update profile. Please try again.";
+      const error = err as {
+        data?: { message?: string };
+        status?: number;
+        message?: string;
+      };
+      const errorMessage =
+        error?.data?.message ||
+        error?.message ||
+        "Failed to update profile. Please try again.";
       toast.error(errorMessage);
     }
   };
@@ -1913,7 +1939,7 @@ const CandidateProfileUpdate = ({
               availability: data?.candidateProfile.availability || "",
               bio: data?.candidateProfile.bio || "",
               yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-              primarySkills: skills || [],
+              primarySkills: primarySkills || [],
               headline: data?.candidateProfile.headline || "",
               resourceType: data?.candidateProfile.resourceType || "",
               availableIn: data?.candidateProfile.availableIn || "",

@@ -134,8 +134,6 @@ const VALIDATION = {
       if (min > 10000000 || max > 10000000)
         return "Salary exceeds reasonable limit ($10,000,000)";
       if (min > max) return "Minimum salary cannot exceed maximum salary";
-      if (min === max)
-        return "Minimum and maximum salary should be different to show a range";
       return null;
     },
   },
@@ -181,6 +179,18 @@ const CandidateSignup = () => {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
+        return newErrors;
+      });
+    }
+
+    // Clear shared salary error key when editing either salary field
+    if (
+      (name === "expectedSalaryMin" || name === "expectedSalaryMax") &&
+      fieldErrors.expectedSalary
+    ) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.expectedSalary;
         return newErrors;
       });
     }
