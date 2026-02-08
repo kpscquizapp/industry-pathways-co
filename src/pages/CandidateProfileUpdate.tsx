@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
   X,
   Plus,
@@ -388,7 +388,7 @@ const CandidateProfileUpdate = ({
     [data],
   );
 
-  const handleForm = (): FormDataState => {
+  const handleForm = useCallback((): FormDataState => {
     return {
       firstName: data?.firstName || "",
       lastName: data?.lastName || "",
@@ -416,7 +416,7 @@ const CandidateProfileUpdate = ({
       projects: projects || [],
       certifications: certification || [],
     };
-  };
+  }, [data, primarySkills, workExperiences, projects, certification]);
 
   const [formData, setFormData] = useState<FormDataState>(handleForm);
 
@@ -1889,6 +1889,7 @@ const CandidateProfileUpdate = ({
                   }
                   className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white"
                 />
+                <ErrorMessage error={fieldErrors[`cert_${index}_expiryDate`]} />
               </div>
             </div>
 
@@ -1904,7 +1905,7 @@ const CandidateProfileUpdate = ({
                   fieldErrors[`cert_${index}_url`] ? "border-red-500" : ""
                 }`}
               />
-              <ErrorMessage error={fieldErrors[`cert_${index}_expiryDate`]} />
+              <ErrorMessage error={fieldErrors[`cert_${index}_url`]} />
             </div>
           </div>
         ))}
