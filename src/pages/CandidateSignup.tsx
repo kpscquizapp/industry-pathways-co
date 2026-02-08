@@ -16,11 +16,9 @@ import {
   Rocket,
   Target,
   DollarSign,
-  Calendar,
   ChevronRight,
   ChevronLeft,
   X,
-  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateCandidateMutation } from "@/app/queries/loginApi";
@@ -35,7 +33,112 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
+import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 
+// ==================== VALIDATION PATTERNS ====================
+const VALIDATION = {
+  email: {
+    regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    maxLength: 254,
+    validate: (email: string) => {
+      if (!email) return "Email is required";
+      if (email.length > 254) return "Email must be less than 254 characters";
+      if (!VALIDATION.email.regex.test(email))
+        return "Please enter a valid email address (e.g., name@company.com)";
+      return null;
+    },
+  },
+  password: {
+    minLength: 8,
+    maxLength: 128,
+    regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/,
+    validate: (password: string) => {
+      if (!password) return "Password is required";
+      if (password.length < 8)
+        return "Password must be at least 8 characters long";
+      if (password.length > 128)
+        return "Password must be less than 128 characters";
+      if (!/[a-z]/.test(password))
+        return "Password must contain at least one lowercase letter";
+      if (!/[A-Z]/.test(password))
+        return "Password must contain at least one uppercase letter";
+      if (!/\d/.test(password))
+        return "Password must contain at least one number";
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(password))
+        return "Password must contain at least one special character";
+      return null;
+    },
+  },
+  phone: {
+    regex: /^\+?[1-9]\d{6,14}$/,
+    validate: (phone: string) => {
+      if (!phone) return "Mobile number is required";
+      const cleaned = phone.replace(/[\s\-()]/g, "");
+      if (!VALIDATION.phone.regex.test(cleaned)) {
+        return "Please enter a valid mobile number (e.g., +14155551234 or +919876543210)";
+      }
+      return null;
+    },
+  },
+  name: {
+    minLength: 1,
+    maxLength: 50,
+    regex: /^[\p{L}\s\-']+$/u,
+    validate: (name: string, fieldName: string) => {
+      if (!name || !name.trim()) return `${fieldName} is required`;
+      if (name.trim().length > 50)
+        return `${fieldName} must be less than 50 characters`;
+      if (!VALIDATION.name.regex.test(name)) {
+        return `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`;
+      }
+      return null;
+    },
+  },
+  skills: {
+    minCount: 1,
+    maxCount: 20,
+    maxLength: 50,
+    validate: (skills: string[]) => {
+      if (skills.length === 0) return "Please add at least one skill";
+      if (skills.length > 20) return "You can add a maximum of 20 skills";
+      const invalidSkill = skills.find((s) => s.length > 50);
+      if (invalidSkill) return "Each skill must be less than 50 characters";
+      return null;
+    },
+  },
+  experience: {
+    min: 0,
+    max: 70,
+    validate: (years: number | null) => {
+      if (years === null || years === undefined)
+        return "Years of experience is required";
+      if (!Number.isInteger(years))
+        return "Years of experience must be a whole number";
+      if (years < 0) return "Years of experience cannot be negative";
+      if (years > 70) return "Years of experience must be less than 70";
+      return null;
+    },
+  },
+  salary: {
+    min: 0,
+    max: 10000000,
+    validate: (min: number | null, max: number | null) => {
+      if (min === null || min === undefined)
+        return "Minimum salary is required";
+      if (max === null || max === undefined)
+        return "Maximum salary is required";
+      if (isNaN(min) || isNaN(max)) return "Please enter valid salary amounts";
+      if (min < 0 || max < 0) return "Salary cannot be negative";
+      if (min > 10000000 || max > 10000000)
+        return "Salary exceeds reasonable limit ($10,000,000)";
+      if (min > max) return "Minimum salary cannot exceed maximum salary";
+      return null;
+    },
+  },
+};
+
+// ==================== COMPONENT ====================
 const CandidateSignup = () => {
   const navigate = useNavigate();
   const [createCandidate, { isLoading }] = useCreateCandidateMutation();
@@ -50,25 +153,47 @@ const CandidateSignup = () => {
     mobileNumber: "",
     candidateType: "Full-Time Job Seeker",
     primaryJobRole: "",
-    yearsExperience: null,
-    expectedSalaryMin: null,
-    expectedSalaryMax: null,
+    yearsExperience: null as number | null,
+    expectedSalaryMin: null as number | null,
+    expectedSalaryMax: null as number | null,
     availableToJoin: "Immediate",
     password: "",
-    confirmPassword: "",
   });
 
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [primarySkills, setPrimarySkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
-  const [preferredWorkType, setPreferredWorkType] = useState<string[]>([
-    "remote",
-    "hybrid",
-  ]);
+  const [preferredWorkType, setPreferredWorkType] = useState<string[]>([]); // FIXED: Empty array initially
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedPrivacyPolicy, setAcceptedPrivacyPolicy] = useState(false);
 
+  // Field-level errors for better UX
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
+
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+
+    // Clear shared salary error key when editing either salary field
+    if (
+      (name === "expectedSalaryMin" || name === "expectedSalaryMax") &&
+      fieldErrors.expectedSalary
+    ) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.expectedSalary;
+        return newErrors;
+      });
+    }
+
     setFormData({
       ...formData,
       [name]: type === "number" ? (value === "" ? null : Number(value)) : value,
@@ -78,10 +203,40 @@ const CandidateSignup = () => {
   const addSkill = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && skillInput.trim()) {
       e.preventDefault();
-      if (!primarySkills.includes(skillInput.trim())) {
-        setPrimarySkills([...primarySkills, skillInput.trim()]);
+
+      const trimmedSkill = skillInput.trim();
+
+      // Validation checks
+      if (trimmedSkill.length > 50) {
+        toast.error("Skill name must be less than 50 characters");
+        return;
       }
+
+      if (primarySkills.length >= 20) {
+        toast.error("You can add a maximum of 20 skills");
+        return;
+      }
+
+      if (
+        primarySkills.some(
+          (s) => s.toLowerCase() === trimmedSkill.toLowerCase(),
+        )
+      ) {
+        toast.error("This skill has already been added");
+        return;
+      }
+
+      setPrimarySkills([...primarySkills, trimmedSkill]);
       setSkillInput("");
+
+      // Clear skills error if it exists
+      if (fieldErrors.primarySkills) {
+        setFieldErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.primarySkills;
+          return newErrors;
+        });
+      }
     }
   };
 
@@ -95,34 +250,112 @@ const CandidateSignup = () => {
     } else {
       setPreferredWorkType([...preferredWorkType, type]);
     }
+
+    // Clear work type error
+    if (fieldErrors.preferredWorkType) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.preferredWorkType;
+        return newErrors;
+      });
+    }
   };
 
-  const validateStep = () => {
+  const validateStep = (): boolean => {
+    const errors: Record<string, string> = {};
+
     if (currentStep === 1) {
-      if (
-        !formData.firstName ||
-        !formData.lastName ||
-        !formData.email ||
-        !formData.mobileNumber ||
-        !formData.password
-      ) {
-        toast.error("Please fill in all required fields");
-        return false;
-      }
-      if (formData.password.length < 8) {
-        toast.error("Password must be at least 8 characters");
-        return false;
-      }
-      if (formData.password !== formData.confirmPassword) {
-        toast.error("Passwords do not match");
-        return false;
+      // Validate first name
+      const firstNameError = VALIDATION.name.validate(
+        formData.firstName,
+        "First name",
+      );
+      if (firstNameError) errors.firstName = firstNameError;
+
+      // Validate last name
+      const lastNameError = VALIDATION.name.validate(
+        formData.lastName,
+        "Last name",
+      );
+      if (lastNameError) errors.lastName = lastNameError;
+
+      // Validate email
+      const emailError = VALIDATION.email.validate(formData.email);
+      if (emailError) errors.email = emailError;
+
+      // Validate phone
+      const phoneError = VALIDATION.phone.validate(formData.mobileNumber);
+      if (phoneError) errors.mobileNumber = phoneError;
+
+      // Validate password
+      const passwordError = VALIDATION.password.validate(formData.password);
+      if (passwordError) errors.password = passwordError;
+
+      // Validate password match
+      if (!confirmPassword) {
+        errors.confirmPassword = "Please confirm your password";
+      } else if (formData.password !== confirmPassword) {
+        errors.confirmPassword = "Passwords do not match";
       }
     } else if (currentStep === 2) {
-      if (!formData.primaryJobRole || primarySkills.length === 0) {
-        toast.error("Please provide your job role and at least one skill");
-        return false;
+      // Validate job role
+      if (!formData.primaryJobRole || !formData.primaryJobRole.trim()) {
+        errors.primaryJobRole = "Primary job role is required";
+      } else if (formData.primaryJobRole.length > 100) {
+        errors.primaryJobRole = "Job role must be less than 100 characters";
+      }
+
+      // Validate experience
+      const experienceError = VALIDATION.experience.validate(
+        formData.yearsExperience,
+      );
+      if (experienceError) errors.yearsExperience = experienceError;
+
+      // Validate skills
+      const skillsError = VALIDATION.skills.validate(primarySkills);
+      if (skillsError) errors.primarySkills = skillsError;
+    } else if (currentStep === 3) {
+      // Validate salary
+      const salaryError = VALIDATION.salary.validate(
+        formData.expectedSalaryMin,
+        formData.expectedSalaryMax,
+      );
+      if (salaryError) errors.expectedSalary = salaryError;
+
+      // Validate work type
+      if (preferredWorkType.length === 0) {
+        errors.preferredWorkType =
+          "Please select at least one preferred work type";
+      }
+
+      // Validate availability
+      if (!formData.availableToJoin) {
+        errors.availableToJoin = "Please select your availability";
+      }
+
+      // Validate terms
+      if (!acceptedTerms) {
+        errors.acceptedTerms =
+          "You must accept the Terms of Service to continue";
+      }
+
+      if (!acceptedPrivacyPolicy) {
+        errors.acceptedPrivacyPolicy =
+          "You must accept the Privacy Policy to continue";
       }
     }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+
+      // Show the first error in a toast
+      const firstError = Object.values(errors)[0];
+      toast.error(firstError);
+
+      return false;
+    }
+
+    setFieldErrors({});
     return true;
   };
 
@@ -134,6 +367,7 @@ const CandidateSignup = () => {
 
   const prevStep = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
+    setFieldErrors({}); // Clear errors when going back
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -144,13 +378,18 @@ const CandidateSignup = () => {
       return;
     }
 
-    if (!acceptedTerms || !acceptedPrivacyPolicy) {
-      toast.error("Please accept the terms and privacy policy");
+    if (!validateStep()) {
       return;
     }
 
     const payload = {
       ...formData,
+      // Sanitize data before sending
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      email: formData.email.toLowerCase().trim(),
+      mobileNumber: formData.mobileNumber.replace(/[\s\-()]/g, ""), // Clean phone number
+      primaryJobRole: formData.primaryJobRole.trim(),
       primarySkills,
       preferredWorkType,
       acceptedTerms,
@@ -159,12 +398,39 @@ const CandidateSignup = () => {
 
     try {
       await createCandidate(payload).unwrap();
-      toast.success("Registration successful! Please login to continue.");
-      navigate("/candidate-login");
-    } catch (error: any) {
-      toast.error(
-        error?.data?.message || "Registration failed. Please try again.",
+      toast.success(
+        "Registration successful! Please check your email to verify your account.",
       );
+      navigate("/candidate-login");
+    } catch (error: unknown) {
+      console.error("Registration error:", error);
+
+      // Handle specific error cases
+      if (isFetchBaseQueryError(error)) {
+        if (error.status === 409) {
+          toast.error(
+            "An account with this email already exists. Please login instead.",
+          );
+        } else if (
+          typeof error.data === "object" &&
+          error.data !== null &&
+          "message" in error.data
+        ) {
+          toast.error((error.data as { message: string }).message);
+        } else if (error.status === 400) {
+          toast.error(
+            "Invalid registration data. Please check your inputs and try again.",
+          );
+        } else {
+          toast.error(
+            "Registration failed. Please try again or contact support if the issue persists.",
+          );
+        }
+      } else {
+        toast.error(
+          "Registration failed. Please try again or contact support if the issue persists.",
+        );
+      }
     }
   };
 
@@ -264,8 +530,7 @@ const CandidateSignup = () => {
       <div className="flex-1 flex flex-col bg-[#fafafa] dark:bg-[#030303] overflow-y-auto">
         <div className="flex-1 flex flex-col items-center justify-center py-12 px-6 lg:p-12 xl:p-16">
           <div className="w-full max-w-2xl">
-            {/* Progress Indicator */}
-
+            {/* Mobile Logo */}
             <div className="lg:hidden mb-12 flex flex-col items-center">
               <Link to="/" className="flex items-center gap-2 mb-6">
                 <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-xl shadow-primary/20">
@@ -304,65 +569,84 @@ const CandidateSignup = () => {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form onSubmit={handleSubmit} noValidate className="space-y-8">
+                  {/* STEP 1: Account Information */}
                   {currentStep === 1 && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                       <div className="grid md:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            First Name
+                            First Name *
                           </Label>
                           <div className="relative group">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                             <Input
                               name="firstName"
                               placeholder="John"
-                              className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                              maxLength={50}
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                                fieldErrors.firstName
+                                  ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                                  : ""
+                              }`}
                               value={formData.firstName}
                               onChange={handleInputChange}
                               required
                             />
                           </div>
+                          <ErrorMessage error={fieldErrors.firstName} />
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Last Name
+                            Last Name *
                           </Label>
                           <div className="relative group">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                             <Input
                               name="lastName"
                               placeholder="Doe"
-                              className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                              maxLength={50}
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                                fieldErrors.lastName
+                                  ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                                  : ""
+                              }`}
                               value={formData.lastName}
                               onChange={handleInputChange}
                               required
                             />
                           </div>
+                          <ErrorMessage error={fieldErrors.lastName} />
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Work Email
+                          Work Email *
                         </Label>
                         <div className="relative group">
                           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                           <Input
                             name="email"
                             type="email"
+                            maxLength={254}
                             placeholder="john@example.com"
-                            className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                              fieldErrors.email
+                                ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                                : ""
+                            }`}
                             value={formData.email}
                             onChange={handleInputChange}
                             required
                           />
                         </div>
+                        <ErrorMessage error={fieldErrors.email} />
                       </div>
 
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Mobile Number
+                          Mobile Number *
                         </Label>
                         <div className="relative group">
                           <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -370,18 +654,23 @@ const CandidateSignup = () => {
                             name="mobileNumber"
                             type="tel"
                             placeholder="+1 (555) 000-1234"
-                            className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                              fieldErrors.mobileNumber
+                                ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                                : ""
+                            }`}
                             value={formData.mobileNumber}
                             onChange={handleInputChange}
                             required
                           />
                         </div>
+                        <ErrorMessage error={fieldErrors.mobileNumber} />
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Password
+                            Password *
                           </Label>
                           <div className="relative group">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -389,16 +678,22 @@ const CandidateSignup = () => {
                               name="password"
                               type="password"
                               placeholder="••••••••"
-                              className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                              maxLength={128}
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                                fieldErrors.password
+                                  ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                                  : ""
+                              }`}
                               value={formData.password}
                               onChange={handleInputChange}
                               required
                             />
                           </div>
+                          <ErrorMessage error={fieldErrors.password} />
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Confirm
+                            Confirm Password *
                           </Label>
                           <div className="relative group">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -406,17 +701,33 @@ const CandidateSignup = () => {
                               name="confirmPassword"
                               type="password"
                               placeholder="••••••••"
-                              className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
-                              value={formData.confirmPassword}
-                              onChange={handleInputChange}
+                              maxLength={128}
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                                fieldErrors.confirmPassword
+                                  ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                                  : ""
+                              }`}
+                              value={confirmPassword}
+                              onChange={(e) => {
+                                setConfirmPassword(e.target.value);
+                                if (fieldErrors.confirmPassword) {
+                                  setFieldErrors((prev) => {
+                                    const newErrors = { ...prev };
+                                    delete newErrors.confirmPassword;
+                                    return newErrors;
+                                  });
+                                }
+                              }}
                               required
                             />
                           </div>
+                          <ErrorMessage error={fieldErrors.confirmPassword} />
                         </div>
                       </div>
                     </div>
                   )}
 
+                  {/* STEP 2: Professional Profile */}
                   {currentStep === 2 && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                       <div className="grid md:grid-cols-2 gap-5">
@@ -448,51 +759,68 @@ const CandidateSignup = () => {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Years of Experience
+                            Years of Experience *
                           </Label>
                           <div className="relative group">
                             <CheckCircle2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                             <Input
                               name="yearsExperience"
                               type="number"
-                              placeholder="E.g. 2"
+                              placeholder="E.g. 5"
                               min="0"
-                              className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                              max={70}
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                                fieldErrors.yearsExperience
+                                  ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                                  : ""
+                              }`}
                               value={formData.yearsExperience ?? ""}
                               onChange={handleInputChange}
                               required
                             />
                           </div>
+                          <ErrorMessage error={fieldErrors.yearsExperience} />
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Primary Job Role
+                          Primary Job Role *
                         </Label>
                         <div className="relative group">
                           <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                           <Input
                             name="primaryJobRole"
                             placeholder="e.g. Full Stack Developer, Data Scientist"
-                            className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                            maxLength={100}
+                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                              fieldErrors.primaryJobRole
+                                ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                                : ""
+                            }`}
                             value={formData.primaryJobRole}
                             onChange={handleInputChange}
                             required
                           />
                         </div>
+                        <ErrorMessage error={fieldErrors.primaryJobRole} />
                       </div>
 
                       <div className="space-y-3">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Primary Skills (Press Enter to add)
+                          Primary Skills * (Press Enter to add)
                         </Label>
                         <div className="relative group">
                           <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                           <Input
                             placeholder="Type skill and press Enter..."
-                            className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                              fieldErrors.primarySkills
+                                ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                                : ""
+                            }`}
                             value={skillInput}
+                            maxLength={50}
                             onChange={(e) => setSkillInput(e.target.value)}
                             onKeyDown={addSkill}
                           />
@@ -513,27 +841,42 @@ const CandidateSignup = () => {
                           ))}
                           {primarySkills.length === 0 && (
                             <p className="text-xs text-slate-400 italic">
-                              No skills added yet.
+                              No skills added yet. Add at least one skill to
+                              continue.
                             </p>
                           )}
                         </div>
+                        <ErrorMessage error={fieldErrors.primarySkills} />
+                        {primarySkills.length > 0 && (
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {primarySkills.length} / 20 skills added
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
 
+                  {/* STEP 3: Career Preferences */}
                   {currentStep === 3 && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                       <div className="grid md:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Exp. Salary (Min $)
+                            Min. Expected Salary ($) *
                           </Label>
                           <div className="relative group">
                             <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                             <Input
                               name="expectedSalaryMin"
                               type="number"
-                              className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                              placeholder="e.g. 80000"
+                              min="0"
+                              max="10000000"
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                                fieldErrors.expectedSalary
+                                  ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                                  : ""
+                              }`}
                               value={formData.expectedSalaryMin ?? ""}
                               onChange={handleInputChange}
                               required
@@ -542,14 +885,21 @@ const CandidateSignup = () => {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Exp. Salary (Max $)
+                            Max. Expected Salary ($) *
                           </Label>
                           <div className="relative group">
                             <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                             <Input
                               name="expectedSalaryMax"
                               type="number"
-                              className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                              placeholder="e.g. 120000"
+                              min="0"
+                              max="10000000"
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                                fieldErrors.expectedSalary
+                                  ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                                  : ""
+                              }`}
                               value={formData.expectedSalaryMax ?? ""}
                               onChange={handleInputChange}
                               required
@@ -557,10 +907,11 @@ const CandidateSignup = () => {
                           </div>
                         </div>
                       </div>
+                      <ErrorMessage error={fieldErrors.expectedSalary} />
 
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Availability to Join
+                          Availability to Join *
                         </Label>
                         <Select
                           value={formData.availableToJoin}
@@ -568,7 +919,7 @@ const CandidateSignup = () => {
                             setFormData({ ...formData, availableToJoin: val })
                           }
                         >
-                          <SelectTrigger className="h-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all duration-300 text-sm font-medium">
+                          <SelectTrigger className="h-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 text-sm font-medium">
                             <SelectValue placeholder="Select availability" />
                           </SelectTrigger>
                           <SelectContent className="bg-white dark:bg-[#0a0a0a] border-slate-200 dark:border-white/[0.08]">
@@ -580,11 +931,12 @@ const CandidateSignup = () => {
                             <SelectItem value="60 Days+">60 Days+</SelectItem>
                           </SelectContent>
                         </Select>
+                        <ErrorMessage error={fieldErrors.availableToJoin} />
                       </div>
 
                       <div className="space-y-4">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Preferred Work Type
+                          Preferred Work Type *
                         </Label>
                         <div className="flex flex-wrap gap-4 mt-2">
                           {["remote", "hybrid", "on-site"].map((type) => (
@@ -596,7 +948,11 @@ const CandidateSignup = () => {
                                 id={`type-${type}`}
                                 checked={preferredWorkType.includes(type)}
                                 onCheckedChange={() => toggleWorkType(type)}
-                                className="border-slate-300 dark:border-white/10"
+                                className={`border-slate-300 dark:border-white/10 ${
+                                  fieldErrors.preferredWorkType
+                                    ? "border-red-500"
+                                    : ""
+                                }`}
                               />
                               <label
                                 htmlFor={`type-${type}`}
@@ -607,6 +963,12 @@ const CandidateSignup = () => {
                             </div>
                           ))}
                         </div>
+                        <ErrorMessage error={fieldErrors.preferredWorkType} />
+                        {preferredWorkType.length > 0 && (
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            Selected: {preferredWorkType.join(", ")}
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-4 pt-6 mt-6 border-t border-slate-100 dark:border-white/[0.05]">
@@ -614,10 +976,19 @@ const CandidateSignup = () => {
                           <Checkbox
                             id="terms"
                             checked={acceptedTerms}
-                            onCheckedChange={(checked) =>
-                              setAcceptedTerms(!!checked)
-                            }
-                            className="mt-1 border-slate-300 dark:border-white/10"
+                            onCheckedChange={(checked) => {
+                              setAcceptedTerms(!!checked);
+                              if (fieldErrors.acceptedTerms) {
+                                setFieldErrors((prev) => {
+                                  const newErrors = { ...prev };
+                                  delete newErrors.acceptedTerms;
+                                  return newErrors;
+                                });
+                              }
+                            }}
+                            className={`mt-1 border-slate-300 dark:border-white/10 ${
+                              fieldErrors.acceptedTerms ? "border-red-500" : ""
+                            }`}
                           />
                           <label
                             htmlFor="terms"
@@ -630,18 +1001,30 @@ const CandidateSignup = () => {
                             >
                               Terms of Service
                             </Link>{" "}
-                            and agree to communications.
+                            and agree to communications. *
                           </label>
                         </div>
+                        <ErrorMessage error={fieldErrors.acceptedTerms} />
 
                         <div className="flex items-start space-x-3 group">
                           <Checkbox
                             id="privacy"
                             checked={acceptedPrivacyPolicy}
-                            onCheckedChange={(checked) =>
-                              setAcceptedPrivacyPolicy(!!checked)
-                            }
-                            className="mt-1 border-slate-300 dark:border-white/10"
+                            onCheckedChange={(checked) => {
+                              setAcceptedPrivacyPolicy(!!checked);
+                              if (fieldErrors.acceptedPrivacyPolicy) {
+                                setFieldErrors((prev) => {
+                                  const newErrors = { ...prev };
+                                  delete newErrors.acceptedPrivacyPolicy;
+                                  return newErrors;
+                                });
+                              }
+                            }}
+                            className={`mt-1 border-slate-300 dark:border-white/10 ${
+                              fieldErrors.acceptedPrivacyPolicy
+                                ? "border-red-500"
+                                : ""
+                            }`}
                           />
                           <label
                             htmlFor="privacy"
@@ -654,13 +1037,17 @@ const CandidateSignup = () => {
                             >
                               Privacy Policy
                             </Link>{" "}
-                            and data processing.
+                            and data processing. *
                           </label>
                         </div>
+                        <ErrorMessage
+                          error={fieldErrors.acceptedPrivacyPolicy}
+                        />
                       </div>
                     </div>
                   )}
 
+                  {/* Navigation Buttons */}
                   <div className="flex gap-4 mt-12 pt-8 border-t border-slate-100 dark:border-white/[0.03]">
                     {currentStep > 1 && (
                       <Button

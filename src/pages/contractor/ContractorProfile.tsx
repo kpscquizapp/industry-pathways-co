@@ -136,8 +136,8 @@ const ContractorProfile = () => {
                       id={`AiMatchedProfile-${candidateId}-skills`}
                       className="flex flex-wrap gap-2"
                     >
-                      {profile?.skills?.length ? (
-                        profile.skills.map((skill, index) => {
+                      {profile?.primarySkills?.length ? (
+                        profile.primarySkills.map((skill, index) => {
                           const name =
                             typeof skill === "string" ? skill : skill.name;
                           const id =
