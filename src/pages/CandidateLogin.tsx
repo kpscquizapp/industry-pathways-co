@@ -75,6 +75,8 @@ const CandidateLogin = () => {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
+        if (name === "email") delete newErrors.password;
+        if (name === "password") delete newErrors.email;
         return newErrors;
       });
     }

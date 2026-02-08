@@ -86,7 +86,7 @@ const VALIDATION = {
   name: {
     minLength: 1,
     maxLength: 50,
-    regex: /^[a-zA-Z\s\-']+$/,
+    regex: /^[\p{L}\s\-']+$/u,
     validate: (name: string, fieldName: string) => {
       if (!name || !name.trim()) return `${fieldName} is required`;
       if (name.trim().length > 50)
@@ -395,17 +395,18 @@ const CandidateSignup = () => {
         "Registration successful! Please check your email to verify your account.",
       );
       navigate("/candidate-login");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Registration error:", error);
 
       // Handle specific error cases
-      if (error?.data?.message) {
-        toast.error(error.data.message);
-      } else if (error?.status === 409) {
+      const err = error as { data?: { message?: string }; status?: number };
+      if (err?.data?.message) {
+        toast.error(err.data.message);
+      } else if (err?.status === 409) {
         toast.error(
           "An account with this email already exists. Please login instead.",
         );
-      } else if (error?.status === 400) {
+      } else if (err?.status === 400) {
         toast.error(
           "Invalid registration data. Please check your inputs and try again.",
         );

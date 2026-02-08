@@ -631,6 +631,10 @@ const CandidateProfileUpdate = ({
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[errorKey];
+        // Also clear composite date error
+        if (field === "startDate" || field === "endDate") {
+          delete newErrors[`workExp_${index}_dates`];
+        }
         return newErrors;
       });
     }
@@ -648,7 +652,9 @@ const CandidateProfileUpdate = ({
       const newErrors = { ...prev };
       Object.keys(newErrors)
         .filter((key) => key.startsWith("workExp_"))
-        .forEach((key) => delete newErrors[key]);
+        .forEach((key) => {
+          delete newErrors[key];
+        });
       return newErrors;
     });
 
@@ -734,7 +740,9 @@ const CandidateProfileUpdate = ({
       const newErrors = { ...prev };
       Object.keys(newErrors)
         .filter((key) => key.startsWith("projects"))
-        .forEach((key) => delete newErrors[key]);
+        .forEach((key) => {
+          delete newErrors[key];
+        });
       return newErrors;
     });
 
@@ -817,7 +825,9 @@ const CandidateProfileUpdate = ({
       const newErrors = { ...prev };
       Object.keys(newErrors)
         .filter((key) => key.startsWith("certifications"))
-        .forEach((key) => delete newErrors[key]);
+        .forEach((key) => {
+          delete newErrors[key];
+        });
       return newErrors;
     });
 
@@ -977,7 +987,7 @@ const CandidateProfileUpdate = ({
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
@@ -1032,18 +1042,16 @@ const CandidateProfileUpdate = ({
         })),
     };
 
-    updateProfile(payload)
-      .unwrap()
-      .then(() => {
-        toast.success("Profile updated successfully!");
-        setFieldErrors({}); // Clear all errors on success
-      })
-      .catch((err) => {
-        console.error("Profile update error:", err);
-        const errorMessage =
-          err?.data?.message || "Failed to update profile. Please try again.";
-        toast.error(errorMessage);
-      });
+    try {
+      await updateProfile(payload).unwrap();
+
+      toast.success("Profile updated successfully!");
+      setFieldErrors({}); // Clear all errors on success
+    } catch (err: unknown) {
+      console.error("Profile update error:", err);
+      const errorMessage = "Failed to update profile. Please try again.";
+      toast.error(errorMessage);
+    }
   };
 
   return (
