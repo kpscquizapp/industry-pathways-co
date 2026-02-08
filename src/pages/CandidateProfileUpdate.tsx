@@ -385,37 +385,8 @@ const CandidateProfileUpdate = ({
     [data],
   );
 
-  const [formData, setFormData] = useState<FormDataState>({
-    firstName: data?.firstName || "",
-    lastName: data?.lastName || "",
-    email: data?.email || "",
-    location: data?.candidateProfile.location || "",
-    availability: data?.candidateProfile.availability || "",
-    bio: data?.candidateProfile.bio || "",
-    yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-    primarySkills: primarySkills || [],
-    headline: data?.candidateProfile.headline || "",
-    resourceType: data?.candidateProfile.resourceType || "",
-    availableIn: data?.candidateProfile.availableIn || "",
-    englishProficiency: data?.candidateProfile.englishProficiency || "",
-    hourlyRateMin:
-      data?.candidateProfile.hourlyRateMin == null ||
-      data?.candidateProfile.hourlyRateMin === ""
-        ? ""
-        : Number(data?.candidateProfile.hourlyRateMin),
-    hourlyRateMax:
-      data?.candidateProfile.hourlyRateMax == null ||
-      data?.candidateProfile.hourlyRateMax === ""
-        ? ""
-        : Number(data?.candidateProfile.hourlyRateMax),
-    workExperiences: workExperiences || [],
-    projects: projects || [],
-    certifications: certification || [],
-  });
-
-  useEffect(() => {
-    if (!data) return;
-    setFormData({
+  const handleForm = () => {
+    return {
       firstName: data?.firstName || "",
       lastName: data?.lastName || "",
       email: data?.email || "",
@@ -441,8 +412,15 @@ const CandidateProfileUpdate = ({
       workExperiences: workExperiences || [],
       projects: projects || [],
       certifications: certification || [],
-    });
-  }, [data, primarySkills, workExperiences, projects, certification]);
+    };
+  };
+
+  const [formData, setFormData] = useState<FormDataState>(handleForm);
+
+  useEffect(() => {
+    if (!data) return;
+    handleForm();
+  }, [data]);
 
   const availabilityOptions = [
     "freelance",
@@ -1948,34 +1926,7 @@ const CandidateProfileUpdate = ({
         </button>
         <button
           onClick={() => {
-            setFormData({
-              firstName: data?.firstName || "",
-              lastName: data?.lastName || "",
-              email: data?.email || "",
-              location: data?.candidateProfile.location || "",
-              availability: data?.candidateProfile.availability || "",
-              bio: data?.candidateProfile.bio || "",
-              yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-              primarySkills: primarySkills || [],
-              headline: data?.candidateProfile.headline || "",
-              resourceType: data?.candidateProfile.resourceType || "",
-              availableIn: data?.candidateProfile.availableIn || "",
-              englishProficiency:
-                data?.candidateProfile.englishProficiency || "",
-              hourlyRateMin:
-                data?.candidateProfile.hourlyRateMin == null ||
-                data?.candidateProfile.hourlyRateMin === ""
-                  ? ""
-                  : Number(data?.candidateProfile.hourlyRateMin),
-              hourlyRateMax:
-                data?.candidateProfile.hourlyRateMax == null ||
-                data?.candidateProfile.hourlyRateMax === ""
-                  ? ""
-                  : Number(data?.candidateProfile.hourlyRateMax),
-              workExperiences: workExperiences || [],
-              projects: projects || [],
-              certifications: certification || [],
-            });
+            handleForm();
             setFieldErrors({}); // Clear errors on cancel
             toast.info("Changes discarded");
           }}

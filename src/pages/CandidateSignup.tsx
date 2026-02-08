@@ -293,7 +293,9 @@ const CandidateSignup = () => {
       if (passwordError) errors.password = passwordError;
 
       // Validate password match
-      if (formData.password !== confirmPassword) {
+      if (!confirmPassword) {
+        errors.confirmPassword = "Please confirm your password";
+      } else if (formData.password !== confirmPassword) {
         errors.confirmPassword = "Passwords do not match";
       }
 
