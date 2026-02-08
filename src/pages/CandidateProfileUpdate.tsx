@@ -1,4 +1,11 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   X,
   Plus,
@@ -246,6 +253,9 @@ const VALIDATION = {
       const start = new Date(startDate);
       const now = new Date();
 
+      // Normalize to date-only (strip time) for fair comparison
+      now.setHours(23, 59, 59, 999);
+
       if (start > now) {
         return "Start date cannot be in the future";
       }
@@ -255,7 +265,9 @@ const VALIDATION = {
         if (end < start) {
           return "End date cannot be before start date";
         }
-        if (end > now) {
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+        if (end > endOfToday) {
           return "End date cannot be in the future";
         }
       }
@@ -423,7 +435,7 @@ const CandidateProfileUpdate = ({
   useEffect(() => {
     if (!data) return;
     setFormData(handleForm());
-  }, [data, primarySkills, workExperiences, projects, certification]);
+  }, [data, handleForm]);
 
   const availabilityOptions = [
     "freelance",
@@ -555,16 +567,29 @@ const CandidateProfileUpdate = ({
     ) {
       // Not persisted yet — animate local removal with spinner for a short moment
       const localName = skillToRemove;
+      const isMountedRef = useRef(true);
+
       setRemovingSkillId(localName);
-      setTimeout(() => {
-        setFormData((prev) => ({
-          ...prev,
-          primarySkills: prev.primarySkills.filter(
-            (s) => s.toLowerCase() !== localName.toLowerCase(),
-          ),
-        }));
-        setRemovingSkillId(null);
-      }, 180);
+
+      useEffect(() => {
+        const timeoutId = setTimeout(() => {
+          if (isMountedRef.current) {
+            setFormData((prev) => ({
+              ...prev,
+              primarySkills: prev.primarySkills.filter(
+                (s) => s.toLowerCase() !== localName.toLowerCase(),
+              ),
+            }));
+            setRemovingSkillId(null);
+          }
+        }, 180);
+
+        return () => {
+          isMountedRef.current = false;
+          clearTimeout(timeoutId);
+        };
+      }, [isMountedRef, localName, setFormData, setRemovingSkillId]);
+
       return;
     }
 
@@ -665,16 +690,28 @@ const CandidateProfileUpdate = ({
         }));
       }
 
+      const isMountedRef = useRef(true);
+
       setRemovingWorkExperienceId(localKey);
-      setTimeout(() => {
-        setFormData((prev) => ({
-          ...prev,
-          workExperiences: prev.workExperiences.filter(
-            (we) => we.id != null || we.localId !== localKey,
-          ),
-        }));
-        setRemovingWorkExperienceId(null);
-      }, 180);
+
+      useEffect(() => {
+        const timeoutId = setTimeout(() => {
+          if (isMountedRef.current) {
+            setFormData((prev) => ({
+              ...prev,
+              workExperiences: prev.workExperiences.filter(
+                (we) => we.id != null || we.localId !== localKey,
+              ),
+            }));
+            setRemovingWorkExperienceId(null);
+          }
+        }, 180);
+
+        return () => {
+          isMountedRef.current = false;
+          clearTimeout(timeoutId);
+        };
+      }, [isMountedRef, localKey, setFormData, setRemovingWorkExperienceId]);
       return;
     }
 
@@ -765,16 +802,28 @@ const CandidateProfileUpdate = ({
         }));
       }
 
+      const isMountedRef = useRef(true);
       setRemovingProjectId(localKey);
-      setTimeout(() => {
-        setFormData((prev) => ({
-          ...prev,
-          projects: prev.projects.filter(
-            (p) => p.id != null || p.localId !== localKey,
-          ),
-        }));
-        setRemovingProjectId(null);
-      }, 180);
+
+      useEffect(() => {
+        const timeoutId = setTimeout(() => {
+          if (isMountedRef.current) {
+            setFormData((prev) => ({
+              ...prev,
+              projects: prev.projects.filter(
+                (p) => p.id != null || p.localId !== localKey,
+              ),
+            }));
+            setRemovingProjectId(null);
+          }
+        }, 180);
+
+        return () => {
+          isMountedRef.current = false;
+          clearTimeout(timeoutId);
+        };
+      }, [isMountedRef, localKey, setFormData, setRemovingWorkExperienceId]);
+
       return;
     }
 
@@ -871,16 +920,28 @@ const CandidateProfileUpdate = ({
         }));
       }
 
+      const isMountedRef = useRef(true);
       setRemovingCertificateId(localKey);
-      setTimeout(() => {
-        setFormData((prev) => ({
-          ...prev,
-          certifications: prev.certifications.filter(
-            (c) => c.id != null || c.localId !== localKey,
-          ),
-        }));
-        setRemovingCertificateId(null);
-      }, 180);
+
+      useEffect(() => {
+        const timeoutId = setTimeout(() => {
+          if (isMountedRef.current) {
+            setFormData((prev) => ({
+              ...prev,
+              certifications: prev.certifications.filter(
+                (c) => c.id != null || c.localId !== localKey,
+              ),
+            }));
+            setRemovingCertificateId(null);
+          }
+        }, 180);
+
+        return () => {
+          isMountedRef.current = false;
+          clearTimeout(timeoutId);
+        };
+      }, [isMountedRef, localKey, setFormData, setRemovingCertificateId]);
+
       return;
     }
 
