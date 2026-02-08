@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  User,
   Sparkles,
   ArrowRight,
   Mail,
@@ -12,7 +11,6 @@ import {
   Star,
   ShieldCheck,
   LayoutDashboard,
-  AlertCircle,
   Eye,
   EyeOff,
 } from "lucide-react";
@@ -44,7 +42,7 @@ const VALIDATION = {
   password: {
     validate: (password: string) => {
       if (!password) return "Password is required";
-      if (password.length < 3) return "Password is too short";
+      if (password.length < 8) return "Password must be at least 8 characters";
       return null;
     },
   },
@@ -75,8 +73,11 @@ const CandidateLogin = () => {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
-        if (name === "email") delete newErrors.password;
-        if (name === "password") delete newErrors.email;
+        // Clear credential-related errors on both fields
+        const otherField = name === "email" ? "password" : "email";
+        if (prev[otherField] === "Please check your credentials") {
+          delete newErrors[otherField];
+        }
         return newErrors;
       });
     }
@@ -204,10 +205,10 @@ const CandidateLogin = () => {
 
       toast.error(errorMessage);
 
-      // Mark fields as having errors for better UX
+      // Mark credential fields with errors for auth failures
       if (
-        errorMessage.toLowerCase().includes("email") ||
-        errorMessage.toLowerCase().includes("password")
+        isFetchBaseQueryError(error) &&
+        (error.status === 401 || error.status === 404)
       ) {
         setFieldErrors({
           email: "Please check your credentials",

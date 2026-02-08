@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
   X,
   Plus,
@@ -385,7 +385,7 @@ const CandidateProfileUpdate = ({
     [data],
   );
 
-  const handleForm = () => {
+  const handleForm = useCallback(() => {
     return {
       firstName: data?.firstName || "",
       lastName: data?.lastName || "",
@@ -413,13 +413,13 @@ const CandidateProfileUpdate = ({
       projects: projects || [],
       certifications: certification || [],
     };
-  };
+  }, []);
 
   const [formData, setFormData] = useState<FormDataState>(handleForm);
 
   useEffect(() => {
     if (!data) return;
-    handleForm();
+    setFormData(handleForm());
   }, [data]);
 
   const availabilityOptions = [
@@ -737,7 +737,7 @@ const CandidateProfileUpdate = ({
     setFieldErrors((prev) => {
       const newErrors = { ...prev };
       Object.keys(newErrors)
-        .filter((key) => key.startsWith("projects"))
+        .filter((key) => key.startsWith("project_"))
         .forEach((key) => {
           delete newErrors[key];
         });
@@ -837,7 +837,7 @@ const CandidateProfileUpdate = ({
     setFieldErrors((prev) => {
       const newErrors = { ...prev };
       Object.keys(newErrors)
-        .filter((key) => key.startsWith("certifications"))
+        .filter((key) => key.startsWith("cert_"))
         .forEach((key) => {
           delete newErrors[key];
         });
@@ -1403,25 +1403,8 @@ const CandidateProfileUpdate = ({
                 >
                   {name}
                   {(() => {
-                    const localSkillKey = name;
-                    if (skillId != null) {
-                      return removingSkillId === skillId ? (
-                        <div className="ml-2 flex items-center justify-center">
-                          <SpinnerLoader className="text-red-600" />
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => removeSkills(name)}
-                          className="hover:text-teal-900 min-w-0 min-h-0"
-                          aria-label={`Remove ${name}`}
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      );
-                    }
-
-                    return removingSkillId === localSkillKey ? (
+                    const isRemoving = removingSkillId === (skillId ?? name);
+                    return isRemoving ? (
                       <div className="ml-2 flex items-center justify-center">
                         <SpinnerLoader className="text-red-600" />
                       </div>
@@ -1926,7 +1909,7 @@ const CandidateProfileUpdate = ({
         </button>
         <button
           onClick={() => {
-            handleForm();
+            setFormData(handleForm());
             setFieldErrors({}); // Clear errors on cancel
             toast.info("Changes discarded");
           }}

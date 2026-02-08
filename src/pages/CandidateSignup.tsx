@@ -298,10 +298,6 @@ const CandidateSignup = () => {
       } else if (formData.password !== confirmPassword) {
         errors.confirmPassword = "Passwords do not match";
       }
-
-      if (!confirmPassword) {
-        errors.confirmPassword = "Please confirm your password";
-      }
     } else if (currentStep === 2) {
       // Validate job role
       if (!formData.primaryJobRole || !formData.primaryJobRole.trim()) {
