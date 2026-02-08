@@ -39,7 +39,8 @@ const LandingHeader = () => {
   const headerBg = isScrolled
     ? "bg-navy-900/80 backdrop-blur-xl border-b border-white/10 shadow-lg"
     : "bg-transparent";
-  const textColor = "text-white";
+  const textColor = isSolidHeader ? "text-slate-900 dark:text-white" : "text-white";
+  const ghostHoverBg = isSolidHeader ? "hover:bg-slate-900/10 dark:hover:bg-white/10" : "hover:bg-white/10";
 
   const handleRoleBasedNavigation = (role: string) => {
     if (!role) return;
@@ -174,7 +175,7 @@ const LandingHeader = () => {
                   asChild
                   variant="ghost"
                   size="sm"
-                  className={cn("rounded-xl", textColor, "hover:bg-white/10")}
+                  className={cn("rounded-xl", textColor, ghostHoverBg)}
                 >
                   <Link to="/employer-login">
                     <LogIn className="w-4 h-4 mr-2" />
