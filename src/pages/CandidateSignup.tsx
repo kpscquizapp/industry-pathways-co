@@ -406,21 +406,26 @@ const CandidateSignup = () => {
       console.error("Registration error:", error);
 
       // Handle specific error cases
-      if (isFetchBaseQueryError(error) && error.status === 409) {
-        toast.error(
-          "An account with this email already exists. Please login instead.",
-        );
-      } else if (isFetchBaseQueryError(error) && error.status === 400) {
-        toast.error(
-          "Invalid registration data. Please check your inputs and try again.",
-        );
-      } else if (
-        isFetchBaseQueryError(error) &&
-        typeof error.data === "object" &&
-        error.data !== null &&
-        "message" in error.data
-      ) {
-        toast.error((error.data as { message: string }).message);
+      if (isFetchBaseQueryError(error)) {
+        if (error.status === 409) {
+          toast.error(
+            "An account with this email already exists. Please login instead.",
+          );
+        } else if (
+          typeof error.data === "object" &&
+          error.data !== null &&
+          "message" in error.data
+        ) {
+          toast.error((error.data as { message: string }).message);
+        } else if (error.status === 400) {
+          toast.error(
+            "Invalid registration data. Please check your inputs and try again.",
+          );
+        } else {
+          toast.error(
+            "Registration failed. Please try again or contact support if the issue persists.",
+          );
+        }
       } else {
         toast.error(
           "Registration failed. Please try again or contact support if the issue persists.",
@@ -971,9 +976,16 @@ const CandidateSignup = () => {
                           <Checkbox
                             id="terms"
                             checked={acceptedTerms}
-                            onCheckedChange={(checked) =>
-                              setAcceptedTerms(!!checked)
-                            }
+                            onCheckedChange={(checked) => {
+                              setAcceptedTerms(!!checked);
+                              if (fieldErrors.acceptedTerms) {
+                                setFieldErrors((prev) => {
+                                  const newErrors = { ...prev };
+                                  delete newErrors.acceptedTerms;
+                                  return newErrors;
+                                });
+                              }
+                            }}
                             className={`mt-1 border-slate-300 dark:border-white/10 ${
                               fieldErrors.acceptedTerms ? "border-red-500" : ""
                             }`}
@@ -998,9 +1010,16 @@ const CandidateSignup = () => {
                           <Checkbox
                             id="privacy"
                             checked={acceptedPrivacyPolicy}
-                            onCheckedChange={(checked) =>
-                              setAcceptedPrivacyPolicy(!!checked)
-                            }
+                            onCheckedChange={(checked) => {
+                              setAcceptedPrivacyPolicy(!!checked);
+                              if (fieldErrors.acceptedPrivacyPolicy) {
+                                setFieldErrors((prev) => {
+                                  const newErrors = { ...prev };
+                                  delete newErrors.acceptedPrivacyPolicy;
+                                  return newErrors;
+                                });
+                              }
+                            }}
                             className={`mt-1 border-slate-300 dark:border-white/10 ${
                               fieldErrors.acceptedPrivacyPolicy
                                 ? "border-red-500"

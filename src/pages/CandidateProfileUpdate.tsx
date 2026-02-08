@@ -225,7 +225,10 @@ const VALIDATION = {
     validate: (url: string) => {
       if (!url || url.trim() === "") return null; // Optional
       try {
-        new URL(url);
+        const parsed = new URL(url);
+        if (!["http:", "https:"].includes(parsed.protocol)) {
+          return "URL must use http or https protocol";
+        }
         return null;
       } catch {
         return "Please enter a valid URL (e.g., https://example.com)";
@@ -419,33 +422,7 @@ const CandidateProfileUpdate = ({
 
   useEffect(() => {
     if (!data) return;
-    setFormData({
-      firstName: data?.firstName || "",
-      lastName: data?.lastName || "",
-      email: data?.email || "",
-      location: data?.candidateProfile.location || "",
-      availability: data?.candidateProfile.availability || "",
-      bio: data?.candidateProfile.bio || "",
-      yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-      primarySkills: primarySkills || [],
-      headline: data?.candidateProfile.headline || "",
-      resourceType: data?.candidateProfile.resourceType || "",
-      availableIn: data?.candidateProfile.availableIn || "",
-      englishProficiency: data?.candidateProfile.englishProficiency || "",
-      hourlyRateMin:
-        data?.candidateProfile.hourlyRateMin == null ||
-        data?.candidateProfile.hourlyRateMin === ""
-          ? ""
-          : Number(data?.candidateProfile.hourlyRateMin),
-      hourlyRateMax:
-        data?.candidateProfile.hourlyRateMax == null ||
-        data?.candidateProfile.hourlyRateMax === ""
-          ? ""
-          : Number(data?.candidateProfile.hourlyRateMax),
-      workExperiences: workExperiences || [],
-      projects: projects || [],
-      certifications: certification || [],
-    });
+    setFormData(handleForm());
   }, [data, primarySkills, workExperiences, projects, certification]);
 
   const availabilityOptions = [
@@ -846,10 +823,16 @@ const CandidateProfileUpdate = ({
       credentialUrl: "url",
     };
     const errorKey = `cert_${index}_${errorKeyMap[field] ?? field}`;
-    if (fieldErrors[errorKey]) {
+    const isDateField = field === "issueDate" || field === "expiryDate";
+    const compositeKey = isDateField ? `cert_${index}_expiryDate` : null;
+    if (fieldErrors[errorKey] || (compositeKey && fieldErrors[compositeKey])) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[errorKey];
+        if (isDateField) {
+          delete newErrors[`cert_${index}_expiryDate`];
+          delete newErrors[`cert_${index}_issueDate`];
+        }
         return newErrors;
       });
     }
@@ -1015,7 +998,12 @@ const CandidateProfileUpdate = ({
             "certification",
           );
           if (dateError) {
-            errors[`cert_${index}_expiryDate`] = dateError;
+            // Determine which field the error relates to
+            if (dateError.includes("Start date")) {
+              errors[`cert_${index}_issueDate`] = dateError;
+            } else {
+              errors[`cert_${index}_expiryDate`] = dateError;
+            }
           }
         }
         if (cert.credentialUrl) {
@@ -1916,7 +1904,7 @@ const CandidateProfileUpdate = ({
                   fieldErrors[`cert_${index}_url`] ? "border-red-500" : ""
                 }`}
               />
-              <ErrorMessage error={fieldErrors[`cert_${index}_url`]} />
+              <ErrorMessage error={fieldErrors[`cert_${index}_expiryDate`]} />
             </div>
           </div>
         ))}

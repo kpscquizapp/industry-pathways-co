@@ -23,6 +23,8 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 
 // ==================== VALIDATION ====================
+const CREDENTIAL_ERROR_MSG = "Please check your credentials";
+
 const VALIDATION = {
   email: {
     regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -57,8 +59,6 @@ const CandidateLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  const CREDENTIAL_ERROR_MSG = "Please check your credentials";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -139,6 +139,9 @@ const CandidateLogin = () => {
     if (!validateForm()) {
       return;
     }
+
+    // Clear previous API-set field errors before making new request
+    setFieldErrors({});
 
     try {
       const result = await login({
