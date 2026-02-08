@@ -39,7 +39,7 @@ const LandingHeader = () => {
   const headerBg = isScrolled
     ? "bg-navy-900/80 backdrop-blur-xl border-b border-white/10 shadow-lg"
     : "bg-transparent";
-  const textColor = "text-white";
+  const textColor = isScrolled ? "text-white dark:text-white" : "text-white";
 
   const handleRoleBasedNavigation = (role: string) => {
     if (!role) return;

@@ -117,6 +117,7 @@ const VALIDATION = {
         return "Years of experience is required";
       if (!Number.isInteger(years))
         return "Years of experience must be a whole number";
+      if (isNaN(years)) return "Please enter valid years of experience";
       if (years < 0) return "Years of experience cannot be negative";
       if (years > 70) return "Years of experience must be less than 70";
       return null;
@@ -130,6 +131,7 @@ const VALIDATION = {
         return "Minimum salary is required";
       if (max === null || max === undefined)
         return "Maximum salary is required";
+      if (isNaN(min) || isNaN(max)) return "Please enter valid salary amounts";
       if (min < 0 || max < 0) return "Salary cannot be negative";
       if (min > 10000000 || max > 10000000)
         return "Salary exceeds reasonable limit ($10,000,000)";
@@ -561,7 +563,7 @@ const CandidateSignup = () => {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form onSubmit={handleSubmit} noValidate className="space-y-8">
                   {/* STEP 1: Account Information */}
                   {currentStep === 1 && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">

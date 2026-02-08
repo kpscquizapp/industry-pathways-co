@@ -63,6 +63,8 @@ const CandidateLogin = () => {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+  const CREDENTIAL_ERROR_MSG = "Please check your credentials";
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
@@ -75,7 +77,7 @@ const CandidateLogin = () => {
         delete newErrors[name];
         // Clear credential-related errors on both fields
         const otherField = name === "email" ? "password" : "email";
-        if (prev[otherField] === "Please check your credentials") {
+        if (prev[otherField] === CREDENTIAL_ERROR_MSG) {
           delete newErrors[otherField];
         }
         return newErrors;
@@ -211,8 +213,8 @@ const CandidateLogin = () => {
         (error.status === 401 || error.status === 404)
       ) {
         setFieldErrors({
-          email: "Please check your credentials",
-          password: "Please check your credentials",
+          email: CREDENTIAL_ERROR_MSG,
+          password: CREDENTIAL_ERROR_MSG,
         });
       }
     }
@@ -335,7 +337,7 @@ const CandidateLogin = () => {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} noValidate className="space-y-6">
                   {/* Email Field */}
                   <div className="space-y-2">
                     <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">

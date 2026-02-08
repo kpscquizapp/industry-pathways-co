@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import {
   X,
   Plus,
@@ -385,7 +385,7 @@ const CandidateProfileUpdate = ({
     [data],
   );
 
-  const handleForm = useCallback(() => {
+  const handleForm = (): FormDataState => {
     return {
       firstName: data?.firstName || "",
       lastName: data?.lastName || "",
@@ -413,14 +413,14 @@ const CandidateProfileUpdate = ({
       projects: projects || [],
       certifications: certification || [],
     };
-  }, []);
+  };
 
   const [formData, setFormData] = useState<FormDataState>(handleForm);
 
   useEffect(() => {
     if (!data) return;
     setFormData(handleForm());
-  }, [data]);
+  }, [data, primarySkills, workExperiences, projects, certification]);
 
   const availabilityOptions = [
     "freelance",
@@ -612,7 +612,11 @@ const CandidateProfileUpdate = ({
   const updateWorkExperience = (index: number, field: string, value: any) => {
     // Clear field-specific validation error
     const errorKey = `workExp_${index}_${field === "companyName" ? "company" : field}`;
-    if (fieldErrors[errorKey]) {
+    const compositeKey =
+      field === "startDate" || field === "endDate"
+        ? `workExp_${index}_dates`
+        : null;
+    if (fieldErrors[errorKey] || (compositeKey && fieldErrors[compositeKey])) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[errorKey];
@@ -1068,7 +1072,6 @@ const CandidateProfileUpdate = ({
       toast.success("Profile updated successfully!");
       setFieldErrors({}); // Clear all errors on success
     } catch (err: unknown) {
-      console.error("Profile update error:", err);
       const error = err as {
         data?: { message?: string };
         status?: number;
