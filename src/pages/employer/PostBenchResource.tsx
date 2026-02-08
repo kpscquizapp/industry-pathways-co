@@ -401,13 +401,23 @@ const PostBenchResource = () => {
                   <Label className="text-sm font-medium text-slate-700">
                     Technical Skills *
                   </Label>
-                  <Input
-                    placeholder="Type skill and press enter..."
-                    value={skillInput}
-                    onChange={(e) => setSkillInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Type skill and press enter..."
+                      value={skillInput}
+                      onChange={(e) => setSkillInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="h-12 flex-1 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                    <Button
+                      type="button"
+                      onClick={addSkill}
+                      disabled={!skillInput.trim()}
+                      className="h-12 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm shadow-blue-500/20"
+                    >
+                      Enter
+                    </Button>
+                  </div>
                   <div className="flex flex-wrap gap-2 mt-3">
                     {formData.skills.map((skill) => (
                       <Badge
