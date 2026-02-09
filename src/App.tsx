@@ -97,6 +97,9 @@ import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import Unauthorized from "./pages/Unauthorized";
 import { LazyRoute } from "./pages/LazyRoute";
 
+// Coding Challenge
+const CodingChallenge = lazy(() => import("./pages/CodingChallenge"));
+
 const queryClient = new QueryClient();
 
 // Scroll to top on route change
@@ -183,6 +186,12 @@ const App = () => {
                       element={<SkillsAssessment />}
                     />
                     <Route path="/saved-jobs" element={<SavedJobs />} /> */}
+
+                    {/* Coding Challenge Route */}
+                    <Route
+                      path="/coding-challenge/:challengeId?"
+                      element={<CodingChallenge />}
+                    />
 
                     {/* NEW: Contractor Dashboard Routes */}
                     {/* "candidate" role users access the contractor dashboard */}
