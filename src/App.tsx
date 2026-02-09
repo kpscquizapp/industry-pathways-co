@@ -9,7 +9,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import PageTransition from "./components/PageTransition";
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+const NotFound = lazy(() => import("./pages/NotFound"));
 // import CareerPath from "./pages/CareerPath";
 // import Marketplace from "./pages/Marketplace";
 // import FindTalent from "./pages/FindTalent";
@@ -141,8 +141,7 @@ const App = () => {
                       path="/employer-signup"
                       element={
                         <Suspense fallback={<BarLoader />}>
-                          {" "}
-                          <EmployerSignup />{" "}
+                          <EmployerSignup />
                         </Suspense>
                       }
                     />
@@ -150,8 +149,7 @@ const App = () => {
                       path="/bench-registration"
                       element={
                         <Suspense fallback={<BarLoader />}>
-                          {" "}
-                          <BenchRegistration />{" "}
+                          <BenchRegistration />
                         </Suspense>
                       }
                     />
@@ -357,9 +355,16 @@ const App = () => {
                       <Route index element={<CompanyDashboard />} />
                     </Route> */}
 
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
                     <Route path="/unauthorized" element={<Unauthorized />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route
+                      path="*"
+                      element={
+                        <Suspense fallback={<BarLoader />}>
+                          <NotFound />
+                        </Suspense>
+                      }
+                    />
                   </Routes>
                 </PageTransition>
               </BrowserRouter>

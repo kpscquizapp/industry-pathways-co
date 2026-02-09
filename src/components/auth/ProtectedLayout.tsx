@@ -23,13 +23,12 @@ export const ProtectedLayout = ({ allowedRoles }: ProtectedLayoutProps) => {
       const parsed: UserInfo = JSON.parse(userInfo);
       return parsed.userDetails;
     } catch (error) {
-      console.error("Failed to parse user info:", error);
       return null;
     }
   }, [userInfo]);
 
   if (!user) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (allowedRoles?.length && !allowedRoles.includes(user.role)) {
