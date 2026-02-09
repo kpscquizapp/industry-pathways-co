@@ -179,14 +179,14 @@ const BenchRegistration = () => {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
               <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">
-                Staffing Partner Hub
+                Staffing Hr Hub
               </span>
             </div>
 
             <h1 className="text-5xl xl:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
               Scale Your <br />
               <span className="bg-gradient-to-r from-primary via-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Partner Business
+                Hr Business
               </span>
             </h1>
 
@@ -251,7 +251,7 @@ const BenchRegistration = () => {
                 <div className="mb-6">
                   <h3 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
                     {currentStep === 1
-                      ? "Partner Account"
+                      ? "Create Hr Account"
                       : currentStep === 2
                         ? "Agency Details"
                         : "Verification"}
@@ -465,8 +465,8 @@ const BenchRegistration = () => {
 
                       <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/10">
                         By submitting this application, you agree to Hirion's
-                        staffing partner terms and permit us to verify your
-                        agency credentials.
+                        staffing hr terms and permit us to verify your agency
+                        credentials.
                       </div>
                     </div>
                   )}
@@ -514,7 +514,7 @@ const BenchRegistration = () => {
 
                 <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/[0.03] flex flex-col items-center gap-4">
                   <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
-                    Already a partner?{" "}
+                    Already a hr?{" "}
                     <Link
                       to="/bench-login"
                       className="text-primary hover:text-primary/80 transition-colors underline-offset-8 underline decoration-primary/30"

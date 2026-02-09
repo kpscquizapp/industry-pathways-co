@@ -555,7 +555,7 @@ const CandidateSignup = () => {
 
                   <h3 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
                     {currentStep === 1
-                      ? "Create Account"
+                      ? "Create Contractor Account"
                       : currentStep === 2
                         ? "Professional Profile"
                         : "Career Preferences"}

@@ -332,7 +332,7 @@ const CandidateLogin = () => {
                     Sign In
                   </h3>
                   <p className="text-slate-500 dark:text-slate-400 font-medium">
-                    Enter your candidate credentials below.
+                    Enter your contractor credentials below.
                   </p>
                 </div>
 

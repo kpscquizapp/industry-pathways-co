@@ -65,7 +65,7 @@ const BenchLogin = () => {
       toast.success(
         `Welcome back${result?.user?.firstName ? ` ${result.user.firstName}` : ""}!`,
       );
-      navigate("/bench/dashboard");
+      navigate("/employer-dashboard");
     } catch (error: any) {
       toast.error(
         error?.data?.message || "Invalid credentials. Please try again.",
@@ -94,7 +94,7 @@ const BenchLogin = () => {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
               <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">
-                Staffing Partner Hub
+                Staffing Hr Hub
               </span>
             </div>
 
@@ -102,7 +102,7 @@ const BenchLogin = () => {
               Welcome Back,
               <br />
               <span className="bg-gradient-to-r from-primary via-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Partner
+                Hr
               </span>
             </h1>
 
@@ -163,7 +163,7 @@ const BenchLogin = () => {
                     Sign In
                   </h3>
                   <p className="text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
-                    Enter your partner credentials below.
+                    Enter your hr credentials below.
                   </p>
                 </div>
 
@@ -181,7 +181,7 @@ const BenchLogin = () => {
                         id="email"
                         name="email"
                         type="email"
-                        placeholder="employer@agency.com"
+                        placeholder="hr@agency.com"
                         className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
                         value={formData.email}
                         onChange={handleInputChange}
@@ -247,7 +247,7 @@ const BenchLogin = () => {
                       to="/bench-registration"
                       className="text-primary hover:text-primary/80 transition-colors underline-offset-8 underline decoration-primary/30"
                     >
-                      Partner Registration
+                      Hr Registration
                     </Link>
                   </p>
                 </div>

@@ -191,7 +191,7 @@ const EmployerSignup = () => {
   ];
 
   const stepInfo = [
-    { title: "Account", sub: "Personal details" },
+    { title: "Create Employer Account", sub: "Personal details" },
     { title: "Organization", sub: "Company profile" },
     { title: "Verification", sub: "Upload document" },
   ];
@@ -217,7 +217,7 @@ const EmployerSignup = () => {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
               <Sparkles className="h-3 w-3 text-primary" />
               <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">
-                Enterprise Registration
+                Employer Registration
               </span>
             </div>
 

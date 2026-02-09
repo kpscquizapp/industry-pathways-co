@@ -28,6 +28,7 @@ import {
 import { toast } from "sonner";
 import { useExtractResumeMutation } from "@/app/queries/atsApi";
 import { usePostBenchResourceMutation } from "@/app/queries/benchApi";
+import { useGetProfileQuery } from "@/app/queries/profileApi";
 
 const PostBenchResource = () => {
   const navigate = useNavigate();
@@ -217,7 +218,8 @@ const PostBenchResource = () => {
       toast.error("Failed to post bench resource");
     }
   };
-
+  const { data: profile } = useGetProfileQuery();
+  console.log(profile);
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
       <div className="max-w-7xl mx-auto p-6 space-y-6 animate-fade-in">

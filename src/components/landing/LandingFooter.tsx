@@ -48,13 +48,16 @@ const LandingFooter = () => {
           {
             label: "Hire Talent",
             href:
-              user?.role === "employer"
-                ? "/employer/dashboard"
-                : "/employer-login",
+              user?.role === "hr"
+                ? "/employer-dashboard"
+                : "/bench-registration",
           },
           {
             label: "List Bench Resources",
-            href: user?.role === "hr" ? "/bench/talent" : "/bench-login",
+            href:
+              user?.role === "employer"
+                ? "/employer/dashboard"
+                : "/employer-login",
           },
           {
             label: "Post a Job",

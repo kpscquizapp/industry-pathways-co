@@ -50,8 +50,8 @@ const LandingHeader = () => {
 
   const handleRoleBasedNavigation = (role: string) => {
     if (!role) return;
-    if (role === "employer") navigation("/employer-dashboard");
-    if (role === "hr") navigation("/bench/dashboard");
+    if (role === "employer") navigation("/employer/dashboard");
+    if (role === "hr") navigation("/employer-dashboard");
     if (role === "candidate") navigation("/contractor/dashboard");
   };
 
@@ -121,7 +121,7 @@ const LandingHeader = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
-                    to={`${user?.role === "hr" ? "/bench/dashboard" : "/bench-registration"}`}
+                    to={`${user?.role === "employer" ? "/employer/dashboard" : "/employer-signup"}`}
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -136,7 +136,7 @@ const LandingHeader = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
-                    to={`${user?.role === "employer" ? "/employer-dashboard" : "/employer-signup"}`}
+                    to={`${user?.role === "hr" ? "/bench/dashboard" : "/bench-registration"}`}
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
