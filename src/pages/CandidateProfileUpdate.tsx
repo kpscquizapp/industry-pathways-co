@@ -1104,7 +1104,7 @@ const CandidateProfileUpdate = ({
       toast.error(errorMessage);
     }
   };
-  console.log(data);
+
   return (
     <div className="sm:p-8">
       <div className="space-y-8">

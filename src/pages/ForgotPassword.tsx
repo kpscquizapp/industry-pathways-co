@@ -1,5 +1,3 @@
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
 import LandingFooter from "@/components/landing/LandingFooter";
 import LandingHeader from "@/components/landing/LandingHeader";
 import { Button } from "@/components/ui/button";
@@ -88,7 +86,7 @@ const ForgotPassword = () => {
               <div className="my-6">
                 <p className="text-center text-[16px] text-muted-foreground">
                   <Link className="text-primary font-semibold" to="/">
-                    Go back{" "}
+                    Go Back To Home{" "}
                   </Link>
                 </p>
               </div>

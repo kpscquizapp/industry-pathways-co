@@ -1,4 +1,4 @@
-import { lazy, useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -91,6 +91,8 @@ const BenchDashboard = lazy(() => import("./pages/bench/BenchDashboard"));
 import { useFetchRefreshToken } from "./services/utils/hooks/useFetchRefreshToken";
 import ForgotPassword from "./pages/ForgotPassword";
 import { ProtectedLayout } from "./components/auth/ProtectedLayout";
+import BarLoader from "./components/loader/BarLoader";
+import Unauthorized from "./pages/Unauthorized";
 
 const queryClient = new QueryClient();
 
@@ -137,11 +139,21 @@ const App = () => {
                     <Route path="/employer-login" element={<EmployerLogin />} />
                     <Route
                       path="/employer-signup"
-                      element={<EmployerSignup />}
+                      element={
+                        <Suspense fallback={<BarLoader />}>
+                          {" "}
+                          <EmployerSignup />{" "}
+                        </Suspense>
+                      }
                     />
                     <Route
                       path="/bench-registration"
-                      element={<BenchRegistration />}
+                      element={
+                        <Suspense fallback={<BarLoader />}>
+                          {" "}
+                          <BenchRegistration />{" "}
+                        </Suspense>
+                      }
                     />
                     <Route path="/bench-login" element={<BenchLogin />} />
                     <Route
@@ -150,7 +162,11 @@ const App = () => {
                     />
                     <Route
                       path="/candidate-signup"
-                      element={<CandidateSignup />}
+                      element={
+                        <Suspense fallback={<BarLoader />}>
+                          <CandidateSignup />
+                        </Suspense>
+                      }
                     />
                     {/* <Route
                       path="/profile-visibility"
@@ -343,6 +359,7 @@ const App = () => {
 
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
+                    <Route path="/unauthorized" element={<Unauthorized />} />
                   </Routes>
                 </PageTransition>
               </BrowserRouter>

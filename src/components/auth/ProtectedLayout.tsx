@@ -16,25 +16,24 @@ interface UserInfo {
 
 export const ProtectedLayout = ({ allowedRoles }: ProtectedLayoutProps) => {
   // Memoize user parsing to avoid repeated JSON.parse on re-renders
+  const userInfo = Cookies.get("userInfo");
   const user = useMemo(() => {
     try {
-      const userInfo = Cookies.get("userInfo");
       if (!userInfo) return null;
-
       const parsed: UserInfo = JSON.parse(userInfo);
       return parsed.userDetails;
     } catch (error) {
       console.error("Failed to parse user info:", error);
       return null;
     }
-  }, []); // Only parse once on mount
+  }, [userInfo]);
 
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/unauthorized" replace />;
   }
 
   if (allowedRoles?.length && !allowedRoles.includes(user.role)) {
-    return <Navigate to="*" replace />;
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return (
