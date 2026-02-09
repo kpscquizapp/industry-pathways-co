@@ -10,50 +10,64 @@ import { AuthProvider } from "./contexts/AuthContext";
 import PageTransition from "./components/PageTransition";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import CareerPath from "./pages/CareerPath";
-import Marketplace from "./pages/Marketplace";
-import FindTalent from "./pages/FindTalent";
-import TalentProfile from "./pages/TalentProfile";
-import RegisterTalent from "./pages/RegisterTalent";
+// import CareerPath from "./pages/CareerPath";
+// import Marketplace from "./pages/Marketplace";
+// import FindTalent from "./pages/FindTalent";
+// import TalentProfile from "./pages/TalentProfile";
+// import RegisterTalent from "./pages/RegisterTalent";
+const EmployerSignup = lazy(() => import("./pages/EmployerSignup"));
+const BenchRegistration = lazy(() => import("./pages/BenchRegistration"));
+const CandidateSignup = lazy(() => import("./pages/CandidateSignup"));
 import EmployerLogin from "./pages/EmployerLogin";
-import EmployerSignup from "./pages/EmployerSignup";
-import ContractorRegistration from "./pages/ContractorRegistration";
-import BenchRegistration from "./pages/BenchRegistration";
 import BenchLogin from "./pages/BenchLogin";
 import CandidateLogin from "./pages/CandidateLogin";
-import CandidateSignup from "./pages/CandidateSignup";
-import ProfileVisibility from "./pages/ProfileVisibility";
-import Register from "./pages/Register";
-import JobSearch from "./pages/JobSearch";
-import JobDetails from "./pages/JobDetails";
-import ListBenchTalent from "./pages/ListBenchTalent";
-import Login from "./pages/Login";
-import CandidateProfile from "./pages/CandidateProfile";
-import JobRecommendations from "./pages/JobRecommendations";
-import SkillsAssessment from "./pages/SkillsAssessment";
-import SavedJobs from "./pages/SavedJobs";
+// import ProfileVisibility from "./pages/ProfileVisibility";
+// import Register from "./pages/Register";
+// import JobSearch from "./pages/JobSearch";
+// import JobDetails from "./pages/JobDetails";
+// import ListBenchTalent from "./pages/ListBenchTalent";
+// import Login from "./pages/Login";
+// import CandidateProfile from "./pages/CandidateProfile";
+// import JobRecommendations from "./pages/JobRecommendations";
+// import SkillsAssessment from "./pages/SkillsAssessment";
+// import SavedJobs from "./pages/SavedJobs";
 
 // Old Employer Dashboard (keeping for compatibility)
-import EmployerLayoutOld from "./components/employer/EmployerLayout";
-import CompanyDashboard from "./pages/employer/CompanyDashboard";
-import PostJob from "./pages/employer/PostJob";
-import AIScreening from "./pages/employer/AIScreening";
-import HireFullTime from "./pages/employer/HireFullTime";
-import HireInterns from "./pages/employer/HireInterns";
-import ContractHiring from "./pages/employer/ContractHiring";
-import TalentMarketplace from "./pages/employer/TalentMarketplace";
-import PostBenchResource from "./pages/employer/PostBenchResource";
-import ActiveResources from "./pages/employer/ActiveResources";
-import VisibilitySettings from "./pages/employer/VisibilitySettings";
-import JobCandidates from "./pages/employer/JobCandidates";
-import AIInterviewResults from "./pages/employer/AIInterviewResults";
-import JobBoard from "./pages/employer/JobBoard";
-import CreateJob from "./pages/employer/CreateJob";
-import JobDetailsPage from "./pages/employer/JobDetails";
-import CandidateDetailPage from "./pages/employer/CandidateDetailPage";
-
+const EmployerLayoutOld = lazy(
+  () => import("./components/employer/EmployerLayout"),
+);
+const CompanyDashboard = lazy(
+  () => import("./pages/employer/CompanyDashboard"),
+);
+const PostJob = lazy(() => import("./pages/employer/PostJob"));
+const AIScreening = lazy(() => import("./pages/employer/AIScreening"));
+const HireFullTime = lazy(() => import("./pages/employer/HireFullTime"));
+const HireInterns = lazy(() => import("./pages/employer/HireInterns"));
+const ContractHiring = lazy(() => import("./pages/employer/ContractHiring"));
+const TalentMarketplace = lazy(
+  () => import("./pages/employer/TalentMarketplace"),
+);
+const PostBenchResource = lazy(
+  () => import("./pages/employer/PostBenchResource"),
+);
+const ActiveResources = lazy(() => import("./pages/employer/ActiveResources"));
+const VisibilitySettings = lazy(
+  () => import("./pages/employer/VisibilitySettings"),
+);
+const JobCandidates = lazy(() => import("./pages/employer/JobCandidates"));
+const AIInterviewResults = lazy(
+  () => import("./pages/employer/AIInterviewResults"),
+);
+const JobBoard = lazy(() => import("./pages/employer/JobBoard"));
+const CreateJob = lazy(() => import("./pages/employer/CreateJob"));
+const JobDetailsPage = lazy(() => import("./pages/employer/JobDetails"));
+const CandidateDetailPage = lazy(
+  () => import("./pages/employer/CandidateDetailPage"),
+);
 // New Dashboard Layout
-import UnifiedDashboardLayout from "./components/dashboard/UnifiedDashboardLayout";
+const UnifiedDashboardLayout = lazy(
+  () => import("./components/dashboard/UnifiedDashboardLayout"),
+);
 
 // New Dashboard Pages
 const ContractorDashboard = lazy(
@@ -65,14 +79,14 @@ const ContractorProfile = lazy(
 const ContractorSettings = lazy(
   () => import("./pages/contractor/ContractorSettings"),
 );
-import BenchDashboard from "./pages/bench/BenchDashboard";
-import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
-import EmployerPostJob from "./pages/employer/EmployerPostJob";
-import EmployerAIShortlists from "./pages/employer/EmployerAIShortlists";
-import EmployerSkillTests from "./pages/employer/EmployerSkillTests";
-import EmployerAIInterviews from "./pages/employer/EmployerAIInterviews";
-import EmployerContracts from "./pages/employer/EmployerContracts";
-import EmployerSettings from "./pages/employer/EmployerSettings";
+const BenchDashboard = lazy(() => import("./pages/bench/BenchDashboard"));
+// import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
+// import EmployerPostJob from "./pages/employer/EmployerPostJob";
+// import EmployerAIShortlists from "./pages/employer/EmployerAIShortlists";
+// import EmployerSkillTests from "./pages/employer/EmployerSkillTests";
+// import EmployerAIInterviews from "./pages/employer/EmployerAIInterviews";
+// import EmployerContracts from "./pages/employer/EmployerContracts";
+// import EmployerSettings from "./pages/employer/EmployerSettings";
 
 import { useFetchRefreshToken } from "./services/utils/hooks/useFetchRefreshToken";
 import ForgotPassword from "./pages/ForgotPassword";
