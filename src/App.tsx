@@ -189,32 +189,14 @@ const App = () => {
                     >
                       <Route
                         path="/contractor"
-                        element={
-                          <LazyRoute
-                            element={
-                              <UnifiedDashboardLayout role="contractor" />
-                            }
-                          />
-                        }
+                        element={<UnifiedDashboardLayout role="contractor" />}
                       >
-                        <Route
-                          index
-                          element={
-                            <LazyRoute element={<ContractorDashboard />} />
-                          }
-                        />
+                        <Route index element={<ContractorDashboard />} />
                         <Route
                           path="dashboard"
-                          element={
-                            <LazyRoute element={<ContractorDashboard />} />
-                          }
+                          element={<ContractorDashboard />}
                         />
-                        <Route
-                          path="profile"
-                          element={
-                            <LazyRoute element={<ContractorProfile />} />
-                          }
-                        />
+                        <Route path="profile" element={<ContractorProfile />} />
                         {/* // TODO: replace with dedicated page components */}
                         <Route path="tests" element={<ContractorDashboard />} />
                         <Route
@@ -232,20 +214,10 @@ const App = () => {
                     <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
                       <Route
                         path="/bench"
-                        element={
-                          <LazyRoute
-                            element={<UnifiedDashboardLayout role="bench" />}
-                          />
-                        }
+                        element={<UnifiedDashboardLayout role="bench" />}
                       >
-                        <Route
-                          index
-                          element={<LazyRoute element={<BenchDashboard />} />}
-                        />
-                        <Route
-                          path="dashboard"
-                          element={<LazyRoute element={<BenchDashboard />} />}
-                        />
+                        <Route index element={<BenchDashboard />} />
+                        <Route path="dashboard" element={<BenchDashboard />} />
                         {/* // TODO: replace with dedicated page components */}
                         <Route path="talent" element={<BenchDashboard />} />
                         <Route path="matches" element={<BenchDashboard />} />
@@ -261,15 +233,12 @@ const App = () => {
                     >
                       <Route
                         path="/employer-dashboard"
-                        element={<LazyRoute element={<EmployerLayoutOld />} />}
+                        element={<EmployerLayoutOld />}
                       >
-                        <Route
-                          index
-                          element={<LazyRoute element={<CompanyDashboard />} />}
-                        />
+                        <Route index element={<CompanyDashboard />} />
                         <Route
                           path="dashboard"
-                          element={<LazyRoute element={<CompanyDashboard />} />}
+                          element={<CompanyDashboard />}
                         />
                         <Route path="job-board" element={<JobBoard />} />
                         <Route path="create-job" element={<CreateJob />} />
@@ -289,19 +258,15 @@ const App = () => {
                         />
                         <Route
                           path="post-bench-resource"
-                          element={
-                            <LazyRoute element={<PostBenchResource />} />
-                          }
+                          element={<PostBenchResource />}
                         />
                         <Route
                           path="active-resources"
-                          element={<LazyRoute element={<ActiveResources />} />}
+                          element={<ActiveResources />}
                         />
                         <Route
                           path="visibility-settings"
-                          element={
-                            <LazyRoute element={<VisibilitySettings />} />
-                          }
+                          element={<VisibilitySettings />}
                         />
                         <Route path="ai-screening" element={<AIScreening />} />
                         <Route path="job/:jobId" element={<JobDetailsPage />} />

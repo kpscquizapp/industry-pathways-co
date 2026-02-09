@@ -10,15 +10,14 @@ interface State {
 }
 
 class LazyErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
   componentDidUpdate(prevProps: Props) {
     if (this.state.hasError && prevProps.children !== this.props.children) {
       this.setState({ hasError: false, error: undefined });
     }
-  }
-
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
   }
 
   static getDerivedStateFromError(error: Error): State {
