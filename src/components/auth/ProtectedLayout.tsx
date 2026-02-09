@@ -2,6 +2,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { Suspense, useMemo } from "react";
 import BarLoader from "../loader/BarLoader";
 import Cookies from "js-cookie";
+import LazyErrorBoundary from "@/pages/LazyErrorBoundary";
 
 interface ProtectedLayoutProps {
   allowedRoles?: string[];
@@ -36,8 +37,10 @@ export const ProtectedLayout = ({ allowedRoles }: ProtectedLayoutProps) => {
   }
 
   return (
-    <Suspense fallback={<BarLoader />}>
-      <Outlet />
-    </Suspense>
+    <LazyErrorBoundary>
+      <Suspense fallback={<BarLoader />}>
+        <Outlet />
+      </Suspense>
+    </LazyErrorBoundary>
   );
 };

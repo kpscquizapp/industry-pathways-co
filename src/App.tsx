@@ -93,6 +93,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import BarLoader from "./components/loader/BarLoader";
 import Unauthorized from "./pages/Unauthorized";
+import LazyErrorBoundary from "./pages/LazyErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -140,17 +141,21 @@ const App = () => {
                     <Route
                       path="/employer-signup"
                       element={
-                        <Suspense fallback={<BarLoader />}>
-                          <EmployerSignup />
-                        </Suspense>
+                        <LazyErrorBoundary>
+                          <Suspense fallback={<BarLoader />}>
+                            <EmployerSignup />
+                          </Suspense>
+                        </LazyErrorBoundary>
                       }
                     />
                     <Route
                       path="/bench-registration"
                       element={
-                        <Suspense fallback={<BarLoader />}>
-                          <BenchRegistration />
-                        </Suspense>
+                        <LazyErrorBoundary>
+                          <Suspense fallback={<BarLoader />}>
+                            <BenchRegistration />
+                          </Suspense>
+                        </LazyErrorBoundary>
                       }
                     />
                     <Route path="/bench-login" element={<BenchLogin />} />
@@ -161,9 +166,11 @@ const App = () => {
                     <Route
                       path="/candidate-signup"
                       element={
-                        <Suspense fallback={<BarLoader />}>
-                          <CandidateSignup />
-                        </Suspense>
+                        <LazyErrorBoundary>
+                          <Suspense fallback={<BarLoader />}>
+                            <CandidateSignup />
+                          </Suspense>
+                        </LazyErrorBoundary>
                       }
                     />
                     {/* <Route
@@ -194,6 +201,8 @@ const App = () => {
                     <Route path="/saved-jobs" element={<SavedJobs />} /> */}
 
                     {/* NEW: Contractor Dashboard Routes */}
+                    {/* "candidate" role users access the contractor dashboard */}
+                    {/* (UI role is "contractor", auth role is "candidate") */}
                     <Route
                       element={<ProtectedLayout allowedRoles={["candidate"]} />}
                     >
@@ -207,6 +216,7 @@ const App = () => {
                           element={<ContractorDashboard />}
                         />
                         <Route path="profile" element={<ContractorProfile />} />
+                        {/* // TODO: replace with dedicated page components */}
                         <Route path="tests" element={<ContractorDashboard />} />
                         <Route
                           path="interviews"
@@ -227,6 +237,7 @@ const App = () => {
                       >
                         <Route index element={<BenchDashboard />} />
                         <Route path="dashboard" element={<BenchDashboard />} />
+                        {/* // TODO: replace with dedicated page components */}
                         <Route path="talent" element={<BenchDashboard />} />
                         <Route path="matches" element={<BenchDashboard />} />
                         <Route path="analytics" element={<BenchDashboard />} />
@@ -360,9 +371,11 @@ const App = () => {
                     <Route
                       path="*"
                       element={
-                        <Suspense fallback={<BarLoader />}>
-                          <NotFound />
-                        </Suspense>
+                        <LazyErrorBoundary>
+                          <Suspense fallback={<BarLoader />}>
+                            <NotFound />
+                          </Suspense>
+                        </LazyErrorBoundary>
                       }
                     />
                   </Routes>
