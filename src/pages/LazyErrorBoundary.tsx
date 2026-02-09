@@ -1,4 +1,5 @@
 import { Component, ReactNode } from "react";
+import { Link } from "react-router-dom";
 
 interface Props {
   children: ReactNode;
@@ -40,12 +41,12 @@ class LazyErrorBoundary extends Component<Props, State> {
             >
               Reload Page
             </button>
-            <button
-              onClick={() => window.history.back()}
+            <Link
+              to="/"
               className="ml-2 rounded bg-gray-300 px-6 py-2 text-gray-800 hover:bg-gray-400"
             >
-              Go Back
-            </button>
+              Go Home
+            </Link>
           </div>
         </div>
       );
