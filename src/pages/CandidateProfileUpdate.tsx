@@ -71,7 +71,7 @@ interface FormDataState {
   availability: string;
   bio: string;
   yearsExperience: string | number;
-  primarySkills: string[];
+  skills: string[];
   headline: string;
   resourceType: string;
   availableIn: string;
@@ -93,7 +93,7 @@ interface CandidateProfileUpdateProps {
       availability?: string;
       bio?: string;
       yearsExperience?: string | number;
-      primarySkills?: Skill[];
+      skills?: Skill[];
       headline?: string;
       resourceType?: string;
       availableIn?: string;
@@ -309,9 +309,9 @@ const CandidateProfileUpdate = ({
     string | number | null
   >(null);
 
-  const primarySkills = useMemo(
+  const skills = useMemo(
     () =>
-      data?.candidateProfile?.primarySkills?.map((skill) =>
+      data?.candidateProfile?.skills?.map((skill) =>
         typeof skill === "string" ? skill : skill.name,
       ) || [],
     [data],
@@ -402,18 +402,16 @@ const CandidateProfileUpdate = ({
       availability: data?.candidateProfile.availability || "",
       bio: data?.candidateProfile.bio || "",
       yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-      primarySkills: primarySkills || [],
+      skills: skills || [],
       headline: data?.candidateProfile.headline || "",
       resourceType: data?.candidateProfile.resourceType || "",
       availableIn: data?.candidateProfile.availableIn || "",
       englishProficiency: data?.candidateProfile.englishProficiency || "",
       hourlyRateMin:
-        data?.candidateProfile.hourlyRateMin == null ||
         data?.candidateProfile.hourlyRateMin === ""
           ? ""
           : Number(data?.candidateProfile.hourlyRateMin),
       hourlyRateMax:
-        data?.candidateProfile.hourlyRateMax == null ||
         data?.candidateProfile.hourlyRateMax === ""
           ? ""
           : Number(data?.candidateProfile.hourlyRateMax),
@@ -421,7 +419,7 @@ const CandidateProfileUpdate = ({
       projects: projects || [],
       certifications: certification || [],
     };
-  }, [data, primarySkills, workExperiences, projects, certification]);
+  }, [data, skills, workExperiences, projects, certification]);
 
   const [formData, setFormData] = useState<FormDataState>(handleForm);
 
@@ -506,13 +504,13 @@ const CandidateProfileUpdate = ({
       return;
     }
 
-    if (formData.primarySkills.length >= 50) {
+    if (formData.skills.length >= 50) {
       toast.error("You can add a maximum of 50 skills");
       return;
     }
 
     if (
-      formData.primarySkills.some(
+      formData.skills.some(
         (skill) => skill.toLowerCase() === name.toLowerCase(),
       )
     ) {
@@ -522,15 +520,15 @@ const CandidateProfileUpdate = ({
 
     setFormData((prevData) => ({
       ...prevData,
-      primarySkills: [...prevData.primarySkills, name],
+      skills: [...prevData.skills, name],
     }));
     setSkillInput("");
 
     // Clear skills error if it exists
-    if (fieldErrors.primarySkills) {
+    if (fieldErrors.skills) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
-        delete newErrors.primarySkills;
+        delete newErrors.skills;
         return newErrors;
       });
     }
@@ -538,13 +536,13 @@ const CandidateProfileUpdate = ({
 
   const removeSkills = async (skillToRemove: string) => {
     // Guard clause: prevent removing the last skill
-    if (formData.primarySkills.length <= 1) {
+    if (formData.skills.length <= 1) {
       toast.warning("You must have at least one skill");
       return;
     }
 
     // Find the skill to remove
-    const filteredSkill = data?.candidateProfile?.primarySkills?.find(
+    const filteredSkill = data?.candidateProfile?.skills?.find(
       (skill: string | { name: string }) =>
         typeof skill === "string"
           ? skill.toLowerCase() === skillToRemove.toLowerCase()
@@ -565,7 +563,7 @@ const CandidateProfileUpdate = ({
       setTimeout(() => {
         setFormData((prev) => ({
           ...prev,
-          primarySkills: prev.primarySkills.filter(
+          skills: prev.skills.filter(
             (s) => s.toLowerCase() !== localName.toLowerCase(),
           ),
         }));
@@ -581,7 +579,7 @@ const CandidateProfileUpdate = ({
 
       setFormData((prev) => ({
         ...prev,
-        primarySkills: prev.primarySkills.filter(
+        skills: prev.skills.filter(
           (s) => s.toLowerCase() !== skillToRemove.toLowerCase(),
         ),
       }));
@@ -947,8 +945,8 @@ const CandidateProfileUpdate = ({
     );
     if (rateError) errors.hourlyRate = rateError;
 
-    const skillsError = VALIDATION.skill.validate(formData.primarySkills);
-    if (skillsError) errors.primarySkills = skillsError;
+    const skillsError = VALIDATION.skill.validate(formData.skills);
+    if (skillsError) errors.skills = skillsError;
 
     // Validate work experiences
     formData.workExperiences.forEach((exp, index) => {
@@ -1403,9 +1401,7 @@ const CandidateProfileUpdate = ({
               maxLength={50}
               placeholder="Add a skill (e.g., TypeScript)"
               className={`flex-1 px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                fieldErrors.primarySkills
-                  ? "border-red-500 dark:border-red-500"
-                  : ""
+                fieldErrors.skills ? "border-red-500 dark:border-red-500" : ""
               }`}
             />
             <Button
@@ -1416,15 +1412,14 @@ const CandidateProfileUpdate = ({
               <Plus className="w-5 h-5" />
             </Button>
           </div>
-          <ErrorMessage error={fieldErrors.primarySkills} />
+          <ErrorMessage error={fieldErrors.skills} />
 
           <div className="flex flex-wrap gap-2">
-            {formData.primarySkills.map((name, index) => {
-              const skillObj = data?.candidateProfile?.primarySkills?.find(
-                (s) =>
-                  typeof s === "string"
-                    ? false
-                    : s.name.toLowerCase() === name.toLowerCase(),
+            {formData.skills.map((name, index) => {
+              const skillObj = data?.candidateProfile?.skills?.find((s) =>
+                typeof s === "string"
+                  ? false
+                  : s.name.toLowerCase() === name.toLowerCase(),
               );
               const skillId = skillObj?.id ?? null;
 
@@ -1454,15 +1449,15 @@ const CandidateProfileUpdate = ({
                 </span>
               );
             })}
-            {formData.primarySkills.length === 0 && (
+            {formData.skills.length === 0 && (
               <p className="text-sm text-gray-500 dark:text-gray-400 italic">
                 No skills added yet. Add at least one skill.
               </p>
             )}
           </div>
-          {formData.primarySkills.length > 0 && (
+          {formData.skills.length > 0 && (
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {formData.primarySkills.length} / 50 skills added
+              {formData.skills.length} / 50 skills added
             </p>
           )}
         </div>

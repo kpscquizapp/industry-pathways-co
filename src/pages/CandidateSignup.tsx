@@ -576,7 +576,8 @@ const CandidateSignup = () => {
                       <div className="grid md:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            First Name *
+                            First Name{" "}
+                            <span className="text-destructive">*</span>
                           </Label>
                           <div className="relative group">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -598,7 +599,8 @@ const CandidateSignup = () => {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Last Name *
+                            Last Name{" "}
+                            <span className="text-destructive">*</span>
                           </Label>
                           <div className="relative group">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -622,7 +624,7 @@ const CandidateSignup = () => {
 
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Work Email *
+                          Work Email <span className="text-destructive">*</span>
                         </Label>
                         <div className="relative group">
                           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -646,7 +648,8 @@ const CandidateSignup = () => {
 
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Mobile Number *
+                          Mobile Number{" "}
+                          <span className="text-destructive">*</span>
                         </Label>
                         <div className="relative group">
                           <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -670,7 +673,7 @@ const CandidateSignup = () => {
                       <div className="grid md:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Password *
+                            Password <span className="text-destructive">*</span>
                           </Label>
                           <div className="relative group">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -693,7 +696,8 @@ const CandidateSignup = () => {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Confirm Password *
+                            Confirm Password{" "}
+                            <span className="text-destructive">*</span>
                           </Label>
                           <div className="relative group">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -733,7 +737,8 @@ const CandidateSignup = () => {
                       <div className="grid md:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Candidate Type
+                            Candidate Type{" "}
+                            <span className="text-destructive">*</span>
                           </Label>
                           <Select
                             value={formData.candidateType}
@@ -759,7 +764,8 @@ const CandidateSignup = () => {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Years of Experience *
+                            Years of Experience{" "}
+                            <span className="text-destructive">*</span>
                           </Label>
                           <div className="relative group">
                             <CheckCircle2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -785,7 +791,8 @@ const CandidateSignup = () => {
 
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Primary Job Role *
+                          Primary Job Role{" "}
+                          <span className="text-destructive">*</span>
                         </Label>
                         <div className="relative group">
                           <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -808,7 +815,9 @@ const CandidateSignup = () => {
 
                       <div className="space-y-3">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Primary Skills * (Press Enter to add)
+                          Primary Skills{" "}
+                          <span className="text-destructive">*</span> (Press
+                          Enter to add)
                         </Label>
                         <div className="relative group">
                           <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -862,7 +871,8 @@ const CandidateSignup = () => {
                       <div className="grid md:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Min. Expected Salary ($) *
+                            Min. Expected Salary ($){" "}
+                            <span className="text-destructive">*</span>
                           </Label>
                           <div className="relative group">
                             <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -885,7 +895,8 @@ const CandidateSignup = () => {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Max. Expected Salary ($) *
+                            Max. Expected Salary ($){" "}
+                            <span className="text-destructive">*</span>
                           </Label>
                           <div className="relative group">
                             <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -911,7 +922,8 @@ const CandidateSignup = () => {
 
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Availability to Join *
+                          Availability to Join{" "}
+                          <span className="text-destructive">*</span>
                         </Label>
                         <Select
                           value={formData.availableToJoin}
@@ -936,7 +948,8 @@ const CandidateSignup = () => {
 
                       <div className="space-y-4">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Preferred Work Type *
+                          Preferred Work Type{" "}
+                          <span className="text-destructive">*</span>
                         </Label>
                         <div className="flex flex-wrap gap-4 mt-2">
                           {["remote", "hybrid", "on-site"].map((type) => (
@@ -948,7 +961,7 @@ const CandidateSignup = () => {
                                 id={`type-${type}`}
                                 checked={preferredWorkType.includes(type)}
                                 onCheckedChange={() => toggleWorkType(type)}
-                                className={`border-slate-300 dark:border-white/10 ${
+                                className={`border-slate-300 min-h-0 min-w-0 dark:border-white/10 ${
                                   fieldErrors.preferredWorkType
                                     ? "border-red-500"
                                     : ""
@@ -986,7 +999,7 @@ const CandidateSignup = () => {
                                 });
                               }
                             }}
-                            className={`mt-1 border-slate-300 dark:border-white/10 ${
+                            className={`mt-1 border-slate-300 min-h-0 min-w-0 dark:border-white/10 ${
                               fieldErrors.acceptedTerms ? "border-red-500" : ""
                             }`}
                           />
@@ -1001,7 +1014,8 @@ const CandidateSignup = () => {
                             >
                               Terms of Service
                             </Link>{" "}
-                            and agree to communications. *
+                            and agree to communications.{" "}
+                            <span className="text-destructive">*</span>
                           </label>
                         </div>
                         <ErrorMessage error={fieldErrors.acceptedTerms} />
@@ -1020,7 +1034,7 @@ const CandidateSignup = () => {
                                 });
                               }
                             }}
-                            className={`mt-1 border-slate-300 dark:border-white/10 ${
+                            className={`mt-1 border-slate-300 min-h-0 min-w-0 dark:border-white/10 ${
                               fieldErrors.acceptedPrivacyPolicy
                                 ? "border-red-500"
                                 : ""
@@ -1037,7 +1051,8 @@ const CandidateSignup = () => {
                             >
                               Privacy Policy
                             </Link>{" "}
-                            and data processing. *
+                            and data processing.{" "}
+                            <span className="text-destructive">*</span>
                           </label>
                         </div>
                         <ErrorMessage

@@ -1,5 +1,5 @@
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
+import LandingFooter from "@/components/landing/LandingFooter";
+import LandingHeader from "@/components/landing/LandingHeader";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,7 +29,7 @@ const ForgotPassword = () => {
   return (
     <>
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 via-white to-neutral-50">
-        <Header />
+        <LandingHeader />
 
         <main className="flex-1 pt-24 pb-12 px-4 sm:pt-32 sm:pb-20">
           <div className="container mx-auto max-w-6xl ">
@@ -85,9 +85,8 @@ const ForgotPassword = () => {
               </CardContent>
               <div className="my-6">
                 <p className="text-center text-[16px] text-muted-foreground">
-                  Go back to{" "}
-                  <Link className="text-primary font-semibold" to="/login">
-                    Login
+                  <Link className="text-primary font-semibold" to="/">
+                    Go Back To Home{" "}
                   </Link>
                 </p>
               </div>
@@ -95,7 +94,7 @@ const ForgotPassword = () => {
           </div>
         </main>
 
-        <Footer />
+        <LandingFooter />
       </div>
     </>
   );
