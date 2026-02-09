@@ -14,11 +14,6 @@ class LazyErrorBoundary extends Component<Props, State> {
     super(props);
     this.state = { hasError: false };
   }
-  componentDidUpdate(prevProps: Props) {
-    if (this.state.hasError && prevProps.children !== this.props.children) {
-      this.setState({ hasError: false, error: undefined });
-    }
-  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -44,6 +39,12 @@ class LazyErrorBoundary extends Component<Props, State> {
               className="rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600"
             >
               Reload Page
+            </button>
+            <button
+              onClick={() => window.history.back()}
+              className="ml-2 rounded bg-gray-300 px-6 py-2 text-gray-800 hover:bg-gray-400"
+            >
+              Go Back
             </button>
           </div>
         </div>

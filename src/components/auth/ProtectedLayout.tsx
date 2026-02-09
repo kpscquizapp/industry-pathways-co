@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Suspense, useMemo } from "react";
 import BarLoader from "../loader/BarLoader";
 import Cookies from "js-cookie";
@@ -16,6 +16,7 @@ interface UserInfo {
 }
 
 export const ProtectedLayout = ({ allowedRoles }: ProtectedLayoutProps) => {
+  const location = useLocation();
   // Memoize user parsing to avoid repeated JSON.parse on re-renders
   const userInfo = Cookies.get("userInfo");
   const user = useMemo(() => {
@@ -37,7 +38,7 @@ export const ProtectedLayout = ({ allowedRoles }: ProtectedLayoutProps) => {
   }
 
   return (
-    <LazyErrorBoundary>
+    <LazyErrorBoundary key={location.pathname}>
       <Suspense fallback={<BarLoader />}>
         <Outlet />
       </Suspense>

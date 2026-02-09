@@ -15,12 +15,15 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 // import FindTalent from "./pages/FindTalent";
 // import TalentProfile from "./pages/TalentProfile";
 // import RegisterTalent from "./pages/RegisterTalent";
-const EmployerSignup = lazy(() => import("./pages/EmployerSignup"));
-const BenchRegistration = lazy(() => import("./pages/BenchRegistration"));
-const CandidateSignup = lazy(() => import("./pages/CandidateSignup"));
+
+// not considering this for now (lazy loading)
+import EmployerSignup from "./pages/EmployerSignup";
+import BenchRegistration from "./pages/BenchRegistration";
+import CandidateSignup from "./pages/CandidateSignup";
 import EmployerLogin from "./pages/EmployerLogin";
 import BenchLogin from "./pages/BenchLogin";
 import CandidateLogin from "./pages/CandidateLogin";
+
 // import ProfileVisibility from "./pages/ProfileVisibility";
 // import Register from "./pages/Register";
 // import JobSearch from "./pages/JobSearch";
