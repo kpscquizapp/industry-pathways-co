@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -91,9 +91,8 @@ const BenchDashboard = lazy(() => import("./pages/bench/BenchDashboard"));
 import { useFetchRefreshToken } from "./services/utils/hooks/useFetchRefreshToken";
 import ForgotPassword from "./pages/ForgotPassword";
 import { ProtectedLayout } from "./components/auth/ProtectedLayout";
-import BarLoader from "./components/loader/BarLoader";
 import Unauthorized from "./pages/Unauthorized";
-import LazyErrorBoundary from "./pages/LazyErrorBoundary";
+import { LazyRoute } from "./pages/LazyRoute";
 
 const queryClient = new QueryClient();
 
@@ -140,23 +139,11 @@ const App = () => {
                     <Route path="/employer-login" element={<EmployerLogin />} />
                     <Route
                       path="/employer-signup"
-                      element={
-                        <LazyErrorBoundary>
-                          <Suspense fallback={<BarLoader />}>
-                            <EmployerSignup />
-                          </Suspense>
-                        </LazyErrorBoundary>
-                      }
+                      element={<LazyRoute element={<EmployerSignup />} />}
                     />
                     <Route
                       path="/bench-registration"
-                      element={
-                        <LazyErrorBoundary>
-                          <Suspense fallback={<BarLoader />}>
-                            <BenchRegistration />
-                          </Suspense>
-                        </LazyErrorBoundary>
-                      }
+                      element={<LazyRoute element={<BenchRegistration />} />}
                     />
                     <Route path="/bench-login" element={<BenchLogin />} />
                     <Route
@@ -165,13 +152,7 @@ const App = () => {
                     />
                     <Route
                       path="/candidate-signup"
-                      element={
-                        <LazyErrorBoundary>
-                          <Suspense fallback={<BarLoader />}>
-                            <CandidateSignup />
-                          </Suspense>
-                        </LazyErrorBoundary>
-                      }
+                      element={<LazyRoute element={<CandidateSignup />} />}
                     />
                     {/* <Route
                       path="/profile-visibility"
@@ -208,14 +189,32 @@ const App = () => {
                     >
                       <Route
                         path="/contractor"
-                        element={<UnifiedDashboardLayout role="contractor" />}
+                        element={
+                          <LazyRoute
+                            element={
+                              <UnifiedDashboardLayout role="contractor" />
+                            }
+                          />
+                        }
                       >
-                        <Route index element={<ContractorDashboard />} />
+                        <Route
+                          index
+                          element={
+                            <LazyRoute element={<ContractorDashboard />} />
+                          }
+                        />
                         <Route
                           path="dashboard"
-                          element={<ContractorDashboard />}
+                          element={
+                            <LazyRoute element={<ContractorDashboard />} />
+                          }
                         />
-                        <Route path="profile" element={<ContractorProfile />} />
+                        <Route
+                          path="profile"
+                          element={
+                            <LazyRoute element={<ContractorProfile />} />
+                          }
+                        />
                         {/* // TODO: replace with dedicated page components */}
                         <Route path="tests" element={<ContractorDashboard />} />
                         <Route
@@ -233,10 +232,20 @@ const App = () => {
                     <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
                       <Route
                         path="/bench"
-                        element={<UnifiedDashboardLayout role="bench" />}
+                        element={
+                          <LazyRoute
+                            element={<UnifiedDashboardLayout role="bench" />}
+                          />
+                        }
                       >
-                        <Route index element={<BenchDashboard />} />
-                        <Route path="dashboard" element={<BenchDashboard />} />
+                        <Route
+                          index
+                          element={<LazyRoute element={<BenchDashboard />} />}
+                        />
+                        <Route
+                          path="dashboard"
+                          element={<LazyRoute element={<BenchDashboard />} />}
+                        />
                         {/* // TODO: replace with dedicated page components */}
                         <Route path="talent" element={<BenchDashboard />} />
                         <Route path="matches" element={<BenchDashboard />} />
@@ -252,12 +261,15 @@ const App = () => {
                     >
                       <Route
                         path="/employer-dashboard"
-                        element={<EmployerLayoutOld />}
+                        element={<LazyRoute element={<EmployerLayoutOld />} />}
                       >
-                        <Route index element={<CompanyDashboard />} />
+                        <Route
+                          index
+                          element={<LazyRoute element={<CompanyDashboard />} />}
+                        />
                         <Route
                           path="dashboard"
-                          element={<CompanyDashboard />}
+                          element={<LazyRoute element={<CompanyDashboard />} />}
                         />
                         <Route path="job-board" element={<JobBoard />} />
                         <Route path="create-job" element={<CreateJob />} />
@@ -277,15 +289,19 @@ const App = () => {
                         />
                         <Route
                           path="post-bench-resource"
-                          element={<PostBenchResource />}
+                          element={
+                            <LazyRoute element={<PostBenchResource />} />
+                          }
                         />
                         <Route
                           path="active-resources"
-                          element={<ActiveResources />}
+                          element={<LazyRoute element={<ActiveResources />} />}
                         />
                         <Route
                           path="visibility-settings"
-                          element={<VisibilitySettings />}
+                          element={
+                            <LazyRoute element={<VisibilitySettings />} />
+                          }
                         />
                         <Route path="ai-screening" element={<AIScreening />} />
                         <Route path="job/:jobId" element={<JobDetailsPage />} />
@@ -370,13 +386,7 @@ const App = () => {
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route
                       path="*"
-                      element={
-                        <LazyErrorBoundary>
-                          <Suspense fallback={<BarLoader />}>
-                            <NotFound />
-                          </Suspense>
-                        </LazyErrorBoundary>
-                      }
+                      element={<LazyRoute element={<NotFound />} />}
                     />
                   </Routes>
                 </PageTransition>

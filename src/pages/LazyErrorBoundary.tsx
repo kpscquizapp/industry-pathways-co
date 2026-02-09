@@ -10,6 +10,12 @@ interface State {
 }
 
 class LazyErrorBoundary extends Component<Props, State> {
+  componentDidUpdate(prevProps: Props) {
+    if (this.state.hasError && prevProps.children !== this.props.children) {
+      this.setState({ hasError: false, error: undefined });
+    }
+  }
+
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false };
@@ -19,7 +25,7 @@ class LazyErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("LazyErrorBoundary caught an error:", error, errorInfo);
   }
 
@@ -32,7 +38,7 @@ class LazyErrorBoundary extends Component<Props, State> {
               Something went wrong
             </h1>
             <p className="mb-4 text-gray-600">
-              {this.state.error?.message || "An unexpected error occurred"}
+              {"An unexpected error occurred"}
             </p>
             <button
               onClick={() => window.location.reload()}
