@@ -139,11 +139,11 @@ const App = () => {
                     <Route path="/employer-login" element={<EmployerLogin />} />
                     <Route
                       path="/employer-signup"
-                      element={<LazyRoute element={<EmployerSignup />} />}
+                      element={<EmployerSignup />}
                     />
                     <Route
                       path="/bench-registration"
-                      element={<LazyRoute element={<BenchRegistration />} />}
+                      element={<BenchRegistration />}
                     />
                     <Route path="/bench-login" element={<BenchLogin />} />
                     <Route
@@ -152,7 +152,7 @@ const App = () => {
                     />
                     <Route
                       path="/candidate-signup"
-                      element={<LazyRoute element={<CandidateSignup />} />}
+                      element={<CandidateSignup />}
                     />
                     {/* <Route
                       path="/profile-visibility"
