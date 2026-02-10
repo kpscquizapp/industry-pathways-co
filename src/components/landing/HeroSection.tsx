@@ -56,8 +56,11 @@ const HeroSection = () => {
                 className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
               >
                 <Link
-                 to={`${user?.role === "hr" ? "/bench/dashboard" : "/bench-registration"}`}
-                  
+                  to={
+                    user?.role === "employer"
+                      ? "/employer-dashboard"
+                      : "/employer-signup"
+                  }
                 >
                   Hire Talent
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -83,13 +86,7 @@ const HeroSection = () => {
                 className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
               >
                 <Link
-                  // to={`${user?.role === "hr" ? "/bench/dashboard" : "/bench-registration"}`}
-                  to={
-                    
-                    user?.role === "employer"
-                      ? "/employer-dashboard"
-                      : "/employer-signup"
-                  }
+                  to={`${user?.role === "hr" ? "/bench/dashboard" : "/bench-registration"}`}
                 >
                   <Building2 className="mr-2 h-5 w-5" />
                   List Bench Resources
