@@ -16,6 +16,7 @@ import {
   SupportedLanguage,
   TestCase,
 } from "@/types/coding";
+import { toast } from "sonner";
 
 // Sample problem data
 const sampleProblem: CodingProblem = {
@@ -182,8 +183,7 @@ const CodingChallenge: React.FC = () => {
       
       const allPassed = results.every((tc) => tc.passed);
       if (allPassed) {
-        // Show success notification
-        alert("✅ All test cases passed! Submission successful.");
+        toast.success("All test cases passed! Submission successful.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");

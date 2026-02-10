@@ -50,7 +50,7 @@ const UserTypesSection = () => {
         { icon: DollarSign, text: "Monetize idle resources" },
       ],
       cta: "List Bench Resources",
-      link: `${user?.role === "employer" ? "/employer-dashboard" : "/employer-signup"}`,
+      link: `${user?.role === "hr" ? "/bench/dashboard" : "/bench-registration"}`,
     },
     hiring: {
       title: "Hiring Companies",
@@ -65,7 +65,7 @@ const UserTypesSection = () => {
         { icon: Clock, text: "Hire fast, pay per contract" },
       ],
       cta: "Start Hiring",
-      link: `${user?.role === "hr" ?  "/bench/dashboard" : "/bench-registration" }`,
+      link: `${user?.role === "employer" ? "/employer-dashboard" : "/employer-signup"}`,
     },
   };
 

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CodingProblem, Difficulty } from "@/types/coding";
 import { CheckCircle2, Circle } from "lucide-react";
+import DOMPurify from "dompurify";
 
 interface ProblemPanelProps {
   problem: CodingProblem;
@@ -70,7 +71,7 @@ const ProblemPanel: React.FC<ProblemPanelProps> = ({ problem }) => {
             <TabsContent value="description" className="p-6 space-y-4">
               <div
                 className="prose prose-sm dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: problem.description }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(problem.description) }}
               />
             </TabsContent>
 

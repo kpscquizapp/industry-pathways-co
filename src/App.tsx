@@ -198,7 +198,7 @@ const App = () => {
                     {/* Coding Challenge Route */}
                     <Route
                       path="/coding-challenge/:challengeId?"
-                      element={<CodingChallenge />}
+                      element={<LazyRoute element={<CodingChallenge />} />}
                     />
 
                     {/* NEW: Contractor Dashboard Routes */}

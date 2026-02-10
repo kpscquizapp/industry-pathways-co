@@ -51,16 +51,22 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
   starterCode,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  useEffect(() => {
+   if (!isFullscreen) return;
+   const handleEsc = (e: KeyboardEvent) => {
+     if (e.key === "Escape") setIsFullscreen(false);
+   };
+   window.addEventListener("keydown", handleEsc);
+   return () => window.removeEventListener("keydown", handleEsc);
+ }, [isFullscreen]);
   const [fontSize, setFontSize] = useState(14);
   const [copied, setCopied] = useState(false);
   const [theme, setTheme] = useState<string>("vs-dark");
 
   // Sync with system theme
   useEffect(() => {
-    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    setTheme(isDark ? "vs-dark" : "light");
-
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    setTheme(mediaQuery.matches ? "vs-dark" : "light");
     const handler = (e: MediaQueryListEvent) => {
       setTheme(e.matches ? "vs-dark" : "light");
     };
@@ -74,9 +80,14 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+     await navigator.clipboard.writeText(code);
+     setCopied(true);
+     setTimeout(() => setCopied(false), 2000);
+   } catch {
+     // Optionally surface a toast/notification
+     console.error("Failed to copy to clipboard");
+   }
   };
 
   return (
