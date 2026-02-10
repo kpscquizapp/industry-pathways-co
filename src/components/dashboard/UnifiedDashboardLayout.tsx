@@ -126,7 +126,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
     if (user.role === "hr") {
       navigate("/bench/dashboard");
     } else if (user.role === "candidate") {
-      navigate("/contractor/dashboard");
+      navigate("/contractor/profile");
     } else {
       navigate(`*`);
     }
