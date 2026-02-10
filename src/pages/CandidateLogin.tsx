@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,11 +16,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLoginCandidateMutation } from "@/app/queries/loginApi";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "@/app/slices/userAuth";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
+import { RootState } from "@/app/store";
 
 // ==================== VALIDATION ====================
 const CREDENTIAL_ERROR_MSG = "Please check your credentials";
@@ -60,6 +61,13 @@ const CandidateLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const userDetails = useSelector((state: RootState) => state.user.userDetails);
+
+  useEffect(() => {
+    if (userDetails && userDetails.role === "candidate") {
+      navigate("/contractor/dashboard");
+    }
+  }, [userDetails, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -175,10 +183,7 @@ const CandidateLogin = () => {
 
       if (isFetchBaseQueryError(error)) {
         // Handle different status codes
-        if (error.status === 401) {
-          errorMessage =
-            "Invalid email or password. Please check your credentials and try again.";
-        } else if (error.status === 404) {
+        if (error.status === 401 || error.status === 404) {
           errorMessage =
             "Invalid email or password. Please check your credentials and try again.";
         } else if (error.status === 403) {

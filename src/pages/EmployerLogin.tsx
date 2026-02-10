@@ -153,7 +153,15 @@ const EmployerLogin = () => {
     }
 
     // Clear previous API-set field errors before making new request
-    setFieldErrors({});
+    setFieldErrors((prev) => {
+      const newErrors = { ...prev };
+      for (const key of Object.keys(newErrors)) {
+        if (key.startsWith("credential")) {
+          delete newErrors[key];
+        }
+      }
+      return newErrors;
+    });
 
     try {
       const result = await login({
@@ -172,10 +180,7 @@ const EmployerLogin = () => {
 
       if (isFetchBaseQueryError(error)) {
         // Handle different status codes
-        if (error.status === 401) {
-          errorMessage =
-            "Invalid email or password. Please check your credentials and try again.";
-        } else if (error.status === 404) {
+        if (error.status === 401 || error.status === 404) {
           errorMessage =
             "Invalid email or password. Please check your credentials and try again.";
         } else if (error.status === 403) {

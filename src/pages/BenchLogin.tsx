@@ -190,10 +190,7 @@ const BenchLogin = () => {
 
       if (isFetchBaseQueryError(error)) {
         // Handle different status codes
-        if (error.status === 401) {
-          errorMessage =
-            "Invalid email or password. Please check your credentials and try again.";
-        } else if (error.status === 404) {
+        if (error.status === 401 || error.status === 404) {
           errorMessage =
             "Invalid email or password. Please check your credentials and try again.";
         } else if (error.status === 403) {
