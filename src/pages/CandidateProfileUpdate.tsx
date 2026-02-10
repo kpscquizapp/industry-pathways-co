@@ -26,7 +26,7 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
-type Skill = {
+type Skills = {
   id: number;
   name: string;
 };
@@ -68,14 +68,17 @@ interface FormDataState {
   lastName: string;
   email: string;
   location: string;
+  country: string | null;
+  city: string | null;
   availability: string;
   bio: string;
   yearsExperience: string | number;
-  skills: string[];
+  primarySkills: string[];
   headline: string;
   resourceType: string;
   availableIn: string;
   englishProficiency: string;
+  preferredWorkType: string[];
   hourlyRateMin: number | string;
   hourlyRateMax: number | string;
   workExperiences: WorkExperienceForm[];
@@ -90,14 +93,17 @@ interface CandidateProfileUpdateProps {
     email: string;
     candidateProfile: {
       location?: string;
+      country?: string | null;
+      city?: string | null;
       availability?: string;
       bio?: string;
       yearsExperience?: string | number;
-      skills?: Skill[];
+      primarySkills?: Skills[];
       headline?: string;
       resourceType?: string;
       availableIn?: string;
       englishProficiency?: string;
+      preferredWorkType?: string[];
       hourlyRateMin?: number | string;
       hourlyRateMax?: number | string;
       workExperiences?: Array<{
@@ -311,7 +317,7 @@ const CandidateProfileUpdate = ({
 
   const skills = useMemo(
     () =>
-      data?.candidateProfile?.skills?.map((skill) =>
+      data?.candidateProfile?.primarySkills?.map((skill) =>
         typeof skill === "string" ? skill : skill.name,
       ) || [],
     [data],
@@ -394,25 +400,34 @@ const CandidateProfileUpdate = ({
   );
 
   const handleForm = useCallback((): FormDataState => {
+    if (!data) return;
     return {
       firstName: data?.firstName || "",
       lastName: data?.lastName || "",
       email: data?.email || "",
       location: data?.candidateProfile.location || "",
+      country: data?.candidateProfile.country ?? null,
+      city: data?.candidateProfile.city ?? null,
       availability: data?.candidateProfile.availability || "",
       bio: data?.candidateProfile.bio || "",
       yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-      skills: skills || [],
+      primarySkills:
+        data?.candidateProfile.primarySkills?.map((skill) =>
+          typeof skill === "string" ? skill : skill.name,
+        ) || [],
       headline: data?.candidateProfile.headline || "",
       resourceType: data?.candidateProfile.resourceType || "",
       availableIn: data?.candidateProfile.availableIn || "",
-      englishProficiency: data?.candidateProfile.englishProficiency || "",
+      englishProficiency: data?.candidateProfile.englishProficiency ?? "",
+      preferredWorkType: data?.candidateProfile.preferredWorkType ?? [],
       hourlyRateMin:
-        data?.candidateProfile.hourlyRateMin === ""
+        data?.candidateProfile.hourlyRateMin === "" ||
+        data?.candidateProfile.hourlyRateMin == null
           ? ""
           : Number(data?.candidateProfile.hourlyRateMin),
       hourlyRateMax:
-        data?.candidateProfile.hourlyRateMax === ""
+        data?.candidateProfile.hourlyRateMax === "" ||
+        data?.candidateProfile.hourlyRateMax == null
           ? ""
           : Number(data?.candidateProfile.hourlyRateMax),
       workExperiences: workExperiences || [],
@@ -491,6 +506,20 @@ const CandidateProfileUpdate = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleWorkTypeChange = (workType: string) => {
+    setFormData((prev) => {
+      const currentTypes = prev.preferredWorkType || [];
+      const isSelected = currentTypes.includes(workType);
+
+      return {
+        ...prev,
+        preferredWorkType: isSelected
+          ? currentTypes.filter((type) => type !== workType)
+          : [...currentTypes, workType],
+      };
+    });
+  };
+
   const addSkill = () => {
     const name = skillInput.trim();
 
@@ -504,13 +533,13 @@ const CandidateProfileUpdate = ({
       return;
     }
 
-    if (formData.skills.length >= 50) {
+    if (formData.primarySkills.length >= 50) {
       toast.error("You can add a maximum of 50 skills");
       return;
     }
 
     if (
-      formData.skills.some(
+      formData.primarySkills.some(
         (skill) => skill.toLowerCase() === name.toLowerCase(),
       )
     ) {
@@ -520,15 +549,15 @@ const CandidateProfileUpdate = ({
 
     setFormData((prevData) => ({
       ...prevData,
-      skills: [...prevData.skills, name],
+      primarySkills: [...prevData.primarySkills, name],
     }));
     setSkillInput("");
 
     // Clear skills error if it exists
-    if (fieldErrors.skills) {
+    if (fieldErrors.primarySkills) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
-        delete newErrors.skills;
+        delete newErrors.primarySkills;
         return newErrors;
       });
     }
@@ -536,13 +565,13 @@ const CandidateProfileUpdate = ({
 
   const removeSkills = async (skillToRemove: string) => {
     // Guard clause: prevent removing the last skill
-    if (formData.skills.length <= 1) {
+    if (formData.primarySkills.length <= 1) {
       toast.warning("You must have at least one skill");
       return;
     }
 
     // Find the skill to remove
-    const filteredSkill = data?.candidateProfile?.skills?.find(
+    const filteredSkill = data?.candidateProfile?.primarySkills?.find(
       (skill: string | { name: string }) =>
         typeof skill === "string"
           ? skill.toLowerCase() === skillToRemove.toLowerCase()
@@ -563,7 +592,7 @@ const CandidateProfileUpdate = ({
       setTimeout(() => {
         setFormData((prev) => ({
           ...prev,
-          skills: prev.skills.filter(
+          primarySkills: prev.primarySkills.filter(
             (s) => s.toLowerCase() !== localName.toLowerCase(),
           ),
         }));
@@ -579,7 +608,7 @@ const CandidateProfileUpdate = ({
 
       setFormData((prev) => ({
         ...prev,
-        skills: prev.skills.filter(
+        primarySkills: prev.primarySkills.filter(
           (s) => s.toLowerCase() !== skillToRemove.toLowerCase(),
         ),
       }));
@@ -945,8 +974,8 @@ const CandidateProfileUpdate = ({
     );
     if (rateError) errors.hourlyRate = rateError;
 
-    const skillsError = VALIDATION.skill.validate(formData.skills);
-    if (skillsError) errors.skills = skillsError;
+    const skillsError = VALIDATION.skill.validate(formData.primarySkills);
+    if (skillsError) errors.primarySkills = skillsError;
 
     // Validate work experiences
     formData.workExperiences.forEach((exp, index) => {
@@ -1048,8 +1077,12 @@ const CandidateProfileUpdate = ({
       lastName: formData.lastName.trim(),
       email: formData.email.toLowerCase().trim(),
       location: formData.location.trim(),
+      country: formData.country?.trim() || null,
+      city: formData.city?.trim() || null,
       headline: formData.headline.trim(),
       bio: formData.bio.trim(),
+      primarySkills: formData.primarySkills,
+      preferredWorkType: formData.preferredWorkType,
       certifications: formData.certifications
         .filter((cert) => cert.name && cert.issuedBy && cert.issueDate) // Only include completed certifications
         .map(({ localId, ...cert }) => ({
@@ -1085,10 +1118,8 @@ const CandidateProfileUpdate = ({
             : String(exp.description ?? "").trim(),
         })),
     };
-
     try {
       await updateProfile(payload).unwrap();
-
       toast.success("Profile updated successfully!");
       setFieldErrors({}); // Clear all errors on success
     } catch (err: unknown) {
@@ -1241,6 +1272,36 @@ const CandidateProfileUpdate = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+                Country
+              </Label>
+              <Input
+                type="text"
+                name="country"
+                value={formData.country || ""}
+                onChange={handleInputChange}
+                placeholder="e.g., United States, India, UK"
+                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+              />
+            </div>
+
+            <div>
+              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+                City
+              </Label>
+              <Input
+                type="text"
+                name="city"
+                value={formData.city || ""}
+                onChange={handleInputChange}
+                placeholder="e.g., New York, Mumbai, London"
+                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
+            <div>
+              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
                 Years of Experience
               </Label>
               <Input
@@ -1316,6 +1377,32 @@ const CandidateProfileUpdate = ({
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          <div className="pb-2">
+            <Label className="block text-sm font-medium text-gray-700 mb-2 dark:text-white">
+              Preferred Work Type
+            </Label>
+            <div className="flex flex-wrap gap-4">
+              {["remote", "hybrid", "onsite"].map((workType) => (
+                <label
+                  key={workType}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={
+                      formData.preferredWorkType?.includes(workType) || false
+                    }
+                    onChange={() => handleWorkTypeChange(workType)}
+                    className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary dark:border-slate-500 dark:bg-slate-800"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                    {workType}
+                  </span>
+                </label>
+              ))}
             </div>
           </div>
 
@@ -1401,7 +1488,9 @@ const CandidateProfileUpdate = ({
               maxLength={50}
               placeholder="Add a skill (e.g., TypeScript)"
               className={`flex-1 px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                fieldErrors.skills ? "border-red-500 dark:border-red-500" : ""
+                fieldErrors.primarySkills
+                  ? "border-red-500 dark:border-red-500"
+                  : ""
               }`}
             />
             <Button
@@ -1412,14 +1501,15 @@ const CandidateProfileUpdate = ({
               <Plus className="w-5 h-5" />
             </Button>
           </div>
-          <ErrorMessage error={fieldErrors.skills} />
+          <ErrorMessage error={fieldErrors.primarySkills} />
 
           <div className="flex flex-wrap gap-2">
-            {formData.skills.map((name, index) => {
-              const skillObj = data?.candidateProfile?.skills?.find((s) =>
-                typeof s === "string"
-                  ? false
-                  : s.name.toLowerCase() === name.toLowerCase(),
+            {formData.primarySkills.map((name, index) => {
+              const skillObj = data?.candidateProfile?.primarySkills?.find(
+                (s) =>
+                  typeof s === "string"
+                    ? false
+                    : s.name.toLowerCase() === name.toLowerCase(),
               );
               const skillId = skillObj?.id ?? null;
 
@@ -1449,15 +1539,15 @@ const CandidateProfileUpdate = ({
                 </span>
               );
             })}
-            {formData.skills.length === 0 && (
+            {formData.primarySkills.length === 0 && (
               <p className="text-sm text-gray-500 dark:text-gray-400 italic">
                 No skills added yet. Add at least one skill.
               </p>
             )}
           </div>
-          {formData.skills.length > 0 && (
+          {formData.primarySkills.length > 0 && (
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {formData.skills.length} / 50 skills added
+              {formData.primarySkills.length} / 50 skills added
             </p>
           )}
         </div>
