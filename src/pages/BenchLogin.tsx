@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,11 +16,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLoginHrMutation } from "@/app/queries/loginApi";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "@/app/slices/userAuth";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
+import { RootState } from "@/app/store";
 
 // ==================== VALIDATION ====================
 const CREDENTIAL_ERROR_MSG = "Please check your credentials";
@@ -71,6 +72,7 @@ const BenchLogin = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [login, { isLoading }] = useLoginHrMutation();
+  const userDetails = useSelector((state: RootState) => state.user.userDetails);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -80,6 +82,12 @@ const BenchLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (userDetails && userDetails.role === "hr") {
+      navigate("/bench/dashboard");
+    }
+  }, [userDetails, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -187,8 +195,7 @@ const BenchLogin = () => {
           errorMessage =
             "Invalid email or password. Please check your credentials and try again.";
         } else if (error.status === 404) {
-          errorMessage =
-            "No account found with this email. Please sign up first.";
+          errorMessage = "Please check your email and try again.";
         } else if (error.status === 403) {
           errorMessage =
             "Your account has been suspended. Please contact support.";
@@ -213,12 +220,12 @@ const BenchLogin = () => {
       toast.error(errorMessage);
 
       // Mark credential fields with errors for auth failures
-      if (isFetchBaseQueryError(error) && error.status === 401) {
+      if (isFetchBaseQueryError(error)) {
         setFieldErrors({
           email: CREDENTIAL_ERROR_MSG,
           password: CREDENTIAL_ERROR_MSG,
         });
-      } else if (isFetchBaseQueryError(error) && error.status === 404) {
+      } else if (isFetchBaseQueryError(error)) {
         setFieldErrors({
           email: "No account found with this email",
         });
@@ -333,10 +340,11 @@ const BenchLogin = () => {
                         type="email"
                         placeholder="employer@agency.com"
                         autoComplete="email"
-                        className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${fieldErrors.email && touched.email
+                        className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                          fieldErrors.email && touched.email
                             ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                             : ""
-                          }`}
+                        }`}
                         value={formData.email}
                         onChange={handleInputChange}
                         onBlur={() => handleBlur("email")}
@@ -369,10 +377,11 @@ const BenchLogin = () => {
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         autoComplete="current-password"
-                        className={`h-12 pl-12 pr-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${fieldErrors.password && touched.password
+                        className={`h-12 pl-12 pr-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                          fieldErrors.password && touched.password
                             ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                             : ""
-                          }`}
+                        }`}
                         value={formData.password}
                         onChange={handleInputChange}
                         onBlur={() => handleBlur("password")}

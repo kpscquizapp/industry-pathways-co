@@ -166,8 +166,6 @@ const EmployerLogin = () => {
       );
       navigate("/employer-dashboard");
     } catch (error: unknown) {
-      console.error("Login error:", error);
-
       // Extract error message
       let errorMessage = "Login failed. Please try again.";
 
@@ -177,8 +175,7 @@ const EmployerLogin = () => {
           errorMessage =
             "Invalid email or password. Please check your credentials and try again.";
         } else if (error.status === 404) {
-          errorMessage =
-            "No account found with this email. Please sign up first.";
+          errorMessage = "Please check your email and try again.";
         } else if (error.status === 403) {
           errorMessage =
             "Your account has been suspended. Please contact support.";
@@ -203,12 +200,12 @@ const EmployerLogin = () => {
       toast.error(errorMessage);
 
       // Mark credential fields with errors for auth failures
-      if (isFetchBaseQueryError(error) && error.status === 401) {
+      if (isFetchBaseQueryError(error)) {
         setFieldErrors({
           email: CREDENTIAL_ERROR_MSG,
           password: CREDENTIAL_ERROR_MSG,
         });
-      } else if (isFetchBaseQueryError(error) && error.status === 404) {
+      } else if (isFetchBaseQueryError(error)) {
         setFieldErrors({
           email: "No account found with this email",
         });
@@ -367,10 +364,11 @@ const EmployerLogin = () => {
                         type="email"
                         placeholder="name@company.com"
                         autoComplete="email"
-                        className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all duration-300 font-medium ${fieldErrors.email && touched.email
+                        className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all duration-300 font-medium ${
+                          fieldErrors.email && touched.email
                             ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                             : ""
-                          }`}
+                        }`}
                         value={formData.email}
                         onChange={handleInputChange}
                         onBlur={() => handleBlur("email")}
@@ -403,10 +401,11 @@ const EmployerLogin = () => {
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         autoComplete="current-password"
-                        className={`h-12 pl-12 pr-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all duration-300 font-medium ${fieldErrors.password && touched.password
+                        className={`h-12 pl-12 pr-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all duration-300 font-medium ${
+                          fieldErrors.password && touched.password
                             ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                             : ""
-                          }`}
+                        }`}
                         value={formData.password}
                         onChange={handleInputChange}
                         onBlur={() => handleBlur("password")}

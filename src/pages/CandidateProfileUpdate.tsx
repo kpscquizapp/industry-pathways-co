@@ -26,7 +26,7 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
-type Skills = {
+type Skill = {
   id: number;
   name: string;
 };
@@ -98,7 +98,7 @@ interface CandidateProfileUpdateProps {
       availability?: string;
       bio?: string;
       yearsExperience?: string | number;
-      primarySkills?: Skills[];
+      primarySkills?: Skill[];
       headline?: string;
       resourceType?: string;
       availableIn?: string;
@@ -400,7 +400,7 @@ const CandidateProfileUpdate = ({
   );
 
   const handleForm = useCallback((): FormDataState => {
-    if (!data) return;
+    if (!data) return {} as FormDataState;
     return {
       firstName: data?.firstName || "",
       lastName: data?.lastName || "",
@@ -1113,6 +1113,7 @@ const CandidateProfileUpdate = ({
           companyName: exp.companyName.trim(),
           role: exp.role.trim(),
           location: exp.location.trim(),
+          endDate: cleanDate(exp.endDate),
           description: Array.isArray(exp.description)
             ? exp.description.join("\n")
             : String(exp.description ?? "").trim(),

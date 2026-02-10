@@ -180,8 +180,7 @@ const CandidateLogin = () => {
           errorMessage =
             "Invalid email or password. Please check your credentials and try again.";
         } else if (error.status === 404) {
-          errorMessage =
-            "No account found with this email. Please sign up first.";
+          errorMessage = "Please check your email and try again.";
         } else if (error.status === 403) {
           errorMessage =
             "Your account has been suspended. Please contact support.";
@@ -206,12 +205,12 @@ const CandidateLogin = () => {
       toast.error(errorMessage);
 
       // Mark credential fields with errors for auth failures
-      if (isFetchBaseQueryError(error) && error.status === 401) {
+      if (isFetchBaseQueryError(error)) {
         setFieldErrors({
           email: CREDENTIAL_ERROR_MSG,
           password: CREDENTIAL_ERROR_MSG,
         });
-      } else if (isFetchBaseQueryError(error) && error.status === 404) {
+      } else if (isFetchBaseQueryError(error)) {
         setFieldErrors({
           email: "No account found with this email",
         });
