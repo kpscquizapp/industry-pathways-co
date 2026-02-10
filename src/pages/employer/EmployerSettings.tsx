@@ -10,9 +10,12 @@ import {
   Smartphone,
   Globe,
   Moon,
-  Sun
+  Sun,
+  CreditCard,
+  Building2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -45,9 +48,10 @@ const EmployerSettings = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-muted/50 rounded-xl p-1">
+        <TabsList className="bg-muted/50 rounded-xl p-1 flex-wrap">
           <TabsTrigger value="account" className="rounded-lg px-6">Account</TabsTrigger>
           <TabsTrigger value="notifications" className="rounded-lg px-6">Notifications</TabsTrigger>
+          <TabsTrigger value="payments" className="rounded-lg px-6">Payment Details</TabsTrigger>
           <TabsTrigger value="integrations" className="rounded-lg px-6">Integrations</TabsTrigger>
           <TabsTrigger value="appearance" className="rounded-lg px-6">Appearance</TabsTrigger>
         </TabsList>
@@ -202,6 +206,90 @@ const EmployerSettings = () => {
                     />
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Payment Details */}
+        <TabsContent value="payments" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" />
+                Payment Method
+              </CardTitle>
+              <CardDescription>Manage your payment methods for job postings and subscriptions</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 border border-border rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Visa ending in 4242</p>
+                    <p className="text-sm text-muted-foreground">Expires 12/2027</p>
+                  </div>
+                </div>
+                <Badge className="bg-green-100 text-green-700">Default</Badge>
+              </div>
+              <Button variant="outline" className="rounded-xl">+ Add Payment Method</Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-primary" />
+                Billing Information
+              </CardTitle>
+              <CardDescription>Your billing address and tax details</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Company Name</Label>
+                  <Input defaultValue="InnovateLab Technologies" className="mt-1.5" />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">GST Number</Label>
+                  <Input defaultValue="29ABCDE1234F1Z5" className="mt-1.5" />
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Billing Address</Label>
+                <Input defaultValue="123 Tech Park, Whitefield, Bangalore 560066" className="mt-1.5" />
+              </div>
+              <div className="flex justify-end">
+                <Button className="rounded-xl">Save Billing Info</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Transactions</CardTitle>
+              <CardDescription>Your recent payment history</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[
+                  { desc: 'Job Posting - Senior Frontend Developer', amount: '₹2,499', date: 'Jan 15, 2026', status: 'Paid' },
+                  { desc: 'Premium Plan - Monthly', amount: '₹9,999', date: 'Jan 01, 2026', status: 'Paid' },
+                  { desc: 'Job Posting - Backend Engineer', amount: '₹2,499', date: 'Dec 20, 2025', status: 'Paid' },
+                ].map((txn, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 border border-border rounded-xl">
+                    <div>
+                      <p className="font-medium text-sm">{txn.desc}</p>
+                      <p className="text-xs text-muted-foreground">{txn.date}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">{txn.amount}</p>
+                      <Badge className="bg-green-100 text-green-700 text-xs">{txn.status}</Badge>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
