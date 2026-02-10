@@ -156,7 +156,7 @@ const EmployerLogin = () => {
     setFieldErrors((prev) => {
       const newErrors = { ...prev };
       for (const key of Object.keys(newErrors)) {
-        if (key.startsWith("credential")) {
+        if (newErrors[key] === CREDENTIAL_ERROR_MSG) {
           delete newErrors[key];
         }
       }

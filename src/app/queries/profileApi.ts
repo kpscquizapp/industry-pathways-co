@@ -64,9 +64,9 @@ export const profileApi = createApi({
       async onQueryStarted(skillId, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           profileApi.util.updateQueryData("getProfile", undefined, (draft) => {
-            if (!draft?.candidateProfile?.skills) return;
-            draft.candidateProfile.skills =
-              draft.candidateProfile.skills.filter(
+            if (!draft?.candidateProfile?.primarySkills) return;
+            draft.candidateProfile.primarySkills =
+              draft.candidateProfile.primarySkills.filter(
                 (s: any) => String(s.id) !== String(skillId),
               );
           }),

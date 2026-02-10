@@ -25,6 +25,7 @@ type Resume = {
   mimeType: string;
   fileSize: number;
   uploadedAt: string;
+  isDefault?: boolean;
 };
 
 // Helper to determine if a resume should be treated as a PDF (by MIME type or filename).
@@ -57,7 +58,9 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingViewId, setLoadingViewId] = useState<number | null>(null);
   const [loadingDeleteId, setLoadingDeleteId] = useState<number | null>(null);
-  const [defaultResumeId, setDefaultResumeId] = useState<number | null>(null);
+  const [defaultResumeId, setDefaultResumeId] = useState<number | null>(
+    () => resumes.find((r) => r.isDefault)?.id ?? null,
+  );
 
   const isMobile = useIsMobile();
 
@@ -72,6 +75,10 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
       document.body.style.overflow = "unset";
     };
   }, [isModalOpen]);
+
+  useEffect(() => {
+    setDefaultResumeId(resumes.find((r) => r.isDefault)?.id ?? null);
+  }, [resumes]);
 
   const revokePreviewUrl = (url?: string | null) => {
     if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
@@ -313,17 +320,20 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                           variant="outline"
                           size="sm"
                           disabled={
-                            loadingViewId !== null || isSettingDefault
+                            loadingViewId !== null ||
+                            loadingDeleteId !== null ||
+                            isSettingDefault
                           }
                           onClick={() => handleDefaultResume(resume.id)}
                           className="text-xs md:text-sm flex items-center justify-center gap-2"
                         >
                           <>
                             <Star
-                              className={`w-3 h-3 md:w-4 md:h-4 mr-1 ${defaultResumeId === resume.id
-                                ? "text-primary fill-primary"
-                                : ""
-                                }`}
+                              className={`w-3 h-3 md:w-4 md:h-4 mr-1 ${
+                                defaultResumeId === resume.id
+                                  ? "text-primary fill-primary"
+                                  : ""
+                              }`}
                             />
                             Set as Default
                           </>
