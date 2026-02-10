@@ -61,6 +61,9 @@ const JobCandidates = lazy(() => import("./pages/employer/JobCandidates"));
 const AIInterviewResults = lazy(
   () => import("./pages/employer/AIInterviewResults"),
 );
+const EmployerSettings = lazy(
+  () => import("./pages/employer/EmployerSettings"),
+);
 const JobBoard = lazy(() => import("./pages/employer/JobBoard"));
 const CreateJob = lazy(() => import("./pages/employer/CreateJob"));
 const JobDetailsPage = lazy(() => import("./pages/employer/JobDetails"));
@@ -96,6 +99,17 @@ import ForgotPassword from "./pages/ForgotPassword";
 import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import Unauthorized from "./pages/Unauthorized";
 import { LazyRoute } from "./pages/LazyRoute";
+// import EmployerLayout from "./components/employer/EmployerLayout";
+const HiringDashboardNew = lazy(() => import("./pages/employer/HiringDashboardNew"));
+const EmployerPostJob = lazy(() => import("./pages/employer/EmployerPostJob"));
+const EmployerAIShortlists = lazy(() => import("./pages/employer/EmployerAIShortlists"));
+const EmployerSkillTests = lazy(() => import("./pages/employer/EmployerSkillTests"));
+const EmployerAIInterviews = lazy(() => import("./pages/employer/EmployerAIInterviews"));
+const EmployerContracts = lazy(() => import("./pages/employer/EmployerContracts"));
+const EmployerSettings = lazy(() => import("./pages/employer/EmployerSettings"));
+
+// Coding Challenge
+const CodingChallenge = lazy(() => import("./pages/CodingChallenge"));
 
 const queryClient = new QueryClient();
 
@@ -184,6 +198,12 @@ const App = () => {
                     />
                     <Route path="/saved-jobs" element={<SavedJobs />} /> */}
 
+                    {/* Coding Challenge Route */}
+                    <Route
+                      path="/coding-challenge/:challengeId?"
+                      element={<LazyRoute element={<CodingChallenge />} />}
+                    />
+
                     {/* NEW: Contractor Dashboard Routes */}
                     {/* "candidate" role users access the contractor dashboard */}
                     {/* (UI role is "contractor", auth role is "candidate") */}
@@ -216,17 +236,19 @@ const App = () => {
                     {/* NEW: Bench Resources Dashboard Routes */}
                     <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
                       <Route
-                        path="/bench"
+                        path="/hr"
                         element={<UnifiedDashboardLayout role="bench" />}
                       >
-                        <Route index element={<BenchDashboard />} />
-                        <Route path="dashboard" element={<BenchDashboard />} />
-                        {/* // TODO: replace with dedicated page components */}
-                        <Route path="talent" element={<BenchDashboard />} />
-                        <Route path="matches" element={<BenchDashboard />} />
-                        <Route path="analytics" element={<BenchDashboard />} />
-                        <Route path="contracts" element={<BenchDashboard />} />
-                        <Route path="billing" element={<BenchDashboard />} />
+                      <Route index element={<LazyRoute element={<HiringDashboardNew />} />} />
+                      <Route index element={<HiringDashboardNew />} />
+                      <Route path="dashboard" element={<HiringDashboardNew />} />
+                      <Route path="post-job" element={<EmployerPostJob />} />
+                      <Route path="ai-shortlists" element={<EmployerAIShortlists />} />
+                      <Route path="skill-tests" element={<EmployerSkillTests />} />
+                      <Route path="ai-interviews" element={<EmployerAIInterviews />} />
+                      <Route path="contracts" element={<EmployerContracts />} />
+                      <Route path="settings" element={<EmployerSettings />} />
+                
                       </Route>
                     </Route>
 
@@ -284,6 +306,10 @@ const App = () => {
                         <Route
                           path="interview-results/:candidateId"
                           element={<AIInterviewResults />}
+                        />
+                        <Route
+                          path="settings"
+                          element={<EmployerSettings />}
                         />
                       </Route>
                     </Route>

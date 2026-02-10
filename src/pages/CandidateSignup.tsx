@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -163,6 +163,7 @@ const CandidateSignup = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [primarySkills, setPrimarySkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
+  const skillInputRef = useRef<HTMLInputElement>(null);
   const [preferredWorkType, setPreferredWorkType] = useState<string[]>([]); // FIXED: Empty array initially
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedPrivacyPolicy, setAcceptedPrivacyPolicy] = useState(false);
@@ -200,44 +201,46 @@ const CandidateSignup = () => {
     });
   };
 
-  const addSkill = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && skillInput.trim()) {
-      e.preventDefault();
+  const tryAddSkill = () => {
+    const trimmedSkill = skillInput.trim();
+    if (!trimmedSkill) return;
 
-      const trimmedSkill = skillInput.trim();
-
-      // Validation checks
-      if (trimmedSkill.length > 50) {
-        toast.error("Skill name must be less than 50 characters");
-        return;
-      }
-
-      if (primarySkills.length >= 20) {
-        toast.error("You can add a maximum of 20 skills");
-        return;
-      }
-
-      if (
-        primarySkills.some(
-          (s) => s.toLowerCase() === trimmedSkill.toLowerCase(),
-        )
-      ) {
-        toast.error("This skill has already been added");
-        return;
-      }
-
-      setPrimarySkills([...primarySkills, trimmedSkill]);
-      setSkillInput("");
-
-      // Clear skills error if it exists
-      if (fieldErrors.primarySkills) {
-        setFieldErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors.primarySkills;
-          return newErrors;
-        });
-      }
+    // Validation checks
+    if (trimmedSkill.length > 50) {
+      toast.error("Skill name must be less than 50 characters");
+      return;
     }
+
+    if (primarySkills.length >= 20) {
+      toast.error("You can add a maximum of 20 skills");
+      return;
+    }
+
+    if (
+      primarySkills.some((s) => s.toLowerCase() === trimmedSkill.toLowerCase())
+    ) {
+      toast.error("This skill has already been added");
+      return;
+    }
+
+    setPrimarySkills([...primarySkills, trimmedSkill]);
+    setSkillInput("");
+    skillInputRef.current?.focus();
+
+    // Clear skills error if it exists
+    if (fieldErrors.primarySkills) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.primarySkills;
+        return newErrors;
+      });
+    }
+  };
+
+  const addSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    tryAddSkill();
   };
 
   const removeSkill = (skillToRemove: string) => {
@@ -823,16 +826,27 @@ const CandidateSignup = () => {
                           <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                           <Input
                             placeholder="Type skill and press Enter..."
-                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                            className={`h-12 pl-12 pr-24 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
                               fieldErrors.primarySkills
                                 ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                                 : ""
                             }`}
                             value={skillInput}
+                            ref={skillInputRef}
                             maxLength={50}
                             onChange={(e) => setSkillInput(e.target.value)}
                             onKeyDown={addSkill}
                           />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-9 rounded-lg px-4 font-bold"
+                            onClick={tryAddSkill}
+                            disabled={!skillInput.trim()}
+                          >
+                            Enter
+                          </Button>
                         </div>
                         <div className="flex flex-wrap gap-2 mt-2">
                           {primarySkills.map((skill) => (
