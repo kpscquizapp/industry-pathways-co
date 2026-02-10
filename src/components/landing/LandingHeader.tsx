@@ -18,13 +18,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useSelector } from "react-redux";
-import { RootState } from "@/app/store";
+import { useAppSelector } from "@/app/hooks";
 
 const LandingHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const user = useSelector((state: RootState) => state.user.userDetails);
+  const user = useAppSelector((state) => state.user.userDetails);
   const navigation = useNavigate();
   const location = useLocation();
 
