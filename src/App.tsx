@@ -221,7 +221,6 @@ const App = () => {
                       >
                         <Route index element={<BenchDashboard />} />
                         <Route path="dashboard" element={<BenchDashboard />} />
-                        {/* // TODO: replace with dedicated page components */}
                         <Route path="talent" element={<BenchDashboard />} />
                         <Route path="matches" element={<BenchDashboard />} />
                         <Route path="analytics" element={<BenchDashboard />} />
