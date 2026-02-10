@@ -169,8 +169,6 @@ const CandidateLogin = () => {
         navigate("/contractor/dashboard");
       }
     } catch (error: unknown) {
-      console.error("Login error:", error);
-
       // Extract error message
       let errorMessage = "Login failed. Please try again.";
 
@@ -180,7 +178,8 @@ const CandidateLogin = () => {
           errorMessage =
             "Invalid email or password. Please check your credentials and try again.";
         } else if (error.status === 404) {
-          errorMessage = "Please check your email and try again.";
+          errorMessage =
+            "Invalid email or password. Please check your credentials and try again.";
         } else if (error.status === 403) {
           errorMessage =
             "Your account has been suspended. Please contact support.";
@@ -205,14 +204,14 @@ const CandidateLogin = () => {
       toast.error(errorMessage);
 
       // Mark credential fields with errors for auth failures
-      if (isFetchBaseQueryError(error)) {
+      if (isFetchBaseQueryError(error) && error.status === 404) {
         setFieldErrors({
           email: CREDENTIAL_ERROR_MSG,
-          password: CREDENTIAL_ERROR_MSG,
         });
       } else if (isFetchBaseQueryError(error)) {
         setFieldErrors({
-          email: "No account found with this email",
+          email: CREDENTIAL_ERROR_MSG,
+          password: CREDENTIAL_ERROR_MSG,
         });
       }
     }

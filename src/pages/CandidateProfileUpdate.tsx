@@ -455,6 +455,7 @@ const CandidateProfileUpdate = ({
     "Available",
   ];
   const availableInOptions = ["Immediate", "15 Days", "30 Days"];
+  const preferredWorkTypeOptions = ["remote", "hybrid", "onsite"];
   const englishProficiencyOptions = [
     "Basic",
     "Professional",
@@ -1281,6 +1282,7 @@ const CandidateProfileUpdate = ({
                 value={formData.country || ""}
                 onChange={handleInputChange}
                 placeholder="e.g., United States, India, UK"
+                maxLength={100}
                 className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
               />
             </div>
@@ -1295,6 +1297,7 @@ const CandidateProfileUpdate = ({
                 value={formData.city || ""}
                 onChange={handleInputChange}
                 placeholder="e.g., New York, Mumbai, London"
+                maxLength={100}
                 className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
               />
             </div>
@@ -1386,7 +1389,7 @@ const CandidateProfileUpdate = ({
               Preferred Work Type
             </Label>
             <div className="flex flex-wrap gap-4">
-              {["remote", "hybrid", "onsite"].map((workType) => (
+              {preferredWorkTypeOptions?.map((workType) => (
                 <label
                   key={workType}
                   className="flex items-center gap-2 cursor-pointer"

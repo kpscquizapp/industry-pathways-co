@@ -184,8 +184,6 @@ const BenchLogin = () => {
       );
       navigate("/bench/dashboard");
     } catch (error: unknown) {
-      console.error("Login error:", error);
-
       // Extract error message
       let errorMessage = "Login failed. Please try again.";
 
@@ -195,7 +193,8 @@ const BenchLogin = () => {
           errorMessage =
             "Invalid email or password. Please check your credentials and try again.";
         } else if (error.status === 404) {
-          errorMessage = "Please check your email and try again.";
+          errorMessage =
+            "Invalid email or password. Please check your credentials and try again.";
         } else if (error.status === 403) {
           errorMessage =
             "Your account has been suspended. Please contact support.";
