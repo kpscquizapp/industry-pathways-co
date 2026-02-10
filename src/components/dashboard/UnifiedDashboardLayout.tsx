@@ -73,11 +73,13 @@ const getMenuItems = (role: DashboardRole) => {
     case "bench":
       return [
         { icon: LayoutDashboard, label: "Dashboard", href: "/bench/dashboard" },
-        { icon: Users, label: "Bench Talent", href: "/bench/talent" },
-        { icon: Briefcase, label: "Job Matches", href: "/bench/matches" },
-        { icon: BarChart3, label: "Analytics", href: "/bench/analytics" },
+        { icon: Users, label: "Post Job", href: "/bench/post-job" },
+        { icon: Briefcase, label: "AI Shortlists", href: "/bench/ai-shortlists" },
+        { icon: BarChart3, label: "Skill Test", href: "/bench/skill-tests" },
+        { icon: Video, label: "AI Interviews", href: "/bench/ai-interviews" },
         { icon: FileText, label: "Contracts", href: "/bench/contracts" },
-        { icon: CreditCard, label: "Billing", href: "/bench/billing" },
+        { icon: Settings, label: "Settings", href: "/bench/settings" },
+        // { icon: CreditCard, label: "Billing", href: "/bench/billing" },
       ];
     case "employer":
       return [
