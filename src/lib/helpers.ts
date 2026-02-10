@@ -41,7 +41,6 @@ export const getAuthHeaders = () => {
     //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YWQ4MmQ4OGU5MGRkMzBmMzFmNDU3NCIsIm5hbWUiOiJhYmhpc2hlazIiLCJlbWFpbCI6InRlc3QxQGdtYWlsLmNvbSIsInBob25lIjoiNjI4Mjk1MjYyMyIsImlhdCI6MTczOTQyNzM4MiwiZXhwIjoxNzM5NTEzNzgyfQ.xNkMHUAbnaQ6R4ms-QRebHL9Ys2eVe4ssAFd86IG1fc";
 
     const { token } = JSON.parse(userInfo);
-    console.log(token);
     if (!token) return {};
 
     return { Authorization: `Bearer ${token}` };
