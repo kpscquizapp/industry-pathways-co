@@ -206,11 +206,7 @@ const CandidateLogin = () => {
 
       // Mark credential fields with errors for auth failures
       if (isFetchBaseQueryError(error)) {
-        if (error.status === 404) {
-          setFieldErrors({
-            email: "No account found with this email",
-          });
-        } else if (error.status === 401) {
+        if (error.status === 404 || error.status === 401) {
           setFieldErrors({
             email: CREDENTIAL_ERROR_MSG,
             password: CREDENTIAL_ERROR_MSG,
