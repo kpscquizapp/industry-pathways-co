@@ -424,28 +424,6 @@ const CandidateProfileUpdate = ({
         certifications: [],
       };
     return {
-      firstName: "",
-      lastName: "",
-      email: "",
-      location: "",
-      country: null,
-      city: null,
-      availability: "",
-      bio: "",
-      yearsExperience: "",
-      primarySkills: [],
-      headline: "",
-      resourceType: "",
-      availableIn: "",
-      englishProficiency: "",
-      preferredWorkType: [],
-      hourlyRateMin: "",
-      hourlyRateMax: "",
-      workExperiences: [],
-      projects: [],
-      certifications: [],
-    };
-    return {
       firstName: data?.firstName || "",
       lastName: data?.lastName || "",
       email: data?.email || "",
