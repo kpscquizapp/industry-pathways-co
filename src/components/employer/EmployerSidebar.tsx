@@ -1,13 +1,20 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
+  FileText, 
   Briefcase, 
+  GraduationCap, 
+  Clock, 
+  Globe, 
+  Bot, 
   LayoutDashboard,
   ChevronLeft,
   ChevronRight,
   Users,
-  Settings,
-  FilePlus
+  ClipboardCheck,
+  UserPlus,
+  Eye,
+  Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -19,10 +26,10 @@ interface EmployerSidebarProps {
 }
 
 const menuItems = [
-  { title: 'Dashboard', icon: LayoutDashboard, path: '/employer-dashboard' },
-  { title: 'Post a Job', icon: FilePlus, path: '/employer-dashboard/post-job' },
-  { title: 'My Jobs & Candidates', icon: Users, path: '/employer-dashboard/job-board' },
-  { title: 'Settings', icon: Settings, path: '/employer-dashboard/settings' },
+  { title: 'Dashboard', icon: LayoutDashboard, path: '/employer-dashboard', isAI: false },
+  { title: 'Post Bench Resource', icon: UserPlus, path: '/employer-dashboard/post-bench-resource', isAI: false },
+  { title: 'Active Resources', icon: Users, path: '/employer-dashboard/active-resources', isAI: false },
+  { title: 'Visibility Settings', icon: Eye, path: '/employer-dashboard/visibility-settings', isAI: false },
 ];
 
 const EmployerSidebar = ({ collapsed, onToggle }: EmployerSidebarProps) => {
@@ -70,13 +77,27 @@ const EmployerSidebar = ({ collapsed, onToggle }: EmployerSidebarProps) => {
                     "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative",
                     isActive 
                       ? "bg-teal-500/20 text-teal-400 border-l-4 border-teal-400 -ml-3 pl-6" 
-                      : "hover:bg-slate-800 text-slate-300 hover:text-white"
+                      : "hover:bg-navy-800 text-navy-200 hover:text-white",
+                    item.isAI && !isActive && "text-teal-300 hover:text-teal-200"
                   )}
                 >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <Icon 
+                    className={cn(
+                      "h-5 w-5 flex-shrink-0",
+                      item.isAI && "text-teal-400"
+                    )} 
+                  />
                   {!collapsed && (
-                    <span className="font-medium text-sm">
+                    <span className={cn(
+                      "font-medium text-sm",
+                      item.isAI && "text-teal-300"
+                    )}>
                       {item.title}
+                    </span>
+                  )}
+                  {item.isAI && !collapsed && (
+                    <span className="ml-auto px-2 py-0.5 bg-teal-500/30 text-teal-300 text-xs rounded-full font-medium">
+                      AI
                     </span>
                   )}
                 </Link>

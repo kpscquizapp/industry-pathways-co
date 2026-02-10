@@ -61,9 +61,6 @@ const JobCandidates = lazy(() => import("./pages/employer/JobCandidates"));
 const AIInterviewResults = lazy(
   () => import("./pages/employer/AIInterviewResults"),
 );
-const EmployerSettings = lazy(
-  () => import("./pages/employer/EmployerSettings"),
-);
 const JobBoard = lazy(() => import("./pages/employer/JobBoard"));
 const CreateJob = lazy(() => import("./pages/employer/CreateJob"));
 const JobDetailsPage = lazy(() => import("./pages/employer/JobDetails"));
@@ -287,10 +284,6 @@ const App = () => {
                         <Route
                           path="interview-results/:candidateId"
                           element={<AIInterviewResults />}
-                        />
-                        <Route
-                          path="settings"
-                          element={<EmployerSettings />}
                         />
                       </Route>
                     </Route>
