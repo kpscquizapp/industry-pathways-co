@@ -32,8 +32,7 @@ const sampleProblem: CodingProblem = {
     {
       input: "nums = [2,7,11,15], target = 9",
       output: "[0,1]",
-      explanation:
-        "Because nums[0] + nums[1] == 9, we return [0, 1].",
+      explanation: "Because nums[0] + nums[1] == 9, we return [0, 1].",
     },
     {
       input: "nums = [3,2,4], target = 6",
@@ -106,10 +105,10 @@ const CodingChallenge: React.FC = () => {
   const { challengeId } = useParams();
   const [problem] = useState<CodingProblem>(sampleProblem);
   const [language, setLanguage] = useState<SupportedLanguage>(
-    SupportedLanguage.JAVASCRIPT
+    SupportedLanguage.JAVASCRIPT,
   );
   const [code, setCode] = useState<string>(
-    problem.starterCode[SupportedLanguage.JAVASCRIPT]
+    problem.starterCode[SupportedLanguage.JAVASCRIPT],
   );
   const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -134,6 +133,8 @@ const CodingChallenge: React.FC = () => {
   }, [code, language, problem.id]);
 
   const handleLanguageChange = (newLanguage: SupportedLanguage) => {
+    // Flush current code to localStorage before switching
+    localStorage.setItem(`code_${problem.id}_${language}`, code);
     setLanguage(newLanguage);
   };
 
@@ -180,7 +181,7 @@ const CodingChallenge: React.FC = () => {
     try {
       const results = await simulateTestRun();
       setTestCases(results);
-      
+
       const allPassed = results.every((tc) => tc.passed);
       if (allPassed) {
         toast.success("All test cases passed! Submission successful.");
@@ -200,7 +201,13 @@ const CodingChallenge: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate("/");
+              }
+            }}
             className="gap-2"
           >
             <ChevronLeft className="h-4 w-4" />

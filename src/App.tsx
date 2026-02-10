@@ -96,14 +96,14 @@ import ForgotPassword from "./pages/ForgotPassword";
 import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import Unauthorized from "./pages/Unauthorized";
 import { LazyRoute } from "./pages/LazyRoute";
-import EmployerLayout from "./components/employer/EmployerLayout";
-import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
-import EmployerPostJob from "./pages/employer/EmployerPostJob";
-import EmployerAIShortlists from "./pages/employer/EmployerAIShortlists";
-import EmployerSkillTests from "./pages/employer/EmployerSkillTests";
-import EmployerAIInterviews from "./pages/employer/EmployerAIInterviews";
-import EmployerContracts from "./pages/employer/EmployerContracts";
-import EmployerSettings from "./pages/employer/EmployerSettings";
+// import EmployerLayout from "./components/employer/EmployerLayout";
+const HiringDashboardNew = lazy(() => import("./pages/employer/HiringDashboardNew"));
+const EmployerPostJob = lazy(() => import("./pages/employer/EmployerPostJob"));
+const EmployerAIShortlists = lazy(() => import("./pages/employer/EmployerAIShortlists"));
+const EmployerSkillTests = lazy(() => import("./pages/employer/EmployerSkillTests"));
+const EmployerAIInterviews = lazy(() => import("./pages/employer/EmployerAIInterviews"));
+const EmployerContracts = lazy(() => import("./pages/employer/EmployerContracts"));
+const EmployerSettings = lazy(() => import("./pages/employer/EmployerSettings"));
 
 // Coding Challenge
 const CodingChallenge = lazy(() => import("./pages/CodingChallenge"));
@@ -236,6 +236,8 @@ const App = () => {
                         path="/hr"
                         element={<UnifiedDashboardLayout role="bench" />}
                       >
+                      <Route index element={<LazyRoute element={<HiringDashboardNew />} />} />
+                      <Route index element={<HiringDashboardNew />} />
                       <Route path="dashboard" element={<HiringDashboardNew />} />
                       <Route path="post-job" element={<EmployerPostJob />} />
                       <Route path="ai-shortlists" element={<EmployerAIShortlists />} />
