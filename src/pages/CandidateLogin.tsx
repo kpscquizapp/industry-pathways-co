@@ -29,8 +29,9 @@ const VALIDATION = {
   email: {
     regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     validate: (email: string) => {
-      if (!email || !email.trim()) return "Email address is required";
-      if (!VALIDATION.email.regex.test(email)) {
+      const trimmed = email?.trim() ?? "";
+      if (!trimmed) return "Email address is required";
+      if (!VALIDATION.email.regex.test(trimmed)) {
         return "Please enter a valid email address";
       }
       return null;
@@ -204,15 +205,17 @@ const CandidateLogin = () => {
       toast.error(errorMessage);
 
       // Mark credential fields with errors for auth failures
-      if (isFetchBaseQueryError(error) && error.status === 404) {
-        setFieldErrors({
-          email: CREDENTIAL_ERROR_MSG,
-        });
-      } else if (isFetchBaseQueryError(error)) {
-        setFieldErrors({
-          email: CREDENTIAL_ERROR_MSG,
-          password: CREDENTIAL_ERROR_MSG,
-        });
+      if (isFetchBaseQueryError(error)) {
+        if (error.status === 404) {
+          setFieldErrors({
+            email: "No account found with this email",
+          });
+        } else if (error.status === 401) {
+          setFieldErrors({
+            email: CREDENTIAL_ERROR_MSG,
+            password: CREDENTIAL_ERROR_MSG,
+          });
+        }
       }
     }
   };
