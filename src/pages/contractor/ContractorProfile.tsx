@@ -25,7 +25,7 @@ const ContractorProfile = () => {
   const data = response?.data;
   const profile = data?.candidateProfile;
   const candidateId = useId();
-
+  console.log(data);
   return (
     <div className="min-h-screen flex flex-col dark:bg-slate-900">
       {isLoadingProfile ? (

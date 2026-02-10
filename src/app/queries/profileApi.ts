@@ -41,6 +41,13 @@ export const profileApi = createApi({
       }),
       invalidatesTags: ["Profile"],
     }),
+    setDefaultResume: builder.mutation<void, number>({
+      query: (resumeId) => ({
+        url: `jobboard/profile/resume/${resumeId}/default`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Profile"],
+    }),
     updateProfile: builder.mutation({
       query: (data) => ({
         method: "PUT",
@@ -106,6 +113,7 @@ export const profileApi = createApi({
 export const {
   useGetProfileQuery,
   useLazyViewResumeQuery,
+  useSetDefaultResumeMutation,
   useUploadResumeMutation,
   useUpdateProfileMutation,
   useRemoveResumeMutation,
