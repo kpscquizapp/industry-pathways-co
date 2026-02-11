@@ -86,7 +86,7 @@ const BenchLogin = () => {
 
   useEffect(() => {
     if (userDetails && userDetails.role === "hr") {
-      navigate("/hr/dashboard");
+      navigate("/hr-dashboard");
     }
   }, [userDetails, navigate]);
 
@@ -183,7 +183,7 @@ const BenchLogin = () => {
       toast.success(
         `Welcome back${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
       );
-      navigate("/hr/dashboard");
+      navigate("/hr-dashboard");
     } catch (error: unknown) {
       // Extract error message
       let errorMessage = "Login failed. Please try again.";
@@ -333,7 +333,7 @@ const BenchLogin = () => {
                       <Input
                         name="email"
                         type="email"
-                        placeholder="employer@agency.com"
+                        placeholder="hr@agency.com"
                         autoComplete="email"
                         className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
                           fieldErrors.email && touched.email

@@ -135,7 +135,7 @@ const JobDetailsPage = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/employer-dashboard/job-board")}
+            onClick={() => navigate("/hr-dashboard/job-board")}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -157,7 +157,7 @@ const JobDetailsPage = () => {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => navigate(`/employer-dashboard/edit-job/${jobId}`)}
+            onClick={() => navigate(`/hr-dashboard/edit-job/${jobId}`)}
           >
             <Edit className="h-4 w-4 mr-2" />
             Edit
@@ -182,7 +182,7 @@ const JobDetailsPage = () => {
               key={stat.label}
               className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
               onClick={() =>
-                navigate(`/employer-dashboard/job/${jobId}/candidates`)
+                navigate(`/hr-dashboard/job/${jobId}/candidates`)
               }
             >
               <CardContent className="p-4 flex items-center gap-3">
@@ -203,7 +203,7 @@ const JobDetailsPage = () => {
       <Button
         size="lg"
         className="w-full bg-primary hover:bg-primary/90"
-        onClick={() => navigate(`/employer-dashboard/job/${jobId}/candidates`)}
+        onClick={() => navigate(`/hr-dashboard/job/${jobId}/candidates`)}
       >
         <Users className="h-5 w-5 mr-2" />
         View All Candidates ({jobData.applicants})

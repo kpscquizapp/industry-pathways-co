@@ -92,7 +92,7 @@ const HireFullTime = () => {
           <h1 className="text-2xl font-bold text-navy-900">Hire Full-Time</h1>
           <p className="text-neutral-600">Manage your full-time job postings and candidates</p>
         </div>
-        <Link to="/employer/post-job">
+        <Link to="/bench/post-job">
           <Button className="bg-navy-800 hover:bg-navy-900">
             <Plus className="h-4 w-4 mr-2" />
             Post New Job

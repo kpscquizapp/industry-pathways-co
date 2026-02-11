@@ -465,12 +465,7 @@ const CandidateProfileUpdate = ({
     setFormData(handleForm());
   }, [data, handleForm]);
 
-  const availabilityOptions = [
-    "freelance",
-    "full-time",
-    "part-time",
-    "contract",
-  ];
+  const availabilityOptions = ["freelance", "full-time", "both"];
   const resourceTypeOptions = [
     "Bench Resource",
     "Active Resource",

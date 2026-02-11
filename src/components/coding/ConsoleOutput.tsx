@@ -181,7 +181,7 @@ const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
                   </div>
                   <p className="text-2xl font-bold text-foreground">
                     {Math.max(
-                      ...testCases.map((tc) => tc.runtime || 0)
+                      ...testCases.map((tc) => tc.runtime || 0),
                     ).toFixed(0)}
                     ms
                   </p>

@@ -36,8 +36,14 @@ interface EditorPanelProps {
 }
 
 const languageMap = {
-  [SupportedLanguage.JAVASCRIPT]: { label: "JavaScript", monacoLang: "javascript" },
-  [SupportedLanguage.TYPESCRIPT]: { label: "TypeScript", monacoLang: "typescript" },
+  [SupportedLanguage.JAVASCRIPT]: {
+    label: "JavaScript",
+    monacoLang: "javascript",
+  },
+  [SupportedLanguage.TYPESCRIPT]: {
+    label: "TypeScript",
+    monacoLang: "typescript",
+  },
   [SupportedLanguage.PYTHON]: { label: "Python", monacoLang: "python" },
   [SupportedLanguage.JAVA]: { label: "Java", monacoLang: "java" },
   [SupportedLanguage.CPP]: { label: "C++", monacoLang: "cpp" },
@@ -52,13 +58,13 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   useEffect(() => {
-   if (!isFullscreen) return;
-   const handleEsc = (e: KeyboardEvent) => {
-     if (e.key === "Escape") setIsFullscreen(false);
-   };
-   window.addEventListener("keydown", handleEsc);
-   return () => window.removeEventListener("keydown", handleEsc);
- }, [isFullscreen]);
+    if (!isFullscreen) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsFullscreen(false);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isFullscreen]);
   const [fontSize, setFontSize] = useState(14);
   const [copied, setCopied] = useState(false);
   const [theme, setTheme] = useState<string>("vs-dark");
@@ -81,13 +87,13 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
 
   const handleCopy = async () => {
     try {
-     await navigator.clipboard.writeText(code);
-     setCopied(true);
-     setTimeout(() => setCopied(false), 2000);
-   } catch {
-     // Optionally surface a toast/notification
-     console.error("Failed to copy to clipboard");
-   }
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Optionally surface a toast/notification
+      console.error("Failed to copy to clipboard");
+    }
   };
 
   return (

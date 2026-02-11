@@ -71,7 +71,9 @@ const ProblemPanel: React.FC<ProblemPanelProps> = ({ problem }) => {
             <TabsContent value="description" className="p-6 space-y-4">
               <div
                 className="prose prose-sm dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(problem.description) }}
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(problem.description),
+                }}
               />
             </TabsContent>
 

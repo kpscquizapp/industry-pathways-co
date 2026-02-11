@@ -57,7 +57,7 @@ const HiringDashboardNew = () => {
             <p className="text-primary-foreground/80">AI has shortlisted 12 new candidates matching your open roles.</p>
           </div>
           <Button variant="secondary" className="bg-background text-foreground hover:bg-background/90" asChild>
-            <Link to="/employer/post-job">
+            <Link to="/bench/post-job">
               <Plus className="w-4 h-4 mr-2" />
               Post New Job
             </Link>
