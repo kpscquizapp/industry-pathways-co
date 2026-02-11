@@ -33,7 +33,7 @@ const EmployerLogin = () => {
 
   useEffect(() => {
     if (userDetails && userDetails.role === "employer") {
-      navigate("/employer-dashboard");
+      navigate("/employer/dashboard");
     }
   }, [userDetails, navigate]);
 
@@ -47,7 +47,7 @@ const EmployerLogin = () => {
         toast.success(
           `Welcome back${success?.user?.firstName ? ` ${success.user.firstName}` : ""}!`,
         );
-        navigate("/employer-dashboard");
+        navigate("/employer/dashboard");
       } else {
         toast.error("Invalid credentials");
       }

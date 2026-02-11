@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Switch } from '@/components/ui/switch';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   FileText,
   MapPin,
@@ -31,10 +31,10 @@ import {
   Settings,
   Shield,
   ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+  ChevronRight,
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface JobFormData {
   // Basic Information
@@ -42,7 +42,7 @@ interface JobFormData {
   jobDescription: string;
   jobCategory: string;
   jobRole: string;
-  
+
   // Employment & Location
   employmentType: string;
   workMode: string;
@@ -51,7 +51,7 @@ interface JobFormData {
   state: string;
   country: string;
   multipleLocations: boolean;
-  
+
   // Experience & Skills
   minExperience: string;
   maxExperience: string;
@@ -59,7 +59,7 @@ interface JobFormData {
   mandatorySkills: string[];
   educationQualification: string;
   languagesKnown: string;
-  
+
   // Compensation & Benefits
   salaryType: string;
   minSalary: string;
@@ -71,7 +71,7 @@ interface JobFormData {
     performanceBonus: boolean;
     remoteAllowance: boolean;
   };
-  
+
   // AI & Application Settings
   enableAIMatching: boolean;
   autoScreenCandidates: boolean;
@@ -79,7 +79,7 @@ interface JobFormData {
   scheduleAIInterview: boolean;
   applicationDeadline: string;
   numberOfOpenings: string;
-  
+
   // Compliance & Publishing
   equalOpportunityEmployer: boolean;
   agreeToPrivacy: boolean;
@@ -89,40 +89,40 @@ interface JobFormData {
 }
 
 const STEPS = [
-  { id: 1, title: 'Basic Information', icon: FileText },
-  { id: 2, title: 'Employment & Location', icon: MapPin },
-  { id: 3, title: 'Experience & Skills', icon: CheckCircle2 },
-  { id: 4, title: 'Compensation & Benefits', icon: Briefcase },
-  { id: 5, title: 'AI & Application Settings', icon: Settings },
-  { id: 6, title: 'Compliance & Publishing', icon: Shield },
+  { id: 1, title: "Basic Information", icon: FileText },
+  { id: 2, title: "Employment & Location", icon: MapPin },
+  { id: 3, title: "Experience & Skills", icon: CheckCircle2 },
+  { id: 4, title: "Compensation & Benefits", icon: Briefcase },
+  { id: 5, title: "AI & Application Settings", icon: Settings },
+  { id: 6, title: "Compliance & Publishing", icon: Shield },
 ];
 
 const PostJob = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const [skillInput, setSkillInput] = useState('');
-  
+  const [skillInput, setSkillInput] = useState("");
+
   const [formData, setFormData] = useState<JobFormData>({
-    jobTitle: '',
-    jobDescription: '',
-    jobCategory: '',
-    jobRole: '',
-    employmentType: '',
-    workMode: '',
-    duration: '',
-    city: '',
-    state: '',
-    country: 'India',
+    jobTitle: "",
+    jobDescription: "",
+    jobCategory: "",
+    jobRole: "",
+    employmentType: "",
+    workMode: "",
+    duration: "",
+    city: "",
+    state: "",
+    country: "India",
     multipleLocations: false,
-    minExperience: '',
-    maxExperience: '',
+    minExperience: "",
+    maxExperience: "",
     fresherAllowed: false,
     mandatorySkills: [],
-    educationQualification: '',
-    languagesKnown: '',
-    salaryType: '',
-    minSalary: '',
-    maxSalary: '',
+    educationQualification: "",
+    languagesKnown: "",
+    salaryType: "",
+    minSalary: "",
+    maxSalary: "",
     showSalary: true,
     perks: {
       healthInsurance: false,
@@ -134,73 +134,82 @@ const PostJob = () => {
     autoScreenCandidates: false,
     enableSkillAssessment: true,
     scheduleAIInterview: false,
-    applicationDeadline: '',
-    numberOfOpenings: '1',
+    applicationDeadline: "",
+    numberOfOpenings: "1",
     equalOpportunityEmployer: true,
     agreeToPrivacy: true,
     acceptTerms: false,
-    jobVisibility: 'public',
-    urgency: 'normal',
+    jobVisibility: "public",
+    urgency: "normal",
   });
 
   const updateFormData = (field: keyof JobFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const updatePerks = (perk: keyof JobFormData['perks'], value: boolean) => {
-    setFormData(prev => ({
+  const updatePerks = (perk: keyof JobFormData["perks"], value: boolean) => {
+    setFormData((prev) => ({
       ...prev,
-      perks: { ...prev.perks, [perk]: value }
+      perks: { ...prev.perks, [perk]: value },
     }));
   };
 
   const addSkill = () => {
-    if (skillInput.trim() && !formData.mandatorySkills.includes(skillInput.trim())) {
-      updateFormData('mandatorySkills', [...formData.mandatorySkills, skillInput.trim()]);
-      setSkillInput('');
+    if (
+      skillInput.trim() &&
+      !formData.mandatorySkills.includes(skillInput.trim())
+    ) {
+      updateFormData("mandatorySkills", [
+        ...formData.mandatorySkills,
+        skillInput.trim(),
+      ]);
+      setSkillInput("");
     }
   };
 
   const removeSkill = (skill: string) => {
-    updateFormData('mandatorySkills', formData.mandatorySkills.filter(s => s !== skill));
+    updateFormData(
+      "mandatorySkills",
+      formData.mandatorySkills.filter((s) => s !== skill),
+    );
   };
 
   const handleSaveDraft = () => {
-    toast.success('Job saved as draft');
+    toast.success("Job saved as draft");
   };
 
   const handlePreview = () => {
-    toast.info('Preview functionality coming soon');
+    toast.info("Preview functionality coming soon");
   };
 
   const handlePublish = () => {
     if (!formData.acceptTerms) {
-      toast.error('Please accept Terms & Conditions to publish');
+      toast.error("Please accept Terms & Conditions to publish");
       return;
     }
-    toast.success('Job posted successfully! Redirecting to dashboard...');
+    toast.success("Job posted successfully! Redirecting to dashboard...");
     setTimeout(() => {
-      navigate('/employer-dashboard');
+      navigate("/hr-dashboard");
     }, 1500);
   };
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
       setCurrentStep(currentStep + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const goToStep = (step: number) => {
     setCurrentStep(step);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Step 1: Basic Information
@@ -214,17 +223,21 @@ const PostJob = () => {
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="jobTitle">Job Title <span className="text-destructive">*</span></Label>
+          <Label htmlFor="jobTitle">
+            Job Title <span className="text-destructive">*</span>
+          </Label>
           <Input
             id="jobTitle"
             placeholder="e.g. Senior Product Designer"
             value={formData.jobTitle}
-            onChange={(e) => updateFormData('jobTitle', e.target.value)}
+            onChange={(e) => updateFormData("jobTitle", e.target.value)}
           />
         </div>
 
         <div className="space-y-2">
-          <Label>Job Description <span className="text-destructive">*</span></Label>
+          <Label>
+            Job Description <span className="text-destructive">*</span>
+          </Label>
           <div className="border rounded-lg overflow-hidden">
             <div className="flex items-center gap-1 p-2 bg-muted/50 border-b">
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -244,15 +257,20 @@ const PostJob = () => {
               placeholder="Write the job overview, responsibilities, and key requirements..."
               className="border-0 rounded-none min-h-[120px] focus-visible:ring-0"
               value={formData.jobDescription}
-              onChange={(e) => updateFormData('jobDescription', e.target.value)}
+              onChange={(e) => updateFormData("jobDescription", e.target.value)}
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Job Category <span className="text-destructive">*</span></Label>
-            <Select value={formData.jobCategory} onValueChange={(v) => updateFormData('jobCategory', v)}>
+            <Label>
+              Job Category <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={formData.jobCategory}
+              onValueChange={(v) => updateFormData("jobCategory", v)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
@@ -268,8 +286,13 @@ const PostJob = () => {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Job Role <span className="text-destructive">*</span></Label>
-            <Select value={formData.jobRole} onValueChange={(v) => updateFormData('jobRole', v)}>
+            <Label>
+              Job Role <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={formData.jobRole}
+              onValueChange={(v) => updateFormData("jobRole", v)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
@@ -300,8 +323,13 @@ const PostJob = () => {
       <CardContent className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label>Employment Type <span className="text-destructive">*</span></Label>
-            <Select value={formData.employmentType} onValueChange={(v) => updateFormData('employmentType', v)}>
+            <Label>
+              Employment Type <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={formData.employmentType}
+              onValueChange={(v) => updateFormData("employmentType", v)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
@@ -315,8 +343,13 @@ const PostJob = () => {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Work Mode <span className="text-destructive">*</span></Label>
-            <Select value={formData.workMode} onValueChange={(v) => updateFormData('workMode', v)}>
+            <Label>
+              Work Mode <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={formData.workMode}
+              onValueChange={(v) => updateFormData("workMode", v)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select mode" />
               </SelectTrigger>
@@ -332,18 +365,20 @@ const PostJob = () => {
             <Input
               placeholder="e.g. 6 Months"
               value={formData.duration}
-              onChange={(e) => updateFormData('duration', e.target.value)}
+              onChange={(e) => updateFormData("duration", e.target.value)}
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label>City <span className="text-destructive">*</span></Label>
+            <Label>
+              City <span className="text-destructive">*</span>
+            </Label>
             <Input
               placeholder="e.g. Bangalore"
               value={formData.city}
-              onChange={(e) => updateFormData('city', e.target.value)}
+              onChange={(e) => updateFormData("city", e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -351,14 +386,14 @@ const PostJob = () => {
             <Input
               placeholder="e.g. Karnataka"
               value={formData.state}
-              onChange={(e) => updateFormData('state', e.target.value)}
+              onChange={(e) => updateFormData("state", e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label className="text-orange-600">Country</Label>
             <Input
               value={formData.country}
-              onChange={(e) => updateFormData('country', e.target.value)}
+              onChange={(e) => updateFormData("country", e.target.value)}
             />
           </div>
         </div>
@@ -367,7 +402,9 @@ const PostJob = () => {
           <Checkbox
             id="multipleLocations"
             checked={formData.multipleLocations}
-            onCheckedChange={(checked) => updateFormData('multipleLocations', checked)}
+            onCheckedChange={(checked) =>
+              updateFormData("multipleLocations", checked)
+            }
           />
           <Label htmlFor="multipleLocations" className="cursor-pointer text-sm">
             Multiple Locations Allowed
@@ -389,12 +426,14 @@ const PostJob = () => {
       <CardContent className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Min Experience (Years) <span className="text-destructive">*</span></Label>
+            <Label>
+              Min Experience (Years) <span className="text-destructive">*</span>
+            </Label>
             <Input
               type="number"
               placeholder="2"
               value={formData.minExperience}
-              onChange={(e) => updateFormData('minExperience', e.target.value)}
+              onChange={(e) => updateFormData("minExperience", e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -403,7 +442,7 @@ const PostJob = () => {
               type="number"
               placeholder="5"
               value={formData.maxExperience}
-              onChange={(e) => updateFormData('maxExperience', e.target.value)}
+              onChange={(e) => updateFormData("maxExperience", e.target.value)}
             />
           </div>
         </div>
@@ -412,7 +451,9 @@ const PostJob = () => {
           <Checkbox
             id="fresherAllowed"
             checked={formData.fresherAllowed}
-            onCheckedChange={(checked) => updateFormData('fresherAllowed', checked)}
+            onCheckedChange={(checked) =>
+              updateFormData("fresherAllowed", checked)
+            }
           />
           <Label htmlFor="fresherAllowed" className="cursor-pointer text-sm">
             Fresher Allowed
@@ -420,12 +461,20 @@ const PostJob = () => {
         </div>
 
         <div className="space-y-2">
-          <Label>Mandatory Skills <span className="text-destructive">*</span></Label>
+          <Label>
+            Mandatory Skills <span className="text-destructive">*</span>
+          </Label>
           <div className="flex flex-wrap gap-2 mb-2">
             {formData.mandatorySkills.map((skill) => (
-              <Badge key={skill} className="bg-primary text-primary-foreground gap-1 py-1.5 px-3">
+              <Badge
+                key={skill}
+                className="bg-primary text-primary-foreground gap-1 py-1.5 px-3"
+              >
                 {skill}
-                <X className="h-3 w-3 cursor-pointer ml-1" onClick={() => removeSkill(skill)} />
+                <X
+                  className="h-3 w-3 cursor-pointer ml-1"
+                  onClick={() => removeSkill(skill)}
+                />
               </Badge>
             ))}
           </div>
@@ -433,7 +482,9 @@ const PostJob = () => {
             placeholder="Type and press enter..."
             value={skillInput}
             onChange={(e) => setSkillInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+            onKeyDown={(e) =>
+              e.key === "Enter" && (e.preventDefault(), addSkill())
+            }
           />
         </div>
 
@@ -443,7 +494,9 @@ const PostJob = () => {
             <Input
               placeholder="e.g. B.Tech / MCA"
               value={formData.educationQualification}
-              onChange={(e) => updateFormData('educationQualification', e.target.value)}
+              onChange={(e) =>
+                updateFormData("educationQualification", e.target.value)
+              }
             />
           </div>
           <div className="space-y-2">
@@ -451,7 +504,7 @@ const PostJob = () => {
             <Input
               placeholder="e.g. English, Hindi"
               value={formData.languagesKnown}
-              onChange={(e) => updateFormData('languagesKnown', e.target.value)}
+              onChange={(e) => updateFormData("languagesKnown", e.target.value)}
             />
           </div>
         </div>
@@ -471,8 +524,13 @@ const PostJob = () => {
       <CardContent className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label>Salary Type <span className="text-destructive">*</span></Label>
-            <Select value={formData.salaryType} onValueChange={(v) => updateFormData('salaryType', v)}>
+            <Label>
+              Salary Type <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={formData.salaryType}
+              onValueChange={(v) => updateFormData("salaryType", v)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
@@ -488,7 +546,7 @@ const PostJob = () => {
             <Input
               placeholder="₹ 5,00,000"
               value={formData.minSalary}
-              onChange={(e) => updateFormData('minSalary', e.target.value)}
+              onChange={(e) => updateFormData("minSalary", e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -496,7 +554,7 @@ const PostJob = () => {
             <Input
               placeholder="₹ 12,00,000"
               value={formData.maxSalary}
-              onChange={(e) => updateFormData('maxSalary', e.target.value)}
+              onChange={(e) => updateFormData("maxSalary", e.target.value)}
             />
           </div>
         </div>
@@ -505,9 +563,12 @@ const PostJob = () => {
           <Checkbox
             id="showSalary"
             checked={formData.showSalary}
-            onCheckedChange={(checked) => updateFormData('showSalary', checked)}
+            onCheckedChange={(checked) => updateFormData("showSalary", checked)}
           />
-          <Label htmlFor="showSalary" className="cursor-pointer text-sm text-primary">
+          <Label
+            htmlFor="showSalary"
+            className="cursor-pointer text-sm text-primary"
+          >
             Show Salary to Candidates
           </Label>
         </div>
@@ -519,33 +580,56 @@ const PostJob = () => {
               <Checkbox
                 id="healthInsurance"
                 checked={formData.perks.healthInsurance}
-                onCheckedChange={(checked) => updatePerks('healthInsurance', !!checked)}
+                onCheckedChange={(checked) =>
+                  updatePerks("healthInsurance", !!checked)
+                }
               />
-              <Label htmlFor="healthInsurance" className="cursor-pointer text-sm">Health Insurance</Label>
+              <Label
+                htmlFor="healthInsurance"
+                className="cursor-pointer text-sm"
+              >
+                Health Insurance
+              </Label>
             </div>
             <div className="flex items-center gap-2">
               <Checkbox
                 id="esops"
                 checked={formData.perks.esops}
-                onCheckedChange={(checked) => updatePerks('esops', !!checked)}
+                onCheckedChange={(checked) => updatePerks("esops", !!checked)}
               />
-              <Label htmlFor="esops" className="cursor-pointer text-sm">ESOPs</Label>
+              <Label htmlFor="esops" className="cursor-pointer text-sm">
+                ESOPs
+              </Label>
             </div>
             <div className="flex items-center gap-2">
               <Checkbox
                 id="performanceBonus"
                 checked={formData.perks.performanceBonus}
-                onCheckedChange={(checked) => updatePerks('performanceBonus', !!checked)}
+                onCheckedChange={(checked) =>
+                  updatePerks("performanceBonus", !!checked)
+                }
               />
-              <Label htmlFor="performanceBonus" className="cursor-pointer text-sm">Performance Bonus</Label>
+              <Label
+                htmlFor="performanceBonus"
+                className="cursor-pointer text-sm"
+              >
+                Performance Bonus
+              </Label>
             </div>
             <div className="flex items-center gap-2">
               <Checkbox
                 id="remoteAllowance"
                 checked={formData.perks.remoteAllowance}
-                onCheckedChange={(checked) => updatePerks('remoteAllowance', !!checked)}
+                onCheckedChange={(checked) =>
+                  updatePerks("remoteAllowance", !!checked)
+                }
               />
-              <Label htmlFor="remoteAllowance" className="cursor-pointer text-sm">Remote Allowance</Label>
+              <Label
+                htmlFor="remoteAllowance"
+                className="cursor-pointer text-sm"
+              >
+                Remote Allowance
+              </Label>
             </div>
           </div>
         </div>
@@ -568,28 +652,36 @@ const PostJob = () => {
             <Label className="cursor-pointer">Enable AI Talent Matching</Label>
             <Switch
               checked={formData.enableAIMatching}
-              onCheckedChange={(checked) => updateFormData('enableAIMatching', checked)}
+              onCheckedChange={(checked) =>
+                updateFormData("enableAIMatching", checked)
+              }
             />
           </div>
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <Label className="cursor-pointer">Auto-Screen Candidates</Label>
             <Switch
               checked={formData.autoScreenCandidates}
-              onCheckedChange={(checked) => updateFormData('autoScreenCandidates', checked)}
+              onCheckedChange={(checked) =>
+                updateFormData("autoScreenCandidates", checked)
+              }
             />
           </div>
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <Label className="cursor-pointer">Enable Skill Assessment</Label>
             <Switch
               checked={formData.enableSkillAssessment}
-              onCheckedChange={(checked) => updateFormData('enableSkillAssessment', checked)}
+              onCheckedChange={(checked) =>
+                updateFormData("enableSkillAssessment", checked)
+              }
             />
           </div>
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <Label className="cursor-pointer">Schedule AI Interview</Label>
             <Switch
               checked={formData.scheduleAIInterview}
-              onCheckedChange={(checked) => updateFormData('scheduleAIInterview', checked)}
+              onCheckedChange={(checked) =>
+                updateFormData("scheduleAIInterview", checked)
+              }
             />
           </div>
         </div>
@@ -600,16 +692,22 @@ const PostJob = () => {
             <Input
               type="date"
               value={formData.applicationDeadline}
-              onChange={(e) => updateFormData('applicationDeadline', e.target.value)}
+              onChange={(e) =>
+                updateFormData("applicationDeadline", e.target.value)
+              }
             />
           </div>
           <div className="space-y-2">
-            <Label>Number of Openings <span className="text-destructive">*</span></Label>
+            <Label>
+              Number of Openings <span className="text-destructive">*</span>
+            </Label>
             <Input
               type="number"
               placeholder="1"
               value={formData.numberOfOpenings}
-              onChange={(e) => updateFormData('numberOfOpenings', e.target.value)}
+              onChange={(e) =>
+                updateFormData("numberOfOpenings", e.target.value)
+              }
             />
           </div>
         </div>
@@ -632,9 +730,14 @@ const PostJob = () => {
             <Checkbox
               id="equalOpportunity"
               checked={formData.equalOpportunityEmployer}
-              onCheckedChange={(checked) => updateFormData('equalOpportunityEmployer', checked)}
+              onCheckedChange={(checked) =>
+                updateFormData("equalOpportunityEmployer", checked)
+              }
             />
-            <Label htmlFor="equalOpportunity" className="cursor-pointer text-sm text-primary">
+            <Label
+              htmlFor="equalOpportunity"
+              className="cursor-pointer text-sm text-primary"
+            >
               Equal Opportunity Employer
             </Label>
           </div>
@@ -642,28 +745,44 @@ const PostJob = () => {
             <Checkbox
               id="privacyPolicy"
               checked={formData.agreeToPrivacy}
-              onCheckedChange={(checked) => updateFormData('agreeToPrivacy', checked)}
+              onCheckedChange={(checked) =>
+                updateFormData("agreeToPrivacy", checked)
+              }
             />
             <Label htmlFor="privacyPolicy" className="cursor-pointer text-sm">
-              I agree to <span className="text-primary hover:underline cursor-pointer">Data Privacy Policies</span>
+              I agree to{" "}
+              <span className="text-primary hover:underline cursor-pointer">
+                Data Privacy Policies
+              </span>
             </Label>
           </div>
           <div className="flex items-center gap-2">
             <Checkbox
               id="termsConditions"
               checked={formData.acceptTerms}
-              onCheckedChange={(checked) => updateFormData('acceptTerms', checked)}
+              onCheckedChange={(checked) =>
+                updateFormData("acceptTerms", checked)
+              }
             />
             <Label htmlFor="termsConditions" className="cursor-pointer text-sm">
-              I accept <span className="text-destructive hover:underline cursor-pointer">Terms & Conditions</span> <span className="text-destructive">*</span>
+              I accept{" "}
+              <span className="text-destructive hover:underline cursor-pointer">
+                Terms & Conditions
+              </span>{" "}
+              <span className="text-destructive">*</span>
             </Label>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Job Visibility <span className="text-destructive">*</span></Label>
-            <Select value={formData.jobVisibility} onValueChange={(v) => updateFormData('jobVisibility', v)}>
+            <Label>
+              Job Visibility <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={formData.jobVisibility}
+              onValueChange={(v) => updateFormData("jobVisibility", v)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select visibility" />
               </SelectTrigger>
@@ -676,7 +795,10 @@ const PostJob = () => {
           </div>
           <div className="space-y-2">
             <Label className="text-orange-600">Urgency</Label>
-            <Select value={formData.urgency} onValueChange={(v) => updateFormData('urgency', v)}>
+            <Select
+              value={formData.urgency}
+              onValueChange={(v) => updateFormData("urgency", v)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select urgency" />
               </SelectTrigger>
@@ -715,8 +837,12 @@ const PostJob = () => {
     <div className="max-w-5xl mx-auto space-y-6 animate-fade-in pb-24">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Create New Job Post</h1>
-        <p className="text-muted-foreground">Fill in the details to publish a new opportunity for candidates.</p>
+        <h1 className="text-2xl font-bold text-foreground">
+          Create New Job Post
+        </h1>
+        <p className="text-muted-foreground">
+          Fill in the details to publish a new opportunity for candidates.
+        </p>
       </div>
 
       {/* Step Indicator */}
@@ -726,23 +852,28 @@ const PostJob = () => {
             const StepIcon = step.icon;
             const isActive = currentStep === step.id;
             const isCompleted = currentStep > step.id;
-            
+
             return (
-              <div key={index} className='my-2'>
+              <div key={index} className="my-2">
                 <button
                   onClick={() => goToStep(step.id)}
                   className={cn(
                     "flex flex-col items-center gap-2 min-w-[100px] transition-all",
                     isActive && "scale-105",
-                    (isActive || isCompleted) ? "cursor-pointer" : "cursor-pointer opacity-70 hover:opacity-100"
+                    isActive || isCompleted
+                      ? "cursor-pointer"
+                      : "cursor-pointer opacity-70 hover:opacity-100",
                   )}
                 >
                   <div
                     className={cn(
                       "w-10 h-10 rounded-full flex items-center justify-center transition-all",
-                      isActive && "bg-primary text-primary-foreground shadow-lg",
+                      isActive &&
+                        "bg-primary text-primary-foreground shadow-lg",
                       isCompleted && "bg-green-500 text-white",
-                      !isActive && !isCompleted && "bg-muted text-muted-foreground"
+                      !isActive &&
+                        !isCompleted &&
+                        "bg-muted text-muted-foreground",
                     )}
                   >
                     {isCompleted ? (
@@ -756,7 +887,7 @@ const PostJob = () => {
                       "text-xs font-medium text-center whitespace-nowrap",
                       isActive && "text-primary",
                       isCompleted && "text-green-600",
-                      !isActive && !isCompleted && "text-muted-foreground"
+                      !isActive && !isCompleted && "text-muted-foreground",
                     )}
                   >
                     {step.title}
@@ -766,7 +897,7 @@ const PostJob = () => {
                   <div
                     className={cn(
                       "flex-1 h-0.5 mx-2 min-w-[20px]",
-                      isCompleted ? "bg-green-500" : "bg-muted"
+                      isCompleted ? "bg-green-500" : "bg-muted",
                     )}
                   />
                 )}
@@ -792,7 +923,7 @@ const PostJob = () => {
               Preview
             </Button>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {currentStep > 1 && (
               <Button variant="outline" onClick={handlePrevious}>
@@ -800,14 +931,20 @@ const PostJob = () => {
                 Previous
               </Button>
             )}
-            
+
             {currentStep < STEPS.length ? (
-              <Button onClick={handleNext} className="bg-primary hover:bg-primary/90">
+              <Button
+                onClick={handleNext}
+                className="bg-primary hover:bg-primary/90"
+              >
                 Next
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             ) : (
-              <Button onClick={handlePublish} className="bg-primary hover:bg-primary/90">
+              <Button
+                onClick={handlePublish}
+                className="bg-primary hover:bg-primary/90"
+              >
                 Publish Job Post
                 <Send className="h-4 w-4 ml-2" />
               </Button>

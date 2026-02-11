@@ -36,9 +36,7 @@ import CandidateLogin from "./pages/CandidateLogin";
 // import SavedJobs from "./pages/SavedJobs";
 
 // Old Employer Dashboard (keeping for compatibility)
-const EmployerLayoutOld = lazy(
-  () => import("./components/employer/EmployerLayout"),
-);
+const EmployerLayoutOld = lazy(() => import("./components/employer/HrLayout"));
 const CompanyDashboard = lazy(
   () => import("./pages/employer/CompanyDashboard"),
 );
@@ -96,6 +94,25 @@ import ForgotPassword from "./pages/ForgotPassword";
 import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import Unauthorized from "./pages/Unauthorized";
 import { LazyRoute } from "./pages/LazyRoute";
+const HiringDashboardNew = lazy(
+  () => import("./pages/employer/HiringDashboardNew"),
+);
+const EmployerPostJob = lazy(() => import("./pages/employer/EmployerPostJob"));
+const EmployerAIShortlists = lazy(
+  () => import("./pages/employer/EmployerAIShortlists"),
+);
+const EmployerSkillTests = lazy(
+  () => import("./pages/employer/EmployerSkillTests"),
+);
+const EmployerAIInterviews = lazy(
+  () => import("./pages/employer/EmployerAIInterviews"),
+);
+const EmployerContracts = lazy(
+  () => import("./pages/employer/EmployerContracts"),
+);
+const EmployerSettings = lazy(
+  () => import("./pages/employer/EmployerSettings"),
+);
 
 const queryClient = new QueryClient();
 
@@ -131,14 +148,6 @@ const App = () => {
                 <PageTransition>
                   <Routes>
                     <Route path="/" element={<Index />} />
-                    {/* <Route path="/career-path" element={<CareerPath />} />
-                    <Route path="/marketplace" element={<Marketplace />} />
-                    <Route path="/find-talent" element={<FindTalent />} />
-                    <Route path="/talent/:id" element={<TalentProfile />} /> */}
-                    {/* <Route
-                      path="/register-talent"
-                      element={<RegisterTalent />}
-                    /> */}
                     <Route path="/employer-login" element={<EmployerLogin />} />
                     <Route
                       path="/employer-signup"
@@ -157,32 +166,11 @@ const App = () => {
                       path="/candidate-signup"
                       element={<CandidateSignup />}
                     />
-                    {/* <Route
-                      path="/profile-visibility"
-                      element={<ProfileVisibility />}
-                    />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/jobs" element={<JobSearch />} />
-                    <Route path="/jobs/:id" element={<JobDetails />} />
-                    <Route path="/job/:id" element={<JobDetails />} />
-                    <Route
-                      path="/list-bench-talent"
-                      element={<ListBenchTalent />}
-                    />
-                    <Route path="/login" element={<Login />} /> */}
+
                     <Route
                       path="/forgot-password"
                       element={<ForgotPassword />}
                     />
-                    {/* <Route
-                      path="/job-recommendations"
-                      element={<JobRecommendations />}
-                    />
-                    <Route
-                      path="/skills-assessment"
-                      element={<SkillsAssessment />}
-                    />
-                    <Route path="/saved-jobs" element={<SavedJobs />} /> */}
 
                     {/* NEW: Contractor Dashboard Routes */}
                     {/* "candidate" role users access the contractor dashboard */}
@@ -213,29 +201,50 @@ const App = () => {
                       </Route>
                     </Route>
 
-                    {/* NEW: Bench Resources Dashboard Routes */}
-                    <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
-                      <Route
-                        path="/bench"
-                        element={<UnifiedDashboardLayout role="bench" />}
-                      >
-                        <Route index element={<BenchDashboard />} />
-                        <Route path="dashboard" element={<BenchDashboard />} />
-                        {/* // TODO: replace with dedicated page components */}
-                        <Route path="talent" element={<BenchDashboard />} />
-                        <Route path="matches" element={<BenchDashboard />} />
-                        <Route path="analytics" element={<BenchDashboard />} />
-                        <Route path="contracts" element={<BenchDashboard />} />
-                        <Route path="billing" element={<BenchDashboard />} />
-                      </Route>
-                    </Route>
-
-                    {/* Legacy (Current using) Employer Dashboard Routes */}
+                    {/* NEW: Employer (old bench) Dashboard Routes */}
                     <Route
                       element={<ProtectedLayout allowedRoles={["employer"]} />}
                     >
                       <Route
-                        path="/employer-dashboard"
+                        path="/employer"
+                        element={<UnifiedDashboardLayout role="employer" />}
+                      >
+                        {/* <Route index element={<BenchDashboard />} />
+                        <Route path="dashboard" element={<BenchDashboard />} />
+                        <Route path="talent" element={<BenchDashboard />} />
+                        <Route path="matches" element={<BenchDashboard />} />
+                        <Route path="analytics" element={<BenchDashboard />} />
+                        <Route path="contracts" element={<BenchDashboard />} />
+                        <Route path="billing" element={<BenchDashboard />} /> */}
+                        <Route
+                          path="dashboard"
+                          element={<HiringDashboardNew />}
+                        />
+                        <Route path="post-job" element={<EmployerPostJob />} />
+                        <Route
+                          path="ai-shortlists"
+                          element={<EmployerAIShortlists />}
+                        />
+                        <Route
+                          path="skill-tests"
+                          element={<EmployerSkillTests />}
+                        />
+                        <Route
+                          path="ai-interviews"
+                          element={<EmployerAIInterviews />}
+                        />
+                        <Route
+                          path="contracts"
+                          element={<EmployerContracts />}
+                        />
+                        <Route path="settings" element={<EmployerSettings />} />
+                      </Route>
+                    </Route>
+
+                    {/* Legacy (Employer -Current using) HR Dashboard Routes */}
+                    <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
+                      <Route
+                        path="/hr-dashboard"
                         element={<EmployerLayoutOld />}
                       >
                         <Route index element={<CompanyDashboard />} />
@@ -287,6 +296,40 @@ const App = () => {
                         />
                       </Route>
                     </Route>
+
+                    {/* <Route
+                      path="/profile-visibility"
+                      element={<ProfileVisibility />}
+                    />
+                    <Route path="/hr-dashboard/job/:jobId/applied-candidates" element={<AppliedCandidates />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/jobs" element={<JobSearch />} />
+                    <Route path="/jobs/:id" element={<JobDetails />} />
+                    <Route path="/job/:id" element={<JobDetails />} />
+                    <Route
+                      path="/list-bench-talent"
+                      element={<ListBenchTalent />}
+                    />
+                    <Route path="/login" element={<Login />} /> */}
+
+                    {/* <Route
+                      path="/job-recommendations"
+                      element={<JobRecommendations />}
+                    />
+                    <Route
+                      path="/skills-assessment"
+                      element={<SkillsAssessment />}
+                    />
+                    <Route path="/saved-jobs" element={<SavedJobs />} /> */}
+
+                    {/* <Route path="/career-path" element={<CareerPath />} />
+                    <Route path="/marketplace" element={<Marketplace />} />
+                    <Route path="/find-talent" element={<FindTalent />} />
+                    <Route path="/talent/:id" element={<TalentProfile />} /> */}
+                    {/* <Route
+                      path="/register-talent"
+                      element={<RegisterTalent />}
+                    /> */}
 
                     {/* NEW: (But not used) Hiring Company Dashboard Routes */}
                     {/* <Route

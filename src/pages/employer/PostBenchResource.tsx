@@ -211,7 +211,7 @@ const PostBenchResource = () => {
       toast.success("Bench resource posted successfully!", {
         description: "Your resource is now visible to potential clients.",
       });
-      navigate("/employer-dashboard/talent-marketplace");
+      navigate("/hr-dashboard/talent-marketplace");
     } catch (error) {
       console.error("Failed to post bench resource:", error);
       toast.error("Failed to post bench resource");

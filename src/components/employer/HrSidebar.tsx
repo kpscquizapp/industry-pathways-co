@@ -1,60 +1,71 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  FileText, 
-  Briefcase, 
-  GraduationCap, 
-  Clock, 
-  Globe, 
-  Bot, 
+import { Link, useLocation } from "react-router-dom";
+import {
   LayoutDashboard,
   ChevronLeft,
   ChevronRight,
   Users,
-  ClipboardCheck,
   UserPlus,
   Eye,
-  Settings
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import hirionLogo from '@/assets/hirion-logo.png';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import hirionLogo from "@/assets/hirion-logo.png";
 
-interface EmployerSidebarProps {
+interface HrSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
 }
 
 const menuItems = [
-  { title: 'Dashboard', icon: LayoutDashboard, path: '/employer-dashboard', isAI: false },
-  { title: 'Post Bench Resource', icon: UserPlus, path: '/employer-dashboard/post-bench-resource', isAI: false },
-  { title: 'Active Resources', icon: Users, path: '/employer-dashboard/active-resources', isAI: false },
-  { title: 'Visibility Settings', icon: Eye, path: '/employer-dashboard/visibility-settings', isAI: false },
+  {
+    title: "Dashboard",
+    icon: LayoutDashboard,
+    path: "/hr-dashboard",
+    isAI: false,
+  },
+  {
+    title: "Post Bench Resource",
+    icon: UserPlus,
+    path: "/hr-dashboard/post-bench-resource",
+    isAI: false,
+  },
+  {
+    title: "Active Resources",
+    icon: Users,
+    path: "/hr-dashboard/active-resources",
+    isAI: false,
+  },
+  {
+    title: "Visibility Settings",
+    icon: Eye,
+    path: "/hr-dashboard/visibility-settings",
+    isAI: false,
+  },
 ];
 
-const EmployerSidebar = ({ collapsed, onToggle }: EmployerSidebarProps) => {
+const HrSidebar = ({ collapsed, onToggle }: HrSidebarProps) => {
   const location = useLocation();
   const currentPath = location.pathname;
 
   return (
-    <aside 
+    <aside
       className={cn(
         "fixed top-0 left-0 h-screen bg-slate-900 text-white flex flex-col transition-all duration-300 z-50 flex-shrink-0",
-        collapsed ? "w-20" : "w-64"
+        collapsed ? "w-20" : "w-64",
       )}
     >
       {/* Logo */}
       <div className="p-4 border-b border-navy-700">
         <Link to="/" className="flex items-center gap-3">
-          <img 
-            src={hirionLogo} 
-            alt="Hirion" 
+          <img
+            src={hirionLogo}
+            alt="Hirion"
             className="h-10 w-10 rounded-full object-cover"
           />
           {!collapsed && (
             <div className="flex flex-col">
               <span className="font-bold text-lg">HIRION</span>
-              <span className="text-xs text-navy-300">Employer Portal</span>
+              <span className="text-xs text-navy-300">HR Portal</span>
             </div>
           )}
         </Link>
@@ -64,34 +75,42 @@ const EmployerSidebar = ({ collapsed, onToggle }: EmployerSidebarProps) => {
       <nav className="flex-1 py-4 overflow-y-auto">
         <ul className="space-y-1 px-3">
           {menuItems.map((item) => {
-            const isActive = currentPath === item.path || 
-              (item.path !== '/employer-dashboard' && currentPath.startsWith(item.path + '/')) ||
-              (item.path === '/employer-dashboard' && (currentPath === '/employer-dashboard' || currentPath === '/employer-dashboard/dashboard'));
+            const isActive =
+              currentPath === item.path ||
+              (item.path !== "/hr-dashboard" &&
+                currentPath.startsWith(item.path + "/")) ||
+              (item.path === "/hr-dashboard" &&
+                (currentPath === "/hr-dashboard" ||
+                  currentPath === "/hr-dashboard/dashboard"));
             const Icon = item.icon;
-            
+
             return (
               <li key={item.path}>
                 <Link
                   to={item.path}
                   className={cn(
                     "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative",
-                    isActive 
-                      ? "bg-teal-500/20 text-teal-400 border-l-4 border-teal-400 -ml-3 pl-6" 
+                    isActive
+                      ? "bg-teal-500/20 text-teal-400 border-l-4 border-teal-400 -ml-3 pl-6"
                       : "hover:bg-navy-800 text-navy-200 hover:text-white",
-                    item.isAI && !isActive && "text-teal-300 hover:text-teal-200"
+                    item.isAI &&
+                      !isActive &&
+                      "text-teal-300 hover:text-teal-200",
                   )}
                 >
-                  <Icon 
+                  <Icon
                     className={cn(
                       "h-5 w-5 flex-shrink-0",
-                      item.isAI && "text-teal-400"
-                    )} 
+                      item.isAI && "text-teal-400",
+                    )}
                   />
                   {!collapsed && (
-                    <span className={cn(
-                      "font-medium text-sm",
-                      item.isAI && "text-teal-300"
-                    )}>
+                    <span
+                      className={cn(
+                        "font-medium text-sm",
+                        item.isAI && "text-teal-300",
+                      )}
+                    >
                       {item.title}
                     </span>
                   )}
@@ -129,4 +148,4 @@ const EmployerSidebar = ({ collapsed, onToggle }: EmployerSidebarProps) => {
   );
 };
 
-export default EmployerSidebar;
+export default HrSidebar;

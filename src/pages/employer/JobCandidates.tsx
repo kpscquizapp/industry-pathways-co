@@ -187,7 +187,7 @@ const JobCandidates: React.FC = () => {
 
   const handleSelectCandidate = (candidate: Candidate) => {
     // Navigate to full-page candidate profile
-    navigate(`/employer-dashboard/job/${jobId}/candidate/${candidate.id}`);
+    navigate(`/hr-dashboard/job/${jobId}/candidate/${candidate.id}`);
   };
 
   const handleScheduleInterview = (candidate: Candidate) => {

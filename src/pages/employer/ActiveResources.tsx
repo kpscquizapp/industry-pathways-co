@@ -152,7 +152,7 @@ const ActiveResources = () => {
   };
 
   const handleEditResource = (id: number) => {
-    navigate(`/employer-dashboard/post-bench-resource?edit=${id}`);
+    navigate(`/hr-dashboard/post-bench-resource?edit=${id}`);
   };
 
   const activeCount = resources.filter((r: any) => r.isActive).length;
