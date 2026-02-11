@@ -65,7 +65,7 @@ const BenchLogin = () => {
       toast.success(
         `Welcome back${result?.user?.firstName ? ` ${result.user.firstName}` : ""}!`,
       );
-      navigate("/bench/dashboard");
+      navigate("/hr-dashboard");
     } catch (error: any) {
       toast.error(
         error?.data?.message || "Invalid credentials. Please try again.",
@@ -181,7 +181,7 @@ const BenchLogin = () => {
                         id="email"
                         name="email"
                         type="email"
-                        placeholder="employer@agency.com"
+                        placeholder="hr@agency.com"
                         className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
                         value={formData.email}
                         onChange={handleInputChange}

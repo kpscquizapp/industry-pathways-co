@@ -220,11 +220,13 @@ const App = () => {
                       </Route>
                     </Route>
 
-                    {/* NEW: Bench Resources Dashboard Routes */}
-                    <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
+                    {/* NEW: Employer (old bench) Dashboard Routes */}
+                    <Route
+                      element={<ProtectedLayout allowedRoles={["employer"]} />}
+                    >
                       <Route
-                        path="/bench"
-                        element={<UnifiedDashboardLayout role="bench" />}
+                        path="/employer"
+                        element={<UnifiedDashboardLayout role="employer" />}
                       >
                         {/* <Route index element={<BenchDashboard />} />
                         <Route path="dashboard" element={<BenchDashboard />} />
@@ -233,22 +235,35 @@ const App = () => {
                         <Route path="analytics" element={<BenchDashboard />} />
                         <Route path="contracts" element={<BenchDashboard />} />
                         <Route path="billing" element={<BenchDashboard />} /> */}
-                        <Route path="dashboard" element={<HiringDashboardNew />} />
-                      <Route path="post-job" element={<EmployerPostJob />} />
-                      <Route path="ai-shortlists" element={<EmployerAIShortlists />} />
-                      <Route path="skill-tests" element={<EmployerSkillTests />} />
-                      <Route path="ai-interviews" element={<EmployerAIInterviews />} />
-                      <Route path="contracts" element={<EmployerContracts />} />
-                      <Route path="settings" element={<EmployerSettings />} />
+                        <Route
+                          path="dashboard"
+                          element={<HiringDashboardNew />}
+                        />
+                        <Route path="post-job" element={<EmployerPostJob />} />
+                        <Route
+                          path="ai-shortlists"
+                          element={<EmployerAIShortlists />}
+                        />
+                        <Route
+                          path="skill-tests"
+                          element={<EmployerSkillTests />}
+                        />
+                        <Route
+                          path="ai-interviews"
+                          element={<EmployerAIInterviews />}
+                        />
+                        <Route
+                          path="contracts"
+                          element={<EmployerContracts />}
+                        />
+                        <Route path="settings" element={<EmployerSettings />} />
                       </Route>
                     </Route>
 
                     {/* Legacy (Current using) Employer Dashboard Routes */}
-                    <Route
-                      element={<ProtectedLayout allowedRoles={["employer"]} />}
-                    >
+                    <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
                       <Route
-                        path="/employer-dashboard"
+                        path="/hr-dashboard"
                         element={<EmployerLayoutOld />}
                       >
                         <Route index element={<CompanyDashboard />} />

@@ -49,8 +49,8 @@ const LandingHeader = () => {
 
   const handleRoleBasedNavigation = (role: string) => {
     if (!role) return;
-    if (role === "employer") navigation("/employer-dashboard");
-    if (role === "hr") navigation("/bench/dashboard");
+    if (role === "hr") navigation("/hr-dashboard");
+    if (role === "employer") navigation("/employer/dashboard");
     if (role === "candidate") navigation("/contractor/dashboard");
   };
 
@@ -120,7 +120,7 @@ const LandingHeader = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
-                    to={`${user?.role === "hr" ? "/bench/dashboard" : "/bench-registration"}`}
+                    to={`${user?.role === "employer" ? "/employer/dashboard" : "/employer-signup"}`}
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -135,7 +135,7 @@ const LandingHeader = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
-                    to={`${user?.role === "employer" ? "/employer-dashboard" : "/employer-signup"}`}
+                    to={`${user?.role === "hr" ? "/hr-dashboard" : "/bench-registration"}`}
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -192,7 +192,7 @@ const LandingHeader = () => {
                   size="sm"
                   className="rounded-xl bg-primary hover:bg-primary/90"
                 >
-                  <Link to="/employer-signup">Hire Talent</Link>
+                  <Link to="/bench-registration">Hire Talent</Link>
                 </Button>
               </>
             )}
@@ -235,14 +235,14 @@ const LandingHeader = () => {
               For Contractors
             </Link>
             <Link
-              to={`${user?.role === "hr" ? "/bench/dashboard" : "/bench-registration"}`}
+              to={`${user?.role === "employer" ? "/employer/dashboard" : "/employer-signup"}`}
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
               For Bench Resources
             </Link>
             <Link
-              to={`${user?.role === "employer" ? "/employer-dashboard" : "/employer-signup"}`}
+              to={`${user?.role === "hr" ? "/hr-dashboard" : "/bench-registration"}`}
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
@@ -276,7 +276,7 @@ const LandingHeader = () => {
                   </Button>
                   <Button asChild className="w-full rounded-xl">
                     <Link
-                      to="/employer-signup"
+                      to="/bench-registration"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Hire Talent

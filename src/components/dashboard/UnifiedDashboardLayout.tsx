@@ -74,7 +74,11 @@ const getMenuItems = (role: DashboardRole) => {
       return [
         { icon: LayoutDashboard, label: "Dashboard", href: "/bench/dashboard" },
         { icon: Users, label: "Post Job", href: "/bench/post-job" },
-        { icon: Briefcase, label: "AI Shortlists", href: "/bench/ai-shortlists" },
+        {
+          icon: Briefcase,
+          label: "AI Shortlists",
+          href: "/bench/ai-shortlists",
+        },
         { icon: BarChart3, label: "Skill Test", href: "/bench/skill-tests" },
         { icon: Video, label: "AI Interviews", href: "/bench/ai-interviews" },
         { icon: FileText, label: "Contracts", href: "/bench/contracts" },
@@ -126,7 +130,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const handleProfile = () => {
     if (!user?.role) return;
     if (user.role === "hr") {
-      navigate("/bench/dashboard");
+      navigate("/hr-dashboard");
     } else if (user.role === "candidate") {
       navigate("/contractor/dashboard");
     } else {
