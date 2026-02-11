@@ -15,7 +15,6 @@ import {
   Briefcase,
   FileCheck,
   BarChart3,
-  CreditCard,
   Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -73,14 +72,20 @@ const getMenuItems = (role: DashboardRole) => {
     case "bench":
       return [
         { icon: LayoutDashboard, label: "Dashboard", href: "/bench/dashboard" },
-        { icon: Users, label: "Post Job", href: "/bench/post-job" },
+        { icon: PlusCircle, label: "Post Job", href: "/bench/post-job" },
         {
-          icon: Briefcase,
+          icon: Users,
           label: "AI Shortlists",
           href: "/bench/ai-shortlists",
+          isAi: true,
         },
         { icon: BarChart3, label: "Skill Test", href: "/bench/skill-tests" },
-        { icon: Video, label: "AI Interviews", href: "/bench/ai-interviews" },
+        {
+          icon: Video,
+          label: "AI Interviews",
+          href: "/bench/ai-interviews",
+          isAI: true,
+        },
         { icon: FileText, label: "Contracts", href: "/bench/contracts" },
         { icon: Settings, label: "Settings", href: "/bench/settings" },
         // { icon: CreditCard, label: "Billing", href: "/bench/billing" },
@@ -134,7 +139,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
     } else if (user.role === "candidate") {
       navigate("/contractor/dashboard");
     } else {
-      navigate(`*`);
+      navigate(`/`);
     }
   };
 

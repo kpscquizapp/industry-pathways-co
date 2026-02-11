@@ -43,7 +43,7 @@ const menuItems = [
   },
 ];
 
-const EmployerSidebar = ({ collapsed, onToggle }: HrSidebarProps) => {
+const HrSidebar = ({ collapsed, onToggle }: HrSidebarProps) => {
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -65,7 +65,7 @@ const EmployerSidebar = ({ collapsed, onToggle }: HrSidebarProps) => {
           {!collapsed && (
             <div className="flex flex-col">
               <span className="font-bold text-lg">HIRION</span>
-              <span className="text-xs text-navy-300">Hr Portal</span>
+              <span className="text-xs text-navy-300">HR Portal</span>
             </div>
           )}
         </Link>
@@ -148,4 +148,4 @@ const EmployerSidebar = ({ collapsed, onToggle }: HrSidebarProps) => {
   );
 };
 
-export default EmployerSidebar;
+export default HrSidebar;

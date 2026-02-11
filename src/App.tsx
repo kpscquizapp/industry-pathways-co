@@ -96,13 +96,25 @@ import ForgotPassword from "./pages/ForgotPassword";
 import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import Unauthorized from "./pages/Unauthorized";
 import { LazyRoute } from "./pages/LazyRoute";
-import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
-import EmployerPostJob from "./pages/employer/EmployerPostJob";
-import EmployerAIShortlists from "./pages/employer/EmployerAIShortlists";
-import EmployerSkillTests from "./pages/employer/EmployerSkillTests";
-import EmployerAIInterviews from "./pages/employer/EmployerAIInterviews";
-import EmployerContracts from "./pages/employer/EmployerContracts";
-import EmployerSettings from "./pages/employer/EmployerSettings";
+const HiringDashboardNew = lazy(
+  () => import("./pages/employer/HiringDashboardNew"),
+);
+const EmployerPostJob = lazy(() => import("./pages/employer/EmployerPostJob"));
+const EmployerAIShortlists = lazy(
+  () => import("./pages/employer/EmployerAIShortlists"),
+);
+const EmployerSkillTests = lazy(
+  () => import("./pages/employer/EmployerSkillTests"),
+);
+const EmployerAIInterviews = lazy(
+  () => import("./pages/employer/EmployerAIInterviews"),
+);
+const EmployerContracts = lazy(
+  () => import("./pages/employer/EmployerContracts"),
+);
+const EmployerSettings = lazy(
+  () => import("./pages/employer/EmployerSettings"),
+);
 
 const queryClient = new QueryClient();
 
@@ -138,14 +150,6 @@ const App = () => {
                 <PageTransition>
                   <Routes>
                     <Route path="/" element={<Index />} />
-                    {/* <Route path="/career-path" element={<CareerPath />} />
-                    <Route path="/marketplace" element={<Marketplace />} />
-                    <Route path="/find-talent" element={<FindTalent />} />
-                    <Route path="/talent/:id" element={<TalentProfile />} /> */}
-                    {/* <Route
-                      path="/register-talent"
-                      element={<RegisterTalent />}
-                    /> */}
                     <Route path="/employer-login" element={<EmployerLogin />} />
                     <Route
                       path="/employer-signup"
@@ -164,32 +168,11 @@ const App = () => {
                       path="/candidate-signup"
                       element={<CandidateSignup />}
                     />
-                    {/* <Route
-                      path="/profile-visibility"
-                      element={<ProfileVisibility />}
-                    />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/jobs" element={<JobSearch />} />
-                    <Route path="/jobs/:id" element={<JobDetails />} />
-                    <Route path="/job/:id" element={<JobDetails />} />
-                    <Route
-                      path="/list-bench-talent"
-                      element={<ListBenchTalent />}
-                    />
-                    <Route path="/login" element={<Login />} /> */}
+
                     <Route
                       path="/forgot-password"
                       element={<ForgotPassword />}
                     />
-                    {/* <Route
-                      path="/job-recommendations"
-                      element={<JobRecommendations />}
-                    />
-                    <Route
-                      path="/skills-assessment"
-                      element={<SkillsAssessment />}
-                    />
-                    <Route path="/saved-jobs" element={<SavedJobs />} /> */}
 
                     {/* NEW: Contractor Dashboard Routes */}
                     {/* "candidate" role users access the contractor dashboard */}
@@ -260,7 +243,7 @@ const App = () => {
                       </Route>
                     </Route>
 
-                    {/* Legacy (Current using) Employer Dashboard Routes */}
+                    {/* Legacy (Employer -Current using) HR Dashboard Routes */}
                     <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
                       <Route
                         path="/hr-dashboard"
@@ -315,6 +298,39 @@ const App = () => {
                         />
                       </Route>
                     </Route>
+
+                    {/* <Route
+                      path="/profile-visibility"
+                      element={<ProfileVisibility />}
+                    />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/jobs" element={<JobSearch />} />
+                    <Route path="/jobs/:id" element={<JobDetails />} />
+                    <Route path="/job/:id" element={<JobDetails />} />
+                    <Route
+                      path="/list-bench-talent"
+                      element={<ListBenchTalent />}
+                    />
+                    <Route path="/login" element={<Login />} /> */}
+
+                    {/* <Route
+                      path="/job-recommendations"
+                      element={<JobRecommendations />}
+                    />
+                    <Route
+                      path="/skills-assessment"
+                      element={<SkillsAssessment />}
+                    />
+                    <Route path="/saved-jobs" element={<SavedJobs />} /> */}
+
+                    {/* <Route path="/career-path" element={<CareerPath />} />
+                    <Route path="/marketplace" element={<Marketplace />} />
+                    <Route path="/find-talent" element={<FindTalent />} />
+                    <Route path="/talent/:id" element={<TalentProfile />} /> */}
+                    {/* <Route
+                      path="/register-talent"
+                      element={<RegisterTalent />}
+                    /> */}
 
                     {/* NEW: (But not used) Hiring Company Dashboard Routes */}
                     {/* <Route

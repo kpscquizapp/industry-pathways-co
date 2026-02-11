@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import EmployerSidebar from './EmployerSidebar';
+import EmployerSidebar from './HrSidebar';
 import EmployerHeader from './EmployerHeader';
 import { cn } from '@/lib/utils';
 

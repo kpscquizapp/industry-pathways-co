@@ -48,10 +48,19 @@ const LandingHeader = () => {
     : "hover:bg-white/10";
 
   const handleRoleBasedNavigation = (role: string) => {
-    if (!role) return;
-    if (role === "hr") navigation("/hr-dashboard");
-    if (role === "employer") navigation("/employer/dashboard");
-    if (role === "candidate") navigation("/contractor/dashboard");
+    switch (role) {
+      case "hr":
+        navigation("/hr-dashboard");
+        break;
+      case "employer":
+        navigation("/employer/dashboard");
+        break;
+      case "candidate":
+        navigation("/contractor/dashboard");
+        break;
+      default:
+        navigation("/");
+    }
   };
 
   return (

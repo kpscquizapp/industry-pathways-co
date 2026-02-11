@@ -177,7 +177,7 @@ const JobBoard = () => {
           </p>
         </div>
         <Button
-          onClick={() => navigate("/employer-dashboard/create-job")}
+          onClick={() => navigate("/hr-dashboard/create-job")}
           className="bg-primary hover:bg-primary/90"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -293,9 +293,7 @@ const JobBoard = () => {
                 <TableRow key={job.id} className="hover:bg-muted/30">
                   <TableCell>
                     <button
-                      onClick={() =>
-                        navigate(`/employer-dashboard/job/${job.id}`)
-                      }
+                      onClick={() => navigate(`/hr-dashboard/job/${job.id}`)}
                       className="font-medium text-primary hover:underline text-left"
                     >
                       {job.title}
@@ -325,7 +323,7 @@ const JobBoard = () => {
                   <TableCell className="text-center">
                     <button
                       onClick={() =>
-                        navigate(`/employer-dashboard/job/${job.id}/candidates`)
+                        navigate(`/hr-dashboard/job/${job.id}/candidates`)
                       }
                       className="font-semibold text-primary hover:underline"
                     >
@@ -360,7 +358,7 @@ const JobBoard = () => {
                       <DropdownMenuContent align="end" className="w-40">
                         <DropdownMenuItem
                           onClick={() =>
-                            navigate(`/employer-dashboard/job/${job.id}`)
+                            navigate(`/hr-dashboard/job/${job.id}`)
                           }
                         >
                           <Eye className="h-4 w-4 mr-2" />
@@ -368,7 +366,7 @@ const JobBoard = () => {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() =>
-                            navigate(`/employer-dashboard/edit-job/${job.id}`)
+                            navigate(`/hr-dashboard/edit-job/${job.id}`)
                           }
                         >
                           <Edit className="h-4 w-4 mr-2" />
