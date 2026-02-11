@@ -77,7 +77,7 @@ const getMenuItems = (role: DashboardRole) => {
           icon: Users,
           label: "AI Shortlists",
           href: "/bench/ai-shortlists",
-          isAi: true,
+          isAI: true,
         },
         { icon: BarChart3, label: "Skill Test", href: "/bench/skill-tests" },
         {
@@ -138,6 +138,8 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
       navigate("/hr-dashboard");
     } else if (user.role === "candidate") {
       navigate("/contractor/dashboard");
+    } else if (user.role === "employer") {
+      navigate("/employer/dashboard");
     } else {
       navigate(`/`);
     }

@@ -37,7 +37,7 @@ import CandidateLogin from "./pages/CandidateLogin";
 
 // Old Employer Dashboard (keeping for compatibility)
 const EmployerLayoutOld = lazy(
-  () => import("./components/employer/EmployerLayout"),
+  () => import("./components/employer/HrLayout"),
 );
 const CompanyDashboard = lazy(
   () => import("./pages/employer/CompanyDashboard"),

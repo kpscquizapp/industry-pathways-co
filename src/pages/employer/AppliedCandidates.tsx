@@ -519,7 +519,7 @@ const AppliedCandidates = () => {
                       >
                         {testStatus.icon}
                         {candidate.skillTestStatus}
-                        {candidate.skillTestScore &&
+                        {candidate.skillTestScore != null &&
                           ` (${candidate.skillTestScore}%)`}
                       </Badge>
                     </TableCell>
@@ -530,7 +530,7 @@ const AppliedCandidates = () => {
                       >
                         {interviewStatus.icon}
                         {candidate.aiInterviewStatus}
-                        {candidate.aiInterviewScore &&
+                        {candidate.aiInterviewScore != null &&
                           ` (${candidate.aiInterviewScore}%)`}
                       </Badge>
                     </TableCell>
@@ -714,7 +714,7 @@ const AppliedCandidates = () => {
                 </div>
 
                 {/* Test Results */}
-                {selectedCandidate.skillTestScore && (
+                {selectedCandidate.skillTestScore != null && (
                   <div>
                     <h4 className="font-medium mb-3 flex items-center gap-2">
                       <ClipboardCheck className="h-4 w-4" />
@@ -742,7 +742,7 @@ const AppliedCandidates = () => {
                 )}
 
                 {/* AI Interview Results */}
-                {selectedCandidate.aiInterviewScore && (
+                {selectedCandidate.aiInterviewScore != null && (
                   <div>
                     <h4 className="font-medium mb-3 flex items-center gap-2">
                       <Brain className="h-4 w-4" />

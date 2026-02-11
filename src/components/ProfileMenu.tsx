@@ -29,7 +29,7 @@ const ProfileMenu = ({
     if (user.role === "hr") {
       navigate("/hr-dashboard");
     } else if (user.role === "candidate") {
-      navigate("/profile");
+      navigate("/contractor/profile");
     } else if (user.role === "employer") {
       navigate("/employer/dashboard");
     }

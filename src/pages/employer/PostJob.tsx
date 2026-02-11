@@ -482,7 +482,7 @@ const PostJob = () => {
             placeholder="Type and press enter..."
             value={skillInput}
             onChange={(e) => setSkillInput(e.target.value)}
-            onKeyPress={(e) =>
+            onKeyDown={(e) =>
               e.key === "Enter" && (e.preventDefault(), addSkill())
             }
           />
