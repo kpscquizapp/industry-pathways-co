@@ -99,14 +99,26 @@ import ForgotPassword from "./pages/ForgotPassword";
 import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import Unauthorized from "./pages/Unauthorized";
 import { LazyRoute } from "./pages/LazyRoute";
-// import EmployerLayout from "./components/employer/EmployerLayout";
-const HiringDashboardNew = lazy(() => import("./pages/employer/HiringDashboardNew"));
+import EmployerLayout from "./components/employer/EmployerLayout";
+const HiringDashboardNew = lazy(
+  () => import("./pages/employer/HiringDashboardNew"),
+);
 const EmployerPostJob = lazy(() => import("./pages/employer/EmployerPostJob"));
-const EmployerAIShortlists = lazy(() => import("./pages/employer/EmployerAIShortlists"));
-const EmployerSkillTests = lazy(() => import("./pages/employer/EmployerSkillTests"));
-const EmployerAIInterviews = lazy(() => import("./pages/employer/EmployerAIInterviews"));
-const EmployerContracts = lazy(() => import("./pages/employer/EmployerContracts"));
-const EmployerSettings = lazy(() => import("./pages/employer/EmployerSettings"));
+const EmployerAIShortlists = lazy(
+  () => import("./pages/employer/EmployerAIShortlists"),
+);
+const EmployerSkillTests = lazy(
+  () => import("./pages/employer/EmployerSkillTests"),
+);
+const EmployerAIInterviews = lazy(
+  () => import("./pages/employer/EmployerAIInterviews"),
+);
+const EmployerContracts = lazy(
+  () => import("./pages/employer/EmployerContracts"),
+);
+// const EmployerSettings = lazy(
+//   () => import("./pages/employer/EmployerSettings"),
+// );
 
 // Coding Challenge
 const CodingChallenge = lazy(() => import("./pages/CodingChallenge"));
@@ -239,16 +251,28 @@ const App = () => {
                         path="/hr"
                         element={<UnifiedDashboardLayout role="bench" />}
                       >
-                      <Route index element={<LazyRoute element={<HiringDashboardNew />} />} />
-                      <Route index element={<HiringDashboardNew />} />
-                      <Route path="dashboard" element={<HiringDashboardNew />} />
-                      <Route path="post-job" element={<EmployerPostJob />} />
-                      <Route path="ai-shortlists" element={<EmployerAIShortlists />} />
-                      <Route path="skill-tests" element={<EmployerSkillTests />} />
-                      <Route path="ai-interviews" element={<EmployerAIInterviews />} />
-                      <Route path="contracts" element={<EmployerContracts />} />
-                      <Route path="settings" element={<EmployerSettings />} />
-                
+                        <Route
+                          path="dashboard"
+                          element={<HiringDashboardNew />}
+                        />
+                        <Route path="post-job" element={<EmployerPostJob />} />
+                        <Route
+                          path="ai-shortlists"
+                          element={<EmployerAIShortlists />}
+                        />
+                        <Route
+                          path="skill-tests"
+                          element={<EmployerSkillTests />}
+                        />
+                        <Route
+                          path="ai-interviews"
+                          element={<EmployerAIInterviews />}
+                        />
+                        <Route
+                          path="contracts"
+                          element={<EmployerContracts />}
+                        />
+                        <Route path="settings" element={<EmployerSettings />} />
                       </Route>
                     </Route>
 
@@ -307,10 +331,7 @@ const App = () => {
                           path="interview-results/:candidateId"
                           element={<AIInterviewResults />}
                         />
-                        <Route
-                          path="settings"
-                          element={<EmployerSettings />}
-                        />
+                        <Route path="settings" element={<EmployerSettings />} />
                       </Route>
                     </Route>
 

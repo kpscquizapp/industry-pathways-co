@@ -68,7 +68,7 @@ const EmployerLogin = () => {
 
   useEffect(() => {
     if (userDetails && userDetails.role === "employer") {
-      navigate("/employer-dashboard");
+      navigate("/employer/dashboard");
     }
   }, [userDetails, navigate]);
 
@@ -173,7 +173,7 @@ const EmployerLogin = () => {
       toast.success(
         `Welcome back${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
       );
-      navigate("/employer-dashboard");
+      navigate("/employer/dashboard");
     } catch (error: unknown) {
       // Extract error message
       let errorMessage = "Login failed. Please try again.";

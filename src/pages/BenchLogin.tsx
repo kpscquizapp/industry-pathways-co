@@ -86,7 +86,7 @@ const BenchLogin = () => {
 
   useEffect(() => {
     if (userDetails && userDetails.role === "hr") {
-      navigate("/bench/dashboard");
+      navigate("/hr/dashboard");
     }
   }, [userDetails, navigate]);
 
@@ -183,7 +183,7 @@ const BenchLogin = () => {
       toast.success(
         `Welcome back${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
       );
-      navigate("/bench/dashboard");
+      navigate("/hr/dashboard");
     } catch (error: unknown) {
       // Extract error message
       let errorMessage = "Login failed. Please try again.";
