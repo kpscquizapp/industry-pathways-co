@@ -253,11 +253,11 @@ const AppliedCandidates = () => {
       (skillMatchFilter === "low" && candidate.skillsMatch < 50);
     const matchesTest =
       testStatusFilter === "all" ||
-      candidate.skillTestStatus.toLowerCase().replace(" ", "-") ===
+      candidate.skillTestStatus.toLowerCase().replace(/ /g, "-") ===
         testStatusFilter;
     const matchesInterview =
       interviewStatusFilter === "all" ||
-      candidate.aiInterviewStatus.toLowerCase().replace(" ", "-") ===
+      candidate.aiInterviewStatus.toLowerCase().replace(/ /g, "-") ===
         interviewStatusFilter;
     return matchesSearch && matchesSkill && matchesTest && matchesInterview;
   });

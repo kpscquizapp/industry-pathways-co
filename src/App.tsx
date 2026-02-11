@@ -36,9 +36,7 @@ import CandidateLogin from "./pages/CandidateLogin";
 // import SavedJobs from "./pages/SavedJobs";
 
 // Old Employer Dashboard (keeping for compatibility)
-const EmployerLayoutOld = lazy(
-  () => import("./components/employer/HrLayout"),
-);
+const EmployerLayoutOld = lazy(() => import("./components/employer/HrLayout"));
 const CompanyDashboard = lazy(
   () => import("./pages/employer/CompanyDashboard"),
 );
@@ -303,6 +301,7 @@ const App = () => {
                       path="/profile-visibility"
                       element={<ProfileVisibility />}
                     />
+                    <Route path="/hr-dashboard/job/:jobId/applied-candidates" element={<AppliedCandidates />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/jobs" element={<JobSearch />} />
                     <Route path="/jobs/:id" element={<JobDetails />} />
