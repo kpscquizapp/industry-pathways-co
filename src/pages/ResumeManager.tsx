@@ -319,11 +319,6 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                           }
                           className="flex-1 text-xs md:text-sm flex items-center justify-center gap-2"
                         >
-                          {loadingViewId === resume.id ? (
-                            <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
-                          ) : (
-                            <></>
-                          )}
                           <>
                             {loadingViewId === resume.id ? (
                               <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />

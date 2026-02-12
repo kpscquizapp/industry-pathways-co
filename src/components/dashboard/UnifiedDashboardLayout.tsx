@@ -249,14 +249,12 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
               <User className="h-4 w-4 mr-2" />
               Profile
             </DropdownMenuItem>
-            {role === "hire-talent" && (
-              <DropdownMenuItem asChild>
-                <Link to={`/${role}/settings`}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem asChild>
+              <Link to={`/${role}/settings`}>
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleLogout}

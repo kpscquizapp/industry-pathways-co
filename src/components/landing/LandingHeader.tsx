@@ -113,7 +113,11 @@ const LandingHeader = () => {
               >
                 <DropdownMenuItem asChild>
                   <Link
-                    to={`${user?.role === "candidate" ? "/contractor/dashboard" : "/contractor-signup"}`}
+                    to={
+                      user?.role === "candidate"
+                        ? "/contractor/dashboard"
+                        : "/contractor-signup"
+                    }
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -128,7 +132,11 @@ const LandingHeader = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
-                    to={`${user?.role === "hr" ? "/bench-dashboard" : "/bench-registration"}`}
+                    to={
+                      user?.role === "hr"
+                        ? "/bench-dashboard"
+                        : "/bench-registration"
+                    }
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -143,7 +151,11 @@ const LandingHeader = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
-                    to={`${user?.role === "employer" ? "/hire-talent/dashboard" : "/hire-talent-signup"}`}
+                    to={
+                      user?.role === "employer"
+                        ? "/hire-talent/dashboard"
+                        : "/hire-talent-signup"
+                    }
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -215,21 +227,31 @@ const LandingHeader = () => {
               Home
             </Link>
             <Link
-              to={`${user?.role === "candidate" ? "/contractor/dashboard" : "/contractor-signup"}`}
+              to={
+                user?.role === "candidate"
+                  ? "/contractor/dashboard"
+                  : "/contractor-signup"
+              }
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
               For Contractors
             </Link>
             <Link
-              to={`${user?.role === "hr" ? "/bench-dashboard" : "/bench-registration"}`}
+              to={
+                user?.role === "hr" ? "/bench-dashboard" : "/bench-registration"
+              }
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
               For Bench Resources
             </Link>
             <Link
-              to={`${user?.role === "employer" ? "/hire-talent/dashboard" : "/hire-talent-signup"}`}
+              to={
+                user?.role === "employer"
+                  ? "/hire-talent/dashboard"
+                  : "/hire-talent-signup"
+              }
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
