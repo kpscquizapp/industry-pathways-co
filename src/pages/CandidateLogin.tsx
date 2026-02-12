@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,11 +16,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLoginCandidateMutation } from "@/app/queries/loginApi";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "@/app/slices/userAuth";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
+import { RootState } from "@/app/store";
 
 // ==================== VALIDATION ====================
 const CREDENTIAL_ERROR_MSG = "Please check your credentials";
@@ -29,8 +30,9 @@ const VALIDATION = {
   email: {
     regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     validate: (email: string) => {
-      if (!email || !email.trim()) return "Email address is required";
-      if (!VALIDATION.email.regex.test(email)) {
+      const trimmed = email?.trim() ?? "";
+      if (!trimmed) return "Email address is required";
+      if (!VALIDATION.email.regex.test(trimmed)) {
         return "Please enter a valid email address";
       }
       return null;
@@ -59,6 +61,13 @@ const CandidateLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const userDetails = useSelector((state: RootState) => state.user.userDetails);
+
+  useEffect(() => {
+    if (userDetails && userDetails.role === "candidate") {
+      navigate("/contractor/dashboard");
+    }
+  }, [userDetails, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -169,19 +178,14 @@ const CandidateLogin = () => {
         navigate("/contractor/dashboard");
       }
     } catch (error: unknown) {
-      console.error("Login error:", error);
-
       // Extract error message
       let errorMessage = "Login failed. Please try again.";
 
       if (isFetchBaseQueryError(error)) {
         // Handle different status codes
-        if (error.status === 401) {
+        if (error.status === 401 || error.status === 404) {
           errorMessage =
             "Invalid email or password. Please check your credentials and try again.";
-        } else if (error.status === 404) {
-          errorMessage =
-            "No account found with this email. Please sign up first.";
         } else if (error.status === 403) {
           errorMessage =
             "Your account has been suspended. Please contact support.";
@@ -206,15 +210,13 @@ const CandidateLogin = () => {
       toast.error(errorMessage);
 
       // Mark credential fields with errors for auth failures
-      if (isFetchBaseQueryError(error) && error.status === 401) {
-        setFieldErrors({
-          email: CREDENTIAL_ERROR_MSG,
-          password: CREDENTIAL_ERROR_MSG,
-        });
-      } else if (isFetchBaseQueryError(error) && error.status === 404) {
-        setFieldErrors({
-          email: "No account found with this email",
-        });
+      if (isFetchBaseQueryError(error)) {
+        if (error.status === 404 || error.status === 401) {
+          setFieldErrors({
+            email: CREDENTIAL_ERROR_MSG,
+            password: CREDENTIAL_ERROR_MSG,
+          });
+        }
       }
     }
   };
@@ -441,7 +443,7 @@ const CandidateLogin = () => {
                   <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
                     New to Hirion?{" "}
                     <Link
-                      to="/candidate-signup"
+                      to="/contractor-signup"
                       className="text-primary hover:text-emerald-500 transition-colors underline-offset-8 underline decoration-primary/30"
                     >
                       Create Contractor Account

@@ -334,7 +334,7 @@ const AppliedCandidates = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate("/hr-dashboard/job-board")}
+          onClick={() => navigate("/bench-dashboard/job-board")}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -786,7 +786,7 @@ const AppliedCandidates = () => {
                         className="w-full"
                         onClick={() =>
                           navigate(
-                            `/hr-dashboard/interview-results/${selectedCandidate.id}`,
+                            `/bench-dashboard/interview-results/${selectedCandidate.id}`,
                           )
                         }
                       >

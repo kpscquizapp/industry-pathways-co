@@ -44,7 +44,7 @@ import useLogout from "@/hooks/useLogout";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 
-type DashboardRole = "contractor" | "bench" | "employer";
+type DashboardRole = "contractor" | "bench" | "hire-talent";
 
 interface UnifiedDashboardLayoutProps {
   role: DashboardRole;
@@ -90,33 +90,33 @@ const getMenuItems = (role: DashboardRole) => {
         { icon: Settings, label: "Settings", href: "/bench/settings" },
         // { icon: CreditCard, label: "Billing", href: "/bench/billing" },
       ];
-    case "employer":
+    case "hire-talent":
       return [
         {
           icon: LayoutDashboard,
           label: "Dashboard",
-          href: "/employer/dashboard",
+          href: "/hire-talent/dashboard",
         },
-        { icon: PlusCircle, label: "Post Job", href: "/employer/post-job" },
+        { icon: PlusCircle, label: "Post Job", href: "/hire-talent/post-job" },
         {
           icon: Users,
           label: "AI Shortlists",
-          href: "/employer/ai-shortlists",
+          href: "/hire-talent/ai-shortlists",
           isAI: true,
         },
         {
           icon: ClipboardCheck,
           label: "Skill Tests",
-          href: "/employer/skill-tests",
+          href: "/hire-talent/skill-tests",
         },
         {
           icon: Video,
           label: "AI Interviews",
-          href: "/employer/ai-interviews",
+          href: "/hire-talent/ai-interviews",
           isAI: true,
         },
-        { icon: FileText, label: "Contracts", href: "/employer/contracts" },
-        { icon: Settings, label: "Settings", href: "/employer/settings" },
+        { icon: FileText, label: "Contracts", href: "/hire-talent/contracts" },
+        { icon: Settings, label: "Settings", href: "/hire-talent/settings" },
       ];
     default:
       return [];
@@ -135,11 +135,11 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const handleProfile = () => {
     if (!user?.role) return;
     if (user.role === "hr") {
-      navigate("/hr-dashboard");
+      navigate("/bench-dashboard");
     } else if (user.role === "candidate") {
-      navigate("/contractor/dashboard");
+      navigate("/contractor/profile");
     } else if (user.role === "employer") {
-      navigate("/employer/dashboard");
+      navigate("/hire-talent/dashboard");
     } else {
       navigate(`/`);
     }
@@ -151,7 +151,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
         return "Contractor";
       case "bench":
         return "Bench Resource";
-      case "employer":
+      case "hire-talent":
         return "Hiring Company";
       default:
         return "";
@@ -179,7 +179,9 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
       <SidebarContent className="p-3">
         <SidebarMenu>
           {menuItems.map((item) => {
-            const isDashboard = item.href === `/${role}/dashboard`;
+            const dashboardHref =
+              role === "bench" ? "/bench/dashboard" : `/${role}/dashboard`;
+            const isDashboard = item.href === dashboardHref;
             const isActive =
               location.pathname === item.href ||
               (isDashboard && location.pathname === `/${role}`) ||
@@ -249,14 +251,12 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
               <User className="h-4 w-4 mr-2" />
               Profile
             </DropdownMenuItem>
-            {role === "employer" && (
-              <DropdownMenuItem asChild>
-                <Link to={`/${role}/settings`}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem asChild>
+              <Link to={`/${role}/settings`}>
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleLogout}
@@ -290,9 +290,9 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
                 <Bell className="h-5 w-5 text-muted-foreground" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
               </Button>
-              {role === "employer" && (
+              {role === "hire-talent" && (
                 <Button size="sm" className="rounded-xl hidden md:flex" asChild>
-                  <Link to="/employer/post-job">
+                  <Link to="/hire-talent/post-job">
                     <Plus className="w-4 h-4 mr-2" />
                     Post Job
                   </Link>

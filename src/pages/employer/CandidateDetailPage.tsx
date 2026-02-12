@@ -193,7 +193,7 @@ const CandidateDetailPage: React.FC = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(`/hr-dashboard/job/${jobId}/candidates`)}
+          onClick={() => navigate(`/bench-dashboard/job/${jobId}/candidates`)}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -411,7 +411,7 @@ const CandidateDetailPage: React.FC = () => {
                       <div>
                         <h3 className="text-lg font-bold">AI Matching Score</h3>
                         <p className="text-sm text-muted-foreground">
-                          Based on your project requirements for"
+                          Based on your project requirements for "
                           {mockCandidate.title}".
                         </p>
                       </div>

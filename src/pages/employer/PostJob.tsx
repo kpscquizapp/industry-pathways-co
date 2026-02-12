@@ -189,7 +189,7 @@ const PostJob = () => {
     }
     toast.success("Job posted successfully! Redirecting to dashboard...");
     setTimeout(() => {
-      navigate("/hr-dashboard");
+      navigate("/bench-dashboard");
     }, 1500);
   };
 

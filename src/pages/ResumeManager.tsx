@@ -1,10 +1,19 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Upload, Eye, Trash2, FileText, X, LoaderCircle } from "lucide-react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import {
+  Upload,
+  Eye,
+  Trash2,
+  FileText,
+  X,
+  LoaderCircle,
+  Star,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   useLazyViewResumeQuery,
   useRemoveResumeMutation,
+  useSetDefaultResumeMutation,
   useUploadResumeMutation,
 } from "@/app/queries/profileApi";
 import { toast } from "sonner";
@@ -16,6 +25,7 @@ type Resume = {
   mimeType: string;
   fileSize: number;
   uploadedAt: string;
+  isDefault?: boolean;
 };
 
 // Helper to determine if a resume should be treated as a PDF (by MIME type or filename).
@@ -39,13 +49,28 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
     useUploadResumeMutation();
   const [viewResume] = useLazyViewResumeQuery();
   const [removeResume] = useRemoveResumeMutation();
+  const [setDefaultResume] = useSetDefaultResumeMutation();
 
+  const [loadingDefaultId, setLoadingDefaultId] = useState<number | null>(null);
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const latestRequestIdRef = useRef<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingViewId, setLoadingViewId] = useState<number | null>(null);
   const [loadingDeleteId, setLoadingDeleteId] = useState<number | null>(null);
+
+  const sortedResumes = useMemo(() => {
+    return [...resumes].sort((a, b) => {
+      // Primary sort: isDefault (true comes first)
+      if (a.isDefault && !b.isDefault) return -1;
+      if (!a.isDefault && b.isDefault) return 1;
+
+      // Secondary sort: optional (e.g., by upload date, newest first)
+      return (
+        new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+      );
+    });
+  }, [resumes]);
 
   const isMobile = useIsMobile();
 
@@ -139,6 +164,23 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
     }
   };
 
+  const handleDefaultResume = async (resumeId: number) => {
+    const alreadyDefault = resumes.find((r) => r.id === resumeId)?.isDefault;
+    if (alreadyDefault) {
+      toast.info("This resume is already set as default.");
+      return;
+    }
+    setLoadingDefaultId(resumeId);
+    try {
+      await setDefaultResume(resumeId).unwrap();
+      toast.success("Resume set as default.");
+    } catch (error) {
+      console.error("Error setting default resume:", error);
+      toast.error("Failed to set default resume.");
+    } finally {
+      setLoadingDefaultId(null);
+    }
+  };
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.currentTarget;
     const file = input.files?.[0];
@@ -243,7 +285,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                       No resumes uploaded yet. Upload your first resume above.
                     </p>
                   )}
-                  {resumes.map((resume) => (
+                  {sortedResumes.map((resume) => (
                     <Card
                       key={resume.id}
                       className="p-3 md:p-4 border border-slate-200 hover:border-slate-300 transition-colors duration-200 dark:border-slate-700 dark:hover:border-slate-600"
@@ -274,37 +316,67 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                           size="sm"
                           onClick={() => handleView(resume)}
                           disabled={
-                            loadingViewId !== null || loadingDeleteId !== null
+                            loadingViewId !== null ||
+                            loadingDeleteId !== null ||
+                            loadingDefaultId !== null
                           }
                           className="flex-1 text-xs md:text-sm flex items-center justify-center gap-2"
                         >
-                          {loadingViewId === resume.id ? (
-                            <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
-                          ) : (
-                            <>
+                          <>
+                            {loadingViewId === resume.id ? (
+                              <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
+                            ) : (
                               <Eye className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                              View
-                            </>
-                          )}
+                            )}
+                            View
+                          </>
                         </Button>
 
                         <Button
                           variant="outline"
                           size="sm"
                           disabled={
-                            loadingViewId !== null || loadingDeleteId !== null
+                            loadingViewId !== null ||
+                            loadingDeleteId !== null ||
+                            loadingDefaultId !== null
+                          }
+                          onClick={() => handleDefaultResume(resume.id)}
+                          className="text-xs md:text-sm flex items-center justify-center gap-2"
+                        >
+                          <>
+                            {loadingDefaultId === resume.id ? (
+                              <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
+                            ) : (
+                              <Star
+                                className={`w-3 h-3 md:w-4 md:h-4 mr-1 ${
+                                  resume.isDefault
+                                    ? "text-primary fill-primary"
+                                    : ""
+                                }`}
+                              />
+                            )}
+                            {resume.isDefault ? "Default" : "Set as Default"}
+                          </>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={
+                            loadingViewId !== null ||
+                            loadingDeleteId !== null ||
+                            loadingDefaultId !== null
                           }
                           onClick={() => handleDelete(resume.id)}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs md:text-sm"
                         >
-                          {loadingDeleteId === resume.id ? (
-                            <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
-                          ) : (
-                            <>
+                          <>
+                            {loadingDeleteId === resume.id ? (
+                              <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
+                            ) : (
                               <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                              Delete
-                            </>
-                          )}
+                            )}
+                            Delete
+                          </>
                         </Button>
                       </div>
                     </Card>

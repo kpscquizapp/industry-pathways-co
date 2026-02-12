@@ -9,7 +9,6 @@ import {
   Building2,
   Briefcase,
   ChevronDown,
-  LogIn,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -50,10 +49,10 @@ const LandingHeader = () => {
   const handleRoleBasedNavigation = (role: string) => {
     switch (role) {
       case "hr":
-        navigation("/hr-dashboard");
+        navigation("/bench-dashboard");
         break;
       case "employer":
-        navigation("/employer/dashboard");
+        navigation("/hire-talent/dashboard");
         break;
       case "candidate":
         navigation("/contractor/dashboard");
@@ -114,7 +113,11 @@ const LandingHeader = () => {
               >
                 <DropdownMenuItem asChild>
                   <Link
-                    to={`${user?.role === "candidate" ? "/contractor/dashboard" : "/candidate-signup"}`}
+                    to={
+                      user?.role === "candidate"
+                        ? "/contractor/dashboard"
+                        : "/contractor-signup"
+                    }
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -129,7 +132,11 @@ const LandingHeader = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
-                    to={`${user?.role === "employer" ? "/employer/dashboard" : "/employer-signup"}`}
+                    to={
+                      user?.role === "hr"
+                        ? "/bench-dashboard"
+                        : "/bench-registration"
+                    }
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -144,7 +151,11 @@ const LandingHeader = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
-                    to={`${user?.role === "hr" ? "/hr-dashboard" : "/bench-registration"}`}
+                    to={
+                      user?.role === "employer"
+                        ? "/hire-talent/dashboard"
+                        : "/hire-talent-signup"
+                    }
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -174,7 +185,7 @@ const LandingHeader = () => {
 
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-3">
-            {user ? (
+            {user && (
               <Button
                 variant="default"
                 size="sm"
@@ -183,27 +194,6 @@ const LandingHeader = () => {
               >
                 Dashboard
               </Button>
-            ) : (
-              <>
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="sm"
-                  className={cn("rounded-xl", textColor, ghostHoverBg)}
-                >
-                  <Link to="/employer-login">
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Login
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  size="sm"
-                  className="rounded-xl bg-primary hover:bg-primary/90"
-                >
-                  <Link to="/bench-registration">Hire Talent</Link>
-                </Button>
-              </>
             )}
           </div>
 
@@ -237,21 +227,31 @@ const LandingHeader = () => {
               Home
             </Link>
             <Link
-              to={`${user?.role === "candidate" ? "/contractor/dashboard" : "/candidate-signup"}`}
+              to={
+                user?.role === "candidate"
+                  ? "/contractor/dashboard"
+                  : "/contractor-signup"
+              }
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
               For Contractors
             </Link>
             <Link
-              to={`${user?.role === "employer" ? "/employer/dashboard" : "/employer-signup"}`}
+              to={
+                user?.role === "hr" ? "/bench-dashboard" : "/bench-registration"
+              }
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
               For Bench Resources
             </Link>
             <Link
-              to={`${user?.role === "hr" ? "/hr-dashboard" : "/bench-registration"}`}
+              to={
+                user?.role === "employer"
+                  ? "/hire-talent/dashboard"
+                  : "/hire-talent-signup"
+              }
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
@@ -259,7 +259,7 @@ const LandingHeader = () => {
             </Link>
 
             <div className="pt-4 border-t border-border space-y-2">
-              {user ? (
+              {user && (
                 <Button
                   className="w-full rounded-xl"
                   onClick={() => {
@@ -269,29 +269,6 @@ const LandingHeader = () => {
                 >
                   Dashboard
                 </Button>
-              ) : (
-                <>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="w-full rounded-xl"
-                  >
-                    <Link
-                      to="/employer-login"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Login
-                    </Link>
-                  </Button>
-                  <Button asChild className="w-full rounded-xl">
-                    <Link
-                      to="/bench-registration"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Hire Talent
-                    </Link>
-                  </Button>
-                </>
               )}
             </div>
           </div>

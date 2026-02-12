@@ -20,25 +20,25 @@ const menuItems = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
-    path: "/hr-dashboard",
+    path: "/bench-dashboard",
     isAI: false,
   },
   {
     title: "Post Bench Resource",
     icon: UserPlus,
-    path: "/hr-dashboard/post-bench-resource",
+    path: "/bench-dashboard/post-bench-resource",
     isAI: false,
   },
   {
     title: "Active Resources",
     icon: Users,
-    path: "/hr-dashboard/active-resources",
+    path: "/bench-dashboard/active-resources",
     isAI: false,
   },
   {
     title: "Visibility Settings",
     icon: Eye,
-    path: "/hr-dashboard/visibility-settings",
+    path: "/bench-dashboard/visibility-settings",
     isAI: false,
   },
 ];
@@ -77,11 +77,11 @@ const HrSidebar = ({ collapsed, onToggle }: HrSidebarProps) => {
           {menuItems.map((item) => {
             const isActive =
               currentPath === item.path ||
-              (item.path !== "/hr-dashboard" &&
+              (item.path !== "/bench-dashboard" &&
                 currentPath.startsWith(item.path + "/")) ||
-              (item.path === "/hr-dashboard" &&
-                (currentPath === "/hr-dashboard" ||
-                  currentPath === "/hr-dashboard/dashboard"));
+              (item.path === "/bench-dashboard" &&
+                (currentPath === "/bench-dashboard" ||
+                  currentPath === "/bench-dashboard/dashboard"));
             const Icon = item.icon;
 
             return (

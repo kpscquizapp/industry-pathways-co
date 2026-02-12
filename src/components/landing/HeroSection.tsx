@@ -58,11 +58,11 @@ const HeroSection = () => {
                 <Link
                   to={
                     user?.role === "hr"
-                      ? "/hr-dashboard"
+                      ? "/bench-dashboard"
                       : "/bench-registration"
                   }
                 >
-                  Hire Talent
+                  List Bench Resources
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
@@ -73,7 +73,7 @@ const HeroSection = () => {
                 className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
               >
                 <Link
-                  to={`${user?.role === "candidate" ? "/contractor/dashboard" : "/candidate-signup"}`}
+                  to={`${user?.role === "candidate" ? "/contractor/dashboard" : "/contractor-signup"}`}
                 >
                   <Users className="mr-2 h-5 w-5" />
                   Join as Contractor
@@ -86,10 +86,10 @@ const HeroSection = () => {
                 className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
               >
                 <Link
-                  to={`${user?.role === "employer" ? "/employer/dashboard" : "/employer-signup"}`}
+                  to={`${user?.role === "employer" ? "/hire-talent/dashboard" : "/hire-talent-signup"}`}
                 >
                   <Building2 className="mr-2 h-5 w-5" />
-                  List Bench Resources
+                  Hire Talent
                 </Link>
               </Button>
             </div>

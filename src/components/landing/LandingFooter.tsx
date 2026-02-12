@@ -17,28 +17,28 @@ const LandingFooter = () => {
             href:
               user?.role === "candidate"
                 ? "/contractor/dashboard"
-                : "/candidate-signup",
+                : "/contractor-signup",
           },
           {
             label: "Skill Tests",
             href:
               user?.role === "candidate"
                 ? "/contractor/tests"
-                : "/candidate-signup",
+                : "/contractor-signup",
           },
           {
             label: "AI Interviews",
             href:
               user?.role === "candidate"
                 ? "/contractor/interviews"
-                : "/candidate-signup",
+                : "/contractor-signup",
           },
           {
             label: "Profile",
             href:
               user?.role === "candidate"
                 ? "/contractor/profile"
-                : "/candidate-signup",
+                : "/contractor-signup",
           },
         ],
       },
@@ -47,21 +47,22 @@ const LandingFooter = () => {
         links: [
           {
             label: "Hire Talent",
-            href: user?.role === "hr" ? "/hr-dashboard" : "/bench-registration",
+            href:
+              user?.role === "employer"
+                ? "/hire-talent/dashboard"
+                : "/hire-talent-signup",
           },
           {
             label: "List Bench Resources",
             href:
-              user?.role === "employer"
-                ? "/employer/dashboard"
-                : "/employer-signup",
+              user?.role === "hr" ? "/bench-dashboard" : "/bench-registration",
           },
           {
             label: "Post a Job",
             href:
               user?.role === "employer"
-                ? "/employer/dashboard"
-                : "/employer-signup",
+                ? "/hire-talent/dashboard"
+                : "/hire-talent-signup",
           },
           { label: "Pricing", href: "#pricing" },
         ],

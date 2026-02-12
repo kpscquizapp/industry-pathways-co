@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { lazy, Suspense, useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, DollarSign, Globe, MapPin, Briefcase } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useGetProfileQuery } from "@/app/queries/profileApi";
-import CandidateProfileUpdate from "../CandidateProfileUpdate";
+const CandidateProfileUpdate = lazy(() => import("../CandidateProfileUpdate"));
 import ResumeManager from "../ResumeManager";
 import BarLoader from "@/components/loader/BarLoader";
 
@@ -136,8 +136,8 @@ const ContractorProfile = () => {
                       id={`AiMatchedProfile-${candidateId}-skills`}
                       className="flex flex-wrap gap-2"
                     >
-                      {profile?.skills?.length ? (
-                        profile.skills.map((skill, index) => {
+                      {profile?.primarySkills?.length ? (
+                        profile.primarySkills.map((skill, index) => {
                           const name =
                             typeof skill === "string" ? skill : skill.name;
                           const id =
@@ -409,7 +409,9 @@ const ContractorProfile = () => {
                     <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
                       <CardContent className="p-6">
                         {data ? (
-                          <CandidateProfileUpdate data={data} />
+                          <Suspense fallback={<BarLoader />}>
+                            <CandidateProfileUpdate data={data} />
+                          </Suspense>
                         ) : (
                           <p className="text-center text-gray-500 dark:text-slate-400">
                             Profile data unavailable

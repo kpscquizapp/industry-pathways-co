@@ -35,7 +35,10 @@ const UserTypesSection = () => {
         { icon: Clock, text: "Faster short-term gig placements" },
       ],
       cta: "Join as Contractor",
-      link: `${user?.role === "candidate" ? "/contractor/dashboard" : "/candidate-signup"}`,
+      link:
+        user?.role === "candidate"
+          ? "/contractor/dashboard"
+          : "/contractor-signup",
     },
     bench: {
       title: "Companies with Bench Resources",
@@ -50,7 +53,7 @@ const UserTypesSection = () => {
         { icon: DollarSign, text: "Monetize idle resources" },
       ],
       cta: "List Bench Resources",
-      link: `${user?.role === "employer" ? "/employer/dashboard" : "/employer-signup"}`,
+      link: user?.role === "hr" ? "/bench-dashboard" : "/bench-registration",
     },
     hiring: {
       title: "Hiring Companies",
@@ -65,7 +68,10 @@ const UserTypesSection = () => {
         { icon: Clock, text: "Hire fast, pay per contract" },
       ],
       cta: "Start Hiring",
-      link: `${user?.role === "hr" ? "/hr-dashboard" : "/bench-registration"}`,
+      link:
+        user?.role === "employer"
+          ? "/hire-talent/dashboard"
+          : "/hire-talent-signup",
     },
   };
 

@@ -27,11 +27,11 @@ const ProfileMenu = ({
 
   const handleProfile = () => {
     if (user.role === "hr") {
-      navigate("/hr-dashboard");
+      navigate("/bench-dashboard");
     } else if (user.role === "candidate") {
       navigate("/contractor/profile");
     } else if (user.role === "employer") {
-      navigate("/employer/dashboard");
+      navigate("/hire-talent/dashboard");
     }
   };
 

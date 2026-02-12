@@ -114,6 +114,9 @@ const EmployerSettings = lazy(
   () => import("./pages/employer/EmployerSettings"),
 );
 
+// coding challenges
+const CodingChallenge = lazy(() => import("./pages/CodingChallenges"));
+
 const queryClient = new QueryClient();
 
 // Scroll to top on route change
@@ -148,9 +151,12 @@ const App = () => {
                 <PageTransition>
                   <Routes>
                     <Route path="/" element={<Index />} />
-                    <Route path="/employer-login" element={<EmployerLogin />} />
                     <Route
-                      path="/employer-signup"
+                      path="/hire-talent-login"
+                      element={<EmployerLogin />}
+                    />
+                    <Route
+                      path="/hire-talent-signup"
                       element={<EmployerSignup />}
                     />
                     <Route
@@ -159,17 +165,22 @@ const App = () => {
                     />
                     <Route path="/bench-login" element={<BenchLogin />} />
                     <Route
-                      path="/candidate-login"
+                      path="/contractor-login"
                       element={<CandidateLogin />}
                     />
                     <Route
-                      path="/candidate-signup"
+                      path="/contractor-signup"
                       element={<CandidateSignup />}
                     />
 
                     <Route
                       path="/forgot-password"
                       element={<ForgotPassword />}
+                    />
+                    {/* Coding Challenge Route */}
+                    <Route
+                      path="/coding-challenge/:challengeId?"
+                      element={<LazyRoute element={<CodingChallenge />} />}
                     />
 
                     {/* NEW: Contractor Dashboard Routes */}
@@ -206,9 +217,10 @@ const App = () => {
                       element={<ProtectedLayout allowedRoles={["employer"]} />}
                     >
                       <Route
-                        path="/employer"
-                        element={<UnifiedDashboardLayout role="employer" />}
+                        path="/hire-talent"
+                        element={<UnifiedDashboardLayout role="hire-talent" />}
                       >
+                        <Route index element={<HiringDashboardNew />} />
                         {/* <Route index element={<BenchDashboard />} />
                         <Route path="dashboard" element={<BenchDashboard />} />
                         <Route path="talent" element={<BenchDashboard />} />
@@ -244,7 +256,7 @@ const App = () => {
                     {/* Legacy (Employer -Current using) HR Dashboard Routes */}
                     <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
                       <Route
-                        path="/hr-dashboard"
+                        path="/bench-dashboard"
                         element={<EmployerLayoutOld />}
                       >
                         <Route index element={<CompanyDashboard />} />
@@ -294,6 +306,7 @@ const App = () => {
                           path="interview-results/:candidateId"
                           element={<AIInterviewResults />}
                         />
+                        <Route path="settings" element={<EmployerSettings />} />
                       </Route>
                     </Route>
 
@@ -301,7 +314,7 @@ const App = () => {
                       path="/profile-visibility"
                       element={<ProfileVisibility />}
                     />
-                    <Route path="/hr-dashboard/job/:jobId/applied-candidates" element={<AppliedCandidates />} />
+                    <Route path="/bench-dashboard/job/:jobId/applied-candidates" element={<AppliedCandidates />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/jobs" element={<JobSearch />} />
                     <Route path="/jobs/:id" element={<JobDetails />} />
