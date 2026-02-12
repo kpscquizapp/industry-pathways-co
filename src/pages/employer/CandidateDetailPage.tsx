@@ -411,7 +411,7 @@ const CandidateDetailPage: React.FC = () => {
                       <div>
                         <h3 className="text-lg font-bold">AI Matching Score</h3>
                         <p className="text-sm text-muted-foreground">
-                          Based on your project requirements for"
+                          Based on your project requirements for "
                           {mockCandidate.title}".
                         </p>
                       </div>

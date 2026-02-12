@@ -44,7 +44,7 @@ import useLogout from "@/hooks/useLogout";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 
-type DashboardRole = "contractor" | "bench" | "employer";
+type DashboardRole = "contractor" | "bench" | "hire-talent";
 
 interface UnifiedDashboardLayoutProps {
   role: DashboardRole;
@@ -90,7 +90,7 @@ const getMenuItems = (role: DashboardRole) => {
         { icon: Settings, label: "Settings", href: "/bench/settings" },
         // { icon: CreditCard, label: "Billing", href: "/bench/billing" },
       ];
-    case "employer":
+    case "hire-talent":
       return [
         {
           icon: LayoutDashboard,
@@ -151,7 +151,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
         return "Contractor";
       case "bench":
         return "Bench Resource";
-      case "employer":
+      case "hire-talent":
         return "Hiring Company";
       default:
         return "";
@@ -249,7 +249,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
               <User className="h-4 w-4 mr-2" />
               Profile
             </DropdownMenuItem>
-            {role === "employer" && (
+            {role === "hire-talent" && (
               <DropdownMenuItem asChild>
                 <Link to={`/${role}/settings`}>
                   <Settings className="h-4 w-4 mr-2" />
@@ -290,7 +290,7 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
                 <Bell className="h-5 w-5 text-muted-foreground" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
               </Button>
-              {role === "employer" && (
+              {role === "hire-talent" && (
                 <Button size="sm" className="rounded-xl hidden md:flex" asChild>
                   <Link to="/hire-talent/post-job">
                     <Plus className="w-4 h-4 mr-2" />

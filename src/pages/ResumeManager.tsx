@@ -49,9 +49,9 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
     useUploadResumeMutation();
   const [viewResume] = useLazyViewResumeQuery();
   const [removeResume] = useRemoveResumeMutation();
-  const [setDefaultResume, { isLoading: isSettingDefault }] =
-    useSetDefaultResumeMutation();
+  const [setDefaultResume] = useSetDefaultResumeMutation();
 
+  const [loadingDefaultId, setLoadingDefaultId] = useState<number | null>(null);
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const latestRequestIdRef = useRef<number | null>(null);
@@ -166,12 +166,18 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
 
   const handleDefaultResume = async (resumeId: number) => {
     const alreadyDefault = resumes.find((r) => r.id === resumeId)?.isDefault;
-    if (alreadyDefault) return;
+    if (alreadyDefault) {
+      toast.info("This resume is already set as default.");
+      return;
+    }
+    setLoadingDefaultId(resumeId);
     try {
       await setDefaultResume(resumeId).unwrap();
       toast.success("Resume set as default.");
     } catch (error) {
       toast.error("Failed to set default resume.");
+    } finally {
+      setLoadingDefaultId(null);
     }
   };
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,11 +322,16 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                           {loadingViewId === resume.id ? (
                             <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
                           ) : (
-                            <>
-                              <Eye className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                              View
-                            </>
+                            <></>
                           )}
+                          <>
+                            {loadingViewId === resume.id ? (
+                              <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
+                            ) : (
+                              <Eye className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                            )}
+                            View
+                          </>
                         </Button>
 
                         <Button
@@ -329,19 +340,23 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                           disabled={
                             loadingViewId !== null ||
                             loadingDeleteId !== null ||
-                            isSettingDefault
+                            loadingDefaultId !== null
                           }
                           onClick={() => handleDefaultResume(resume.id)}
                           className="text-xs md:text-sm flex items-center justify-center gap-2"
                         >
                           <>
-                            <Star
-                              className={`w-3 h-3 md:w-4 md:h-4 mr-1 ${
-                                resume.isDefault
-                                  ? "text-primary fill-primary"
-                                  : ""
-                              }`}
-                            />
+                            {loadingDefaultId === resume.id ? (
+                              <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
+                            ) : (
+                              <Star
+                                className={`w-3 h-3 md:w-4 md:h-4 mr-1 ${
+                                  resume.isDefault
+                                    ? "text-primary fill-primary"
+                                    : ""
+                                }`}
+                              />
+                            )}
                             Set as Default
                           </>
                         </Button>
@@ -351,19 +366,19 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                           disabled={
                             loadingViewId !== null ||
                             loadingDeleteId !== null ||
-                            isSettingDefault
+                            loadingDefaultId !== null
                           }
                           onClick={() => handleDelete(resume.id)}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs md:text-sm"
                         >
-                          {loadingDeleteId === resume.id ? (
-                            <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
-                          ) : (
-                            <>
+                          <>
+                            {loadingDeleteId === resume.id ? (
+                              <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
+                            ) : (
                               <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                              Delete
-                            </>
-                          )}
+                            )}
+                            Delete
+                          </>
                         </Button>
                       </div>
                     </Card>

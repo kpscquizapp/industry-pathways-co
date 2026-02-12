@@ -393,7 +393,6 @@ const EmployerLogin = () => {
                       </Label>
                       <Link
                         to="/forgot-password"
-                        virtual-link="forgot-password"
                         className="text-[10px] font-bold text-blue-600 hover:text-blue-500 uppercase tracking-wider"
                       >
                         Forgot?

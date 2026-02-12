@@ -218,8 +218,9 @@ const App = () => {
                     >
                       <Route
                         path="/hire-talent"
-                        element={<UnifiedDashboardLayout role="employer" />}
+                        element={<UnifiedDashboardLayout role="hire-talent" />}
                       >
+                        <Route index element={<HiringDashboardNew />} />
                         {/* <Route index element={<BenchDashboard />} />
                         <Route path="dashboard" element={<BenchDashboard />} />
                         <Route path="talent" element={<BenchDashboard />} />

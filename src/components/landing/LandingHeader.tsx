@@ -9,7 +9,6 @@ import {
   Building2,
   Briefcase,
   ChevronDown,
-  LogIn,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -174,7 +173,7 @@ const LandingHeader = () => {
 
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-3">
-            {user ? (
+            {user && (
               <Button
                 variant="default"
                 size="sm"
@@ -183,8 +182,6 @@ const LandingHeader = () => {
               >
                 Dashboard
               </Button>
-            ) : (
-              <></>
             )}
           </div>
 
@@ -240,7 +237,7 @@ const LandingHeader = () => {
             </Link>
 
             <div className="pt-4 border-t border-border space-y-2">
-              {user ? (
+              {user && (
                 <Button
                   className="w-full rounded-xl"
                   onClick={() => {
@@ -250,8 +247,6 @@ const LandingHeader = () => {
                 >
                   Dashboard
                 </Button>
-              ) : (
-                <></>
               )}
             </div>
           </div>

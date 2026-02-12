@@ -224,7 +224,7 @@ const JobCandidates: React.FC = () => {
   };
 
   const handleInterviewComplete = (candidate: Candidate, settings: any) => {
-    console.log("Interview scheduled:", candidate, settings);
+    // console.log("Interview scheduled:", candidate, settings);
   };
 
   const averageAIScore = Math.round(

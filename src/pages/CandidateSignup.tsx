@@ -404,7 +404,7 @@ const CandidateSignup = () => {
       toast.success(
         "Registration successful! Please check your email to verify your account.",
       );
-      navigate("/candidate-login");
+      navigate("/contractor-login");
     } catch (error: unknown) {
       console.error("Registration error:", error);
 
@@ -1122,7 +1122,7 @@ const CandidateSignup = () => {
                   <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
                     Already an elite contractor?{" "}
                     <Link
-                      to="/candidate-login"
+                      to="/contractor-login"
                       className="text-primary hover:opacity-80 transition-colors underline-offset-8 underline decoration-primary/30"
                     >
                       Sign In to Dashboard
