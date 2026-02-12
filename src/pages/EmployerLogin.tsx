@@ -68,7 +68,7 @@ const EmployerLogin = () => {
 
   useEffect(() => {
     if (userDetails && userDetails.role === "employer") {
-      navigate("/employer/dashboard");
+      navigate("/hire-talent/dashboard");
     }
   }, [userDetails, navigate]);
 
@@ -173,7 +173,7 @@ const EmployerLogin = () => {
       toast.success(
         `Welcome back${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
       );
-      navigate("/employer/dashboard");
+      navigate("/hire-talent/dashboard");
     } catch (error: unknown) {
       // Extract error message
       let errorMessage = "Login failed. Please try again.";
@@ -349,7 +349,7 @@ const EmployerLogin = () => {
               <div className="relative bg-white dark:bg-[#0a0a0a] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-white/[0.05] p-8 md:p-10 md:min-w-[32rem] ">
                 <div className="mb-10">
                   <h3 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
-                    Employer Login
+                    Hire Talent Login
                   </h3>
                   <p className="text-slate-500 dark:text-slate-400 font-medium">
                     Access your enterprise talent dashboard.
@@ -482,7 +482,7 @@ const EmployerLogin = () => {
                   <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
                     Don't have an account yet?{" "}
                     <Link
-                      to="/employer-signup"
+                      to="/hire-talent-signup"
                       className="text-blue-600 dark:text-blue-400 hover:opacity-80 transition-colors underline-offset-8 underline decoration-blue-500/30"
                     >
                       Sign up here

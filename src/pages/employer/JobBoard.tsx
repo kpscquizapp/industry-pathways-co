@@ -177,7 +177,7 @@ const JobBoard = () => {
           </p>
         </div>
         <Button
-          onClick={() => navigate("/hr-dashboard/create-job")}
+          onClick={() => navigate("/bench-dashboard/create-job")}
           className="bg-primary hover:bg-primary/90"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -293,7 +293,7 @@ const JobBoard = () => {
                 <TableRow key={job.id} className="hover:bg-muted/30">
                   <TableCell>
                     <button
-                      onClick={() => navigate(`/hr-dashboard/job/${job.id}`)}
+                      onClick={() => navigate(`/bench-dashboard/job/${job.id}`)}
                       className="font-medium text-primary hover:underline text-left"
                     >
                       {job.title}
@@ -323,7 +323,7 @@ const JobBoard = () => {
                   <TableCell className="text-center">
                     <button
                       onClick={() =>
-                        navigate(`/hr-dashboard/job/${job.id}/candidates`)
+                        navigate(`/bench-dashboard/job/${job.id}/candidates`)
                       }
                       className="font-semibold text-primary hover:underline"
                     >
@@ -358,7 +358,7 @@ const JobBoard = () => {
                       <DropdownMenuContent align="end" className="w-40">
                         <DropdownMenuItem
                           onClick={() =>
-                            navigate(`/hr-dashboard/job/${job.id}`)
+                            navigate(`/bench-dashboard/job/${job.id}`)
                           }
                         >
                           <Eye className="h-4 w-4 mr-2" />
@@ -366,7 +366,7 @@ const JobBoard = () => {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() =>
-                            navigate(`/hr-dashboard/edit-job/${job.id}`)
+                            navigate(`/bench-dashboard/edit-job/${job.id}`)
                           }
                         >
                           <Edit className="h-4 w-4 mr-2" />

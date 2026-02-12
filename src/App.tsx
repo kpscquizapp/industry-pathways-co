@@ -151,9 +151,12 @@ const App = () => {
                 <PageTransition>
                   <Routes>
                     <Route path="/" element={<Index />} />
-                    <Route path="/employer-login" element={<EmployerLogin />} />
                     <Route
-                      path="/employer-signup"
+                      path="/hire-talent-login"
+                      element={<EmployerLogin />}
+                    />
+                    <Route
+                      path="/hire-talent-signup"
                       element={<EmployerSignup />}
                     />
                     <Route
@@ -162,11 +165,11 @@ const App = () => {
                     />
                     <Route path="/bench-login" element={<BenchLogin />} />
                     <Route
-                      path="/candidate-login"
+                      path="/contractor-login"
                       element={<CandidateLogin />}
                     />
                     <Route
-                      path="/candidate-signup"
+                      path="/contractor-signup"
                       element={<CandidateSignup />}
                     />
 
@@ -214,7 +217,7 @@ const App = () => {
                       element={<ProtectedLayout allowedRoles={["employer"]} />}
                     >
                       <Route
-                        path="/employer"
+                        path="/hire-talent"
                         element={<UnifiedDashboardLayout role="employer" />}
                       >
                         {/* <Route index element={<BenchDashboard />} />
@@ -252,7 +255,7 @@ const App = () => {
                     {/* Legacy (Employer -Current using) HR Dashboard Routes */}
                     <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
                       <Route
-                        path="/hr-dashboard"
+                        path="/bench-dashboard"
                         element={<EmployerLayoutOld />}
                       >
                         <Route index element={<CompanyDashboard />} />
@@ -310,7 +313,7 @@ const App = () => {
                       path="/profile-visibility"
                       element={<ProfileVisibility />}
                     />
-                    <Route path="/hr-dashboard/job/:jobId/applied-candidates" element={<AppliedCandidates />} />
+                    <Route path="/bench-dashboard/job/:jobId/applied-candidates" element={<AppliedCandidates />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/jobs" element={<JobSearch />} />
                     <Route path="/jobs/:id" element={<JobDetails />} />

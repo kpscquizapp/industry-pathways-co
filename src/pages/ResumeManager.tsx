@@ -66,7 +66,9 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
       if (!a.isDefault && b.isDefault) return 1;
 
       // Secondary sort: optional (e.g., by upload date, newest first)
-      return new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime();
+      return (
+        new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+      );
     });
   }, [resumes]);
 
@@ -163,6 +165,8 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
   };
 
   const handleDefaultResume = async (resumeId: number) => {
+    const alreadyDefault = resumes.find((r) => r.id === resumeId)?.isDefault;
+    if (alreadyDefault) return;
     try {
       await setDefaultResume(resumeId).unwrap();
       toast.success("Resume set as default.");
@@ -332,10 +336,11 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                         >
                           <>
                             <Star
-                              className={`w-3 h-3 md:w-4 md:h-4 mr-1 ${resume.isDefault
-                                ? "text-primary fill-primary"
-                                : ""
-                                }`}
+                              className={`w-3 h-3 md:w-4 md:h-4 mr-1 ${
+                                resume.isDefault
+                                  ? "text-primary fill-primary"
+                                  : ""
+                              }`}
                             />
                             Set as Default
                           </>

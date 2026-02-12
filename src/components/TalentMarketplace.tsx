@@ -139,7 +139,7 @@ const TalentMarketplace = () => {
               Find Jobs
             </Button>
             <Button
-              onClick={() => navigate("/hr-dashboard/post-job")}
+              onClick={() => navigate("/bench-dashboard/post-job")}
               className="bg-primary/20 hover:bg-primary/30 text-white border border-white/20 px-6 py-5 rounded-lg font-semibold"
             >
               <Briefcase className="mr-2 h-4 w-4" />

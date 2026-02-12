@@ -144,7 +144,7 @@ const EmployerSignup = () => {
       toast.success(
         "Registration successful! Welcome to the enterprise platform.",
       );
-      navigate("/employer-login");
+      navigate("/hire-talent-login");
     } catch (error: any) {
       toast.error(
         error?.data?.message ||
@@ -191,7 +191,7 @@ const EmployerSignup = () => {
   ];
 
   const stepInfo = [
-    { title: "Account", sub: "Personal details" },
+    { title: "Account Registration", sub: "Personal details" },
     { title: "Organization", sub: "Company profile" },
     { title: "Verification", sub: "Upload document" },
   ];
@@ -534,7 +534,7 @@ const EmployerSignup = () => {
                   <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
                     Already have an enterprise account?{" "}
                     <Link
-                      to="/employer-login"
+                      to="/hire-talent-login"
                       className="text-primary hover:opacity-80 transition-colors underline-offset-8 underline decoration-primary/30"
                     >
                       Sign in here

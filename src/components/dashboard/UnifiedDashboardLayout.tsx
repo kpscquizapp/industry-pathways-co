@@ -95,28 +95,28 @@ const getMenuItems = (role: DashboardRole) => {
         {
           icon: LayoutDashboard,
           label: "Dashboard",
-          href: "/employer/dashboard",
+          href: "/hire-talent/dashboard",
         },
-        { icon: PlusCircle, label: "Post Job", href: "/employer/post-job" },
+        { icon: PlusCircle, label: "Post Job", href: "/hire-talent/post-job" },
         {
           icon: Users,
           label: "AI Shortlists",
-          href: "/employer/ai-shortlists",
+          href: "/hire-talent/ai-shortlists",
           isAI: true,
         },
         {
           icon: ClipboardCheck,
           label: "Skill Tests",
-          href: "/employer/skill-tests",
+          href: "/hire-talent/skill-tests",
         },
         {
           icon: Video,
           label: "AI Interviews",
-          href: "/employer/ai-interviews",
+          href: "/hire-talent/ai-interviews",
           isAI: true,
         },
-        { icon: FileText, label: "Contracts", href: "/employer/contracts" },
-        { icon: Settings, label: "Settings", href: "/employer/settings" },
+        { icon: FileText, label: "Contracts", href: "/hire-talent/contracts" },
+        { icon: Settings, label: "Settings", href: "/hire-talent/settings" },
       ];
     default:
       return [];
@@ -135,11 +135,11 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const handleProfile = () => {
     if (!user?.role) return;
     if (user.role === "hr") {
-      navigate("/hr-dashboard");
+      navigate("/bench-dashboard");
     } else if (user.role === "candidate") {
       navigate("/contractor/dashboard");
     } else if (user.role === "employer") {
-      navigate("/employer/dashboard");
+      navigate("/hire-talent/dashboard");
     } else {
       navigate(`/`);
     }
@@ -292,7 +292,7 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
               </Button>
               {role === "employer" && (
                 <Button size="sm" className="rounded-xl hidden md:flex" asChild>
-                  <Link to="/employer/post-job">
+                  <Link to="/hire-talent/post-job">
                     <Plus className="w-4 h-4 mr-2" />
                     Post Job
                   </Link>

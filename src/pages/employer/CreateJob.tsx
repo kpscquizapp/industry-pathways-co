@@ -234,7 +234,7 @@ const CreateJob = () => {
 
   // const handlePublish = () => {
   //   toast.success('Job posted successfully!');
-  //   setTimeout(() => navigate('/hr-dashboard/job-board'), 1500);
+  //   setTimeout(() => navigate('/bench-dashboard/job-board'), 1500);
   // };
 
   const handlePublish = async () => {
@@ -244,7 +244,7 @@ const CreateJob = () => {
       await createJob(payload).unwrap();
 
       toast.success("Job posted successfully!");
-      navigate("/hr-dashboard/job-board");
+      navigate("/bench-dashboard/job-board");
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to create job");
     }

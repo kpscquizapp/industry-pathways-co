@@ -1,126 +1,134 @@
-import React, { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { 
-  Search, 
-  LayoutGrid, 
-  List, 
-  Users, 
-  Sparkles, 
+import React, { useState, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  Search,
+  LayoutGrid,
+  List,
+  Users,
+  Sparkles,
   TrendingUp,
   Pause,
   Play,
   MoreHorizontal,
-  Download
-} from 'lucide-react';
-import CandidateCard, { Candidate } from '@/components/employer/candidates/CandidateCard';
-import CandidateFilters from '@/components/employer/candidates/CandidateFilters';
-import CandidateProfileDrawer from '@/components/employer/candidates/CandidateProfileDrawer';
-import AIInterviewModal from '@/components/employer/candidates/AIInterviewModal';
-import { toast } from 'sonner';
+  Download,
+} from "lucide-react";
+import CandidateCard, {
+  Candidate,
+} from "@/components/employer/candidates/CandidateCard";
+import CandidateFilters from "@/components/employer/candidates/CandidateFilters";
+import CandidateProfileDrawer from "@/components/employer/candidates/CandidateProfileDrawer";
+import AIInterviewModal from "@/components/employer/candidates/AIInterviewModal";
+import { toast } from "sonner";
 
 // Mock candidates data
 const mockCandidates: Candidate[] = [
   {
     id: 1,
-    name: 'Anna Kowalska',
-    avatar: '',
-    currentRole: 'Senior Software Engineer',
-    experience: '6 years',
-    location: 'Warsaw, Poland',
+    name: "Anna Kowalska",
+    avatar: "",
+    currentRole: "Senior Software Engineer",
+    experience: "6 years",
+    location: "Warsaw, Poland",
     aiScore: 92,
     skillsMatch: 95,
     experienceMatch: 88,
     cultureFit: 90,
-    tags: ['Leadership', 'Fast Learner', 'Team Player'],
-    status: 'new',
+    tags: ["Leadership", "Fast Learner", "Team Player"],
+    status: "new",
     interviewStatus: undefined,
-    appliedDate: '2024-01-15',
+    appliedDate: "2024-01-15",
   },
   {
     id: 2,
-    name: 'Piotr Nowak',
-    avatar: '',
-    currentRole: 'Full Stack Developer',
-    experience: '4 years',
-    location: 'Krakow, Poland',
+    name: "Piotr Nowak",
+    avatar: "",
+    currentRole: "Full Stack Developer",
+    experience: "4 years",
+    location: "Krakow, Poland",
     aiScore: 85,
     skillsMatch: 82,
     experienceMatch: 88,
     cultureFit: 85,
-    tags: ['Creative', 'Problem Solver'],
-    status: 'reviewed',
-    interviewStatus: 'pending',
-    appliedDate: '2024-01-14',
+    tags: ["Creative", "Problem Solver"],
+    status: "reviewed",
+    interviewStatus: "pending",
+    appliedDate: "2024-01-14",
   },
   {
     id: 3,
-    name: 'Maria Wiśniewska',
-    avatar: '',
-    currentRole: 'Frontend Developer',
-    experience: '3 years',
-    location: 'Remote',
+    name: "Maria Wiśniewska",
+    avatar: "",
+    currentRole: "Frontend Developer",
+    experience: "3 years",
+    location: "Remote",
     aiScore: 78,
     skillsMatch: 80,
     experienceMatch: 72,
     cultureFit: 82,
-    tags: ['Detail-oriented', 'UI Expert'],
-    status: 'interviewed',
-    interviewStatus: 'completed',
-    appliedDate: '2024-01-13',
+    tags: ["Detail-oriented", "UI Expert"],
+    status: "interviewed",
+    interviewStatus: "completed",
+    appliedDate: "2024-01-13",
   },
   {
     id: 4,
-    name: 'Jan Kowalczyk',
-    avatar: '',
-    currentRole: 'Backend Developer',
-    experience: '5 years',
-    location: 'Wroclaw, Poland',
+    name: "Jan Kowalczyk",
+    avatar: "",
+    currentRole: "Backend Developer",
+    experience: "5 years",
+    location: "Wroclaw, Poland",
     aiScore: 88,
     skillsMatch: 90,
     experienceMatch: 85,
     cultureFit: 88,
-    tags: ['System Design', 'Mentoring'],
-    status: 'shortlisted',
-    interviewStatus: 'results_available',
-    appliedDate: '2024-01-12',
+    tags: ["System Design", "Mentoring"],
+    status: "shortlisted",
+    interviewStatus: "results_available",
+    appliedDate: "2024-01-12",
   },
   {
     id: 5,
-    name: 'Katarzyna Zielińska',
-    avatar: '',
-    currentRole: 'DevOps Engineer',
-    experience: '7 years',
-    location: 'Berlin, Germany',
+    name: "Katarzyna Zielińska",
+    avatar: "",
+    currentRole: "DevOps Engineer",
+    experience: "7 years",
+    location: "Berlin, Germany",
     aiScore: 72,
     skillsMatch: 68,
     experienceMatch: 78,
     cultureFit: 70,
-    tags: ['Cloud Expert', 'Automation'],
-    status: 'new',
+    tags: ["Cloud Expert", "Automation"],
+    status: "new",
     interviewStatus: undefined,
-    appliedDate: '2024-01-11',
+    appliedDate: "2024-01-11",
   },
   {
     id: 6,
-    name: 'Tomasz Lewandowski',
-    avatar: '',
-    currentRole: 'Tech Lead',
-    experience: '8 years',
-    location: 'Warsaw, Poland',
+    name: "Tomasz Lewandowski",
+    avatar: "",
+    currentRole: "Tech Lead",
+    experience: "8 years",
+    location: "Warsaw, Poland",
     aiScore: 95,
     skillsMatch: 92,
     experienceMatch: 98,
     cultureFit: 94,
-    tags: ['Leadership', 'Architecture', 'Mentoring'],
-    status: 'new',
+    tags: ["Leadership", "Architecture", "Mentoring"],
+    status: "new",
     interviewStatus: undefined,
-    appliedDate: '2024-01-10',
+    appliedDate: "2024-01-10",
   },
 ];
 
@@ -128,9 +136,9 @@ const defaultFilters = {
   aiScoreMin: 0,
   skillsMatchMin: 0,
   experienceRange: [0, 20] as [number, number],
-  location: 'any',
-  availability: 'any',
-  education: 'any',
+  location: "any",
+  availability: "any",
+  education: "any",
   assessmentStatus: [] as string[],
   status: [] as string[],
 };
@@ -138,21 +146,27 @@ const defaultFilters = {
 const JobCandidates: React.FC = () => {
   const { jobId } = useParams();
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('ai_score');
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("ai_score");
   const [filters, setFilters] = useState(defaultFilters);
-  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
+    null,
+  );
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [interviewModalOpen, setInterviewModalOpen] = useState(false);
-  const [interviewCandidate, setInterviewCandidate] = useState<Candidate | null>(null);
-  const [jobStatus, setJobStatus] = useState<'active' | 'paused'>('active');
+  const [interviewCandidate, setInterviewCandidate] =
+    useState<Candidate | null>(null);
+  const [jobStatus, setJobStatus] = useState<"active" | "paused">("active");
 
   // Filter and sort candidates
   const filteredCandidates = useMemo(() => {
-    let result = mockCandidates.filter(candidate => {
+    let result = mockCandidates.filter((candidate) => {
       // Search filter
-      if (searchQuery && !candidate.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      if (
+        searchQuery &&
+        !candidate.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
         return false;
       }
       // AI Score filter
@@ -160,7 +174,10 @@ const JobCandidates: React.FC = () => {
       // Skills Match filter
       if (candidate.skillsMatch < filters.skillsMatchMin) return false;
       // Status filter
-      if (filters.status.length > 0 && !filters.status.includes(candidate.status)) {
+      if (
+        filters.status.length > 0 &&
+        !filters.status.includes(candidate.status)
+      ) {
         return false;
       }
       return true;
@@ -169,14 +186,17 @@ const JobCandidates: React.FC = () => {
     // Sort
     result.sort((a, b) => {
       switch (sortBy) {
-        case 'ai_score':
+        case "ai_score":
           return b.aiScore - a.aiScore;
-        case 'skills_match':
+        case "skills_match":
           return b.skillsMatch - a.skillsMatch;
-        case 'experience':
+        case "experience":
           return parseInt(b.experience) - parseInt(a.experience);
-        case 'recent':
-          return new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime();
+        case "recent":
+          return (
+            new Date(b.appliedDate).getTime() -
+            new Date(a.appliedDate).getTime()
+          );
         default:
           return 0;
       }
@@ -187,7 +207,7 @@ const JobCandidates: React.FC = () => {
 
   const handleSelectCandidate = (candidate: Candidate) => {
     // Navigate to full-page candidate profile
-    navigate(`/hr-dashboard/job/${jobId}/candidate/${candidate.id}`);
+    navigate(`/bench-dashboard/job/${jobId}/candidate/${candidate.id}`);
   };
 
   const handleScheduleInterview = (candidate: Candidate) => {
@@ -204,14 +224,15 @@ const JobCandidates: React.FC = () => {
   };
 
   const handleInterviewComplete = (candidate: Candidate, settings: any) => {
-    console.log('Interview scheduled:', candidate, settings);
+    console.log("Interview scheduled:", candidate, settings);
   };
 
   const averageAIScore = Math.round(
-    mockCandidates.reduce((sum, c) => sum + c.aiScore, 0) / mockCandidates.length
+    mockCandidates.reduce((sum, c) => sum + c.aiScore, 0) /
+      mockCandidates.length,
   );
 
-  const highMatchCount = mockCandidates.filter(c => c.aiScore >= 80).length;
+  const highMatchCount = mockCandidates.filter((c) => c.aiScore >= 80).length;
 
   return (
     <div className="space-y-6">
@@ -219,15 +240,18 @@ const JobCandidates: React.FC = () => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-bold text-foreground">Senior React Developer</h1>
-            <Badge 
-              variant="outline" 
-              className={jobStatus === 'active' 
-                ? 'bg-green-100 text-green-700 border-green-200' 
-                : 'bg-amber-100 text-amber-700 border-amber-200'
+            <h1 className="text-2xl font-bold text-foreground">
+              Senior React Developer
+            </h1>
+            <Badge
+              variant="outline"
+              className={
+                jobStatus === "active"
+                  ? "bg-green-100 text-green-700 border-green-200"
+                  : "bg-amber-100 text-amber-700 border-amber-200"
               }
             >
-              {jobStatus === 'active' ? 'Active' : 'Paused'}
+              {jobStatus === "active" ? "Active" : "Paused"}
             </Badge>
           </div>
           <p className="text-muted-foreground">
@@ -235,12 +259,14 @@ const JobCandidates: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
-            onClick={() => setJobStatus(jobStatus === 'active' ? 'paused' : 'active')}
+            onClick={() =>
+              setJobStatus(jobStatus === "active" ? "paused" : "active")
+            }
           >
-            {jobStatus === 'active' ? (
+            {jobStatus === "active" ? (
               <>
                 <Pause className="h-4 w-4 mr-1" />
                 Pause Job
@@ -281,7 +307,9 @@ const JobCandidates: React.FC = () => {
               <Sparkles className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-600">{highMatchCount}</p>
+              <p className="text-2xl font-bold text-green-600">
+                {highMatchCount}
+              </p>
               <p className="text-sm text-muted-foreground">High Match (80%+)</p>
             </div>
           </CardContent>
@@ -339,10 +367,12 @@ const JobCandidates: React.FC = () => {
                       <SelectItem value="recent">Most Recent</SelectItem>
                     </SelectContent>
                   </Select>
-                  <ToggleGroup 
-                    type="single" 
-                    value={viewMode} 
-                    onValueChange={(value) => value && setViewMode(value as 'grid' | 'list')}
+                  <ToggleGroup
+                    type="single"
+                    value={viewMode}
+                    onValueChange={(value) =>
+                      value && setViewMode(value as "grid" | "list")
+                    }
                   >
                     <ToggleGroupItem value="grid" aria-label="Grid view">
                       <LayoutGrid className="h-4 w-4" />
@@ -361,17 +391,22 @@ const JobCandidates: React.FC = () => {
             <Card>
               <CardContent className="p-12 text-center">
                 <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-semibold text-lg mb-2">No candidates found</h3>
+                <h3 className="font-semibold text-lg mb-2">
+                  No candidates found
+                </h3>
                 <p className="text-muted-foreground">
                   Try adjusting your filters or search query
                 </p>
               </CardContent>
             </Card>
           ) : (
-            <div className={viewMode === 'grid' 
-              ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" 
-              : "space-y-3"
-            }>
+            <div
+              className={
+                viewMode === "grid"
+                  ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+                  : "space-y-3"
+              }
+            >
               {filteredCandidates.map((candidate) => (
                 <CandidateCard
                   key={candidate.id}

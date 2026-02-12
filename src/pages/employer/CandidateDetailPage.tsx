@@ -193,7 +193,7 @@ const CandidateDetailPage: React.FC = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(`/hr-dashboard/job/${jobId}/candidates`)}
+          onClick={() => navigate(`/bench-dashboard/job/${jobId}/candidates`)}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
