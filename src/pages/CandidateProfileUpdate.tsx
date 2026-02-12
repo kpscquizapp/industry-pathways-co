@@ -22,10 +22,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
+import { useSelector } from "react-redux";
+import { TypedUseSelectorHook } from "react-redux";
+
+// Define the type for the state
 
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
+interface RootState {
+  resumeSkills: {
+    data: any;
+  };
+}
 type Skill = {
   id: number;
   name: string;
@@ -314,14 +323,32 @@ const CandidateProfileUpdate = ({
   const [removingCertificateId, setRemovingCertificateId] = useState<
     string | number | null
   >(null);
+  const resumeData = useSelector<RootState>((state) => state.resumeSkills.data);
 
-  const skills = useMemo(
-    () =>
+  const skills = useMemo(() => {
+    // Get resume skills (priority)
+    const resumeSkills = Array.isArray(resumeData) ? resumeData : [];
+
+    // Get profile skills
+    const profileSkills =
       data?.candidateProfile?.primarySkills?.map((skill) =>
         typeof skill === "string" ? skill : skill.name,
-      ) || [],
-    [data],
-  );
+      ) || [];
+
+    // Combine with resume skills first, then profile skills
+    const combined = [...resumeSkills, ...profileSkills];
+
+    // Remove duplicates (case-insensitive comparison)
+    const unique = combined.filter(
+      (skill, index, self) =>
+        index ===
+        self.findIndex(
+          (s) => s.toLowerCase().trim() === skill.toLowerCase().trim(),
+        ),
+    );
+
+    return unique;
+  }, [data, resumeData]);
 
   const workExperiences = useMemo(
     () =>
@@ -433,10 +460,7 @@ const CandidateProfileUpdate = ({
       availability: data?.candidateProfile.availability || "",
       bio: data?.candidateProfile.bio || "",
       yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-      primarySkills:
-        data?.candidateProfile.primarySkills?.map((skill) =>
-          typeof skill === "string" ? skill : skill.name,
-        ) || [],
+      primarySkills: skills || [],
       headline: data?.candidateProfile.headline || "",
       resourceType: data?.candidateProfile.resourceType || "",
       availableIn: data?.candidateProfile.availableIn || "",

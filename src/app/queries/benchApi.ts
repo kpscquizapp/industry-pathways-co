@@ -39,11 +39,31 @@ export const benchApi = createApi({
       }),
       invalidatesTags: ["BenchResources"],
     }),
+    getBenchResourceById: builder.query<any, number | string>({
+      query: (id) => ({
+        url: `/employers/bench-resources/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["BenchResources"],
+    }),
+    updateBenchResource: builder.mutation<
+      any,
+      { id: number; formData: FormData }
+    >({
+      query: ({ id, formData }) => ({
+        url: `/employers/bench-resources/${id}`,
+        method: "PUT",
+        body: formData,
+      }),
+      invalidatesTags: ["BenchResources"],
+    }),
   }),
 });
 
-export const { 
-  usePostBenchResourceMutation, 
-  useGetBenchResourcesQuery, 
-  useDeleteBenchResourceMutation 
+export const {
+  usePostBenchResourceMutation,
+  useGetBenchResourcesQuery,
+  useUpdateBenchResourceMutation,
+  useDeleteBenchResourceMutation,
+  useGetBenchResourceByIdQuery,
 } = benchApi;

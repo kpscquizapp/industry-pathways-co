@@ -155,13 +155,6 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                     BENCH RESOURCE
                   </Badge>
                 )}
-                <Badge
-                  variant="outline"
-                  className="border-primary/30 text-primary"
-                >
-                  <Star className="h-3 w-3 mr-1 fill-primary" />
-                  Top 5% Match
-                </Badge>
               </div>
             </div>
 
@@ -286,18 +279,6 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                   className="rounded-lg px-6 data-[state=active]:bg-background"
                 >
                   Overview
-                </TabsTrigger>
-                <TabsTrigger
-                  value="projects"
-                  className="rounded-lg px-6 data-[state=active]:bg-background"
-                >
-                  Projects
-                </TabsTrigger>
-                <TabsTrigger
-                  value="assessment"
-                  className="rounded-lg px-6 data-[state=active]:bg-background"
-                >
-                  Assessment Report
                 </TabsTrigger>
                 <TabsTrigger
                   value="resume"

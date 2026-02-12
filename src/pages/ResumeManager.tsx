@@ -18,6 +18,10 @@ import {
 } from "@/app/queries/profileApi";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useExtractResumeMutation } from "@/app/queries/atsApi";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setExtractedSkills } from "@/app/slices/extractResumeSkills";
 
 type Resume = {
   id: number;
@@ -47,6 +51,8 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
   // API calls
   const [uploadResume, { isLoading: isLoadingResumeUpload }] =
     useUploadResumeMutation();
+  const [extractResume, { isLoading: isExtracting }] =
+    useExtractResumeMutation();
   const [viewResume] = useLazyViewResumeQuery();
   const [removeResume] = useRemoveResumeMutation();
   const [setDefaultResume] = useSetDefaultResumeMutation();
@@ -58,6 +64,8 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingViewId, setLoadingViewId] = useState<number | null>(null);
   const [loadingDeleteId, setLoadingDeleteId] = useState<number | null>(null);
+
+  const dispatch = useDispatch();
 
   const sortedResumes = useMemo(() => {
     return [...resumes].sort((a, b) => {
@@ -209,9 +217,12 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
 
     const formData = new FormData();
     formData.append("resume", file);
-
     try {
       await uploadResume(formData).unwrap();
+      const result = await extractResume(file).unwrap();
+      const response = await result;
+
+      dispatch(setExtractedSkills(response?.data?.technicalSkills || []));
       toast.success("Resume uploaded successfully!");
     } catch (error) {
       console.error("Error uploading resume:", error);

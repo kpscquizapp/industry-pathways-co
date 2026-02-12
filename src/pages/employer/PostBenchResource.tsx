@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,18 +24,43 @@ import {
   AlertCircle,
   ArrowRight,
   DollarSign,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useExtractResumeMutation } from "@/app/queries/atsApi";
-import { usePostBenchResourceMutation } from "@/app/queries/benchApi";
+import {
+  useGetBenchResourceByIdQuery,
+  usePostBenchResourceMutation,
+  useUpdateBenchResourceMutation,
+} from "@/app/queries/benchApi";
 
 const PostBenchResource = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("edit");
+  const editIdNumber = editId ? Number(editId) : null;
+  const isEditMode = !!editIdNumber;
 
   const [extractResume, { isLoading: isExtracting }] =
     useExtractResumeMutation();
   const [postBenchResource, { isLoading: isSubmitting }] =
     usePostBenchResourceMutation();
+  const [updateBenchResource, { isLoading: isUpdating }] =
+    useUpdateBenchResourceMutation();
+
+  const { data: resourceData, isLoading: isLoadingResource } =
+    useGetBenchResourceByIdQuery(editIdNumber, { skip: !editIdNumber });
+
+  const formatDuration = (months: number | string): string => {
+    const monthNum = typeof months === "string" ? parseInt(months) : months;
+    return `${monthNum} ${monthNum === 1 ? "Month" : "Months"}`;
+  };
+
+  const parseDuration = (durationString: string): string => {
+    // Extract number from string like "1 Month" or "3 Months"
+    const match = durationString.match(/\d+/);
+    return match ? match[0] : "1";
+  };
 
   const [formData, setFormData] = useState({
     resourceName: "",
@@ -58,6 +83,42 @@ const PostBenchResource = () => {
   });
 
   const [skillInput, setSkillInput] = useState("");
+
+  // Populate form when editing
+  useEffect(() => {
+    if (isEditMode && resourceData?.data) {
+      const resource = resourceData.data;
+
+      // Parse deployment preferences
+      const deploymentPrefs = Array.isArray(resource.deploymentPreference)
+        ? resource.deploymentPreference
+        : JSON.parse(resource.deploymentPreference || "[]");
+
+      setFormData({
+        resourceName: resource.resourceName || "",
+        currentRole: resource.currentRole || "",
+        totalExperience: resource.totalExperience || "",
+        employeeId: resource.employeeId || "",
+        skills: Array.isArray(resource.technicalSkills)
+          ? resource.technicalSkills
+          : JSON.parse(resource.technicalSkills || "[]"),
+        professionalSummary: resource.professionalSummary || "",
+        hourlyRate: resource.hourlyRate?.toString() || "",
+        currency: resource.currency || "USD - US Dollar",
+        availableFrom: resource.availableFrom
+          ? new Date(resource.availableFrom).toISOString().split("T")[0]
+          : "",
+        minimumDuration: resource.minimumContractDuration?.toString() || "1", // Store as number string
+        locationPreferences: {
+          remote: deploymentPrefs.includes("remote"),
+          hybrid: deploymentPrefs.includes("hybrid"),
+          onSite: deploymentPrefs.includes("onSite"),
+        },
+        requireNonSolicitation: resource.requireNonSolicitation || false,
+        resumeFile: null,
+      });
+    }
+  }, [isEditMode, resourceData]);
 
   const addSkill = () => {
     const trimmed = skillInput.trim();
@@ -154,6 +215,10 @@ const PostBenchResource = () => {
       toast.error("Resource name is required");
       return;
     }
+    if (!formData.currentRole.trim()) {
+      toast.error("Current role is required");
+      return;
+    }
 
     if (formData.skills.length === 0) {
       toast.error("At least one technical skill is required");
@@ -165,8 +230,23 @@ const PostBenchResource = () => {
       return;
     }
 
-    if (!formData.totalExperience) {
+    if (!formData.availableFrom.trim()) {
+      toast.error("Available from is required");
+      return;
+    }
+
+    if (!formData.totalExperience.trim()) {
       toast.error("Total experience is required");
+      return;
+    }
+
+    if (!formData.employeeId.trim()) {
+      toast.error("Employee ID is required");
+      return;
+    }
+
+    if (!formData.minimumDuration) {
+      toast.error("Minimum contract duration is required");
       return;
     }
 
@@ -207,22 +287,57 @@ const PostBenchResource = () => {
     }
 
     try {
-      await postBenchResource(formDataToSend).unwrap();
-      toast.success("Bench resource posted successfully!", {
-        description: "Your resource is now visible to potential clients.",
-      });
-      navigate("/bench-dashboard/talent-marketplace");
+      if (isEditMode) {
+        await updateBenchResource({
+          id: editIdNumber,
+          formData: formDataToSend,
+        }).unwrap();
+        toast.success("Bench resource updated successfully!");
+      } else {
+        await postBenchResource(formDataToSend).unwrap();
+        toast.success("Bench resource posted successfully!", {
+          description: "Your resource is now visible to potential clients.",
+        });
+      }
+      navigate("/bench-dashboard/active-resources");
     } catch (error) {
-      console.error("Failed to post bench resource:", error);
-      toast.error("Failed to post bench resource");
+      console.error(
+        `Failed to ${isEditMode ? "update" : "post"} bench resource:`,
+        error,
+      );
+      toast.error(`Failed to ${isEditMode ? "update" : "post"} bench resource`);
     }
   };
+
+  // Show loading state while fetching resource data
+  if (isEditMode && isLoadingResource) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+          <p className="text-slate-600 font-medium">Loading resource data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isProcessing = isSubmitting || isUpdating;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
       <div className="max-w-7xl mx-auto p-6 space-y-6 animate-fade-in">
         <div>
-          {/* Left Sidebar */}
+          {/* Page Title */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-slate-800">
+              {isEditMode ? "Edit Bench Resource" : "Post Bench Resource"}
+            </h1>
+            <p className="text-slate-500 mt-1">
+              {isEditMode
+                ? "Update the details of your bench resource"
+                : "Add a new resource to your bench"}
+            </p>
+          </div>
 
           {/* Main Form */}
           <div className="space-y-6">
@@ -240,7 +355,7 @@ const PostBenchResource = () => {
               </CardContent>
             </Card>
 
-            {/* Documents - Moved to Top */}
+            {/* Documents */}
             <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white">
               <CardHeader className="pb-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-purple-50/50">
                 <div className="flex items-center justify-between">
@@ -292,7 +407,9 @@ const PostBenchResource = () => {
                         ? "Extracting information..."
                         : formData.resumeFile
                           ? formData.resumeFile.name
-                          : "Click to upload resume"}
+                          : isEditMode
+                            ? "Click to upload new resume (optional)"
+                            : "Click to upload resume"}
                     </p>
                     <p className="text-xs text-slate-400 mt-2">
                       Max file size 5MB. Please remove contact details.
@@ -323,7 +440,8 @@ const PostBenchResource = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      Resource Name (Internal)
+                      Resource Name (Internal){" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       placeholder="John D."
@@ -342,7 +460,8 @@ const PostBenchResource = () => {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      Current Role / Designation
+                      Current Role / Designation{" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       placeholder="e.g. Senior Java Developer"
@@ -360,7 +479,8 @@ const PostBenchResource = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      Total Experience (Years)
+                      Total Experience (Years){" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <Select
                       value={formData.totalExperience}
@@ -384,7 +504,8 @@ const PostBenchResource = () => {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      Employee ID / Ref Code
+                      Employee ID / Ref Code{" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       placeholder="Optional internal tracking code"
@@ -399,7 +520,7 @@ const PostBenchResource = () => {
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-slate-700">
-                    Technical Skills *
+                    Technical Skills <span className="text-destructive">*</span>
                   </Label>
                   <div className="flex gap-2">
                     <Input
@@ -415,7 +536,7 @@ const PostBenchResource = () => {
                       disabled={!skillInput.trim()}
                       className="h-12 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm shadow-blue-500/20"
                     >
-                      Enter
+                      Add
                     </Button>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-3">
@@ -475,7 +596,8 @@ const PostBenchResource = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      Hourly Rate (Client Billable)
+                      Hourly Rate (Client Billable){" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
@@ -532,7 +654,7 @@ const PostBenchResource = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      Available From
+                      Available From <span className="text-destructive">*</span>
                     </Label>
                     <div className="relative">
                       <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
@@ -552,7 +674,8 @@ const PostBenchResource = () => {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      Minimum Contract Duration
+                      Minimum Contract Duration{" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <Select
                       value={formData.minimumDuration}
@@ -561,16 +684,22 @@ const PostBenchResource = () => {
                       }
                     >
                       <SelectTrigger className="h-12 rounded-xl border-slate-200">
-                        <SelectValue placeholder="Select duration" />
+                        <SelectValue placeholder="Select duration">
+                          {formData.minimumDuration &&
+                            formatDuration(formData.minimumDuration)}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        {["1 Month", "3 Months", "6 Months", "12 Months"].map(
-                          (dur) => (
-                            <SelectItem key={dur} value={dur}>
-                              {dur}
-                            </SelectItem>
-                          ),
-                        )}
+                        {[
+                          { value: "1", label: "1 Month" },
+                          { value: "3", label: "3 Months" },
+                          { value: "6", label: "6 Months" },
+                          { value: "12", label: "12 Months" },
+                        ].map((dur) => (
+                          <SelectItem key={dur.value} value={dur.value}>
+                            {dur.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -578,7 +707,8 @@ const PostBenchResource = () => {
 
                 <div className="space-y-3">
                   <Label className="text-sm font-medium text-slate-700">
-                    Deployment Location Preference
+                    Deployment Location Preference{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <div className="flex flex-wrap gap-4">
                     {[
@@ -661,17 +791,26 @@ const PostBenchResource = () => {
                 variant="outline"
                 onClick={handleSaveDraft}
                 className="px-8 h-12 rounded-xl border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-600 font-medium"
-                disabled={isSubmitting}
+                disabled={isProcessing}
               >
                 Save Draft
               </Button>
               <Button
                 onClick={handleProceed}
-                disabled={isSubmitting}
+                disabled={isProcessing}
                 className="px-10 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium shadow-lg shadow-blue-500/30 transition-all hover:shadow-xl hover:shadow-blue-500/40"
               >
-                {isSubmitting ? "Submitting..." : "Publish Resource"}
-                <ArrowRight className="ml-2 h-5 w-5" />
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    {isEditMode ? "Updating..." : "Publishing..."}
+                  </>
+                ) : (
+                  <>
+                    {isEditMode ? "Update Resource" : "Publish Resource"}
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </>
+                )}
               </Button>
             </div>
           </div>

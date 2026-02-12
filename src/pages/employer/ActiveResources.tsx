@@ -452,11 +452,10 @@ const ActiveResources = () => {
                       </TableCell>
                       <TableCell>
                         <Badge
-                          className={`${
-                            resource.isActive
+                          className={`${resource.isActive
                               ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                               : "bg-red-100 text-red-700 hover:bg-red-200"
-                          }`}
+                            }`}
                         >
                           {resource.isActive ? "Active" : "Inactive"}
                         </Badge>
