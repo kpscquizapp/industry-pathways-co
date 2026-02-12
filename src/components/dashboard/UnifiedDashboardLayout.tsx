@@ -137,7 +137,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
     if (user.role === "hr") {
       navigate("/bench-dashboard");
     } else if (user.role === "candidate") {
-      navigate("/contractor/dashboard");
+      navigate("/contractor/profile");
     } else if (user.role === "employer") {
       navigate("/hire-talent/dashboard");
     } else {
@@ -179,9 +179,9 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
       <SidebarContent className="p-3">
         <SidebarMenu>
           {menuItems.map((item) => {
-            const dashboard =
-              role === "bench" ? "bench-dashboard" : `/${role}/dashboard`;
-            const isDashboard = item.href === dashboard;
+            const dashboardHref =
+              role === "bench" ? "/bench/dashboard" : `/${role}/dashboard`;
+            const isDashboard = item.href === dashboardHref;
             const isActive =
               location.pathname === item.href ||
               (isDashboard && location.pathname === `/${role}`) ||

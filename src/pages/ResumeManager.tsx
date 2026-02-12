@@ -175,6 +175,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
       await setDefaultResume(resumeId).unwrap();
       toast.success("Resume set as default.");
     } catch (error) {
+      console.error("Error setting default resume:", error);
       toast.error("Failed to set default resume.");
     } finally {
       setLoadingDefaultId(null);
@@ -354,7 +355,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                                 }`}
                               />
                             )}
-                            Set as Default
+                            {resume.isDefault ? "Default" : "Set as Default"}
                           </>
                         </Button>
                         <Button
