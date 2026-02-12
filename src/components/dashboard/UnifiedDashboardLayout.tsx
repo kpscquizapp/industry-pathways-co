@@ -179,7 +179,9 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
       <SidebarContent className="p-3">
         <SidebarMenu>
           {menuItems.map((item) => {
-            const isDashboard = item.href === `/${role}/dashboard`;
+            const dashboard =
+              role === "bench" ? "bench-dashboard" : `/${role}/dashboard`;
+            const isDashboard = item.href === dashboard;
             const isActive =
               location.pathname === item.href ||
               (isDashboard && location.pathname === `/${role}`) ||

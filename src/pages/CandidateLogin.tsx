@@ -443,7 +443,7 @@ const CandidateLogin = () => {
                   <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
                     New to Hirion?{" "}
                     <Link
-                      to="/candidate-signup"
+                      to="/contractor-signup"
                       className="text-primary hover:text-emerald-500 transition-colors underline-offset-8 underline decoration-primary/30"
                     >
                       Create Contractor Account

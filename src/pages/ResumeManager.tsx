@@ -315,7 +315,9 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                           size="sm"
                           onClick={() => handleView(resume)}
                           disabled={
-                            loadingViewId !== null || loadingDeleteId !== null
+                            loadingViewId !== null ||
+                            loadingDeleteId !== null ||
+                            loadingDefaultId !== null
                           }
                           className="flex-1 text-xs md:text-sm flex items-center justify-center gap-2"
                         >
