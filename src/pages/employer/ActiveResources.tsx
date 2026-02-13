@@ -29,7 +29,11 @@ import {
   XCircle,
   Filter,
   Clock,
+  AlertCircle,
+  FileQuestion,
+  RefreshCw,
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
 import {
   useGetBenchResourcesQuery,
@@ -123,6 +127,7 @@ const ActiveResources = () => {
     data: apiData,
     isLoading,
     isError,
+    error,
     refetch,
   } = useGetBenchResourcesQuery(queryParams);
   const resources: BenchResource[] = apiData?.data || [];
@@ -132,7 +137,7 @@ const ActiveResources = () => {
     totalPages: 1,
     limit: 10,
   };
-
+  console.log(queryParams)
   const [deleteBenchResource] = useDeleteBenchResourceMutation();
 
   const handleViewResource = (resource: any) => {
@@ -157,7 +162,7 @@ const ActiveResources = () => {
 
   const activeCount = resources.filter((r: any) => r.isActive).length;
   const inactiveCount = resources.filter((r: any) => !r.isActive).length;
-
+  console.log(minExperience, maxExperience)
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
       <div className="max-w-7xl mx-auto p-6 space-y-6 animate-fade-in">
@@ -318,7 +323,7 @@ const ActiveResources = () => {
                 <select
                   value={deploymentPreference}
                   onChange={(e) => setDeploymentPreference(e.target.value)}
-                  className="h-8 rounded-lg border-slate-200 text-xs px-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="h-8 rounded-lg border-slate-200 text-xs px-2 bg-[#f7f6f2] border border-slate-200 outline-none"
                 >
                   <option value="">All</option>
                   <option value="remote">Remote</option>
@@ -335,7 +340,7 @@ const ActiveResources = () => {
                   type="date"
                   value={availableFrom}
                   onChange={(e) => setAvailableFrom(e.target.value)}
-                  className="h-8 rounded-lg border-slate-200 text-xs px-2 w-32"
+                  className="h-8 rounded-lg border-slate-200 text-xs px-2 w-fit"
                 />
               </div>
 
@@ -370,11 +375,49 @@ const ActiveResources = () => {
                 <p className="mt-4 text-slate-500">Loading resources...</p>
               </div>
             ) : isError ? (
-              <div className="p-20 text-center">
-                <XCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-                <p className="text-slate-500">
-                  Error loading resources. Please try again.
-                </p>
+              <div className="p-6">
+                <Alert variant="destructive" className="bg-red-50 border-red-200">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  <AlertTitle className="text-red-700 font-semibold ml-2">
+                    Failed to load resources
+                  </AlertTitle>
+                  <AlertDescription className="text-red-600 mt-2 ml-2">
+                    <div className="flex flex-col gap-3">
+                      <p>
+                        {"There was an error loading the resources. Please try again later."}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => refetch()}
+                          className="w-fit border-red-200 hover:bg-red-600 text-red-700 gap-2"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                          Try Again
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSearchQuery("");
+                            setFilterSkills("");
+                            setDeploymentPreference("");
+                            setMinExperience("");
+                            setMaxExperience("");
+                            setMinRate("");
+                            setMaxRate("");
+                            setAvailableFrom("");
+                            setIsActive("true");
+                          }}
+                          className="gap-2"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                          Clear Filters
+                        </Button>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
               </div>
             ) : (
               <Table>
@@ -453,8 +496,8 @@ const ActiveResources = () => {
                       <TableCell>
                         <Badge
                           className={`${resource.isActive
-                              ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                              : "bg-red-100 text-red-700 hover:bg-red-200"
+                            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                            : "bg-red-100 text-red-700 hover:bg-red-200"
                             }`}
                         >
                           {resource.isActive ? "Active" : "Inactive"}
@@ -572,9 +615,35 @@ const ActiveResources = () => {
             )}
 
             {!isLoading && !isError && resources.length === 0 && (
-              <div className="p-12 text-center">
-                <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">No resources found</p>
+              <div className="p-16 text-center flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                  <FileQuestion className="h-8 w-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                  No resources found
+                </h3>
+                <p className="text-slate-500 max-w-sm mx-auto mb-6">
+                  We couldn't find any resources matching your current filters. Try
+                  adjusting your search criteria.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setFilterSkills("");
+                    setDeploymentPreference("");
+                    setMinExperience("");
+                    setMaxExperience("");
+                    setMinRate("");
+                    setMaxRate("");
+                    setAvailableFrom("");
+                    setIsActive("true");
+                  }}
+                  className="gap-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Clear Filters
+                </Button>
               </div>
             )}
           </CardContent>
