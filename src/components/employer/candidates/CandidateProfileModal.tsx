@@ -132,15 +132,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
   const handleDownload = async (id: number) => {
     if (!candidate) return;
     try {
-      const blob = await downloadResume(id).unwrap();
-      const url = window.URL.createObjectURL(blob as Blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${candidate.name}-resume.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      await downloadResume(id).unwrap();
       toast.success("Resume downloaded successfully.");
     } catch (error) {
       toast.error("Failed to download resume.");
