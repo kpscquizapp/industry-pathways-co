@@ -25,8 +25,6 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 
-// Define the type for the state
-
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
@@ -318,7 +316,7 @@ const CandidateProfileUpdate = ({
   const [removingCertificateId, setRemovingCertificateId] = useState<
     string | number | null
   >(null);
-  const resumeData = useSelector<RootState>((state) => state.resumeSkills.data);
+  const resumeData = useSelector((state: RootState) => state.resumeSkills.data);
 
   const skills = useMemo(() => {
     // Get resume skills (priority)

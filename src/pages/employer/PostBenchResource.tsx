@@ -33,6 +33,7 @@ import {
   usePostBenchResourceMutation,
   useUpdateBenchResourceMutation,
 } from "@/app/queries/benchApi";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 const PostBenchResource = () => {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ const PostBenchResource = () => {
     useUpdateBenchResourceMutation();
 
   const { data: resourceData, isLoading: isLoadingResource } =
-    useGetBenchResourceByIdQuery(editIdNumber, { skip: !editIdNumber });
+    useGetBenchResourceByIdQuery(editIdNumber ?? skipToken);
 
   const formatDuration = (months: number | string): string => {
     const monthNum = typeof months === "string" ? parseInt(months) : months;
@@ -287,6 +288,7 @@ const PostBenchResource = () => {
 
     try {
       if (isEditMode) {
+        if (!editIdNumber) return;
         await updateBenchResource({
           id: editIdNumber,
           formData: formDataToSend,
