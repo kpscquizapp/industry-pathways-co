@@ -105,9 +105,11 @@ const PostBenchResource = () => {
         professionalSummary: resource.professionalSummary || "",
         hourlyRate: resource.hourlyRate?.toString() || "",
         currency: resource.currency || "USD - US Dollar",
-        availableFrom: resource.availableFrom
-          ? new Date(resource.availableFrom).toISOString().split("T")[0]
-          : "",
+        availableFrom: (() => {
+          if (!resource.availableFrom) return "";
+          const d = new Date(resource.availableFrom);
+          return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
+        })(),
         minimumDuration: resource.minimumContractDuration?.toString() || "1", // Store as number string
         locationPreferences: {
           remote: deploymentPrefs.includes("remote"),

@@ -221,6 +221,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
       toast.success("Resume uploaded successfully!");
       try {
         const result = await extractResume(file).unwrap();
+        if (isExtracting) toast.loading("Extracting resume skills...");
         dispatch(setExtractedSkills(result?.data?.technicalSkills || []));
         toast.success("Resume skills extracted successfully!");
       } catch (extractError) {
