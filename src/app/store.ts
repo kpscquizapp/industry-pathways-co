@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userAuth from "./slices/userAuth";
+import extractResumeSkills from "./slices/extractResumeSkills";
 import { loginApi } from "./queries/loginApi";
 import { profileApi } from "./queries/profileApi";
 import { jobApi } from "./queries/jobApi";
@@ -9,6 +10,7 @@ import { benchApi } from "./queries/benchApi";
 const store = configureStore({
   reducer: {
     user: userAuth,
+    resumeSkills: extractResumeSkills,
     [loginApi.reducerPath]: loginApi.reducer,
     [profileApi.reducerPath]: profileApi.reducer,
     [jobApi.reducerPath]: jobApi.reducer,

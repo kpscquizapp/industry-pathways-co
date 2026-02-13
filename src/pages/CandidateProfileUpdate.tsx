@@ -22,6 +22,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store";
 
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -314,14 +316,37 @@ const CandidateProfileUpdate = ({
   const [removingCertificateId, setRemovingCertificateId] = useState<
     string | number | null
   >(null);
+  const resumeData = useSelector((state: RootState) => state.resumeSkills.data);
 
-  const skills = useMemo(
-    () =>
-      data?.candidateProfile?.primarySkills?.map((skill) =>
-        typeof skill === "string" ? skill : skill.name,
-      ) || [],
-    [data],
-  );
+  const skills = useMemo(() => {
+    // Get resume skills (priority)
+    const resumeSkills = Array.isArray(resumeData)
+      ? resumeData.filter(
+          (s): s is string => typeof s === "string" && s.trim() !== "",
+        )
+      : [];
+
+    // Get profile skills
+    const profileSkills =
+      data?.candidateProfile?.primarySkills
+        ?.map((skill) => (typeof skill === "string" ? skill : skill.name))
+        .filter((s): s is string => typeof s === "string" && s.trim() !== "") ||
+      [];
+
+    // Combine with resume skills first, then profile skills
+    const combined = [...resumeSkills, ...profileSkills];
+
+    // Remove duplicates (case-insensitive comparison)
+    const unique = combined.filter(
+      (skill, index, self) =>
+        index ===
+        self.findIndex(
+          (s) => s.toLowerCase().trim() === skill.toLowerCase().trim(),
+        ),
+    );
+
+    return unique;
+  }, [data, resumeData]);
 
   const workExperiences = useMemo(
     () =>
@@ -433,10 +458,7 @@ const CandidateProfileUpdate = ({
       availability: data?.candidateProfile.availability || "",
       bio: data?.candidateProfile.bio || "",
       yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-      primarySkills:
-        data?.candidateProfile.primarySkills?.map((skill) =>
-          typeof skill === "string" ? skill : skill.name,
-        ) || [],
+      primarySkills: skills || [],
       headline: data?.candidateProfile.headline || "",
       resourceType: data?.candidateProfile.resourceType || "",
       availableIn: data?.candidateProfile.availableIn || "",
@@ -462,8 +484,24 @@ const CandidateProfileUpdate = ({
 
   useEffect(() => {
     if (!data) return;
-    setFormData(handleForm());
-  }, [data, handleForm]);
+    setFormData((prev) => {
+      const base = handleForm();
+      // Preserve user's skill edits by merging rather than replacing
+      if (prev.primarySkills.length > 0) {
+        const existingLower = new Set(
+          prev.primarySkills.map((s) => s.toLowerCase().trim()),
+        );
+        const newSkills = skills.filter(
+          (s) => !existingLower.has(s.toLowerCase().trim()),
+        );
+        return {
+          ...base,
+          primarySkills: [...prev.primarySkills, ...newSkills],
+        };
+      }
+      return base;
+    });
+  }, [data, handleForm, skills]);
 
   const availabilityOptions = ["freelance", "full-time", "both"];
   const resourceTypeOptions = [

@@ -18,6 +18,9 @@ import {
 } from "@/app/queries/profileApi";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useExtractResumeMutation } from "@/app/queries/atsApi";
+import { useDispatch } from "react-redux";
+import { setExtractedSkills } from "@/app/slices/extractResumeSkills";
 
 type Resume = {
   id: number;
@@ -47,6 +50,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
   // API calls
   const [uploadResume, { isLoading: isLoadingResumeUpload }] =
     useUploadResumeMutation();
+  const [extractResume] = useExtractResumeMutation();
   const [viewResume] = useLazyViewResumeQuery();
   const [removeResume] = useRemoveResumeMutation();
   const [setDefaultResume] = useSetDefaultResumeMutation();
@@ -58,6 +62,8 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingViewId, setLoadingViewId] = useState<number | null>(null);
   const [loadingDeleteId, setLoadingDeleteId] = useState<number | null>(null);
+
+  const dispatch = useDispatch();
 
   const sortedResumes = useMemo(() => {
     return [...resumes].sort((a, b) => {
@@ -212,7 +218,22 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
 
     try {
       await uploadResume(formData).unwrap();
-      toast.success("Resume uploaded successfully!");
+
+      const extractingToast = toast.loading("Extracting resume skills...");
+
+      try {
+        const result = await extractResume(file).unwrap();
+
+        dispatch(setExtractedSkills(result?.data?.technicalSkills || []));
+        toast.success("Resume uploaded and skills extracted!");
+      } catch (extractError) {
+        console.error("Error extracting resume skills:", extractError);
+        toast.warning(
+          "Resume uploaded, but skill extraction failed. You can add skills manually.",
+        );
+      } finally {
+        toast.dismiss(extractingToast);
+      }
     } catch (error) {
       console.error("Error uploading resume:", error);
       toast.error("Failed to upload resume. Please try again.");
