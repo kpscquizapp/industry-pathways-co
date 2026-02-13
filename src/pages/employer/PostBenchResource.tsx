@@ -39,7 +39,7 @@ const PostBenchResource = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const editId = searchParams.get("edit");
-  const editIdNumber = editId ? Number(editId) : null;
+  const editIdNumber = editId && !isNaN(Number(editId)) ? Number(editId) : null;
   const isEditMode = !!editIdNumber;
 
   const [extractResume, { isLoading: isExtracting }] =
@@ -56,7 +56,7 @@ const PostBenchResource = () => {
   } = useGetBenchResourceByIdQuery(editIdNumber ?? skipToken);
 
   const formatDuration = (months: number | string): string => {
-    const monthNum = typeof months === "string" ? parseInt(months) : months;
+    const monthNum = typeof months === "string" ? parseInt(months, 10) : months;
     return `${monthNum} ${monthNum === 1 ? "Month" : "Months"}`;
   };
 

@@ -501,7 +501,7 @@ const CandidateProfileUpdate = ({
       }
       return base;
     });
-  }, [data, handleForm]);
+  }, [data, handleForm, skills]);
 
   const availabilityOptions = ["freelance", "full-time", "both"];
   const resourceTypeOptions = [

@@ -50,8 +50,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
   // API calls
   const [uploadResume, { isLoading: isLoadingResumeUpload }] =
     useUploadResumeMutation();
-  const [extractResume] =
-    useExtractResumeMutation();
+  const [extractResume] = useExtractResumeMutation();
   const [viewResume] = useLazyViewResumeQuery();
   const [removeResume] = useRemoveResumeMutation();
   const [setDefaultResume] = useSetDefaultResumeMutation();
@@ -220,15 +219,20 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
       await uploadResume(formData).unwrap();
       try {
         const extractingToast = toast.loading("Extracting resume skills...");
-        const result = await extractResume(file).unwrap();
-        toast.dismiss(extractingToast);
-        dispatch(setExtractedSkills(result?.data?.technicalSkills || []));
-        toast.success("Resume uploaded and skills extracted!");
+        try {
+          const result = await extractResume(file).unwrap();
+          dispatch(setExtractedSkills(result?.data?.technicalSkills || []));
+          toast.success("Resume uploaded and skills extracted!");
+        } catch (extractError) {
+          console.error("Error extracting resume skills:", extractError);
+          toast.warning(
+            "Resume uploaded, but skill extraction failed. You can add skills manually.",
+          );
+        } finally {
+          toast.dismiss(extractingToast);
+        }
       } catch (extractError) {
-        console.error("Error extracting resume skills:", extractError);
-        toast.warning(
-          "Resume uploaded, but skill extraction failed. You can add skills manually.",
-        );
+        
       }
     } catch (error) {
       console.error("Error uploading resume:", error);
