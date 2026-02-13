@@ -20,6 +20,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import { useDownloadBenchResumeMutation } from "@/app/queries/benchApi";
+import { toast } from "sonner";
 
 export interface CandidateProfile {
   id: number;
@@ -127,6 +129,19 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
 }) => {
   if (!candidate) return null;
 
+  const [downloadResume] = useDownloadBenchResumeMutation();
+
+  const handleDownload = async (id) => {
+    if (!candidate) return;
+
+    try {
+      await downloadResume(id).unwrap();
+      toast.success("Resume downloaded successfully.");
+    } catch (error) {
+      toast.error("Failed to download resume.");
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-none w-screen h-screen border-none rounded-none overflow-y-auto p-0 gap-0">
@@ -168,7 +183,11 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                   Book Interview
                 </Button>
               )}
-              <Button variant="outline" className="w-full rounded-xl">
+              <Button
+                variant="outline"
+                className="w-full rounded-xl"
+                onClick={() => handleDownload(candidate?.id)}
+              >
                 <Download className="h-4 w-4 mr-2" />
               </Button>
             </div>
@@ -456,7 +475,11 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
               <TabsContent value="resume">
                 <Card className="border-border">
                   <CardContent className="p-6">
-                    <Button variant="outline" className="w-full rounded-xl">
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-xl"
+                      onClick={() => handleDownload(candidate?.id)}
+                    >
                       <Download className="h-4 w-4 mr-2" />
                       Download Full Resume
                     </Button>
@@ -468,7 +491,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
         </div>
 
         {/* Bottom Action Bar */}
-        <div className="sticky bottom-0 bg-card border-t border-border p-4 flex items-center justify-end gap-3">
+        {/* <div className="sticky bottom-0 bg-card border-t border-border p-4 flex items-center justify-end gap-3">
           {onSkillTest && (
             <Button
               variant="outline"
@@ -497,7 +520,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
               Book Interview
             </Button>
           )}
-        </div>
+        </div> */}
       </DialogContent>
     </Dialog>
   );

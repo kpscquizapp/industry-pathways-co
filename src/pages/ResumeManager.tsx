@@ -215,24 +215,24 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
 
     const formData = new FormData();
     formData.append("resume", file);
+
     try {
       await uploadResume(formData).unwrap();
+
+      const extractingToast = toast.loading("Extracting resume skills...");
+
       try {
-        const extractingToast = toast.loading("Extracting resume skills...");
-        try {
-          const result = await extractResume(file).unwrap();
-          dispatch(setExtractedSkills(result?.data?.technicalSkills || []));
-          toast.success("Resume uploaded and skills extracted!");
-        } catch (extractError) {
-          console.error("Error extracting resume skills:", extractError);
-          toast.warning(
-            "Resume uploaded, but skill extraction failed. You can add skills manually.",
-          );
-        } finally {
-          toast.dismiss(extractingToast);
-        }
+        const result = await extractResume(file).unwrap();
+
+        dispatch(setExtractedSkills(result?.data?.technicalSkills || []));
+        toast.success("Resume uploaded and skills extracted!");
       } catch (extractError) {
-        
+        console.error("Error extracting resume skills:", extractError);
+        toast.warning(
+          "Resume uploaded, but skill extraction failed. You can add skills manually.",
+        );
+      } finally {
+        toast.dismiss(extractingToast);
       }
     } catch (error) {
       console.error("Error uploading resume:", error);

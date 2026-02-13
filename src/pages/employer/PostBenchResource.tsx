@@ -216,8 +216,8 @@ const PostBenchResource = () => {
   };
 
   const handleSaveDraft = () => {
-    toast.success("Draft saved", {
-      description: "You can continue later from where you left off.",
+    toast.success("This feature is under development", {
+      description: "",
     });
   };
 
@@ -239,6 +239,11 @@ const PostBenchResource = () => {
 
     if (!formData.hourlyRate.trim()) {
       toast.error("Hourly rate is required");
+      return;
+    }
+
+    if (parseFloat(formData.hourlyRate) <= 0) {
+      toast.error("Hourly rate must be a positive number");
       return;
     }
 

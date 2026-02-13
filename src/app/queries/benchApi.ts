@@ -57,12 +57,20 @@ export const benchApi = createApi({
       }),
       invalidatesTags: ["BenchResources"],
     }),
+    downloadBenchResume: builder.mutation({
+      query: (id) => ({
+        url: `employers/bench-resources/${id}/resume`,
+        method: "GET",
+        responseType: "blob",
+      }),
+    }),
   }),
 });
 
 export const {
   usePostBenchResourceMutation,
   useGetBenchResourcesQuery,
+  useDownloadBenchResumeMutation,
   useUpdateBenchResourceMutation,
   useDeleteBenchResourceMutation,
   useGetBenchResourceByIdQuery,
