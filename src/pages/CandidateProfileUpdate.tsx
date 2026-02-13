@@ -23,18 +23,13 @@ import { Button } from "@/components/ui/button";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { useSelector } from "react-redux";
-import { TypedUseSelectorHook } from "react-redux";
+import { RootState } from "@/app/store";
 
 // Define the type for the state
 
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
-interface RootState {
-  resumeSkills: {
-    data: any;
-  };
-}
 type Skill = {
   id: number;
   name: string;

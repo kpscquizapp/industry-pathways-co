@@ -41,7 +41,7 @@ export const benchApi = createApi({
     }),
     getBenchResourceById: builder.query<any, number | string>({
       query: (id) => ({
-        url: `/employers/bench-resources/${id}`,
+        url: `employers/bench-resources/${id}`,
         method: "GET",
       }),
       providesTags: ["BenchResources"],
@@ -51,7 +51,7 @@ export const benchApi = createApi({
       { id: number; formData: FormData }
     >({
       query: ({ id, formData }) => ({
-        url: `/employers/bench-resources/${id}`,
+        url: `employers/bench-resources/${id}`,
         method: "PUT",
         body: formData,
       }),

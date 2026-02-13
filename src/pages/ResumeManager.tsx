@@ -19,7 +19,6 @@ import {
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExtractResumeMutation } from "@/app/queries/atsApi";
-import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setExtractedSkills } from "@/app/slices/extractResumeSkills";
 
@@ -219,11 +218,16 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
     formData.append("resume", file);
     try {
       await uploadResume(formData).unwrap();
-      const result = await extractResume(file).unwrap();
-      const response = await result;
-
-      dispatch(setExtractedSkills(response?.data?.technicalSkills || []));
       toast.success("Resume uploaded successfully!");
+      try {
+        const result = await extractResume(file).unwrap();
+        if (isExtracting)
+          toast.success("Resume skills are being extracted. Please wait.");
+        dispatch(setExtractedSkills(result?.data?.technicalSkills || []));
+      } catch (extractError) {
+        console.error("Error extracting resume skills:", extractError);
+        toast.warning("Resume uploaded, but skill extraction failed.");
+      }
     } catch (error) {
       console.error("Error uploading resume:", error);
       toast.error("Failed to upload resume. Please try again.");

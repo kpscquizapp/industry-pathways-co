@@ -56,12 +56,6 @@ const PostBenchResource = () => {
     return `${monthNum} ${monthNum === 1 ? "Month" : "Months"}`;
   };
 
-  const parseDuration = (durationString: string): string => {
-    // Extract number from string like "1 Month" or "3 Months"
-    const match = durationString.match(/\d+/);
-    return match ? match[0] : "1";
-  };
-
   const [formData, setFormData] = useState({
     resourceName: "",
     currentRole: "",
@@ -72,7 +66,7 @@ const PostBenchResource = () => {
     hourlyRate: "",
     currency: "USD - US Dollar",
     availableFrom: "",
-    minimumDuration: "1 Month",
+    minimumDuration: "1",
     locationPreferences: {
       remote: false,
       hybrid: false,
@@ -90,9 +84,14 @@ const PostBenchResource = () => {
       const resource = resourceData.data;
 
       // Parse deployment preferences
-      const deploymentPrefs = Array.isArray(resource.deploymentPreference)
-        ? resource.deploymentPreference
-        : JSON.parse(resource.deploymentPreference || "[]");
+      let deploymentPrefs: string[] = [];
+      try {
+        deploymentPrefs = Array.isArray(resource.deploymentPreference)
+          ? resource.deploymentPreference
+          : JSON.parse(resource.deploymentPreference || "[]");
+      } catch {
+        deploymentPrefs = [];
+      }
 
       setFormData({
         resourceName: resource.resourceName || "",
@@ -508,7 +507,7 @@ const PostBenchResource = () => {
                       <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                      placeholder="Optional internal tracking code"
+                      placeholder="e.g. EMP-001"
                       value={formData.employeeId}
                       onChange={(e) =>
                         setFormData({ ...formData, employeeId: e.target.value })
