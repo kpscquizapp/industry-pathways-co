@@ -127,20 +127,27 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
   onShortlist,
   onSkillTest,
 }) => {
-  if (!candidate) return null;
-
   const [downloadResume] = useDownloadBenchResumeMutation();
 
-  const handleDownload = async (id) => {
+  const handleDownload = async (id: number) => {
     if (!candidate) return;
-
     try {
-      await downloadResume(id).unwrap();
+      const blob = await downloadResume(id).unwrap();
+      const url = window.URL.createObjectURL(blob as Blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${candidate.name}-resume.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
       toast.success("Resume downloaded successfully.");
     } catch (error) {
       toast.error("Failed to download resume.");
     }
   };
+
+  if (!candidate) return null;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -189,6 +196,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                 onClick={() => handleDownload(candidate?.id)}
               >
                 <Download className="h-4 w-4 mr-2" />
+                Download Resume
               </Button>
             </div>
 
@@ -453,23 +461,6 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                     </CardContent>
                   </Card>
                 )}
-              </TabsContent>
-
-              <TabsContent value="projects">
-                <Card className="border-border">
-                  <CardContent className="p-6 text-center text-muted-foreground">
-                    Detailed project portfolio coming soon...
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="assessment">
-                <Card className="border-border">
-                  <CardContent className="p-6 text-center text-muted-foreground">
-                    Assessment reports will appear here after skill tests are
-                    completed.
-                  </CardContent>
-                </Card>
               </TabsContent>
 
               <TabsContent value="resume">

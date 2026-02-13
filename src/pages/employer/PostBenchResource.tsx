@@ -242,7 +242,8 @@ const PostBenchResource = () => {
       return;
     }
 
-    if (parseFloat(formData.hourlyRate) <= 0) {
+    const hourlyRateNum = parseFloat(formData.hourlyRate);
+    if (isNaN(hourlyRateNum) || hourlyRateNum <= 0) {
       toast.error("Hourly rate must be a positive number");
       return;
     }

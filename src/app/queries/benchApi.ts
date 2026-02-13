@@ -61,7 +61,7 @@ export const benchApi = createApi({
       query: (id) => ({
         url: `employers/bench-resources/${id}/resume`,
         method: "GET",
-        responseType: "blob",
+        responseHandler: (response) => response.blob(),
       }),
     }),
   }),
