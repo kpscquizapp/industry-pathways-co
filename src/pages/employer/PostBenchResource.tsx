@@ -49,8 +49,11 @@ const PostBenchResource = () => {
   const [updateBenchResource, { isLoading: isUpdating }] =
     useUpdateBenchResourceMutation();
 
-  const { data: resourceData, isLoading: isLoadingResource } =
-    useGetBenchResourceByIdQuery(editIdNumber ?? skipToken);
+  const {
+    data: resourceData,
+    isLoading: isLoadingResource,
+    isError: isResourceError,
+  } = useGetBenchResourceByIdQuery(editIdNumber ?? skipToken);
 
   const formatDuration = (months: number | string): string => {
     const monthNum = typeof months === "string" ? parseInt(months) : months;
@@ -99,9 +102,16 @@ const PostBenchResource = () => {
         currentRole: resource.currentRole || "",
         totalExperience: resource.totalExperience || "",
         employeeId: resource.employeeId || "",
-        skills: Array.isArray(resource.technicalSkills)
-          ? resource.technicalSkills
-          : JSON.parse(resource.technicalSkills || "[]"),
+        skills: (() => {
+          if (Array.isArray(resource.technicalSkills)) {
+            return resource.technicalSkills;
+          }
+          try {
+            return JSON.parse(resource.technicalSkills || "[]");
+          } catch {
+            return [];
+          }
+        })(),
         professionalSummary: resource.professionalSummary || "",
         hourlyRate: resource.hourlyRate?.toString() || "",
         currency: resource.currency || "USD - US Dollar",
@@ -324,6 +334,19 @@ const PostBenchResource = () => {
     );
   }
 
+  if (isEditMode && isResourceError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <AlertCircle className="h-12 w-12 text-red-500" />
+          <p className="text-slate-600 font-medium">
+            Failed to load resource data
+          </p>
+          <Button onClick={() => navigate(-1)}>Go Back</Button>
+        </div>
+      </div>
+    );
+  }
   const isProcessing = isSubmitting || isUpdating;
 
   return (

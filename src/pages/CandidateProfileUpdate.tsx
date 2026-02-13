@@ -320,13 +320,18 @@ const CandidateProfileUpdate = ({
 
   const skills = useMemo(() => {
     // Get resume skills (priority)
-    const resumeSkills = Array.isArray(resumeData) ? resumeData : [];
+    const resumeSkills = Array.isArray(resumeData)
+      ? resumeData.filter(
+          (s): s is string => typeof s === "string" && s.trim() !== "",
+        )
+      : [];
 
     // Get profile skills
     const profileSkills =
-      data?.candidateProfile?.primarySkills?.map((skill) =>
-        typeof skill === "string" ? skill : skill.name,
-      ) || [];
+      data?.candidateProfile?.primarySkills
+        ?.map((skill) => (typeof skill === "string" ? skill : skill.name))
+        .filter((s): s is string => typeof s === "string" && s.trim() !== "") ||
+      [];
 
     // Combine with resume skills first, then profile skills
     const combined = [...resumeSkills, ...profileSkills];
@@ -479,7 +484,23 @@ const CandidateProfileUpdate = ({
 
   useEffect(() => {
     if (!data) return;
-    setFormData(handleForm());
+    setFormData((prev) => {
+      const base = handleForm();
+      // Preserve user's skill edits by merging rather than replacing
+      if (prev.primarySkills.length > 0) {
+        const existingLower = new Set(
+          prev.primarySkills.map((s) => s.toLowerCase().trim()),
+        );
+        const newSkills = skills.filter(
+          (s) => !existingLower.has(s.toLowerCase().trim()),
+        );
+        return {
+          ...base,
+          primarySkills: [...prev.primarySkills, ...newSkills],
+        };
+      }
+      return base;
+    });
   }, [data, handleForm]);
 
   const availabilityOptions = ["freelance", "full-time", "both"];
