@@ -262,7 +262,7 @@ const PostBenchResource = () => {
       return;
     }
 
-    if (!formData.totalExperience) {
+    if (formData.totalExperience === null || formData.totalExperience === "") {
       toast.error("Total experience is required");
       return;
     }
