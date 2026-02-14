@@ -118,7 +118,9 @@ const PostBenchResource = () => {
       setFormData({
         resourceName: resource.resourceName || "",
         currentRole: resource.currentRole || "",
-        totalExperience: Number(resource.totalExperience) || null,
+        totalExperience: isNaN(Number(resource.totalExperience))
+          ? null
+          : Number(resource.totalExperience),
         employeeId: resource.employeeId || "",
         skills: (() => {
           if (Array.isArray(resource.technicalSkills)) {
@@ -206,7 +208,7 @@ const PostBenchResource = () => {
           professionalSummary:
             result.data.professionalSummary || prev.professionalSummary,
           skills: result.data.technicalSkills || prev.skills,
-          totalExperience: result.data.totalExperience || prev.totalExperience,
+          totalExperience: result.data.totalExperience ?? prev.totalExperience,
         }));
         toast.success("Resume processed successfully!", {
           description: "Form fields have been populated from your resume.",

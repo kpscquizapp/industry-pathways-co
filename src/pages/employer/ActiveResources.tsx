@@ -77,7 +77,7 @@ const ActiveResources = () => {
     currentRole: string;
     hourlyRate: number;
     availableFrom?: string | null;
-    deploymentPreference?: string | null;
+    deploymentPreference?: string | string[] | null;
     totalExperience: number;
     isActive: boolean;
     technicalSkills?: string[];
@@ -392,7 +392,7 @@ const ActiveResources = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => clearAllFilters()}
+                onClick={clearAllFilters}
                 className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 font-medium ml-auto"
               >
                 Clear all filters
@@ -438,7 +438,7 @@ const ActiveResources = () => {
                         </Button>
                         <Button
                           variant="outline"
-                          onClick={() => clearAllFilters()}
+                          onClick={clearAllFilters}
                           className="gap-2"
                         >
                           <RefreshCw className="h-4 w-4" />
@@ -651,15 +651,15 @@ const ActiveResources = () => {
                   <FileQuestion className="h-8 w-8 text-slate-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                  + No resources found
+                  No resources found
                 </h3>
                 <p className="text-slate-500 max-w-sm mx-auto mb-6">
-                  + We couldn't find any resources matching your current +
-                  filters. Try adjusting your search criteria.
+                  We couldn't find any resources matching your current filters.
+                  Try adjusting your search criteria.
                 </p>
                 <Button
                   variant="outline"
-                  onClick={() => clearAllFilters()}
+                  onClick={clearAllFilters}
                   className="gap-2"
                 >
                   <RefreshCw className="h-4 w-4" />
