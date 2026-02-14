@@ -84,6 +84,18 @@ const ActiveResources = () => {
     professionalSummary?: string;
   };
 
+  const clearAllFilters = () => {
+    setSearchQuery("");
+    setFilterSkills("");
+    setDeploymentPreference("");
+    setMinExperience("");
+    setMaxExperience("");
+    setMinRate("");
+    setMaxRate("");
+    setAvailableFrom("");
+    setIsActive("true");
+  };
+
   const [selectedResource, setSelectedResource] =
     useState<BenchResource | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -380,17 +392,7 @@ const ActiveResources = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  setSearchQuery("");
-                  setFilterSkills("");
-                  setDeploymentPreference("");
-                  setMinExperience("");
-                  setMaxExperience("");
-                  setMinRate("");
-                  setMaxRate("");
-                  setAvailableFrom("");
-                  setIsActive("true");
-                }}
+                onClick={() => clearAllFilters()}
                 className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 font-medium ml-auto"
               >
                 Clear all filters
@@ -436,17 +438,7 @@ const ActiveResources = () => {
                         </Button>
                         <Button
                           variant="outline"
-                          onClick={() => {
-                            setSearchQuery("");
-                            setFilterSkills("");
-                            setDeploymentPreference("");
-                            setMinExperience("");
-                            setMaxExperience("");
-                            setMinRate("");
-                            setMaxRate("");
-                            setAvailableFrom("");
-                            setIsActive("true");
-                          }}
+                          onClick={() => clearAllFilters()}
                           className="gap-2"
                         >
                           <RefreshCw className="h-4 w-4" />
@@ -658,39 +650,21 @@ const ActiveResources = () => {
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                   <FileQuestion className="h-8 w-8 text-slate-400" />
                 </div>
-                {resources.length === 0 ? (
-                  <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                    No resources found
-                  </h3>
-                ) : (
-                  <>
-                    <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                      No resources found
-                    </h3>
-                    <p className="text-slate-500 max-w-sm mx-auto mb-6">
-                      We couldn't find any resources matching your current
-                      filters. Try adjusting your search criteria.
-                    </p>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setSearchQuery("");
-                        setFilterSkills("");
-                        setDeploymentPreference("");
-                        setMinExperience("");
-                        setMaxExperience("");
-                        setMinRate("");
-                        setMaxRate("");
-                        setAvailableFrom("");
-                        setIsActive("true");
-                      }}
-                      className="gap-2"
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                      Clear Filters
-                    </Button>
-                  </>
-                )}
+                <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                  + No resources found
+                </h3>
+                <p className="text-slate-500 max-w-sm mx-auto mb-6">
+                  + We couldn't find any resources matching your current +
+                  filters. Try adjusting your search criteria.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => clearAllFilters()}
+                  className="gap-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Clear Filters
+                </Button>
               </div>
             )}
           </CardContent>

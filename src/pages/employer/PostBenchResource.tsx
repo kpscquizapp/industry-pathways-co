@@ -60,14 +60,32 @@ const PostBenchResource = () => {
     return `${monthNum} ${monthNum === 1 ? "Month" : "Months"}`;
   };
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    resourceName: string;
+    currentRole: string;
+    totalExperience: string | number | null;
+    employeeId: string;
+    skills: string[];
+    professionalSummary: string;
+    hourlyRate: string | null;
+    currency: string;
+    availableFrom: string;
+    minimumDuration: string;
+    locationPreferences: {
+      remote: boolean;
+      hybrid: boolean;
+      onSite: boolean;
+    };
+    requireNonSolicitation: boolean;
+    resumeFile: File | null;
+  }>({
     resourceName: "",
     currentRole: "",
     totalExperience: null,
     employeeId: "",
     skills: [] as string[],
     professionalSummary: "",
-    hourlyRate: null,
+    hourlyRate: "",
     currency: "USD - US Dollar",
     availableFrom: "",
     minimumDuration: "3",
@@ -120,7 +138,7 @@ const PostBenchResource = () => {
           const d = new Date(resource.availableFrom);
           return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
         })(),
-        minimumDuration: resource.minimumContractDuration?.toString() || "1", // Store as number string
+        minimumDuration: resource.minimumContractDuration?.toString() || "3", // Store as number string
         locationPreferences: {
           remote: deploymentPrefs.includes("remote"),
           hybrid: deploymentPrefs.includes("hybrid"),
@@ -247,6 +265,12 @@ const PostBenchResource = () => {
       return;
     }
 
+    const totalExpNum = parseFloat(String(formData.totalExperience));
+    if (isNaN(totalExpNum) || totalExpNum < 0) {
+      toast.error("Total experience must be a non-negative number");
+      return;
+    }
+
     if (!formData.employeeId.trim()) {
       toast.error("Employee ID is required");
       return;
@@ -268,7 +292,10 @@ const PostBenchResource = () => {
     const formDataToSend = new FormData();
     formDataToSend.append("resourceName", trimmedResourceName);
     formDataToSend.append("currentRole", formData.currentRole);
-    formDataToSend.append("totalExperience", formData.totalExperience);
+    formDataToSend.append(
+      "totalExperience",
+      formData.totalExperience.toString(),
+    );
     formDataToSend.append("technicalSkills", JSON.stringify(formData.skills));
     formDataToSend.append("hourlyRate", formData.hourlyRate);
     formDataToSend.append("currency", formData.currency);
@@ -283,7 +310,7 @@ const PostBenchResource = () => {
 
     const deploymentPreference = Object.entries(formData.locationPreferences)
       .filter(([_, v]) => v)
-      .map(([k, _]) => k);
+      .map(([k, _]) => (k === "onSite" ? "onsite" : k));
     formDataToSend.append(
       "deploymentPreference",
       JSON.stringify(deploymentPreference),
@@ -292,7 +319,7 @@ const PostBenchResource = () => {
     if (formData.resumeFile) {
       formDataToSend.append("resume", formData.resumeFile);
     }
-    console.log(formData);
+
     try {
       if (isEditMode) {
         if (!editIdNumber) return;
@@ -504,6 +531,8 @@ const PostBenchResource = () => {
                       <span className="text-destructive">*</span>
                     </Label>
                     <Input
+                      type="number"
+                      min="0"
                       placeholder="e.g. 5"
                       value={formData.totalExperience ?? ""}
                       onChange={(e) =>
