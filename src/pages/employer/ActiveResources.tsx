@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -91,23 +91,57 @@ const ActiveResources = () => {
   // Mapper function to convert BenchResource to CandidateProfile
   const mapResourceToCandidateProfile = (
     resource: BenchResource,
-  ): CandidateProfile => ({
-    id: resource.id,
-    name: resource.resourceName,
-    role: resource.currentRole,
-    hourlyRate: {
-      min: resource.hourlyRate,
-      max: resource.hourlyRate,
-    },
-    availability: resource.availableFrom
-      ? new Date(resource.availableFrom).toLocaleDateString()
-      : "Immediate",
-    location: resource.deploymentPreference || "Remote",
-    experience: `${resource.totalExperience} years`,
-    type: "bench",
-    skills: resource.technicalSkills || [],
-    about: resource.professionalSummary || "",
-  });
+  ): CandidateProfile => {
+    // Parse and format deployment preference
+    const formatDeploymentPreference = (): string => {
+      if (!resource.deploymentPreference) return "Not specified";
+
+      let prefs: string[] = [];
+
+      // Handle array or JSON string
+      if (Array.isArray(resource.deploymentPreference)) {
+        prefs = resource.deploymentPreference;
+      } else if (typeof resource.deploymentPreference === "string") {
+        try {
+          const parsed = JSON.parse(resource.deploymentPreference);
+          prefs = Array.isArray(parsed)
+            ? parsed
+            : [resource.deploymentPreference];
+        } catch {
+          prefs = [resource.deploymentPreference];
+        }
+      }
+
+      // Format with proper capitalization
+      return prefs
+        .map((pref) => {
+          const lower = pref.toLowerCase();
+          if (lower === "onsite") return "On-site";
+          if (lower === "remote") return "Remote";
+          if (lower === "hybrid") return "Hybrid";
+          return pref.charAt(0).toUpperCase() + pref.slice(1);
+        })
+        .join(", ");
+    };
+
+    return {
+      id: resource.id,
+      name: resource.resourceName,
+      role: resource.currentRole,
+      hourlyRate: {
+        min: resource.hourlyRate,
+        max: resource.hourlyRate,
+      },
+      availability: resource.availableFrom
+        ? new Date(resource.availableFrom).toLocaleDateString()
+        : "Immediate",
+      location: formatDeploymentPreference(),
+      experience: `${Number(resource.totalExperience)} years`,
+      type: "bench",
+      skills: resource.technicalSkills || [],
+      about: resource.professionalSummary || "",
+    };
+  };
 
   const queryParams = {
     page,
@@ -137,7 +171,6 @@ const ActiveResources = () => {
     totalPages: 1,
     limit: 10,
   };
-  console.log(queryParams)
   const [deleteBenchResource] = useDeleteBenchResourceMutation();
 
   const handleViewResource = (resource: any) => {
@@ -162,7 +195,7 @@ const ActiveResources = () => {
 
   const activeCount = resources.filter((r: any) => r.isActive).length;
   const inactiveCount = resources.filter((r: any) => !r.isActive).length;
-  console.log(minExperience, maxExperience)
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
       <div className="max-w-7xl mx-auto p-6 space-y-6 animate-fade-in">
@@ -251,14 +284,14 @@ const ActiveResources = () => {
               </div>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Min Exp"
+                  placeholder="Min Exp (at least)"
                   type="number"
                   value={minExperience}
                   onChange={(e) => setMinExperience(e.target.value)}
                   className="h-10 rounded-xl border-slate-200"
                 />
                 <Input
-                  placeholder="Max Exp"
+                  placeholder="Max Exp (up to)"
                   type="number"
                   value={maxExperience}
                   onChange={(e) => setMaxExperience(e.target.value)}
@@ -376,7 +409,10 @@ const ActiveResources = () => {
               </div>
             ) : isError ? (
               <div className="p-6">
-                <Alert variant="destructive" className="bg-red-50 border-red-200">
+                <Alert
+                  variant="destructive"
+                  className="bg-red-50 border-red-200"
+                >
                   <AlertCircle className="h-5 w-5 text-red-600" />
                   <AlertTitle className="text-red-700 font-semibold ml-2">
                     Failed to load resources
@@ -384,7 +420,9 @@ const ActiveResources = () => {
                   <AlertDescription className="text-red-600 mt-2 ml-2">
                     <div className="flex flex-col gap-3">
                       <p>
-                        {"There was an error loading the resources. Please try again later."}
+                        {
+                          "There was an error loading the resources. Please try again later."
+                        }
                       </p>
                       <div className="flex gap-2">
                         <Button
@@ -485,7 +523,7 @@ const ActiveResources = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-slate-600">
-                        {resource.totalExperience} years
+                        {Number(resource.totalExperience)} years
                       </TableCell>
                       <TableCell>
                         <span className="font-semibold text-slate-800">
@@ -495,10 +533,11 @@ const ActiveResources = () => {
                       </TableCell>
                       <TableCell>
                         <Badge
-                          className={`${resource.isActive
-                            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                            : "bg-red-100 text-red-700 hover:bg-red-200"
-                            }`}
+                          className={`${
+                            resource.isActive
+                              ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                              : "bg-red-100 text-red-700 hover:bg-red-200"
+                          }`}
                         >
                           {resource.isActive ? "Active" : "Inactive"}
                         </Badge>
@@ -619,31 +658,39 @@ const ActiveResources = () => {
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                   <FileQuestion className="h-8 w-8 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                  No resources found
-                </h3>
-                <p className="text-slate-500 max-w-sm mx-auto mb-6">
-                  We couldn't find any resources matching your current filters. Try
-                  adjusting your search criteria.
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setFilterSkills("");
-                    setDeploymentPreference("");
-                    setMinExperience("");
-                    setMaxExperience("");
-                    setMinRate("");
-                    setMaxRate("");
-                    setAvailableFrom("");
-                    setIsActive("true");
-                  }}
-                  className="gap-2"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  Clear Filters
-                </Button>
+                {resources.length === 0 ? (
+                  <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                    No resources found
+                  </h3>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                      No resources found
+                    </h3>
+                    <p className="text-slate-500 max-w-sm mx-auto mb-6">
+                      We couldn't find any resources matching your current
+                      filters. Try adjusting your search criteria.
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setFilterSkills("");
+                        setDeploymentPreference("");
+                        setMinExperience("");
+                        setMaxExperience("");
+                        setMinRate("");
+                        setMaxRate("");
+                        setAvailableFrom("");
+                        setIsActive("true");
+                      }}
+                      className="gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Clear Filters
+                    </Button>
+                  </>
+                )}
               </div>
             )}
           </CardContent>
