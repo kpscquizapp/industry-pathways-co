@@ -20,7 +20,10 @@ const EmployerHeader = () => {
       {/* Actions */}
       <div className="flex items-center gap-4">
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
+        <Button
+          size="icon"
+          className="relative bg-transparent hover:bg-gray-100"
+        >
           <Bell className="h-5 w-5 text-neutral-600" />
           <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
             3
@@ -34,7 +37,7 @@ const EmployerHeader = () => {
 
         {/* User Menu */}
         <ProfileMenu
-          btnClass="flex items-center gap-2 px-2"
+          btnClass="flex items-center gap-2 px-2 bg-transparent hover:bg-gray-100 hover:text-black"
           avatarFallback="bg-navy-800 text-white"
         />
       </div>

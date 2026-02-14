@@ -174,14 +174,6 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
 
             {/* Action Buttons */}
             <div className="space-y-3 mb-6">
-              {onScheduleInterview && (
-                <Button
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
-                  onClick={() => onScheduleInterview(candidate)}
-                >
-                  Book Interview
-                </Button>
-              )}
               <Button
                 variant="outline"
                 className="w-full rounded-xl"

@@ -60,17 +60,35 @@ const PostBenchResource = () => {
     return `${monthNum} ${monthNum === 1 ? "Month" : "Months"}`;
   };
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    resourceName: string;
+    currentRole: string;
+    totalExperience: string | number | null;
+    employeeId: string;
+    skills: string[];
+    professionalSummary: string;
+    hourlyRate: string | null;
+    currency: string;
+    availableFrom: string;
+    minimumDuration: string;
+    locationPreferences: {
+      remote: boolean;
+      hybrid: boolean;
+      onSite: boolean;
+    };
+    requireNonSolicitation: boolean;
+    resumeFile: File | null;
+  }>({
     resourceName: "",
     currentRole: "",
-    totalExperience: "",
+    totalExperience: null,
     employeeId: "",
     skills: [] as string[],
     professionalSummary: "",
     hourlyRate: "",
     currency: "USD - US Dollar",
     availableFrom: "",
-    minimumDuration: "1",
+    minimumDuration: "3",
     locationPreferences: {
       remote: false,
       hybrid: false,
@@ -100,7 +118,9 @@ const PostBenchResource = () => {
       setFormData({
         resourceName: resource.resourceName || "",
         currentRole: resource.currentRole || "",
-        totalExperience: resource.totalExperience || "",
+        totalExperience: isNaN(Number(resource.totalExperience))
+          ? null
+          : Number(resource.totalExperience),
         employeeId: resource.employeeId || "",
         skills: (() => {
           if (Array.isArray(resource.technicalSkills)) {
@@ -120,11 +140,11 @@ const PostBenchResource = () => {
           const d = new Date(resource.availableFrom);
           return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
         })(),
-        minimumDuration: resource.minimumContractDuration?.toString() || "1", // Store as number string
+        minimumDuration: resource.minimumContractDuration?.toString() || "3", // Store as number string
         locationPreferences: {
           remote: deploymentPrefs.includes("remote"),
           hybrid: deploymentPrefs.includes("hybrid"),
-          onSite: deploymentPrefs.includes("onSite"),
+          onSite: deploymentPrefs.includes("onsite"),
         },
         requireNonSolicitation: resource.requireNonSolicitation || false,
         resumeFile: null,
@@ -164,16 +184,6 @@ const PostBenchResource = () => {
     "INR - Indian Rupee": "₹",
   };
 
-  const mapExperience = (years: number) => {
-    if (years < 0 || !Number.isFinite(years)) return "0-1";
-    if (years < 1) return "0-1";
-    if (years <= 3) return "1-3";
-    if (years <= 5) return "3-5";
-    if (years <= 8) return "5-8";
-    if (years <= 10) return "8-10";
-    return "10+";
-  };
-
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
     const file = input.files?.[0];
@@ -198,8 +208,7 @@ const PostBenchResource = () => {
           professionalSummary:
             result.data.professionalSummary || prev.professionalSummary,
           skills: result.data.technicalSkills || prev.skills,
-          totalExperience:
-            mapExperience(result.data.totalExperience) || prev.totalExperience,
+          totalExperience: result.data.totalExperience ?? prev.totalExperience,
         }));
         toast.success("Resume processed successfully!", {
           description: "Form fields have been populated from your resume.",
@@ -237,7 +246,7 @@ const PostBenchResource = () => {
       return;
     }
 
-    if (!formData.hourlyRate.trim()) {
+    if (!formData.hourlyRate) {
       toast.error("Hourly rate is required");
       return;
     }
@@ -253,8 +262,14 @@ const PostBenchResource = () => {
       return;
     }
 
-    if (!formData.totalExperience.trim()) {
+    if (formData.totalExperience === null || formData.totalExperience === "") {
       toast.error("Total experience is required");
+      return;
+    }
+
+    const totalExpNum = parseFloat(String(formData.totalExperience));
+    if (isNaN(totalExpNum) || totalExpNum < 0) {
+      toast.error("Total experience must be a non-negative number");
       return;
     }
 
@@ -279,7 +294,10 @@ const PostBenchResource = () => {
     const formDataToSend = new FormData();
     formDataToSend.append("resourceName", trimmedResourceName);
     formDataToSend.append("currentRole", formData.currentRole);
-    formDataToSend.append("totalExperience", formData.totalExperience);
+    formDataToSend.append(
+      "totalExperience",
+      formData.totalExperience.toString(),
+    );
     formDataToSend.append("technicalSkills", JSON.stringify(formData.skills));
     formDataToSend.append("hourlyRate", formData.hourlyRate);
     formDataToSend.append("currency", formData.currency);
@@ -294,7 +312,7 @@ const PostBenchResource = () => {
 
     const deploymentPreference = Object.entries(formData.locationPreferences)
       .filter(([_, v]) => v)
-      .map(([k, _]) => k);
+      .map(([k, _]) => (k === "onSite" ? "onsite" : k));
     formDataToSend.append(
       "deploymentPreference",
       JSON.stringify(deploymentPreference),
@@ -514,25 +532,19 @@ const PostBenchResource = () => {
                       Total Experience (Years){" "}
                       <span className="text-destructive">*</span>
                     </Label>
-                    <Select
-                      value={formData.totalExperience}
-                      onValueChange={(v) =>
-                        setFormData({ ...formData, totalExperience: v })
+                    <Input
+                      type="number"
+                      min="0"
+                      placeholder="e.g. 5"
+                      value={formData.totalExperience ?? ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          totalExperience: e.target.value,
+                        })
                       }
-                    >
-                      <SelectTrigger className="h-12 rounded-xl border-slate-200">
-                        <SelectValue placeholder="Select..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {["0-1", "1-3", "3-5", "5-8", "8-10", "10+"].map(
-                          (exp) => (
-                            <SelectItem key={exp} value={exp}>
-                              {exp} years
-                            </SelectItem>
-                          ),
-                        )}
-                      </SelectContent>
-                    </Select>
+                      className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
@@ -640,7 +652,7 @@ const PostBenchResource = () => {
                         min="0"
                         step="0.01"
                         placeholder="e.g. 45"
-                        value={formData.hourlyRate}
+                        value={formData.hourlyRate ?? ""}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
