@@ -153,6 +153,12 @@ const EmployerSignup = () => {
         formData.companyName,
       );
       if (companyNameError) errors.companyName = companyNameError;
+
+      // Validate company details (optional, but enforce max length)
+      const companyDetailsError = VALIDATION.companyDetails.validate(
+        formData.companyDetails,
+      );
+      if (companyDetailsError) errors.companyDetails = companyDetailsError;
     } else if (currentStep === 3) {
       // Validate document
       const documentError = VALIDATION.document.validate(companyDocument);
@@ -222,7 +228,7 @@ const EmployerSignup = () => {
       );
       navigate("/hire-talent-login");
     } catch (error: unknown) {
-      console.error("Registration error:", error);
+      toast.error("Registration error");
 
       // Handle specific error cases
       if (isFetchBaseQueryError(error)) {
@@ -565,6 +571,7 @@ const EmployerSignup = () => {
                             placeholder="Tell us about your organization... (optional)"
                             value={formData.companyDetails}
                             onChange={handleInputChange}
+                            maxLength={1000}
                             className={`min-h-[150px] pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
                               fieldErrors.companyDetails
                                 ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
