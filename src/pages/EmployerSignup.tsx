@@ -234,12 +234,17 @@ const EmployerSignup = () => {
           toast.error(
             "An account with this email already exists. Please login instead.",
           );
-        } else if (
+        }
+        if (
           typeof error.data === "object" &&
           error.data !== null &&
           "message" in error.data
         ) {
           toast.error((error.data as { message: string }).message);
+        } else if (error.status === 409) {
+          toast.error(
+            "An account with this email already exists. Please login instead.",
+          );
         } else if (error.status === 400) {
           toast.error(
             "Invalid registration data. Please check your inputs and try again.",
@@ -544,7 +549,7 @@ const EmployerSignup = () => {
                           <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                           <Input
                             name="companyName"
-                            placeholder="Acme Inc."
+                            placeholder="Company Co."
                             value={formData.companyName}
                             onChange={handleInputChange}
                             className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
