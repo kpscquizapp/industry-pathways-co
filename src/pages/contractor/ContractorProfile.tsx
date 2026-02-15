@@ -80,13 +80,18 @@ const ContractorProfile = () => {
           ? (error as { data?: { message?: string } }).data?.message
           : undefined;
       toast.error(message || "Failed to upload image.");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
   const getImageUrl = (path: string | null | undefined): string | null => {
     if (!path) return null;
     if (path.startsWith("http")) return path;
-    return `${config.baseURL}/${path.replace(/\\/g, "/")}`;
+    const base = (config.baseURL || "").replace(/\/+$/, "");
+    const normalized = path.replace(/\\/g, "/").replace(/^\/+/, "");
+    return `${base}/${normalized}`;
   };
 
   const avatarUrl = getImageUrl(data?.avatar);
