@@ -1,4 +1,11 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   X,
   Plus,
@@ -7,13 +14,17 @@ import {
   Award,
   FolderGit2,
   AlertCircle,
+  Camera,
 } from "lucide-react";
 import {
+  useGetProfileImageQuery,
   useRemoveCertificateMutation,
+  useRemoveProfileImageMutation,
   useRemoveProjectMutation,
   useRemoveSkillMutation,
   useRemoveWorkExperienceMutation,
   useUpdateProfileMutation,
+  useUploadProfileImageMutation,
 } from "@/app/queries/profileApi";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -24,6 +35,8 @@ import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -301,6 +314,15 @@ const CandidateProfileUpdate = ({
   const [removeWorkExperience] = useRemoveWorkExperienceMutation();
   const [removeProject] = useRemoveProjectMutation();
   const [removeCertificate] = useRemoveCertificateMutation();
+  const [uploadProfileImage, { isLoading: isLoadingImage }] =
+    useUploadProfileImageMutation();
+  const [removeProfileImage, { isLoading: isRemovingImage }] =
+    useRemoveProfileImageMutation();
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { data: profileImage } = useGetProfileImageQuery(
+    (data as any)?.id ?? skipToken,
+  );
 
   const [skillInput, setSkillInput] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -1193,9 +1215,124 @@ const CandidateProfileUpdate = ({
     }
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const MAX_SIZE = 2 * 1024 * 1024;
+    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error("Please upload a valid image file (JPEG, PNG, or WebP).");
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      toast.error("Image must be 2 MB or smaller.");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      await uploadProfileImage(formData).unwrap();
+      toast.success("Image uploaded successfully.");
+      window.location.reload();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      const message =
+        typeof error === "object" && error != null && "data" in error
+          ? (error as { data?: { message?: string } }).data?.message
+          : undefined;
+      toast.error(message || "Failed to upload image.");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (!confirm("Are you sure you want to delete your profile image?")) return;
+    try {
+      await removeProfileImage((data as any)?.id).unwrap();
+      toast.success("Image removed successfully.");
+
+      window.location.reload();
+    } catch (error) {
+      const message =
+        typeof error === "object" && error != null && "data" in error
+          ? (error as { data?: { message?: string } }).data?.message
+          : undefined;
+      toast.error(message || "Failed to remove image.");
+    }
+  };
+
   return (
     <div className="sm:p-8">
       <div className="space-y-8">
+        {/* Profile Image Section */}
+        <div className="flex flex-col items-center sm:items-start gap-4 pb-6 border-b dark:border-b-gray-600">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white w-full text-left">
+            Profile Image
+          </h2>
+          <div className="flex flex-col sm:flex-row items-center gap-6 w-full">
+            <Avatar className="w-24 h-24 sm:w-32 sm:h-32 shadow-lg ring-4 ring-white/90 dark:ring-slate-700/90 relative">
+              {isLoadingImage || isRemovingImage ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-full">
+                  <SpinnerLoader />
+                </div>
+              ) : null}
+              <AvatarImage className="object-cover" src={profileImage} />
+              <AvatarFallback className="bg-gray-100 dark:bg-slate-800">
+                <Camera className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="flex flex-col gap-3 w-full sm:w-auto">
+              <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoadingImage || isRemovingImage}
+                  className="bg-primary hover:bg-primary/90 text-white px-6"
+                >
+                  {isLoadingImage ? (
+                    <SpinnerLoader />
+                  ) : (
+                    <Plus className="w-4 h-4 mr-2" />
+                  )}
+                  Upload Image
+                </Button>
+                {profileImage && (
+                  <Button
+                    variant="outline"
+                    onClick={handleRemoveImage}
+                    disabled={isLoadingImage || isRemovingImage}
+                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/30 dark:hover:bg-red-900/20"
+                  >
+                    {isRemovingImage ? (
+                      <SpinnerLoader />
+                    ) : (
+                      <Trash2 className="w-4 h-4 mr-2" />
+                    )}
+                    Delete
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center sm:text-left">
+                Allowed formats: JPG, PNG, WebP. Max size: 2MB.
+              </p>
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+              accept="image/jpeg,image/png,image/webp"
+            />
+          </div>
+        </div>
+
         {/* Basic Information */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold text-gray-800 border-b dark:border-b-gray-600 pb-6 text-left dark:text-white">

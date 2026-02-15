@@ -115,6 +115,30 @@ export const profileApi = createApi({
       }),
       invalidatesTags: ["Profile"],
     }),
+    getProfileImage: builder.query<string, string>({
+      query: (id) => ({
+        url: `users/${id}/avatar`,
+        method: "GET",
+        responseHandler: async (response) => {
+          if (!response.ok) throw new Error("Failed to fetch image");
+
+          const blob = await response.blob();
+
+          return new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+        },
+      }),
+    }),
+    removeProfileImage: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `users/${id}/avatar`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Profile"],
+    }),
   }),
 });
 
@@ -124,10 +148,12 @@ export const {
   useSetDefaultResumeMutation,
   useUploadResumeMutation,
   useUpdateProfileMutation,
+  useGetProfileImageQuery,
   useRemoveResumeMutation,
   useRemoveSkillMutation,
   useRemoveWorkExperienceMutation,
   useRemoveProjectMutation,
   useRemoveCertificateMutation,
+  useRemoveProfileImageMutation,
   useUploadProfileImageMutation,
 } = profileApi;

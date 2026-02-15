@@ -1,4 +1,4 @@
-import { lazy, Suspense, useId, useRef } from "react";
+import { lazy, Suspense, useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,15 +13,14 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  useGetProfileImageQuery,
   useGetProfileQuery,
-  useUploadProfileImageMutation,
 } from "@/app/queries/profileApi";
 const CandidateProfileUpdate = lazy(() => import("../CandidateProfileUpdate"));
 import ResumeManager from "../ResumeManager";
 import BarLoader from "@/components/loader/BarLoader";
-import { toast } from "sonner";
-import { config } from "@/services/service";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 const getSafeProjectUrl = (value?: string) => {
   if (typeof value !== "string") return undefined;
@@ -36,65 +35,13 @@ const ContractorProfile = () => {
     isError,
   } = useGetProfileQuery();
 
-  const [uploadProfileImage, { isLoading: isLoadingImage }] =
-    useUploadProfileImageMutation();
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const data = response?.data;
   const profile = data?.candidateProfile;
+
+  const { data: profileImage, isLoading: isLoadingImage } =
+    useGetProfileImageQuery(data?.id ?? skipToken);
+
   const candidateId = useId();
-
-  const handleClick = () => {
-    if (isLoadingImage) return;
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const MAX_SIZE = 2 * 1024 * 1024;
-    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error("Please upload a valid image file (JPEG, PNG, or WebP).");
-      return;
-    }
-    if (file.size > MAX_SIZE) {
-      toast.error("Image must be 2 MB or smaller.");
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
-      await uploadProfileImage(formData).unwrap();
-      toast.success("Image uploaded successfully.");
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    } catch (error) {
-      const message =
-        typeof error === "object" && error != null && "data" in error
-          ? (error as { data?: { message?: string } }).data?.message
-          : undefined;
-      toast.error(message || "Failed to upload image.");
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
-  };
-
-  const getImageUrl = (path: string | null | undefined): string | undefined => {
-    if (!path) return undefined;
-    if (path.startsWith("http")) return path;
-    const base = (config.baseURL || "").replace(/\/+$/, "");
-    const normalized = path.replace(/\\/g, "/").replace(/^\/+/, "");
-    return `${base}/${normalized}`;
-  };
-
-  const avatarUrl = getImageUrl(data?.avatar);
 
   return (
     <div className="min-h-screen flex flex-col dark:bg-slate-900">
@@ -116,30 +63,21 @@ const ContractorProfile = () => {
                   className="dark:bg-slate-800 dark:border-slate-700 w-full"
                 >
                   <CardContent className="p-4 sm:p-6 text-center">
-                    <Avatar
-                      onClick={handleClick}
-                      className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 shadow-xl ring-4 ring-white/90 dark:ring-slate-700/90 cursor-pointer relative"
-                    >
+                    <Avatar className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 shadow-xl ring-4 ring-white/90 dark:ring-slate-700/90 relative">
                       {isLoadingImage ? (
                         <SpinnerLoader />
                       ) : (
                         <>
-                          <AvatarImage src={avatarUrl} />
+                          <AvatarImage
+                            className="object-cover"
+                            src={profileImage}
+                          />
                           <AvatarFallback>
                             <Camera className="w-8 h-8 lg:w-12 lg:h-12 text-gray-400" />
                           </AvatarFallback>
                         </>
                       )}
                     </Avatar>
-
-                    {/* Hidden Input */}
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                      className="hidden"
-                      accept="image/jpeg,image/png,image/webp"
-                    />
                     <h2 className="text-base sm:text-lg lg:text-xl font-bold mb-1 dark:text-slate-100 break-words">
                       {data?.firstName} {data?.lastName}
                     </h2>
