@@ -107,6 +107,14 @@ export const profileApi = createApi({
       }),
       invalidatesTags: ["Profile"],
     }),
+    uploadProfileImage: builder.mutation<any, FormData>({
+      query: (formData) => ({
+        url: "jobboard/profile/image",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Profile"],
+    }),
   }),
 });
 
@@ -121,4 +129,5 @@ export const {
   useRemoveWorkExperienceMutation,
   useRemoveProjectMutation,
   useRemoveCertificateMutation,
+  useUploadProfileImageMutation,
 } = profileApi;

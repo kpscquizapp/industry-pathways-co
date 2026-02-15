@@ -1,14 +1,25 @@
-import { lazy, Suspense, useId } from "react";
+import { lazy, Suspense, useId, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Clock, DollarSign, Globe, MapPin, Briefcase } from "lucide-react";
+import {
+  Clock,
+  DollarSign,
+  Globe,
+  MapPin,
+  Briefcase,
+  Camera,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useGetProfileQuery } from "@/app/queries/profileApi";
+import {
+  useGetProfileQuery,
+  useUploadProfileImageMutation,
+} from "@/app/queries/profileApi";
 const CandidateProfileUpdate = lazy(() => import("../CandidateProfileUpdate"));
 import ResumeManager from "../ResumeManager";
 import BarLoader from "@/components/loader/BarLoader";
+import { toast } from "sonner";
 
 const getSafeProjectUrl = (value?: string) => {
   if (typeof value !== "string") return undefined;
@@ -22,9 +33,43 @@ const ContractorProfile = () => {
     isLoading: isLoadingProfile,
     isError,
   } = useGetProfileQuery();
+
+  const [uploadProfileImage] = useUploadProfileImageMutation();
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const data = response?.data;
   const profile = data?.candidateProfile;
   const candidateId = useId();
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      await uploadProfileImage(formData).unwrap();
+      toast.success("Image uploaded successfully.");
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      toast.error(error?.data?.message || "Failed to upload image.");
+    }
+  };
+
+  const getImageUrl = (path: string | null | undefined): string | null => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+    return `http://44.222.35.138/${path.replace(/\\/g, "/")}`;
+  };
+
+  const avatarUrl = getImageUrl(data?.avatar);
 
   return (
     <div className="min-h-screen flex flex-col dark:bg-slate-900">
@@ -46,10 +91,22 @@ const ContractorProfile = () => {
                   className="dark:bg-slate-800 dark:border-slate-700 w-full"
                 >
                   <CardContent className="p-4 sm:p-6 text-center">
-                    <Avatar className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 shadow-xl ring-4 ring-white/90 dark:ring-slate-700/90">
-                      <AvatarImage src={data?.avatar ?? undefined} />
-                      <AvatarFallback>Avatar</AvatarFallback>
+                    <Avatar
+                      onClick={handleClick}
+                      className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 shadow-xl ring-4 ring-white/90 dark:ring-slate-700/90 cursor-pointer flex items-center justify-center flex-col"
+                    >
+                      <AvatarImage src={avatarUrl || ""} />
+                      <Camera className="w-8 h-8 lg:w-12 lg:h-12 text-gray-400 m-auto" />
                     </Avatar>
+
+                    {/* Hidden Input */}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      className="hidden"
+                      accept="image/*"
+                    />
                     <h2 className="text-base sm:text-lg lg:text-xl font-bold mb-1 dark:text-slate-100 break-words">
                       {data?.firstName} {data?.lastName}
                     </h2>
