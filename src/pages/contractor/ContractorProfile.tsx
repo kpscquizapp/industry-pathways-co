@@ -20,6 +20,7 @@ const CandidateProfileUpdate = lazy(() => import("../CandidateProfileUpdate"));
 import ResumeManager from "../ResumeManager";
 import BarLoader from "@/components/loader/BarLoader";
 import { toast } from "sonner";
+import { config } from "@/services/service";
 
 const getSafeProjectUrl = (value?: string) => {
   if (typeof value !== "string") return undefined;
@@ -49,6 +50,18 @@ const ContractorProfile = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const MAX_SIZE = 2 * 1024 * 1024;
+    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error("Please upload a valid image file (JPEG, PNG, or WebP).");
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      toast.error("Image must be 2 MB or smaller.");
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("image", file);
@@ -59,14 +72,18 @@ const ContractorProfile = () => {
         fileInputRef.current.value = "";
       }
     } catch (error) {
-      toast.error(error?.data?.message || "Failed to upload image.");
+      const message =
+        typeof error === "object" && error != null && "data" in error
+          ? (error as { data?: { message?: string } }).data?.message
+          : undefined;
+      toast.error(message || "Failed to upload image.");
     }
   };
 
   const getImageUrl = (path: string | null | undefined): string | null => {
     if (!path) return null;
     if (path.startsWith("http")) return path;
-    return `http://44.222.35.138/${path.replace(/\\/g, "/")}`;
+    return `${config.baseURL}/${path.replace(/\\/g, "/")}`;
   };
 
   const avatarUrl = getImageUrl(data?.avatar);
@@ -93,10 +110,12 @@ const ContractorProfile = () => {
                   <CardContent className="p-4 sm:p-6 text-center">
                     <Avatar
                       onClick={handleClick}
-                      className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 shadow-xl ring-4 ring-white/90 dark:ring-slate-700/90 cursor-pointer flex items-center justify-center flex-col"
+                      className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 shadow-xl ring-4 ring-white/90 dark:ring-slate-700/90 cursor-pointer relative"
                     >
-                      <AvatarImage src={avatarUrl || ""} />
-                      <Camera className="w-8 h-8 lg:w-12 lg:h-12 text-gray-400 m-auto" />
+                      <AvatarImage src={avatarUrl} />
+                      <AvatarFallback>
+                        <Camera className="w-8 h-8 lg:w-12 lg:h-12 text-gray-400" />
+                      </AvatarFallback>
                     </Avatar>
 
                     {/* Hidden Input */}

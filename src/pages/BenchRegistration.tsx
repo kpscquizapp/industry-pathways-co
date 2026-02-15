@@ -118,16 +118,18 @@ const VALIDATION = {
         return "File size must be 10MB or less";
       }
 
-      // Check file type
-      if (!VALIDATION.document.allowedTypes.includes(file.type)) {
-        const fileName = file.name.toLowerCase();
-        const hasValidExtension = VALIDATION.document.allowedExtensions.some(
-          (ext) => fileName.endsWith(ext),
-        );
+      // Check file extension
+      const fileName = file.name.toLowerCase();
+      const hasValidExtension = VALIDATION.document.allowedExtensions.some(
+        (ext) => fileName.endsWith(ext),
+      );
+      if (!hasValidExtension) {
+        return "Please upload a PDF or Word document (.pdf, .docx)";
+      }
 
-        if (!hasValidExtension) {
-          return "Please upload a PDF or Word document (.pdf, .doc, .docx)";
-        }
+      // Check MIME type (may be empty for some .doc files, so allow empty)
+      if (file.type && !VALIDATION.document.allowedTypes.includes(file.type)) {
+        return "Please upload a PDF or Word document (.pdf, .docx)";
       }
 
       return null;
@@ -276,12 +278,6 @@ const BenchRegistration = () => {
         formData.companyName,
       );
       if (companyNameError) errors.companyName = companyNameError;
-
-      // Validate company details
-      const companyDetailsError = VALIDATION.companyDetails.validate(
-        formData.companyDetails,
-      );
-      if (companyDetailsError) errors.companyDetails = companyDetailsError;
     } else if (currentStep === 3) {
       // Validate document
       const documentError = VALIDATION.document.validate(companyDocument);
@@ -633,7 +629,7 @@ const BenchRegistration = () => {
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                          Agency Name{" "}
+                          Organization Name{" "}
                           <span className="text-destructive">*</span>
                         </Label>
                         <div className="relative group">
@@ -656,7 +652,7 @@ const BenchRegistration = () => {
 
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                          Agency Details
+                          Organization Details (Optional)
                         </Label>
                         <Textarea
                           name="companyDetails"

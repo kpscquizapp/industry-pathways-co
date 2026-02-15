@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import RegistrationStepIndicator from "@/components/auth/RegistrationStepIndicator";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
+import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 
 // ==================== VALIDATION PATTERNS ====================
 const VALIDATION = {
@@ -138,14 +139,6 @@ const VALIDATION = {
   },
 };
 
-// Helper function for checking FetchBaseQueryError
-function isFetchBaseQueryError(error: unknown): error is {
-  status: number;
-  data: unknown;
-} {
-  return typeof error === "object" && error != null && "status" in error;
-}
-
 const EmployerSignup = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -251,12 +244,6 @@ const EmployerSignup = () => {
         formData.companyName,
       );
       if (companyNameError) errors.companyName = companyNameError;
-
-      // Validate company details (optional field)
-      const companyDetailsError = VALIDATION.companyDetails.validate(
-        formData.companyDetails,
-      );
-      if (companyDetailsError) errors.companyDetails = companyDetailsError;
     } else if (currentStep === 3) {
       // Validate document
       const documentError = VALIDATION.document.validate(companyDocument);
@@ -610,13 +597,13 @@ const EmployerSignup = () => {
                           <div className="relative group">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                             <Input
-                              name="password"
+                              name="confirmPassword"
                               type="password"
                               placeholder="••••••••"
                               value={formData.confirmPassword}
                               onChange={handleInputChange}
                               className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.password
+                                fieldErrors.confirmPassword
                                   ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
                                   : ""
                               }`}
@@ -676,11 +663,6 @@ const EmployerSignup = () => {
                             }`}
                           />
                         </div>
-                        {fieldErrors.companyDetails && (
-                          <p className="text-xs text-red-500 mt-1 ml-1">
-                            {fieldErrors.companyDetails}
-                          </p>
-                        )}
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 ml-1">
                           {formData.companyDetails.length}/1000 characters
                         </p>
