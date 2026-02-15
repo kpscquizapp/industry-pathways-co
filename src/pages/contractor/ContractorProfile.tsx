@@ -86,8 +86,8 @@ const ContractorProfile = () => {
     }
   };
 
-  const getImageUrl = (path: string | null | undefined): string | null => {
-    if (!path) return null;
+  const getImageUrl = (path: string | null | undefined): string | undefined => {
+    if (!path) return undefined;
     if (path.startsWith("http")) return path;
     const base = (config.baseURL || "").replace(/\/+$/, "");
     const normalized = path.replace(/\\/g, "/").replace(/^\/+/, "");

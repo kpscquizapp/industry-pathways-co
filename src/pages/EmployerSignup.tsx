@@ -70,6 +70,18 @@ const EmployerSignup = () => {
       });
     }
 
+    // Clear confirmPassword error when editing either password field
+    if (
+      (name === "password" || name === "confirmPassword") &&
+      fieldErrors.confirmPassword
+    ) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.confirmPassword;
+        return newErrors;
+      });
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -129,8 +141,12 @@ const EmployerSignup = () => {
       // Validate password
       const passwordError = VALIDATION.password.validate(formData.password);
       if (passwordError) errors.password = passwordError;
-      if (formData.password !== formData.confirmPassword)
-        errors.confirmPassword = "Passwords do not match";
+      // Validate confirm password
+      const confirmPasswordError = VALIDATION.confirmPassword.validate(
+        formData.password,
+        formData.confirmPassword,
+      );
+      if (confirmPasswordError) errors.confirmPassword = confirmPasswordError;
     } else if (currentStep === 2) {
       // Validate company name
       const companyNameError = VALIDATION.companyName.validate(

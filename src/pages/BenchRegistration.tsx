@@ -544,8 +544,7 @@ const BenchRegistration = () => {
                           onChange={handleInputChange}
                         />
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 ml-1">
-                          {formData.companyDetails.length}/1000 characters (min
-                          10)
+                          {formData.companyDetails.length}/1000 characters
                         </p>
                       </div>
                     </div>
