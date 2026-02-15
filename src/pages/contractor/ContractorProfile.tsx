@@ -21,6 +21,7 @@ import ResumeManager from "../ResumeManager";
 import BarLoader from "@/components/loader/BarLoader";
 import { toast } from "sonner";
 import { config } from "@/services/service";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 
 const getSafeProjectUrl = (value?: string) => {
   if (typeof value !== "string") return undefined;
@@ -35,7 +36,8 @@ const ContractorProfile = () => {
     isError,
   } = useGetProfileQuery();
 
-  const [uploadProfileImage] = useUploadProfileImageMutation();
+  const [uploadProfileImage, { isLoading: isLoadingImage }] =
+    useUploadProfileImageMutation();
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const data = response?.data;
@@ -43,6 +45,7 @@ const ContractorProfile = () => {
   const candidateId = useId();
 
   const handleClick = () => {
+    if (isLoadingImage) return;
     fileInputRef.current?.click();
   };
 
@@ -112,10 +115,16 @@ const ContractorProfile = () => {
                       onClick={handleClick}
                       className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 shadow-xl ring-4 ring-white/90 dark:ring-slate-700/90 cursor-pointer relative"
                     >
-                      <AvatarImage src={avatarUrl} />
-                      <AvatarFallback>
-                        <Camera className="w-8 h-8 lg:w-12 lg:h-12 text-gray-400" />
-                      </AvatarFallback>
+                      {isLoadingImage ? (
+                        <SpinnerLoader />
+                      ) : (
+                        <>
+                          <AvatarImage src={avatarUrl} />
+                          <AvatarFallback>
+                            <Camera className="w-8 h-8 lg:w-12 lg:h-12 text-gray-400" />
+                          </AvatarFallback>
+                        </>
+                      )}
                     </Avatar>
 
                     {/* Hidden Input */}
@@ -124,7 +133,7 @@ const ContractorProfile = () => {
                       ref={fileInputRef}
                       onChange={handleFileChange}
                       className="hidden"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/webp"
                     />
                     <h2 className="text-base sm:text-lg lg:text-xl font-bold mb-1 dark:text-slate-100 break-words">
                       {data?.firstName} {data?.lastName}

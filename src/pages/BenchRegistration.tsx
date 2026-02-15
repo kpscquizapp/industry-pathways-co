@@ -79,26 +79,27 @@ const VALIDATION = {
     maxLength: 100,
     regex: /^[\p{L}\p{N}\s\-'&.,()]+$/u,
     validate: (companyName: string) => {
-      if (!companyName || !companyName.trim()) return "Agency name is required";
+      if (!companyName || !companyName.trim())
+        return "Organization name is required";
       if (companyName.trim().length < 2)
-        return "Agency name must be at least 2 characters";
+        return "Organization name must be at least 2 characters";
       if (companyName.trim().length > 100)
-        return "Agency name must be less than 100 characters";
+        return "Organization name must be less than 100 characters";
       if (!VALIDATION.companyName.regex.test(companyName)) {
-        return "Agency name can only contain letters, numbers, spaces, and basic punctuation";
+        return "Organization name can only contain letters, numbers, spaces, and basic punctuation";
       }
       return null;
     },
   },
   companyDetails: {
-    minLength: 10,
     maxLength: 1000,
     validate: (details: string) => {
-      if (!details || !details.trim()) return "Agency details are required";
+      if (!details || !details.trim())
+        return "Organization details are required";
       if (details.trim().length < 10)
-        return "Agency details must be at least 10 characters";
+        return "Organization details must be at least 10 characters";
       if (details.trim().length > 1000)
-        return "Agency details must be less than 1000 characters";
+        return "Organization details must be less than 1000 characters";
       return null;
     },
   },
@@ -161,7 +162,7 @@ const BenchRegistration = () => {
 
   const stepInfo = [
     { title: "Account", desc: "Start your enterprise journey" },
-    { title: "Agency", desc: "Tell us about your agency" },
+    { title: "Details", desc: "Tell us about your organization" },
     { title: "Verify", desc: "Upload business documents" },
   ];
 
@@ -206,7 +207,7 @@ const BenchRegistration = () => {
       });
     }
 
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -327,7 +328,9 @@ const BenchRegistration = () => {
     submitData.append("firstName", formData.firstName.trim());
     submitData.append("lastName", formData.lastName.trim());
     submitData.append("companyName", formData.companyName.trim());
-    submitData.append("companyDetails", formData.companyDetails.trim());
+    if (formData.companyDetails && formData.companyDetails.trim()) {
+      submitData.append("companyDetails", formData.companyDetails.trim());
+    }
 
     if (companyDocument) {
       submitData.append("companyDocument", companyDocument);
@@ -485,14 +488,14 @@ const BenchRegistration = () => {
                     {currentStep === 1
                       ? "Partner Account"
                       : currentStep === 2
-                        ? "Agency Details"
+                        ? "Company Details"
                         : "Verification"}
                   </h3>
                   <p className="text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
                     {currentStep === 1
                       ? "Start your enterprise journey here."
                       : currentStep === 2
-                        ? "Tell us more about your staffing agency."
+                        ? "Tell us more about your staffing company."
                         : "Upload documents for account verification."}
                   </p>
                 </div>
@@ -636,7 +639,7 @@ const BenchRegistration = () => {
                           <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                           <Input
                             name="companyName"
-                            placeholder="Agency Co."
+                            placeholder="company Co."
                             className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
                               fieldErrors.companyName
                                 ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
@@ -759,7 +762,7 @@ const BenchRegistration = () => {
                       <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/10">
                         By submitting this application, you agree to Hirion's
                         staffing partner terms and permit us to verify your
-                        agency credentials.
+                        company credentials.
                       </div>
                     </div>
                   )}

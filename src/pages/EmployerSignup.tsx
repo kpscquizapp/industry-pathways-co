@@ -122,16 +122,18 @@ const VALIDATION = {
         return "File size must be 10MB or less";
       }
 
-      // Check file type
-      if (!VALIDATION.document.allowedTypes.includes(file.type)) {
-        const fileName = file.name.toLowerCase();
-        const hasValidExtension = VALIDATION.document.allowedExtensions.some(
-          (ext) => fileName.endsWith(ext),
-        );
+      // Check file extension
+      const fileName = file.name.toLowerCase();
+      const hasValidExtension = VALIDATION.document.allowedExtensions.some(
+        (ext) => fileName.endsWith(ext),
+      );
+      if (!hasValidExtension) {
+        return "Please upload a PDF or Word document (.pdf, .doc, .docx)";
+      }
 
-        if (!hasValidExtension) {
-          return "Please upload a PDF or Word document (.pdf, .doc, .docx)";
-        }
+      // Check MIME type (may be empty for some .doc files, so allow empty)
+      if (file.type && !VALIDATION.document.allowedTypes.includes(file.type)) {
+        return "Please upload a PDF or Word document (.pdf, .doc, .docx)";
       }
 
       return null;
