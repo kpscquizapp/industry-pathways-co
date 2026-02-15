@@ -222,8 +222,6 @@ const BenchRegistration = () => {
       toast.success("Registration successful! Please login to continue.");
       navigate("/bench-login");
     } catch (error: unknown) {
-      toast.error("Registration error");
-
       // Handle specific error cases
       if (isFetchBaseQueryError(error)) {
         if (error.status === 409) {

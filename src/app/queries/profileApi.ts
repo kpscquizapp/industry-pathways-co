@@ -131,6 +131,7 @@ export const profileApi = createApi({
           });
         },
       }),
+      providesTags: ["Profile"],
     }),
     removeProfileImage: builder.mutation<void, string>({
       query: (id) => ({

@@ -228,8 +228,6 @@ const EmployerSignup = () => {
       );
       navigate("/hire-talent-login");
     } catch (error: unknown) {
-      toast.error("Registration error");
-
       // Handle specific error cases
       if (isFetchBaseQueryError(error)) {
         if (error.status === 409) {

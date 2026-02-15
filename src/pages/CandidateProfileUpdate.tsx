@@ -103,6 +103,7 @@ interface FormDataState {
 
 interface CandidateProfileUpdateProps {
   data: {
+    id: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -320,9 +321,7 @@ const CandidateProfileUpdate = ({
     useRemoveProfileImageMutation();
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { data: profileImage } = useGetProfileImageQuery(
-    (data as any)?.id ?? skipToken,
-  );
+  const { data: profileImage } = useGetProfileImageQuery(data?.id ?? skipToken);
 
   const [skillInput, setSkillInput] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -1236,7 +1235,7 @@ const CandidateProfileUpdate = ({
       formData.append("image", file);
       await uploadProfileImage(formData).unwrap();
       toast.success("Image uploaded successfully.");
-      window.location.reload();
+
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -1257,8 +1256,6 @@ const CandidateProfileUpdate = ({
     try {
       await removeProfileImage((data as any)?.id).unwrap();
       toast.success("Image removed successfully.");
-
-      window.location.reload();
     } catch (error) {
       const message =
         typeof error === "object" && error != null && "data" in error
