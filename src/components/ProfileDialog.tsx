@@ -95,9 +95,9 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
         toast.error(fileError);
         return;
       }
+      setCompanyDocument(file);
       // Reset input so re-selecting the same file triggers onChange
       e.target.value = "";
-      setCompanyDocument(file);
       if (errors.companyDocument) {
         setErrors((prev) => {
           const newErrors = { ...prev };
