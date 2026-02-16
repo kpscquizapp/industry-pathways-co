@@ -16,10 +16,21 @@ import { toast } from "sonner";
 import { VALIDATION } from "@/services/utils/signUpValidation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
+interface UserProfile {
+  id?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+  company?: string;
+  companyDetails?: string;
+  role?: string;
+}
+
 interface ProfileDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user: any;
+  user: UserProfile | null;
 }
 
 const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {

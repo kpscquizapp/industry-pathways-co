@@ -125,7 +125,6 @@ export const profileApi = createApi({
         },
         responseHandler: async (response) => {
           if (response.status === 404) return null;
-          if (!response.ok) throw new Error("Failed to fetch image");
 
           const blob = await response.blob();
           return new Promise<string>((resolve, reject) => {
