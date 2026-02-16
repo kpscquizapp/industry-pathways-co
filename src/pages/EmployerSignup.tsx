@@ -230,11 +230,6 @@ const EmployerSignup = () => {
     } catch (error: unknown) {
       // Handle specific error cases
       if (isFetchBaseQueryError(error)) {
-        if (error.status === 409) {
-          toast.error(
-            "An account with this email already exists. Please login instead.",
-          );
-        }
         if (
           typeof error.data === "object" &&
           error.data !== null &&
