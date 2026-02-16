@@ -49,7 +49,6 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
   const [formData, setFormData] = useState({
     email: user?.email || "",
-    password: "",
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
     companyName: user?.companyName || "",
@@ -60,7 +59,6 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
     if (open) {
       setFormData({
         email: user?.email || "",
-        password: "",
         firstName: user?.firstName || "",
         lastName: user?.lastName || "",
         companyName: user?.companyName || "",
@@ -97,6 +95,8 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
         toast.error(fileError);
         return;
       }
+      // Reset input so re-selecting the same file triggers onChange
+      e.target.value = "";
       setCompanyDocument(file);
       if (errors.companyDocument) {
         setErrors((prev) => {
@@ -184,7 +184,9 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
       //   await updateProfile(data).unwrap(); //API not implemented
       // toast.success("Profile updated successfully");
-      setActiveTab("view");
+      // setActiveTab("view");
+      // TODO: uncomment setActiveTab("view") once updateProfile API is wired up
+      toast.info("Profile update is not yet available");
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to update profile");
     }

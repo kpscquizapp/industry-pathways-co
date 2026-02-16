@@ -119,7 +119,7 @@ export const profileApi = createApi({
       query: (id) => ({
         url: `users/${id}/avatar`,
         method: "GET",
-        validateStatus: (response, body) => {
+        validateStatus: (response) => {
           // Treat both 200 and 404 as successful responses
           return response.status === 200 || response.status === 404;
         },
