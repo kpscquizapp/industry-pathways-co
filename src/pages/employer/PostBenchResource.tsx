@@ -307,7 +307,7 @@ const PostBenchResource = () => {
 
     const formDataToSend = new FormData();
     formDataToSend.append("resourceName", trimmedResourceName);
-    formDataToSend.append("email", formData.email);
+    formDataToSend.append("email", formData.email.trim());
     formDataToSend.append("currentRole", formData.currentRole);
     formDataToSend.append(
       "totalExperience",
@@ -579,19 +579,17 @@ const PostBenchResource = () => {
                     Current Role / Designation{" "}
                     <span className="text-destructive">*</span>
                   </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="e.g. Senior Java Developer"
-                      value={formData.currentRole}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          currentRole: e.target.value,
-                        })
-                      }
-                      className="h-12 flex-1 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                    />
-                  </div>
+                  <Input
+                    placeholder="e.g. Senior Java Developer"
+                    value={formData.currentRole}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        currentRole: e.target.value,
+                      })
+                    }
+                    className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                  />
                 </div>
 
                 <div className="space-y-2">

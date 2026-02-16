@@ -181,7 +181,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-2xl">
         <DialogHeader>
           <DialogTitle>Profile Settings</DialogTitle>
           <DialogDescription>
@@ -190,7 +190,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2 md:p-1 p-0">
             <TabsTrigger value="view">View Profile</TabsTrigger>
             <TabsTrigger value="update">Update Profile</TabsTrigger>
           </TabsList>
