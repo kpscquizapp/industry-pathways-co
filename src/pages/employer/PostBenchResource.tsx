@@ -62,6 +62,7 @@ const PostBenchResource = () => {
 
   const [formData, setFormData] = useState<{
     resourceName: string;
+    email: string;
     currentRole: string;
     totalExperience: string | number | null;
     employeeId: string;
@@ -80,6 +81,7 @@ const PostBenchResource = () => {
     resumeFile: File | null;
   }>({
     resourceName: "",
+    email: "",
     currentRole: "",
     totalExperience: null,
     employeeId: "",
@@ -117,6 +119,7 @@ const PostBenchResource = () => {
 
       setFormData({
         resourceName: resource.resourceName || "",
+        email: resource.email || "",
         currentRole: resource.currentRole || "",
         totalExperience: isNaN(Number(resource.totalExperience))
           ? null
@@ -241,6 +244,17 @@ const PostBenchResource = () => {
       return;
     }
 
+    if (!formData.email.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
     if (formData.skills.length === 0) {
       toast.error("At least one technical skill is required");
       return;
@@ -293,6 +307,7 @@ const PostBenchResource = () => {
 
     const formDataToSend = new FormData();
     formDataToSend.append("resourceName", trimmedResourceName);
+    formDataToSend.append("email", formData.email.trim());
     formDataToSend.append("currentRole", formData.currentRole);
     formDataToSend.append(
       "totalExperience",
@@ -504,22 +519,19 @@ const PostBenchResource = () => {
                       }
                       className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
                     />
-                    <p className="text-xs text-slate-400">
-                      Will be shown as "John D." publicly
-                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      Current Role / Designation{" "}
-                      <span className="text-destructive">*</span>
+                      Email Address <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                      placeholder="e.g. Senior Java Developer"
-                      value={formData.currentRole}
+                      type="email"
+                      placeholder="johndoe@example.com"
+                      value={formData.email}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          currentRole: e.target.value,
+                          email: e.target.value,
                         })
                       }
                       className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
@@ -564,6 +576,24 @@ const PostBenchResource = () => {
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-slate-700">
+                    Current Role / Designation{" "}
+                    <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    placeholder="e.g. Senior Java Developer"
+                    value={formData.currentRole}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        currentRole: e.target.value,
+                      })
+                    }
+                    className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">
                     Technical Skills <span className="text-destructive">*</span>
                   </Label>
                   <div className="flex gap-2">
@@ -583,6 +613,7 @@ const PostBenchResource = () => {
                       Add
                     </Button>
                   </div>
+
                   <div className="flex flex-wrap gap-2 mt-3">
                     {formData.skills.map((skill) => (
                       <Badge

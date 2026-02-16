@@ -379,26 +379,29 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                             {resume.isDefault ? "Default" : "Set as Default"}
                           </>
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={
-                            loadingViewId !== null ||
-                            loadingDeleteId !== null ||
-                            loadingDefaultId !== null
-                          }
-                          onClick={() => handleDelete(resume.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs md:text-sm"
-                        >
-                          <>
-                            {loadingDeleteId === resume.id ? (
-                              <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
-                            ) : (
-                              <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                            )}
-                            Delete
-                          </>
-                        </Button>
+                        <div title="You must have at least one resume">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={
+                              loadingViewId !== null ||
+                              loadingDeleteId !== null ||
+                              loadingDefaultId !== null ||
+                              resumes.length === 1
+                            }
+                            onClick={() => handleDelete(resume.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs md:text-sm"
+                          >
+                            <>
+                              {loadingDeleteId === resume.id ? (
+                                <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
+                              ) : (
+                                <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                              )}
+                              Delete
+                            </>
+                          </Button>
+                        </div>
                       </div>
                     </Card>
                   ))}

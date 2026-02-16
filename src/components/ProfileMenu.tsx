@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,9 +10,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import useLogout from "@/hooks/useLogout";
 import { LogOut, User } from "lucide-react";
+import ProfileDialog from "./ProfileDialog";
+import { useNavigate } from "react-router-dom";
 
 const ProfileMenu = ({
   btnClass,
@@ -23,6 +24,7 @@ const ProfileMenu = ({
 }) => {
   const user = useSelector((state: any) => state.user.userDetails);
   const [handleLogout, isLoading] = useLogout();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleProfile = () => {
@@ -33,6 +35,7 @@ const ProfileMenu = ({
     } else if (user.role === "employer") {
       navigate("/hire-talent/dashboard");
     }
+    setIsProfileOpen(true);
   };
 
   return (
@@ -72,6 +75,12 @@ const ProfileMenu = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <ProfileDialog
+        open={isProfileOpen}
+        onOpenChange={setIsProfileOpen}
+        user={user}
+      />
     </>
   );
 };
