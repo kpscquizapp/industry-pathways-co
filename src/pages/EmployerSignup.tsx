@@ -398,7 +398,7 @@ const EmployerSignup = () => {
                 />
 
                 <div className="mb-10">
-                  <h3 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2 tracking-tight">
+                  <h3 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
                     {stepInfo[currentStep - 1].title}
                   </h3>
                   <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">
