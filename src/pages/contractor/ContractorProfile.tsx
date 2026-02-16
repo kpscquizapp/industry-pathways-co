@@ -38,8 +38,8 @@ const ContractorProfile = () => {
   const data = response?.data;
   const profile = data?.candidateProfile;
 
-  const { data: profileImage, isLoading: isLoadingImage } =
-    useGetProfileImageQuery(data?.id ?? skipToken);
+    const { data: profileImage, isLoading: isLoadingImage } =
+      useGetProfileImageQuery(data?.id ?? skipToken);
 
   const candidateId = useId();
 

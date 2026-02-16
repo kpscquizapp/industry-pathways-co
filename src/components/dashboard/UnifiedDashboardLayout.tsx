@@ -43,6 +43,8 @@ import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import useLogout from "@/hooks/useLogout";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
+import ProfileDialog from "../ProfileDialog";
+import { useState } from "react";
 
 type DashboardRole = "contractor" | "bench" | "hire-talent";
 
@@ -131,8 +133,13 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const navigate = useNavigate();
   const [handleLogout, isLoading] = useLogout();
   const user = useSelector((state: RootState) => state.user.userDetails);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleProfile = () => {
+    if (role === "hire-talent") {
+      setIsProfileOpen(true);
+      return;
+    }
     if (!user?.role) return;
     if (user.role === "hr") {
       navigate("/bench-dashboard");
@@ -269,6 +276,13 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarFooter>
+      {role === "hire-talent" && (
+        <ProfileDialog
+          open={isProfileOpen}
+          onOpenChange={setIsProfileOpen}
+          user={user}
+        />
+      )}
     </Sidebar>
   );
 };

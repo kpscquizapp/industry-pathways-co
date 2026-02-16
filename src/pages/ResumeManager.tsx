@@ -385,7 +385,8 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                           disabled={
                             loadingViewId !== null ||
                             loadingDeleteId !== null ||
-                            loadingDefaultId !== null
+                            loadingDefaultId !== null ||
+                            resumes.length === 1
                           }
                           onClick={() => handleDelete(resume.id)}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs md:text-sm"

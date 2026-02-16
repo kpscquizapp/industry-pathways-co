@@ -115,15 +115,19 @@ export const profileApi = createApi({
       }),
       invalidatesTags: ["Profile"],
     }),
-    getProfileImage: builder.query<string, string>({
+    getProfileImage: builder.query<string | null, string>({
       query: (id) => ({
         url: `users/${id}/avatar`,
         method: "GET",
+        validateStatus: (response, body) => {
+          // Treat both 200 and 404 as successful responses
+          return response.status === 200 || response.status === 404;
+        },
         responseHandler: async (response) => {
+          if (response.status === 404) return null;
           if (!response.ok) throw new Error("Failed to fetch image");
 
           const blob = await response.blob();
-
           return new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result as string);
@@ -134,6 +138,7 @@ export const profileApi = createApi({
         },
       }),
       providesTags: ["Profile"],
+      keepUnusedDataFor: 0,
     }),
     removeProfileImage: builder.mutation<void, string>({
       query: (id) => ({
@@ -141,6 +146,17 @@ export const profileApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["Profile"],
+      // Optional: optimistic update to clear image immediately
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          profileApi.util.updateQueryData("getProfileImage", id, () => ""),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
     }),
   }),
 });
