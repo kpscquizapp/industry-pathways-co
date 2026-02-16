@@ -24,6 +24,9 @@ import { toast } from "sonner";
 import { useRegisterHrMutation } from "@/app/queries/loginApi";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import RegistrationStepIndicator from "@/components/auth/RegistrationStepIndicator";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
+import { VALIDATION } from "@/services/utils/signUpValidation";
+import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 
 const BenchRegistration = () => {
   const navigate = useNavigate();
@@ -34,7 +37,7 @@ const BenchRegistration = () => {
 
   const stepInfo = [
     { title: "Account", desc: "Start your enterprise journey" },
-    { title: "Agency", desc: "Tell us about your agency" },
+    { title: "Details", desc: "Tell us about your organization" },
     { title: "Verify", desc: "Upload business documents" },
   ];
 
@@ -50,59 +53,143 @@ const BenchRegistration = () => {
 
   const [companyDocument, setCompanyDocument] = useState<File | null>(null);
 
+  // Field-level errors for better UX
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+
+    // Clear confirmPassword error when editing either password field
+    if (
+      (name === "password" || name === "confirmPassword") &&
+      fieldErrors.confirmPassword
+    ) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.confirmPassword;
+        return newErrors;
+      });
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const maxSizeBytes = 10 * 1024 * 1024; // 10MB
-      if (file.size > maxSizeBytes) {
-        toast.error("File size must be less than 10MB");
+
+      // Validate file
+      const fileError = VALIDATION.document.validate(file);
+      if (fileError) {
+        toast.error(fileError);
         setCompanyDocument(null);
+        e.target.value = "";
         return;
       }
+
       setCompanyDocument(file);
+
+      // Clear document error if it exists
+      if (fieldErrors.companyDocument) {
+        setFieldErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.companyDocument;
+          return newErrors;
+        });
+      }
     }
+  };
+
+  const removeFile = () => {
+    setCompanyDocument(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const validateStep = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (currentStep === 1) {
+      // Validate first name
+      const firstNameError = VALIDATION.name.validate(
+        formData.firstName,
+        "First name",
+      );
+      if (firstNameError) errors.firstName = firstNameError;
+
+      // Validate last name
+      const lastNameError = VALIDATION.name.validate(
+        formData.lastName,
+        "Last name",
+      );
+      if (lastNameError) errors.lastName = lastNameError;
+
+      // Validate email
+      const emailError = VALIDATION.email.validate(formData.email);
+      if (emailError) errors.email = emailError;
+
+      // Validate password
+      const passwordError = VALIDATION.password.validate(formData.password);
+      if (passwordError) errors.password = passwordError;
+
+      // Validate confirm password
+      const confirmPasswordError = VALIDATION.confirmPassword.validate(
+        formData.password,
+        formData.confirmPassword,
+      );
+      if (confirmPasswordError) errors.confirmPassword = confirmPasswordError;
+    } else if (currentStep === 2) {
+      // Validate company name
+      const companyNameError = VALIDATION.companyName.validate(
+        formData.companyName,
+      );
+      if (companyNameError) errors.companyName = companyNameError;
+
+      // Validate company details (optional, but enforce max length)
+      const companyDetailsError = VALIDATION.companyDetails.validate(
+        formData.companyDetails,
+      );
+      if (companyDetailsError) errors.companyDetails = companyDetailsError;
+    } else if (currentStep === 3) {
+      // Validate document
+      const documentError = VALIDATION.document.validate(companyDocument);
+      if (documentError) errors.companyDocument = documentError;
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+
+      // Show the first error in a toast
+      const firstError = Object.values(errors)[0];
+      toast.error(firstError);
+
+      return false;
+    }
+
+    setFieldErrors({});
+    return true;
   };
 
   const nextStep = () => {
-    if (currentStep === 1) {
-      if (
-        !formData.firstName ||
-        !formData.lastName ||
-        !formData.email ||
-        !formData.password
-      ) {
-        toast.error("Please fill in all required account details");
-        return;
-      }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        toast.error("Please enter a valid email address");
-        return;
-      }
-      if (formData.password.length < 8) {
-        toast.error("Password must be at least 8 characters");
-        return;
-      }
-      if (formData.password !== formData.confirmPassword) {
-        toast.error("Passwords do not match");
-        return;
-      }
-    } else if (currentStep === 2) {
-      if (!formData.companyName || !formData.companyDetails) {
-        toast.error("Please fill in agency details");
-        return;
-      }
+    if (validateStep()) {
+      setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     }
-    setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
-  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
+  const prevStep = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    setFieldErrors({}); // Clear errors when going back
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,28 +199,55 @@ const BenchRegistration = () => {
       return;
     }
 
-    if (!companyDocument) {
-      toast.error("Please upload a company document");
-      return;
-    }
+    if (!validateStep()) return;
 
     const submitData = new FormData();
-    submitData.append("email", formData.email);
+
+    // Sanitize and append data
+    submitData.append("email", formData.email.toLowerCase().trim());
     submitData.append("password", formData.password);
-    submitData.append("firstName", formData.firstName);
-    submitData.append("lastName", formData.lastName);
-    submitData.append("companyName", formData.companyName);
-    submitData.append("companyDetails", formData.companyDetails);
-    submitData.append("companyDocument", companyDocument);
+    submitData.append("firstName", formData.firstName.trim());
+    submitData.append("lastName", formData.lastName.trim());
+    submitData.append("companyName", formData.companyName.trim());
+    if (formData.companyDetails && formData.companyDetails.trim()) {
+      submitData.append("companyDetails", formData.companyDetails.trim());
+    }
+
+    if (companyDocument) {
+      submitData.append("companyDocument", companyDocument);
+    }
 
     try {
       await registerHr(submitData).unwrap();
       toast.success("Registration successful! Please login to continue.");
       navigate("/bench-login");
-    } catch (error: any) {
-      toast.error(
-        error?.data?.message || "Registration failed. Please try again.",
-      );
+    } catch (error: unknown) {
+      // Handle specific error cases
+      if (isFetchBaseQueryError(error)) {
+        if (error.status === 409) {
+          toast.error(
+            "An account with this email already exists. Please login instead.",
+          );
+        } else if (
+          typeof error.data === "object" &&
+          error.data !== null &&
+          "message" in error.data
+        ) {
+          toast.error((error.data as { message: string }).message);
+        } else if (error.status === 400) {
+          toast.error(
+            "Invalid registration data. Please check your inputs and try again.",
+          );
+        } else {
+          toast.error(
+            "Registration failed. Please try again or contact support if the issue persists.",
+          );
+        }
+      } else {
+        toast.error(
+          "Registration failed. Please try again or contact support if the issue persists.",
+        );
+      }
     }
   };
 
@@ -253,14 +367,14 @@ const BenchRegistration = () => {
                     {currentStep === 1
                       ? "Partner Account"
                       : currentStep === 2
-                        ? "Agency Details"
+                        ? "Company Details"
                         : "Verification"}
                   </h3>
                   <p className="text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
                     {currentStep === 1
                       ? "Start your enterprise journey here."
                       : currentStep === 2
-                        ? "Tell us more about your staffing agency."
+                        ? "Tell us more about your staffing company."
                         : "Upload documents for account verification."}
                   </p>
                 </div>
@@ -271,41 +385,53 @@ const BenchRegistration = () => {
                       <div className="grid md:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                            First Name
+                            First Name{" "}
+                            <span className="text-destructive">*</span>
                           </Label>
                           <div className="relative group">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                             <Input
                               name="firstName"
                               placeholder="John"
-                              className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                                fieldErrors.firstName
+                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                                  : ""
+                              }`}
                               value={formData.firstName}
                               onChange={handleInputChange}
                               required
                             />
                           </div>
+                          <ErrorMessage error={fieldErrors.firstName} />
                         </div>
                         <div className="space-y-2">
                           <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                            Last Name
+                            Last Name{" "}
+                            <span className="text-destructive">*</span>
                           </Label>
                           <div className="relative group">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                             <Input
                               name="lastName"
                               placeholder="Smith"
-                              className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                                fieldErrors.lastName
+                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                                  : ""
+                              }`}
                               value={formData.lastName}
                               onChange={handleInputChange}
                               required
                             />
                           </div>
+                          <ErrorMessage error={fieldErrors.lastName} />
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                          Work Email
+                          Work Email <span className="text-destructive">*</span>
                         </Label>
                         <div className="relative group">
                           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -313,18 +439,23 @@ const BenchRegistration = () => {
                             name="email"
                             type="email"
                             placeholder="hr@agency.com"
-                            className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                              fieldErrors.email
+                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                                : ""
+                            }`}
                             value={formData.email}
                             onChange={handleInputChange}
                             required
                           />
                         </div>
+                        <ErrorMessage error={fieldErrors.email} />
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                            Password
+                            Password <span className="text-destructive">*</span>
                           </Label>
                           <div className="relative group">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -332,16 +463,22 @@ const BenchRegistration = () => {
                               name="password"
                               type="password"
                               placeholder="••••••••"
-                              className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                                fieldErrors.password
+                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                                  : ""
+                              }`}
                               value={formData.password}
                               onChange={handleInputChange}
                               required
                             />
                           </div>
+                          <ErrorMessage error={fieldErrors.password} />
                         </div>
                         <div className="space-y-2">
                           <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                            Confirm
+                            Confirm Password
+                            <span className="text-destructive">*</span>
                           </Label>
                           <div className="relative group">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
@@ -349,14 +486,24 @@ const BenchRegistration = () => {
                               name="confirmPassword"
                               type="password"
                               placeholder="••••••••"
-                              className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                                fieldErrors.confirmPassword
+                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                                  : ""
+                              }`}
                               value={formData.confirmPassword}
                               onChange={handleInputChange}
                               required
                             />
                           </div>
+                          <ErrorMessage error={fieldErrors.confirmPassword} />
                         </div>
                       </div>
+
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 ml-1">
+                        Password must contain: 8+ characters, uppercase,
+                        lowercase, number, special character
+                      </p>
                     </div>
                   )}
 
@@ -364,33 +511,46 @@ const BenchRegistration = () => {
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                          Agency Name
+                          Organization Name{" "}
+                          <span className="text-destructive">*</span>
                         </Label>
                         <div className="relative group">
                           <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                           <Input
                             name="companyName"
-                            placeholder="Agency Co."
-                            className="h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                            placeholder="Company Co."
+                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                              fieldErrors.companyName
+                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                                : ""
+                            }`}
                             value={formData.companyName}
                             onChange={handleInputChange}
                             required
                           />
                         </div>
+                        <ErrorMessage error={fieldErrors.companyName} />
                       </div>
 
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                          Agency Details
+                          Organization Details (Optional)
                         </Label>
                         <Textarea
                           name="companyDetails"
                           placeholder="Tell us about your staffing capabilities..."
-                          className="min-h-[150px] bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium"
+                          maxLength={1000}
+                          className={`min-h-[150px] bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                            fieldErrors.companyDetails
+                              ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                              : ""
+                          }`}
                           value={formData.companyDetails}
                           onChange={handleInputChange}
-                          required
                         />
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 ml-1">
+                          {formData.companyDetails.length}/1000 characters
+                        </p>
                       </div>
                     </div>
                   )}
@@ -399,29 +559,42 @@ const BenchRegistration = () => {
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                          Company Document (ID/Verification)
+                          Company Document (ID/Verification){" "}
+                          <span className="text-destructive">*</span>
                         </Label>
                         {!companyDocument ? (
                           <div
                             onClick={() => fileInputRef.current?.click()}
                             onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ")
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
                                 fileInputRef.current?.click();
+                              }
                             }}
                             role="button"
                             tabIndex={0}
                             aria-label="Upload company document"
-                            className="group relative border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl p-12 transition-all hover:bg-slate-50 dark:hover:bg-white/[0.02] hover:border-primary/50 cursor-pointer flex flex-col items-center justify-center gap-4"
+                            className={`group relative border-2 border-dashed rounded-2xl p-12 transition-all hover:bg-slate-50 dark:hover:bg-white/[0.02] cursor-pointer flex flex-col items-center justify-center gap-4 ${
+                              fieldErrors.companyDocument
+                                ? "border-red-500 hover:border-red-500"
+                                : "border-slate-200 dark:border-white/10 hover:border-primary/50"
+                            }`}
                           >
                             <div className="w-16 h-16 bg-slate-100 dark:bg-white/5 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
-                              <Upload className="w-8 h-8 text-slate-400 group-hover:text-primary" />
+                              <Upload
+                                className={`w-8 h-8 ${
+                                  fieldErrors.companyDocument
+                                    ? "text-red-500"
+                                    : "text-slate-400 group-hover:text-primary"
+                                }`}
+                              />
                             </div>
                             <div className="text-center">
                               <p className="text-sm font-extrabold text-slate-600 dark:text-slate-200">
                                 Select business document
                               </p>
                               <p className="text-[11px] text-slate-400 mt-1 uppercase tracking-widest">
-                                PDF, DOCX up to 10MB
+                                PDF, DOC, DOCX up to 10MB
                               </p>
                             </div>
                             <input
@@ -453,7 +626,7 @@ const BenchRegistration = () => {
                             </div>
                             <button
                               type="button"
-                              onClick={() => setCompanyDocument(null)}
+                              onClick={removeFile}
                               aria-label="Remove uploaded document"
                               className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
                             >
@@ -461,12 +634,13 @@ const BenchRegistration = () => {
                             </button>
                           </div>
                         )}
+                        <ErrorMessage error={fieldErrors.companyDocument} />
                       </div>
 
                       <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/10">
                         By submitting this application, you agree to Hirion's
                         staffing partner terms and permit us to verify your
-                        agency credentials.
+                        company credentials.
                       </div>
                     </div>
                   )}

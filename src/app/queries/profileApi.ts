@@ -107,6 +107,41 @@ export const profileApi = createApi({
       }),
       invalidatesTags: ["Profile"],
     }),
+    uploadProfileImage: builder.mutation<void, FormData>({
+      query: (formData) => ({
+        url: "jobboard/profile/image",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Profile"],
+    }),
+    getProfileImage: builder.query<string, string>({
+      query: (id) => ({
+        url: `users/${id}/avatar`,
+        method: "GET",
+        responseHandler: async (response) => {
+          if (!response.ok) throw new Error("Failed to fetch image");
+
+          const blob = await response.blob();
+
+          return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () =>
+              reject(new Error("Failed to read image blob"));
+            reader.readAsDataURL(blob);
+          });
+        },
+      }),
+      providesTags: ["Profile"],
+    }),
+    removeProfileImage: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `users/${id}/avatar`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Profile"],
+    }),
   }),
 });
 
@@ -116,9 +151,12 @@ export const {
   useSetDefaultResumeMutation,
   useUploadResumeMutation,
   useUpdateProfileMutation,
+  useGetProfileImageQuery,
   useRemoveResumeMutation,
   useRemoveSkillMutation,
   useRemoveWorkExperienceMutation,
   useRemoveProjectMutation,
   useRemoveCertificateMutation,
+  useRemoveProfileImageMutation,
+  useUploadProfileImageMutation,
 } = profileApi;

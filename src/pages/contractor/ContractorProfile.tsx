@@ -3,12 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Clock, DollarSign, Globe, MapPin, Briefcase } from "lucide-react";
+import {
+  Clock,
+  DollarSign,
+  Globe,
+  MapPin,
+  Briefcase,
+  Camera,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useGetProfileQuery } from "@/app/queries/profileApi";
+import {
+  useGetProfileImageQuery,
+  useGetProfileQuery,
+} from "@/app/queries/profileApi";
 const CandidateProfileUpdate = lazy(() => import("../CandidateProfileUpdate"));
 import ResumeManager from "../ResumeManager";
 import BarLoader from "@/components/loader/BarLoader";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 const getSafeProjectUrl = (value?: string) => {
   if (typeof value !== "string") return undefined;
@@ -22,8 +34,13 @@ const ContractorProfile = () => {
     isLoading: isLoadingProfile,
     isError,
   } = useGetProfileQuery();
+
   const data = response?.data;
   const profile = data?.candidateProfile;
+
+  const { data: profileImage, isLoading: isLoadingImage } =
+    useGetProfileImageQuery(data?.id ?? skipToken);
+
   const candidateId = useId();
 
   return (
@@ -46,9 +63,20 @@ const ContractorProfile = () => {
                   className="dark:bg-slate-800 dark:border-slate-700 w-full"
                 >
                   <CardContent className="p-4 sm:p-6 text-center">
-                    <Avatar className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 shadow-xl ring-4 ring-white/90 dark:ring-slate-700/90">
-                      <AvatarImage src={data?.avatar ?? undefined} />
-                      <AvatarFallback>Avatar</AvatarFallback>
+                    <Avatar className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 shadow-xl ring-4 ring-white/90 dark:ring-slate-700/90 relative">
+                      {isLoadingImage ? (
+                        <SpinnerLoader />
+                      ) : (
+                        <>
+                          <AvatarImage
+                            className="object-cover"
+                            src={profileImage}
+                          />
+                          <AvatarFallback>
+                            <Camera className="w-8 h-8 lg:w-12 lg:h-12 text-gray-400" />
+                          </AvatarFallback>
+                        </>
+                      )}
                     </Avatar>
                     <h2 className="text-base sm:text-lg lg:text-xl font-bold mb-1 dark:text-slate-100 break-words">
                       {data?.firstName} {data?.lastName}
