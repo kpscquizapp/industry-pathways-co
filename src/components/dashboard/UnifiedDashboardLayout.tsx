@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   PlusCircle,
@@ -12,7 +12,6 @@ import {
   LogOut,
   User,
   LayoutDashboard,
-  Briefcase,
   FileCheck,
   BarChart3,
   Plus,
@@ -44,7 +43,6 @@ import useLogout from "@/hooks/useLogout";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import ProfileDialog from "../ProfileDialog";
-import { useState } from "react";
 
 type DashboardRole = "contractor" | "bench" | "hire-talent";
 

@@ -38,8 +38,8 @@ const ContractorProfile = () => {
   const data = response?.data;
   const profile = data?.candidateProfile;
 
-    const { data: profileImage, isLoading: isLoadingImage } =
-      useGetProfileImageQuery(data?.id ?? skipToken);
+  const { data: profileImage, isLoading: isLoadingImage } =
+    useGetProfileImageQuery(data?.id ?? skipToken);
 
   const candidateId = useId();
 
@@ -70,7 +70,7 @@ const ContractorProfile = () => {
                         <>
                           <AvatarImage
                             className="object-cover"
-                            src={profileImage}
+                            src={profileImage ?? ""}
                           />
                           <AvatarFallback>
                             <Camera className="w-8 h-8 lg:w-12 lg:h-12 text-gray-400" />

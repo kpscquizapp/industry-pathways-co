@@ -249,6 +249,12 @@ const PostBenchResource = () => {
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
     if (formData.skills.length === 0) {
       toast.error("At least one technical skill is required");
       return;
@@ -516,10 +522,10 @@ const PostBenchResource = () => {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      Email Address
-                      <span className="text-destructive">*</span>
+                      Email Address <span className="text-destructive">*</span>
                     </Label>
                     <Input
+                      type="email"
                       placeholder="johndoe@example.com"
                       value={formData.email}
                       onChange={(e) =>

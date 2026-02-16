@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import useLogout from "@/hooks/useLogout";
 import { LogOut, User } from "lucide-react";
 import ProfileDialog from "./ProfileDialog";
+import { useNavigate } from "react-router-dom";
 
 const ProfileMenu = ({
   btnClass,
@@ -24,8 +25,16 @@ const ProfileMenu = ({
   const user = useSelector((state: any) => state.user.userDetails);
   const [handleLogout, isLoading] = useLogout();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleProfile = () => {
+    if (user.role === "hr") {
+      navigate("/bench-dashboard");
+    } else if (user.role === "candidate") {
+      navigate("/contractor/profile");
+    } else if (user.role === "employer") {
+      navigate("/hire-talent/dashboard");
+    }
     setIsProfileOpen(true);
   };
 
@@ -77,4 +86,3 @@ const ProfileMenu = ({
 };
 
 export default ProfileMenu;
-

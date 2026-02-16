@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,15 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Upload, X, FileIcon, Loader2, Camera, Trash2 } from "lucide-react";
-import {
-  useGetProfileImageQuery,
-  useRemoveProfileImageMutation,
-  useUploadProfileImageMutation,
-} from "@/app/queries/profileApi";
+import { Upload, X, FileIcon, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { VALIDATION } from "@/services/utils/signUpValidation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface ProfileDialogProps {
   open: boolean;
@@ -49,6 +44,22 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
     companyName: user?.companyName || "",
     companyDetails: user?.companyDetails || "",
   });
+
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        email: user?.email || "",
+        password: "",
+        firstName: user?.firstName || "",
+        lastName: user?.lastName || "",
+        companyName: user?.companyName || "",
+        companyDetails: user?.companyDetails || "",
+      });
+      setErrors({});
+      setCompanyDocument(null);
+      setActiveTab("view");
+    }
+  }, [open, user]);
 
   const [companyDocument, setCompanyDocument] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -106,7 +117,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
       try {
         // await uploadProfileImage(data).unwrap();
-        toast.success("Profile image updated successfully");
+        // toast.success("Profile image updated successfully"); API coming soon
       } catch (error: any) {
         toast.error(error?.data?.message || "Failed to upload image");
       }
@@ -115,8 +126,8 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
   const handleImageRemove = async () => {
     try {
-      //   await removeProfileImage(user?.id).unwrap();
-      toast.success("Profile image removed");
+      //   await removeProfileImage(user?.id).unwrap(); API coming soon
+      // toast.success("Profile image removed");
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to remove image");
     }
@@ -124,16 +135,20 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.firstName.trim())
-      newErrors.firstName = "First name is required";
-    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!VALIDATION.email.regex.test(formData.email)) {
-      newErrors.email = "Invalid email format";
-    }
-    if (!formData.companyName.trim())
-      newErrors.companyName = "Company name is required";
+    const firstNameErr = VALIDATION.name.validate(
+      formData.firstName,
+      "First name",
+    );
+    if (firstNameErr) newErrors.firstName = firstNameErr;
+    const lastNameErr = VALIDATION.name.validate(
+      formData.lastName,
+      "Last name",
+    );
+    if (lastNameErr) newErrors.lastName = lastNameErr;
+    const emailErr = VALIDATION.email.validate(formData.email);
+    if (emailErr) newErrors.email = emailErr;
+    const companyErr = VALIDATION.companyName.validate(formData.companyName);
+    if (companyErr) newErrors.companyName = companyErr;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -157,7 +172,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
       }
 
       //   await updateProfile(data).unwrap(); //API not implemented
-      toast.success("Profile updated successfully");
+      // toast.success("Profile updated successfully");
       setActiveTab("view");
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to update profile");
@@ -192,14 +207,13 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                 <h3 className="text-xl font-bold">
                   {user?.firstName} {user?.lastName}
                 </h3>
-                <p className="text-sm text-muted-foreground uppercase">
+                <p className="text-sm text-muted-foreground uppercase text-left">
                   {user?.role}
                 </p>
               </div>
             </div>
 
-            <div className="space-y-4 pt-2 border-t border-slate-100 pb-4">
-              <hr className="pb-4" />
+            <div className="space-y-4 pt-4 border-t border-slate-300 pb-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">

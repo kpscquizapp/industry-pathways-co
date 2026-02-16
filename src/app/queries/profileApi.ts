@@ -149,7 +149,7 @@ export const profileApi = createApi({
       // Optional: optimistic update to clear image immediately
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
-          profileApi.util.updateQueryData("getProfileImage", id, () => ""),
+          profileApi.util.updateQueryData("getProfileImage", id, () => null),
         );
         try {
           await queryFulfilled;
