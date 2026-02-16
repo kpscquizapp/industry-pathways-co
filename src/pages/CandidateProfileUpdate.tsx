@@ -1231,9 +1231,9 @@ const CandidateProfileUpdate = ({
     }
 
     try {
-      const formData = new FormData();
-      formData.append("image", file);
-      await uploadProfileImage(formData).unwrap();
+      const imageFormData = new FormData();
+      imageFormData.append("image", file);
+      await uploadProfileImage(imageFormData).unwrap();
       toast.success("Image uploaded successfully.");
 
       if (fileInputRef.current) {

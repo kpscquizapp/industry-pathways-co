@@ -32,11 +32,22 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 import { VALIDATION } from "@/services/utils/signUpValidation";
 
+type EmployerFormData = {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  firstName: string;
+  lastName: string;
+  companyName: string;
+  companyDetails: string;
+};
+type FieldErrorKey = keyof EmployerFormData | "companyDocument";
+
 const EmployerSignup = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<EmployerFormData>({
     email: "",
     password: "",
     confirmPassword: "",
@@ -51,7 +62,9 @@ const EmployerSignup = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Field-level errors for better UX
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<FieldErrorKey, string>>
+  >({});
 
   const [registerEmployer] = useRegisterEmployerMutation();
   const navigate = useNavigate();
@@ -94,6 +107,10 @@ const EmployerSignup = () => {
       if (fileError) {
         toast.error(fileError);
         setCompanyDocument(null);
+        setFieldErrors((prev) => ({
+          ...prev,
+          companyDocument: fileError,
+        }));
         e.target.value = "";
         return;
       }
@@ -233,7 +250,8 @@ const EmployerSignup = () => {
         if (
           typeof error.data === "object" &&
           error.data !== null &&
-          "message" in error.data
+          "message" in error.data &&
+          typeof (error.data as Record<string, unknown>).message === "string"
         ) {
           toast.error((error.data as { message: string }).message);
         } else if (error.status === 409) {

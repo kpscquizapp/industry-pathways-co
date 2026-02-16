@@ -4,7 +4,7 @@ export const VALIDATION = {
     maxLength: 254,
     validate: (email: string) => {
       if (!email) return "Email is required";
-      if (email.length > 254) return "Email must be less than 254 characters";
+      if (email.length > 254) return "Email must be at most 254 characters";
       if (!VALIDATION.email.regex.test(email))
         return "Please enter a valid email address (e.g., hr@agency.com)";
       return null;
@@ -94,12 +94,12 @@ export const VALIDATION = {
         (ext) => fileName.endsWith(ext),
       );
       if (!hasValidExtension) {
-        return "Please upload a PDF or Word document (.pdf, .docx)";
+        return "Please upload a PDF or Word document (.pdf, .doc, .docx)";
       }
 
       // Check MIME type (may be empty for some .doc files, so allow empty)
       if (file.type && !VALIDATION.document.allowedTypes.includes(file.type)) {
-        return "Please upload a PDF or Word document (.pdf, .docx)";
+        return "Please upload a PDF or Word document (.pdf, .doc, .docx)";
       }
 
       return null;
