@@ -38,7 +38,7 @@ const ForgotPassword = () => {
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (fieldErrors.email) {
       setFieldErrors((prev) => {
-        const { email, ...rest } = prev;
+        const { email: _email, ...rest } = prev;
         return rest;
       });
     }
