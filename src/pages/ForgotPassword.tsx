@@ -13,10 +13,9 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { VALIDATION } from "@/services/utils/signUpValidation";
-import { set } from "date-fns";
 import { Mail } from "lucide-react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 type Email = {
@@ -29,19 +28,16 @@ const ForgotPassword = () => {
   const [forgotEmail, setForgotEmail] = useState({
     email: "",
   });
-  const navigation = useNavigate();
   // Field-level errors for better UX
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<FieldErrorKey, string>>
   >({});
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name } = e.target;
-    if (fieldErrors[name]) {
+    if (fieldErrors.email) {
       setFieldErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
+        const { email, ...rest } = prev;
+        return rest;
       });
     }
     setForgotEmail((prev) => ({ ...prev, email: e.target.value }));
@@ -72,11 +68,10 @@ const ForgotPassword = () => {
     setForgotEmail((prev) => ({ ...prev, email: trimmedEmail }));
     // Handle password reset logic here
     try {
-      const result = await forgotPassword(forgotEmail).unwrap();
+      const result = await forgotPassword({ email: trimmedEmail }).unwrap();
 
       if (result?.success) {
         toast.success("If the email exists, a reset link will be sent");
-        navigation("/reset-password");
       } else {
         toast.error(result?.message || "Failed to send password reset email.");
       }

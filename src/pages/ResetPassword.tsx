@@ -71,11 +71,15 @@ const ResetPassword = () => {
       return;
     }
     setFieldErrors({});
-    setResetPassword((prev) => ({ ...prev, password: trimmedPassword }));
+    const updatedResetPassword = {
+      ...resetPassword,
+      password: trimmedPassword,
+    };
+    setResetPassword(updatedResetPassword);
 
     // Handle password reset logic here
     try {
-      const result = await resetNewPassword(resetPassword).unwrap();
+      const result = await resetNewPassword(updatedResetPassword).unwrap();
 
       if (result?.success) {
         toast.success("Password reset successfully.");
