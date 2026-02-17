@@ -94,6 +94,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import Unauthorized from "./pages/Unauthorized";
 import { LazyRoute } from "./pages/LazyRoute";
+import ResetPassword from "./pages/ResetPassword";
 const HiringDashboardNew = lazy(
   () => import("./pages/employer/HiringDashboardNew"),
 );
@@ -173,10 +174,13 @@ const App = () => {
                       element={<CandidateSignup />}
                     />
 
+                    {/* Forgot password Route */}
                     <Route
                       path="/forgot-password"
                       element={<ForgotPassword />}
                     />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+
                     {/* Coding Challenge Route */}
                     <Route
                       path="/coding-challenge/:challengeId?"

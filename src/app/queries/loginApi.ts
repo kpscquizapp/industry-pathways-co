@@ -2,6 +2,12 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { config } from "../../services/service";
 import { getAuthHeaders } from "../../lib/helpers";
 
+interface ForgotPassword {
+  code?: string;
+  success: string;
+  message: string;
+}
+
 export const loginApi = createApi({
   reducerPath: "loginApi",
   baseQuery: fetchBaseQuery({
@@ -81,11 +87,27 @@ export const loginApi = createApi({
         body: { refreshToken },
       }),
     }),
+    forgotPassword: builder.mutation<ForgotPassword, string>({
+      query: (email) => ({
+        method: "POST",
+        url: "jobboard/forgot-password",
+        body: { email },
+      }),
+    }),
+    resetPassword: builder.mutation({
+      query: (data) => ({
+        method: "POST",
+        url: "jobboard/reset-password",
+        body: data,
+      }),
+    }),
   }),
 });
 
 export const {
   useCreateEmployerMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
   useRegisterEmployerMutation,
   useRegisterHrMutation,
   useCreateCandidateMutation,
