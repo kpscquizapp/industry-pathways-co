@@ -1,6 +1,7 @@
 import { useResetPasswordMutation } from "@/app/queries/loginApi";
 import LandingFooter from "@/components/landing/LandingFooter";
 import LandingHeader from "@/components/landing/LandingHeader";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,7 +33,7 @@ const ResetPassword = () => {
     Partial<Record<FieldErrorKey, string>>
   >({});
 
-  const [resetNewPassword] = useResetPasswordMutation();
+  const [resetNewPassword, { isLoading }] = useResetPasswordMutation();
 
   const [resetPassword, setResetPassword] = useState({
     password: "",
@@ -141,9 +142,17 @@ const ResetPassword = () => {
                       <div className="my-8">
                         <Button
                           type="submit"
+                          disabled={isLoading}
                           className="w-full h-12 text-base font-medium transition-all hover:scale-[1.02] shadow-lg"
                         >
-                          Reset Password
+                          {isLoading ? (
+                            <>
+                              <SpinnerLoader />
+                              <span className="ml-2">Resetting...</span>
+                            </>
+                          ) : (
+                            <>Reset Password</>
+                          )}
                         </Button>
                       </div>
                     </div>

@@ -1,6 +1,7 @@
 import { useForgotPasswordMutation } from "@/app/queries/loginApi";
 import LandingFooter from "@/components/landing/LandingFooter";
 import LandingHeader from "@/components/landing/LandingHeader";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,7 +26,7 @@ type Email = {
 type FieldErrorKey = keyof Email;
 
 const ForgotPassword = () => {
-  const [forgotPassword] = useForgotPasswordMutation();
+  const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
   const [forgotEmail, setForgotEmail] = useState({
     email: "",
   });
@@ -126,9 +127,17 @@ const ForgotPassword = () => {
                       <div className="my-8">
                         <Button
                           type="submit"
+                          disabled={isLoading}
                           className="w-full h-12 text-base font-medium transition-all hover:scale-[1.02] shadow-lg"
                         >
-                          Send Reset Link
+                          {isLoading ? (
+                            <>
+                              <SpinnerLoader />
+                              <span className="ml-2">Sending...</span>
+                            </>
+                          ) : (
+                            <>Send Reset Link</>
+                          )}
                         </Button>
                       </div>
                     </div>
