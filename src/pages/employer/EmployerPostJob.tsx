@@ -29,27 +29,86 @@ import {
 } from '@/components/ui/accordion';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useCreateJobMutation } from '@/app/queries/jobApi';
 
 const EmployerPostJob = () => {
   const navigate = useNavigate();
-  const [skills, setSkills] = useState<string[]>(['React', 'TypeScript', 'Node.js']);
+  const [createJob, { isLoading: createJobLoading }] = useCreateJobMutation();
+  const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState('');
-  const [openToBench, setOpenToBench] = useState(true);
+  const [openToBench, setOpenToBench] = useState(false);
   const [formData, setFormData] = useState({
-    title: 'Senior React Native Developer (Contract)',
+    title: '',
     description: '',
     category: '',
-    openings: '2',
-    experienceLevel: 'mid-senior',
+    employmentType: '',
+    openings: '',
+    experienceLevel: '',
     certifications: '',
     workMode: '',
-    location: 'Bangalore, India',
-    duration: '3',
-    durationUnit: 'month',
+    location: '',
+    duration: '',
+    durationUnit: '',
     startDate: '',
-    paymentType: 'hourly',
-    budgetMin: '',
-    budgetMax: '',
+    paymentType: '',
+    salaryMin: '',
+    salaryMax: '',
+    currency: '',
+  });
+
+  const parseOptionalNumber = (value: string) => {
+    if (!value) {
+      return undefined;
+    }
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  };
+
+  const mapDurationUnit = (unit: string) => {
+    switch (unit) {
+      case 'week':
+        return 'weeks';
+      case 'month':
+        return 'months';
+      case 'year':
+        return 'years';
+      default:
+        return undefined;
+    }
+  };
+
+  const parseCertifications = (value: string) => {
+    if (!value.trim()) {
+      return undefined;
+    }
+    const items = value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+    return items.length > 0 ? items : undefined;
+  };
+
+  const buildCreateJobPayload = (enableAiMatching: boolean) => ({
+    title: formData.title,
+    description: formData.description,
+    category: formData.category || undefined,
+    location: formData.location || undefined,
+    experienceLevel: formData.experienceLevel || undefined,
+    employmentType: formData.employmentType || undefined,
+    workMode: formData.workMode || undefined,
+    duration: parseOptionalNumber(formData.duration),
+    durationUnit: mapDurationUnit(formData.durationUnit),
+    startDate: formData.startDate || undefined,
+    paymentType: formData.paymentType || undefined,
+    salaryMin: parseOptionalNumber(formData.salaryMin),
+    salaryMax: parseOptionalNumber(formData.salaryMax),
+    currency: formData.currency || undefined,
+    openToBenchResources: openToBench,
+    certifications: parseCertifications(formData.certifications),
+    numberOfOpenings: parseOptionalNumber(formData.openings),
+    enableAiTalentMatching: enableAiMatching,
+    aiMatchingEnabled: enableAiMatching,
+    skills: skills.map((skill) => ({ name: skill })),
   });
 
   const addSkill = () => {
@@ -67,14 +126,26 @@ const EmployerPostJob = () => {
     toast.success('Draft saved successfully');
   };
 
-  const handlePostJob = () => {
-    toast.success('Job posted successfully!');
-    navigate('/employer/dashboard');
+  const handlePostJob = async () => {
+    try {
+      const payload = buildCreateJobPayload(false);
+      await createJob(payload).unwrap();
+      toast.success('Job posted successfully!');
+      navigate('/hire-talent/dashboard');
+    } catch (error: any) {
+      toast.error(error?.data?.message || 'Failed to post job');
+    }
   };
 
-  const handlePostAndShowProfiles = () => {
-    toast.success('Job posted! Finding AI-matched candidates...');
-    navigate('/employer/ai-shortlists');
+  const handlePostAndShowProfiles = async () => {
+    try {
+      const payload = buildCreateJobPayload(true);
+      await createJob(payload).unwrap();
+      toast.success('Job posted! Finding AI-matched candidates...');
+      navigate('/hire-talent/ai-shortlists');
+    } catch (error: any) {
+      toast.error(error?.data?.message || 'Failed to post job');
+    }
   };
 
   return (
@@ -141,10 +212,29 @@ const EmployerPostJob = () => {
                 </div>
 
                 <div>
+                  <Label className="text-sm font-medium">Employment Type</Label>
+                  <Select value={formData.employmentType} onValueChange={(v) => setFormData({...formData, employmentType: v})}>
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue placeholder="Select employment type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full-time">Full-time</SelectItem>
+                      <SelectItem value="part-time">Part-time</SelectItem>
+                      <SelectItem value="contract">Contract</SelectItem>
+                      <SelectItem value="internship">Internship</SelectItem>
+                      <SelectItem value="freelance">Freelance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
                   <Label htmlFor="openings" className="text-sm font-medium">Number of Openings</Label>
                   <Input 
                     id="openings"
                     type="number"
+                    placeholder="0"
                     min="1"
                     value={formData.openings}
                     onChange={(e) => setFormData({...formData, openings: e.target.value})}
@@ -255,7 +345,7 @@ const EmployerPostJob = () => {
                   <Select value={formData.workMode} onValueChange={(v) => setFormData({...formData, workMode: v})}>
                     <SelectTrigger className="mt-1.5">
                       <SelectValue placeholder="Select work mode" />
-                    </SelectTrigger>
+                    </SelectTrigger> 
                     <SelectContent>
                       <SelectItem value="remote">Remote</SelectItem>
                       <SelectItem value="onsite">On-site</SelectItem>
@@ -319,14 +409,15 @@ const EmployerPostJob = () => {
                     <Input 
                       id="duration"
                       type="number"
+                      placeholder="Enter duration"
                       min="1"
                       value={formData.duration}
                       onChange={(e) => setFormData({...formData, duration: e.target.value})}
                       className="flex-1"
                     />
                     <Select value={formData.durationUnit} onValueChange={(v) => setFormData({...formData, durationUnit: v})}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
+                      <SelectTrigger className="w-32" >
+                        <SelectValue placeholder="Select duration" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="week">Week</SelectItem>
@@ -350,12 +441,12 @@ const EmployerPostJob = () => {
                 </div>
               </div>
 
-              <div className="grid sm:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-4 gap-4">
                 <div>
                   <Label className="text-sm font-medium">Payment Type</Label>
                   <Select value={formData.paymentType} onValueChange={(v) => setFormData({...formData, paymentType: v})}>
                     <SelectTrigger className="mt-1.5">
-                      <SelectValue />
+                      <SelectValue placeholder="Select payment type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="hourly">Hourly Rate</SelectItem>
@@ -366,24 +457,39 @@ const EmployerPostJob = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="budgetMin" className="text-sm font-medium">Min Budget (INR)</Label>
+                  <Label className="text-sm font-medium">Currency</Label>
+                  <Select value={formData.currency} onValueChange={(v) => setFormData({...formData, currency: v})}>
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="GBP">GBP</SelectItem>
+                      <SelectItem value="INR">INR</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="budgetMin" className="text-sm font-medium">Min Budget ({formData.currency})</Label>
                   <Input 
                     id="budgetMin"
                     type="number"
-                    value={formData.budgetMin}
-                    onChange={(e) => setFormData({...formData, budgetMin: e.target.value})}
+                    value={formData.salaryMin}
+                    onChange={(e) => setFormData({...formData, salaryMin: e.target.value})}
                     placeholder="e.g., 1500"
                     className="mt-1.5"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="budgetMax" className="text-sm font-medium">Max Budget (INR)</Label>
+                  <Label htmlFor="budgetMax" className="text-sm font-medium">Max Budget ({formData.currency})</Label>
                   <Input 
                     id="budgetMax"
                     type="number"
-                    value={formData.budgetMax}
-                    onChange={(e) => setFormData({...formData, budgetMax: e.target.value})}
+                    value={formData.salaryMax}
+                    onChange={(e) => setFormData({...formData, salaryMax: e.target.value})}
                     placeholder="e.g., 2500"
                     className="mt-1.5"
                   />
@@ -400,13 +506,21 @@ const EmployerPostJob = () => {
           <Save className="h-4 w-4 mr-2" />
           Save Draft
         </Button>
-        <Button onClick={handlePostJob} className="rounded-xl bg-primary hover:bg-primary/90">
+        <Button
+          onClick={handlePostJob}
+          className="rounded-xl bg-primary hover:bg-primary/90"
+          disabled={createJobLoading}
+        >
           <Send className="h-4 w-4 mr-2" />
-          Post Job
+          {createJobLoading ? 'Posting...' : 'Post Job'}
         </Button>
-        <Button onClick={handlePostAndShowProfiles} className="rounded-xl bg-gradient-to-r from-primary to-pink-500 hover:opacity-90">
+        <Button
+          onClick={handlePostAndShowProfiles}
+          className="rounded-xl bg-gradient-to-r from-primary to-pink-500 hover:opacity-90"
+          disabled={createJobLoading}
+        >
           <Sparkles className="h-4 w-4 mr-2" />
-          Post & Show Relevant Profiles
+          {createJobLoading ? 'Posting...' : 'Post & Show Relevant Profiles'}
         </Button>
       </div>
     </div>
