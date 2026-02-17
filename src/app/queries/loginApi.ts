@@ -4,7 +4,7 @@ import { getAuthHeaders } from "../../lib/helpers";
 
 interface ForgotPassword {
   code?: string;
-  success: string;
+  success: boolean;
   message: string;
 }
 
@@ -87,14 +87,17 @@ export const loginApi = createApi({
         body: { refreshToken },
       }),
     }),
-    forgotPassword: builder.mutation<ForgotPassword, string>({
-      query: (email) => ({
+    forgotPassword: builder.mutation<ForgotPassword, { email: string }>({
+      query: (data) => ({
         method: "POST",
         url: "jobboard/forgot-password",
-        body: { email },
+        body: data,
       }),
     }),
-    resetPassword: builder.mutation({
+    resetPassword: builder.mutation<
+      ForgotPassword,
+      { token: string; password: string }
+    >({
       query: (data) => ({
         method: "POST",
         url: "jobboard/reset-password",

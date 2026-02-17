@@ -13,6 +13,7 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { VALIDATION } from "@/services/utils/signUpValidation";
+import { set } from "date-fns";
 import { Mail } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -68,19 +69,23 @@ const ForgotPassword = () => {
     }
     setFieldErrors({});
 
+    setForgotEmail((prev) => ({ ...prev, email: trimmedEmail }));
     // Handle password reset logic here
     try {
-      const result = await forgotPassword(trimmedEmail).unwrap();
-      toast.success("If the email exists, a reset link will be sent");
+      const result = await forgotPassword(forgotEmail).unwrap();
 
       if (result?.success) {
+        toast.success("If the email exists, a reset link will be sent");
         navigation("/reset-password");
+      } else {
+        toast.error(result?.message || "Failed to send password reset email.");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       const message =
-        error instanceof Error
+        (error as { data?: { message?: string } })?.data?.message ||
+        (error instanceof Error
           ? error.message
-          : "Failed to send password reset email.";
+          : "Failed to send password reset email.");
       toast.error(message);
     }
   };

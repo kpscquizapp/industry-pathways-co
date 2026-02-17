@@ -29,8 +29,10 @@ const ResetPassword = () => {
     Partial<Record<FieldErrorKey, string>>
   >({});
   const [resetNewPassword] = useResetPasswordMutation();
+
+  // the token is empty because we didn't implemented the email verification
   const [resetPassword, setResetPassword] = useState({
-    // token: "", not yet implemented
+    token: "",
     password: "",
   });
 
@@ -59,8 +61,7 @@ const ResetPassword = () => {
 
     const passwordError = VALIDATION.password.validate(trimmedPassword);
     if (passwordError) {
-      toast.error(passwordError);
-      return;
+      errors.password = passwordError;
     }
 
     if (Object.keys(errors).length > 0) {
@@ -70,10 +71,11 @@ const ResetPassword = () => {
       return;
     }
     setFieldErrors({});
+    setResetPassword((prev) => ({ ...prev, password: trimmedPassword }));
 
     // Handle password reset logic here
     try {
-      const result = await resetNewPassword(trimmedPassword).unwrap();
+      const result = await resetNewPassword(resetPassword).unwrap();
 
       if (result?.success) {
         toast.success("Password reset successfully.");
