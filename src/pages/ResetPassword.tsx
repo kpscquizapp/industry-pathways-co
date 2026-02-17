@@ -1,4 +1,4 @@
-import { useForgotPasswordMutation } from "@/app/queries/loginApi";
+import { useResetPasswordMutation } from "@/app/queries/loginApi";
 import LandingFooter from "@/components/landing/LandingFooter";
 import LandingHeader from "@/components/landing/LandingHeader";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
@@ -13,46 +13,54 @@ import {
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import { VALIDATION } from "@/services/utils/signUpValidation";
-import { Mail } from "lucide-react";
+import { Lock } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
-type Email = {
-  email: string;
+type Password = {
+  password: string;
 };
-type FieldErrorKey = keyof Email;
+type FieldErrorKey = keyof Password;
 
-const ForgotPassword = () => {
-  const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
-  const [forgotEmail, setForgotEmail] = useState({
-    email: "",
-  });
-  // Field-level errors for better UX
+const ResetPassword = () => {
+  const navigation = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<FieldErrorKey, string>>
   >({});
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (fieldErrors.email) {
+  const [resetNewPassword, { isLoading }] = useResetPasswordMutation();
+
+  const [resetPassword, setResetPassword] = useState({
+    password: "",
+  });
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    if (fieldErrors[name]) {
       setFieldErrors((prev) => {
-        const { email: _email, ...rest } = prev;
-        return rest;
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
       });
     }
-    setForgotEmail((prev) => ({ ...prev, email: e.target.value }));
+    setResetPassword((prev) => ({ ...prev, password: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
 
-    const trimmedEmail = forgotEmail.email.trim();
+    const trimmedPassword = resetPassword.password.trim();
 
-    const emailError = VALIDATION.email.validate(trimmedEmail);
-    if (emailError) errors.email = emailError;
+    const passwordError = VALIDATION.password.validate(trimmedPassword);
+    if (passwordError) {
+      errors.password = passwordError;
+    }
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -61,23 +69,27 @@ const ForgotPassword = () => {
       return;
     }
     setFieldErrors({});
+    const updatedResetPassword = {
+      ...resetPassword,
+      password: trimmedPassword,
+    };
+    setResetPassword(updatedResetPassword);
 
-    setForgotEmail((prev) => ({ ...prev, email: trimmedEmail }));
     // Handle password reset logic here
     try {
-      const result = await forgotPassword({ email: trimmedEmail }).unwrap();
+      const result = await resetNewPassword({
+        token,
+        password: trimmedPassword,
+      }).unwrap();
 
       if (result?.success) {
-        toast.success("If the email exists, a reset link will be sent");
-      } else {
-        toast.error(result?.message || "Failed to send password reset email.");
+        toast.success("Password reset successfully.");
+        navigation("/");
       }
     } catch (error: unknown) {
       const message =
         (error as { data?: { message?: string } })?.data?.message ||
-        (error instanceof Error
-          ? error.message
-          : "Failed to send password reset email.");
+        (error instanceof Error ? error.message : "Failed to reset password.");
       toast.error(message);
     }
   };
@@ -91,10 +103,10 @@ const ForgotPassword = () => {
             <Card className="shadow-2xl border-0 overflow-hidden">
               <CardHeader className="space-y-2 text-center bg-gradient-to-br from-primary  to-primary/80 text-primary-foreground p-6 sm:p-8">
                 <CardTitle className="text-2xl sm:text-3xl font-bold">
-                  Forgot Password
+                  Reset Password
                 </CardTitle>
                 <CardDescription className="text-primary-foreground/80 text-sm sm:text-base">
-                  Enter your email address to reset your password
+                  Enter your New Password to reset your password
                 </CardDescription>
               </CardHeader>
 
@@ -103,26 +115,29 @@ const ForgotPassword = () => {
                   <div className="space-y-5">
                     <div className="flex sm:ml-5 justify-center flex-col">
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium">
-                          Email
+                        <Label
+                          htmlFor="password"
+                          className="text-sm font-medium"
+                        >
+                          New Password
                         </Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                          <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                           <Input
-                            id="email"
-                            value={forgotEmail.email}
-                            className={cn(
-                              "h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium",
-                              fieldErrors.email &&
-                                "border-red-500 focus:border-red-500 focus:ring-red-500/10",
-                            )}
-                            placeholder="Enter your email"
-                            type="email"
-                            name="email"
-                            onChange={handleEmailChange}
+                            id="password"
+                            value={resetPassword.password}
+                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                              fieldErrors.password
+                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                                : ""
+                            }`}
+                            placeholder="Enter your New Password"
+                            type="password"
+                            name="password"
+                            onChange={handlePasswordChange}
                           />
                         </div>
-                        <ErrorMessage error={fieldErrors.email} />
+                        <ErrorMessage error={fieldErrors.password} />
                       </div>
                       <div className="my-8">
                         <Button
@@ -133,10 +148,10 @@ const ForgotPassword = () => {
                           {isLoading ? (
                             <>
                               <SpinnerLoader />
-                              <span className="ml-2">Sending...</span>
+                              <span className="ml-2">Resetting...</span>
                             </>
                           ) : (
-                            <>Send Reset Link</>
+                            <>Reset Password</>
                           )}
                         </Button>
                       </div>
@@ -160,4 +175,4 @@ const ForgotPassword = () => {
   );
 };
 
-export default ForgotPassword;
+export default ResetPassword;
