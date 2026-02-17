@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { VALIDATION } from "@/services/utils/signUpValidation";
 import { Lock } from "lucide-react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 type Password = {
@@ -25,14 +25,16 @@ type FieldErrorKey = keyof Password;
 
 const ResetPassword = () => {
   const navigation = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<FieldErrorKey, string>>
   >({});
+
   const [resetNewPassword] = useResetPasswordMutation();
 
-  // the token is empty because we didn't implemented the email verification
   const [resetPassword, setResetPassword] = useState({
-    token: "",
     password: "",
   });
 
@@ -54,11 +56,6 @@ const ResetPassword = () => {
 
     const trimmedPassword = resetPassword.password.trim();
 
-    if (trimmedPassword === "") {
-      setFieldErrors({ password: "Password is required" });
-      return;
-    }
-
     const passwordError = VALIDATION.password.validate(trimmedPassword);
     if (passwordError) {
       errors.password = passwordError;
@@ -79,7 +76,10 @@ const ResetPassword = () => {
 
     // Handle password reset logic here
     try {
-      const result = await resetNewPassword(updatedResetPassword).unwrap();
+      const result = await resetNewPassword({
+        token,
+        password: trimmedPassword,
+      }).unwrap();
 
       if (result?.success) {
         toast.success("Password reset successfully.");

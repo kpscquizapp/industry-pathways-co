@@ -12,6 +12,7 @@ import {
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { VALIDATION } from "@/services/utils/signUpValidation";
 import { Mail } from "lucide-react";
 import { useState } from "react";
@@ -48,11 +49,6 @@ const ForgotPassword = () => {
     const errors: Record<string, string> = {};
 
     const trimmedEmail = forgotEmail.email.trim();
-
-    if (trimmedEmail === "") {
-      setFieldErrors({ email: "Email is required" });
-      return;
-    }
 
     const emailError = VALIDATION.email.validate(trimmedEmail);
     if (emailError) errors.email = emailError;
@@ -114,11 +110,11 @@ const ForgotPassword = () => {
                           <Input
                             id="email"
                             value={forgotEmail.email}
-                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                              fieldErrors.email
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                : ""
-                            }`}
+                            className={cn(
+                              "h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium",
+                              fieldErrors.email &&
+                                "border-red-500 focus:border-red-500 focus:ring-red-500/10",
+                            )}
                             placeholder="Enter your email"
                             type="email"
                             name="email"
