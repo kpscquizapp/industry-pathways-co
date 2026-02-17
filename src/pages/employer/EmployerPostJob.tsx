@@ -88,7 +88,19 @@ const EmployerPostJob = () => {
     return items.length > 0 ? items : undefined;
   };
 
-  const buildCreateJobPayload = (enableAiMatching: boolean) => ({
+  const buildCreateJobPayload = (enableAiMatching: boolean) => {
+    const salaryMin = parseOptionalNumber(formData.salaryMin);
+    const salaryMax = parseOptionalNumber(formData.salaryMax);
+    const normalizedSalaryMin =
+      salaryMin !== undefined && salaryMax !== undefined && salaryMin > salaryMax
+        ? salaryMax
+        : salaryMin;
+    const normalizedSalaryMax =
+      salaryMin !== undefined && salaryMax !== undefined && salaryMin > salaryMax
+        ? salaryMin
+        : salaryMax;
+
+    return {
     title: formData.title,
     description: formData.description,
     category: formData.category || undefined,
@@ -100,8 +112,8 @@ const EmployerPostJob = () => {
     durationUnit: mapDurationUnit(formData.durationUnit),
     startDate: formData.startDate || undefined,
     paymentType: formData.paymentType || undefined,
-    salaryMin: parseOptionalNumber(formData.salaryMin),
-    salaryMax: parseOptionalNumber(formData.salaryMax),
+    salaryMin: normalizedSalaryMin,
+    salaryMax: normalizedSalaryMax,
     currency: formData.currency || undefined,
     openToBenchResources: openToBench,
     certifications: parseCertifications(formData.certifications),
@@ -109,7 +121,8 @@ const EmployerPostJob = () => {
     enableAiTalentMatching: enableAiMatching,
     aiMatchingEnabled: enableAiMatching,
     skills: skills.map((skill) => ({ name: skill })),
-  });
+    };
+  };
 
   const addSkill = () => {
     if (newSkill.trim() && !skills.includes(newSkill.trim())) {
@@ -126,27 +139,28 @@ const EmployerPostJob = () => {
     toast.success('Draft saved successfully');
   };
 
-  const handlePostJob = async () => {
+  const submitJob = async (enableAiMatching: boolean, redirectPath: string) => {
     try {
-      const payload = buildCreateJobPayload(false);
+      const payload = buildCreateJobPayload(enableAiMatching);
+      if (!payload.title?.trim() || !payload.description?.trim()) {
+        toast.error('Job title and description are required.');
+        return;
+      }
       await createJob(payload).unwrap();
-      toast.success('Job posted successfully!');
-      navigate('/hire-talent/dashboard');
+      toast.success(
+        enableAiMatching
+          ? 'Job posted! Finding AI-matched candidates...'
+          : 'Job posted successfully!',
+      );
+      navigate(redirectPath);
     } catch (error: any) {
       toast.error(error?.data?.message || 'Failed to post job');
     }
   };
 
-  const handlePostAndShowProfiles = async () => {
-    try {
-      const payload = buildCreateJobPayload(true);
-      await createJob(payload).unwrap();
-      toast.success('Job posted! Finding AI-matched candidates...');
-      navigate('/hire-talent/ai-shortlists');
-    } catch (error: any) {
-      toast.error(error?.data?.message || 'Failed to post job');
-    }
-  };
+  const handlePostJob = () => submitJob(false, '/hire-talent/dashboard');
+
+  const handlePostAndShowProfiles = () => submitJob(true, '/hire-talent/ai-shortlists');
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -234,7 +248,7 @@ const EmployerPostJob = () => {
                   <Input 
                     id="openings"
                     type="number"
-                    placeholder="0"
+                    placeholder="Enter number of openings"
                     min="1"
                     value={formData.openings}
                     onChange={(e) => setFormData({...formData, openings: e.target.value})}
@@ -472,7 +486,7 @@ const EmployerPostJob = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="budgetMin" className="text-sm font-medium">Min Budget ({formData.currency})</Label>
+                  <Label htmlFor="budgetMin" className="text-sm font-medium">Min Budget{formData.currency ? ` (${formData.currency})` : ''}</Label>
                   <Input 
                     id="budgetMin"
                     type="number"
@@ -484,7 +498,7 @@ const EmployerPostJob = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="budgetMax" className="text-sm font-medium">Max Budget ({formData.currency})</Label>
+                  <Label htmlFor="budgetMax" className="text-sm font-medium">Max Budget{formData.currency ? ` (${formData.currency})` : ''}</Label>
                   <Input 
                     id="budgetMax"
                     type="number"
