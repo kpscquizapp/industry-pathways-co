@@ -136,7 +136,8 @@ const EmployerPostJob = () => {
   };
 
   const handleSaveDraft = () => {
-    toast.success("Draft saved successfully");
+    // TODO: integrate with a draft-save API endpoint.
+    toast.info("Draft saving is not yet available.");
   };
 
   const submitJob = async (enableAiMatching: boolean, redirectPath: string) => {
@@ -340,7 +341,12 @@ const EmployerPostJob = () => {
                     value={newSkill}
                     onChange={(e) => setNewSkill(e.target.value)}
                     placeholder="Add a skill..."
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addSkill();
+                      }
+                    }}
                     className="flex-1"
                   />
                   <Button
@@ -547,7 +553,7 @@ const EmployerPostJob = () => {
                       }
                     >
                       <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Select duration" />
+                        <SelectValue placeholder="Unit" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="week">Week</SelectItem>
@@ -623,6 +629,7 @@ const EmployerPostJob = () => {
                   <Input
                     id="budgetMin"
                     type="number"
+                    min="0"
                     value={formData.salaryMin}
                     onChange={(e) =>
                       setFormData({ ...formData, salaryMin: e.target.value })
@@ -640,6 +647,7 @@ const EmployerPostJob = () => {
                   <Input
                     id="budgetMax"
                     type="number"
+                    min="0"
                     value={formData.salaryMax}
                     onChange={(e) =>
                       setFormData({ ...formData, salaryMax: e.target.value })

@@ -6,7 +6,6 @@ import {
   FileCheck, 
   Video,
   ChevronRight,
-  Plus,
   Sparkles,
   TrendingUp,
   Clock,
