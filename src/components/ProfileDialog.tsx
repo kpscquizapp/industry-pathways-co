@@ -252,9 +252,48 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                   Organization
                 </Label>
                 <p className="font-medium text-slate-900">
-                  {user?.companyName || user?.company || "N/A"}
+                  {updateData?.companyName ||
+                    user?.companyName ||
+                    user?.company ||
+                    "N/A"}
                 </p>
               </div>
+              {updateData && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                      Industry
+                    </Label>
+                    <p className="font-medium text-slate-900">
+                      {updateData.industry || "N/A"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                      Location
+                    </Label>
+                    <p className="font-medium text-slate-900">
+                      {updateData.location || "N/A"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                      Company Size
+                    </Label>
+                    <p className="font-medium text-slate-900">
+                      {updateData.companySize || "N/A"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                      Website
+                    </Label>
+                    <p className="font-medium text-slate-900">
+                      {updateData.website || "N/A"}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -283,7 +322,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                   </div>
                   {isUploadingImage && (
                     <div className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center">
-                      <SpinnerLoader className="h-8 w-8 text-white animate-spin" />
+                      <SpinnerLoader className="h-8 w-8 text-white" />
                     </div>
                   )}
                 </div>
@@ -310,7 +349,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                       disabled={isRemovingImage}
                     >
                       {isRemovingImage ? (
-                        <SpinnerLoader className="h-3 w-3 animate-spin" />
+                        <SpinnerLoader className="h-3 w-3" />
                       ) : (
                         <>
                           <Trash2 className="h-3 w-3" />
@@ -448,7 +487,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                 >
                   {isUpdating ? (
                     <>
-                      <SpinnerLoader className="mr-2 h-4 w-4 animate-spin" />
+                      <SpinnerLoader className="mr-2 h-4 w-4" />
                       Saving...
                     </>
                   ) : (
