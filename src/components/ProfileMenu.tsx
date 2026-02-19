@@ -49,7 +49,11 @@ const ProfileMenu = ({
           <Button variant="ghost" className={btnClass}>
             <Avatar className="h-8 w-8">
               {profileImage && (
-                <AvatarImage className="object-cover" src={profileImage} />
+                <AvatarImage
+                  className="object-cover"
+                  src={profileImage}
+                  alt={`${user?.firstName ?? "User"} profile image`}
+                />
               )}
               <AvatarFallback className={avatarFallback}>
                 {user?.firstName?.charAt(0) || "E"}

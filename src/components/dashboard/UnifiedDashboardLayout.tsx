@@ -239,7 +239,11 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
             >
               <Avatar className="h-9 w-9 bg-gray-100 flex-shrink-0">
                 {profileImage && (
-                  <AvatarImage className="object-cover" src={profileImage} />
+                  <AvatarImage
+                    className="object-cover"
+                    src={profileImage}
+                    alt={`${user?.firstName ?? "User"} profile image`}
+                  />
                 )}
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
                   {user?.firstName?.charAt(0) ||

@@ -200,7 +200,11 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
             <div className="flex items-center gap-4">
               <Avatar className="h-24 w-24 border-2 border-slate-100">
                 {profileImage && (
-                  <AvatarImage className="object-cover" src={profileImage} />
+                  <AvatarImage
+                    className="object-cover"
+                    src={profileImage}
+                    alt={`${user?.firstName ?? "User"} profile image`}
+                  />
                 )}
                 <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
                   {user?.firstName?.charAt(0) || "U"}
@@ -264,6 +268,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                       <AvatarImage
                         className="object-cover"
                         src={profileImage}
+                        alt={`${user?.firstName ?? "User"} profile image`}
                       />
                     )}
                     <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
@@ -378,7 +383,6 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                   Company Size
                 </Label>
                 <Select
-                  name="companySize"
                   value={formData.companySize}
                   onValueChange={(value) =>
                     setFormData((prev) => ({ ...prev, companySize: value }))
