@@ -90,7 +90,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
       });
       setErrors({});
       hasPopulated.current = true;
-      setActiveTab("view");
+      if (!prevOpen.current) setActiveTab("view");
     } else if (open && !prevOpen.current) {
       // dialog opened but data not yet available — clear stale values
       setFormData({
@@ -177,7 +177,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
         industry: formData.industry.trim(),
         location: formData.location.trim(),
         companySize: formData.companySize,
-        description: formData.description?.trim(),
+        description: formData.description.trim(),
         website: formData.website.trim(),
       };
 
@@ -309,13 +309,17 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                       size="sm"
                       variant="destructive"
                       className="rounded-xl text-xs h-8 px-3"
+                      aria-label="Remove photo"
                       onClick={handleImageRemove}
                       disabled={isRemovingImage}
                     >
                       {isRemovingImage ? (
                         <SpinnerLoader className="h-3 w-3 animate-spin" />
                       ) : (
-                        <Trash2 className="h-3 w-3" />
+                        <>
+                          <Trash2 className="h-3 w-3" />
+                          Remove
+                        </>
                       )}
                     </Button>
                   )}
