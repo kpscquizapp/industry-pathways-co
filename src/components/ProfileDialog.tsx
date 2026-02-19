@@ -54,7 +54,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
   const { data: profileImage } = useGetProfileImageQuery(user?.id || "", {
     skip: !user?.id,
   });
-  const { data: profile } = useGetProfileQuery();
+  const { data: profile } = useGetProfileQuery(undefined, { skip: !open });
   const prevOpen = useRef(false);
   const hasPopulated = useRef(false);
 
@@ -129,11 +129,13 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
       // Basic validation for images
       if (!file.type.startsWith("image/")) {
         toast.error("Please upload an image file");
+        if (imageInputRef.current) imageInputRef.current.value = "";
         return;
       }
       if (file.size > 2 * 1024 * 1024) {
         // 2MB limit
         toast.error("Image size should be less than 2MB");
+        if (imageInputRef.current) imageInputRef.current.value = "";
         return;
       }
 
@@ -390,7 +392,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                   name="companySize"
                   value={formData.companySize}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, companySize: value })
+                    setFormData((prev) => ({ ...prev, companySize: value }))
                   }
                 >
                   <SelectTrigger className="rounded-xl border-slate-200 focus:border-primary">
@@ -429,7 +431,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                 <Input
                   id="website"
                   name="website"
-                  type="text"
+                  type="url"
                   value={formData.website}
                   onChange={handleInputChange}
                   placeholder="eg. https://example.com"
