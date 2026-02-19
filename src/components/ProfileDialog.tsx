@@ -88,7 +88,6 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
         website: updateData?.website || "",
         description: updateData?.description || "",
       });
-      setErrors({});
       hasPopulated.current = true;
       if (!prevOpen.current) setActiveTab("view");
     } else if (open && !prevOpen.current) {
@@ -101,25 +100,15 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
         website: "",
         description: "",
       });
-      setErrors({});
     }
     prevOpen.current = open;
   }, [open, updateData]);
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -431,7 +420,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                 <Input
                   id="website"
                   name="website"
-                  type="url"
+                  type="text"
                   value={formData.website}
                   onChange={handleInputChange}
                   placeholder="eg. https://example.com"
