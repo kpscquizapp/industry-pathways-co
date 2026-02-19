@@ -182,7 +182,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-2xl">
+      <DialogContent className="w-[95vw] sm:max-w-[800px] max-h-[90vh] overflow-y-auto rounded-2xl">
         <DialogHeader>
           <DialogTitle>Profile Settings</DialogTitle>
           <DialogDescription>
@@ -290,6 +290,14 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                     </Label>
                     <p className="font-medium text-slate-900">
                       {updateData.website || "N/A"}
+                    </p>
+                  </div>
+                  <div className="space-y-1 col-span-2">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                      Description
+                    </Label>
+                    <p className="font-medium text-slate-900">
+                      {updateData.description || "N/A"}
                     </p>
                   </div>
                 </div>
@@ -427,7 +435,10 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                     setFormData((prev) => ({ ...prev, companySize: value }))
                   }
                 >
-                  <SelectTrigger className="rounded-xl border-slate-200 focus:border-primary">
+                  <SelectTrigger
+                    id="companySize"
+                    className="rounded-xl border-slate-200 focus:border-primary"
+                  >
                     <SelectValue placeholder="Select Company Size" />
                   </SelectTrigger>
                   <SelectContent>
