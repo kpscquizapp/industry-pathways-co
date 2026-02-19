@@ -61,7 +61,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
     useRemoveProfileImageMutation();
 
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const updateData = profile?.data.employerProfile;
+  const updateData = profile?.data?.employerProfile;
 
   const [formData, setFormData] = useState({
     companyName: updateData?.companyName || "",

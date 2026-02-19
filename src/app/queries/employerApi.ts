@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { config } from "../../services/service";
 import { getAuthHeaders } from "@/lib/helpers";
+import { profileApi } from "./profileApi";
 
 interface UpdateEmployerProfile {
   companyName?: string;
@@ -39,11 +40,7 @@ export const employerApi = createApi({
         try {
           await queryFulfilled;
           // Invalidate profileApi's Profile tag manually to sync caches
-          dispatch(
-            employerApi.util.invalidateTags([
-              { type: "EmployerProfile" as const },
-            ]),
-          );
+          dispatch(profileApi.util.invalidateTags(["Profile"]));
         } catch (error) {
           console.error("Profile update failed:", error);
         }
@@ -79,7 +76,7 @@ export const employerApi = createApi({
         },
       }),
       providesTags: ["EmployerProfile"],
-      keepUnusedDataFor: 0,
+      keepUnusedDataFor: 30, // seconds; avoids redundant re-fetch on quick remounts
     }),
     removeProfileImage: builder.mutation<void, string>({
       query: (id) => ({
