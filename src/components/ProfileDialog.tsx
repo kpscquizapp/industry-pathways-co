@@ -56,6 +56,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
   });
   const { data: profile } = useGetProfileQuery();
   const prevOpen = useRef(false);
+  const hasPopulated = useRef(false);
 
   const [uploadProfileImage, { isLoading: isUploadingImage }] =
     useUploadProfileImageMutation();
@@ -76,6 +77,9 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
   useEffect(() => {
     if (open && !prevOpen.current) {
+      hasPopulated.current = false; // reset on new open
+    }
+    if (open && !hasPopulated.current && updateData) {
       setFormData({
         companyName: updateData?.companyName || "",
         industry: updateData?.industry || "",
@@ -83,6 +87,19 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
         companySize: updateData?.companySize || "",
         website: updateData?.website || "",
         description: updateData?.description || "",
+      });
+      setErrors({});
+      hasPopulated.current = true;
+      setActiveTab("view");
+    } else if (open && !prevOpen.current) {
+      // dialog opened but data not yet available — clear stale values
+      setFormData({
+        companyName: "",
+        industry: "",
+        location: "",
+        companySize: "",
+        website: "",
+        description: "",
       });
       setErrors({});
     }
@@ -281,7 +298,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                     variant="outline"
                     className="rounded-xl text-xs"
                     onClick={() => imageInputRef.current?.click()}
-                    disabled={isUploadingImage}
+                    disabled={isUploadingImage || isRemovingImage}
                   >
                     <Upload className="h-3 w-3 mr-1" />
                     Change Photo
