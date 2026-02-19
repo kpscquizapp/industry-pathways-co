@@ -21,8 +21,8 @@ import {
 } from "@/app/queries/employerApi";
 import SpinnerLoader from "./loader/SpinnerLoader";
 import { useGetProfileQuery } from "@/app/queries/profileApi";
-import { Select } from "@radix-ui/react-select";
 import {
+  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -73,7 +73,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
   });
 
   useEffect(() => {
-    if (open) {
+    if (open && activeTab === "view") {
       setFormData({
         companyName: updateData?.companyName || "",
         industry: updateData?.industry || "",
@@ -83,7 +83,6 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
         description: updateData?.description || "",
       });
       setErrors({});
-      setActiveTab("view");
     }
   }, [open, updateData]);
 
@@ -126,6 +125,10 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
         toast.success("Profile image updated successfully");
       } catch (error: any) {
         toast.error(error?.data?.message || "Failed to upload image");
+      } finally {
+        if (imageInputRef.current) {
+          imageInputRef.current.value = "";
+        }
       }
     }
   };
@@ -185,10 +188,9 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
           <TabsContent value="view" className="space-y-6 pt-6">
             <div className="flex items-center gap-4">
               <Avatar className="h-24 w-24 border-2 border-slate-100">
-                <AvatarImage
-                  className="object-cover"
-                  src={profileImage || ""}
-                />
+                {profileImage && (
+                  <AvatarImage className="object-cover" src={profileImage} />
+                )}
                 <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
                   {user?.firstName?.charAt(0) || "U"}
                 </AvatarFallback>
@@ -247,10 +249,12 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
               <div className="flex flex-col items-center gap-4 py-2">
                 <div className="relative group">
                   <Avatar className="h-24 w-24 border-2 border-slate-100">
-                    <AvatarImage
-                      className="object-cover"
-                      src={profileImage || ""}
-                    />
+                    {profileImage && (
+                      <AvatarImage
+                        className="object-cover"
+                        src={profileImage}
+                      />
+                    )}
                     <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
                       {user?.firstName?.charAt(0) || "U"}
                     </AvatarFallback>

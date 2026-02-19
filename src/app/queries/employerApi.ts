@@ -1,7 +1,15 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { config } from "../../services/service";
 import { getAuthHeaders } from "@/lib/helpers";
-import { profileApi } from "./profileApi";
+
+interface UpdateEmployerProfile {
+  companyName?: string;
+  industry?: string;
+  location?: string;
+  companySize?: string;
+  website?: string;
+  description?: string;
+}
 
 export const employerApi = createApi({
   reducerPath: "employerApi",
@@ -15,21 +23,26 @@ export const employerApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Profile"],
+  tagTypes: ["EmployerProfile"],
   endpoints: (builder) => ({
-    updateEmployerProfile: builder.mutation<void, any>({
+    updateEmployerProfile: builder.mutation<
+      UpdateEmployerProfile,
+      UpdateEmployerProfile
+    >({
       query: (data) => ({
         url: "jobboard/profile",
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: ["Profile"],
+      invalidatesTags: ["EmployerProfile"],
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
           // Invalidate profileApi's Profile tag manually to sync caches
           dispatch(
-            profileApi.util.invalidateTags([{ type: "Profile" as const }]),
+            employerApi.util.invalidateTags([
+              { type: "EmployerProfile" as const },
+            ]),
           );
         } catch (error) {
           console.error("Profile update failed:", error);
@@ -42,7 +55,7 @@ export const employerApi = createApi({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: ["Profile"],
+      invalidatesTags: ["EmployerProfile"],
     }),
     getProfileImage: builder.query<string | null, string>({
       query: (id) => ({
@@ -65,7 +78,7 @@ export const employerApi = createApi({
           });
         },
       }),
-      providesTags: ["Profile"],
+      providesTags: ["EmployerProfile"],
       keepUnusedDataFor: 0,
     }),
     removeProfileImage: builder.mutation<void, string>({
@@ -73,7 +86,7 @@ export const employerApi = createApi({
         url: `users/${id}/avatar/business`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Profile"],
+      invalidatesTags: ["EmployerProfile"],
       // Optional: optimistic update to clear image immediately
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(

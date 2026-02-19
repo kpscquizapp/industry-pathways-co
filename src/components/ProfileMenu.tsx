@@ -48,7 +48,9 @@ const ProfileMenu = ({
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className={btnClass}>
             <Avatar className="h-8 w-8">
-              <AvatarImage className="object-cover" src={profileImage} />
+              {profileImage && (
+                <AvatarImage className="object-cover" src={profileImage} />
+              )}
               <AvatarFallback className={avatarFallback}>
                 {user?.firstName?.charAt(0) || "E"}
               </AvatarFallback>
