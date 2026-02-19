@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Textarea } from "./ui/textarea";
 
 interface UserProfile {
   id?: string;
@@ -54,6 +55,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
     skip: !user?.id,
   });
   const { data: profile } = useGetProfileQuery();
+  const prevOpen = useRef(false);
 
   const [uploadProfileImage, { isLoading: isUploadingImage }] =
     useUploadProfileImageMutation();
@@ -73,7 +75,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
   });
 
   useEffect(() => {
-    if (open && activeTab === "view") {
+    if (open && !prevOpen.current) {
       setFormData({
         companyName: updateData?.companyName || "",
         industry: updateData?.industry || "",
@@ -84,6 +86,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
       });
       setErrors({});
     }
+    prevOpen.current = open;
   }, [open, updateData]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -384,6 +387,21 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="description" className="text-sm font-medium">
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  placeholder="Brief company description"
+                  rows={3}
+                  className="rounded-xl border-slate-200 focus:border-primary"
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="website" className="text-sm font-medium">
                   Website
                 </Label>
@@ -393,7 +411,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                   type="text"
                   value={formData.website}
                   onChange={handleInputChange}
-                  placeholder="Enter Your Company Website"
+                  placeholder="eg. https://example.com"
                   className="rounded-xl border-slate-200 focus:border-primary"
                 />
               </div>

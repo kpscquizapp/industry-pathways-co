@@ -135,7 +135,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const { data: profileImage } = useGetProfileImageQuery(user?.id || "", {
-    skip: !user?.id || role === "contractor",
+    skip: !user?.id,
   });
 
   const handleProfile = () => {

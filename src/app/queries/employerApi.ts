@@ -26,10 +26,7 @@ export const employerApi = createApi({
   }),
   tagTypes: ["EmployerProfile"],
   endpoints: (builder) => ({
-    updateEmployerProfile: builder.mutation<
-      UpdateEmployerProfile,
-      UpdateEmployerProfile
-    >({
+    updateEmployerProfile: builder.mutation<void, UpdateEmployerProfile>({
       query: (data) => ({
         url: "jobboard/profile",
         method: "PUT",
