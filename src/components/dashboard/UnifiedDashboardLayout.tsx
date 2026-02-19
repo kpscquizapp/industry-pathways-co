@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +43,7 @@ import useLogout from "@/hooks/useLogout";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import ProfileDialog from "../ProfileDialog";
+import { useGetProfileImageQuery } from "@/app/queries/employerApi";
 
 type DashboardRole = "contractor" | "bench" | "hire-talent";
 
@@ -132,6 +133,10 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const [handleLogout, isLoading] = useLogout();
   const user = useSelector((state: RootState) => state.user.userDetails);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const { data: profileImage } = useGetProfileImageQuery(user?.id || "", {
+    skip: !user?.id,
+  });
 
   const handleProfile = () => {
     if (role === "hire-talent") {
@@ -232,7 +237,10 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
                 isCollapsed && "justify-center",
               )}
             >
-              <Avatar className="h-9 w-9 bg-primary flex-shrink-0">
+              <Avatar className="h-9 w-9 bg-gray-100 flex-shrink-0">
+                {profileImage && (
+                  <AvatarImage className="object-cover" src={profileImage} />
+                )}
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
                   {user?.firstName?.charAt(0) ||
                     user?.email?.charAt(0) ||

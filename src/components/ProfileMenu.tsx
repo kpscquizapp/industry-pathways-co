@@ -14,6 +14,7 @@ import useLogout from "@/hooks/useLogout";
 import { LogOut, User } from "lucide-react";
 import ProfileDialog from "./ProfileDialog";
 import { useNavigate } from "react-router-dom";
+import { useGetProfileImageQuery } from "@/app/queries/employerApi";
 
 const ProfileMenu = ({
   btnClass,
@@ -26,6 +27,9 @@ const ProfileMenu = ({
   const [handleLogout, isLoading] = useLogout();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
+  const { data: profileImage } = useGetProfileImageQuery(user?.id || "", {
+    skip: !user?.id,
+  });
 
   const handleProfile = () => {
     if (user.role === "hr") {
@@ -44,7 +48,7 @@ const ProfileMenu = ({
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className={btnClass}>
             <Avatar className="h-8 w-8">
-              <AvatarImage src="" />
+              <AvatarImage className="object-cover" src={profileImage} />
               <AvatarFallback className={avatarFallback}>
                 {user?.firstName?.charAt(0) || "E"}
               </AvatarFallback>
