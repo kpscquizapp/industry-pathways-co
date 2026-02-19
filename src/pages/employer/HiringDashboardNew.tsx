@@ -6,7 +6,6 @@ import {
   FileCheck, 
   Video,
   ChevronRight,
-  Plus,
   Sparkles,
   TrendingUp,
   Clock,
@@ -56,12 +55,12 @@ const HiringDashboardNew = () => {
             <h2 className="text-2xl font-bold mb-2">Find Your Next Great Hire 🚀</h2>
             <p className="text-primary-foreground/80">AI has shortlisted 12 new candidates matching your open roles.</p>
           </div>
-          <Button variant="secondary" className="bg-background text-foreground hover:bg-background/90" asChild>
+          {/* <Button variant="secondary" className="bg-background text-foreground hover:bg-background/90" asChild>
             <Link to="/bench/post-job">
               <Plus className="w-4 h-4 mr-2" />
               Post New Job
             </Link>
-          </Button>
+          </Button> */}
         </div>
       </div>
 
