@@ -6,6 +6,7 @@ import { profileApi } from "./queries/profileApi";
 import { jobApi } from "./queries/jobApi";
 import { atsApi } from "./queries/atsApi";
 import { benchApi } from "./queries/benchApi";
+import { employerApi } from "./queries/employerApi";
 
 const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ const store = configureStore({
     resumeSkills: extractResumeSkills,
     [loginApi.reducerPath]: loginApi.reducer,
     [profileApi.reducerPath]: profileApi.reducer,
+    [employerApi.reducerPath]: employerApi.reducer,
     [jobApi.reducerPath]: jobApi.reducer,
     [atsApi.reducerPath]: atsApi.reducer,
     [benchApi.reducerPath]: benchApi.reducer,
@@ -21,6 +23,7 @@ const store = configureStore({
     getDefaultMiddleware().concat(
       loginApi.middleware,
       profileApi.middleware,
+      employerApi.middleware,
       jobApi.middleware,
       atsApi.middleware,
       benchApi.middleware,
