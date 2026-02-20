@@ -487,7 +487,17 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                   type="button"
                   variant="ghost"
                   className="rounded-xl px-6 hover:bg-red-600 border border-slate-300 hover:text-white"
-                  onClick={() => setActiveTab("view")}
+                  onClick={() => {
+                    setFormData({
+                      companyName: updateData?.companyName || "",
+                      industry: updateData?.industry || "",
+                      location: updateData?.location || "",
+                      companySize: updateData?.companySize || "",
+                      website: updateData?.website || "",
+                      description: updateData?.description || "",
+                    });
+                    setActiveTab("view");
+                  }}
                 >
                   Discard Changes
                 </Button>
