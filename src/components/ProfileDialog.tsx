@@ -66,13 +66,22 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const updateData = profile?.data?.employerProfile;
 
-  const [formData, setFormData] = useState({
+  const updatedData = {
     companyName: updateData?.companyName || "",
     industry: updateData?.industry || "",
     location: updateData?.location || "",
     companySize: updateData?.companySize || "",
     website: updateData?.website || "",
     description: updateData?.description || "",
+  };
+
+  const [formData, setFormData] = useState({
+    companyName: "",
+    industry: "",
+    location: "",
+    companySize: "",
+    website: "",
+    description: "",
   });
 
   useEffect(() => {
@@ -80,14 +89,8 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
       hasPopulated.current = false; // reset on new open
     }
     if (open && !hasPopulated.current && updateData) {
-      setFormData({
-        companyName: updateData?.companyName || "",
-        industry: updateData?.industry || "",
-        location: updateData?.location || "",
-        companySize: updateData?.companySize || "",
-        website: updateData?.website || "",
-        description: updateData?.description || "",
-      });
+      setFormData(updatedData);
+
       hasPopulated.current = true;
       if (!prevOpen.current) setActiveTab("view");
     } else if (open && !prevOpen.current) {
@@ -160,7 +163,8 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.companyName) return toast.error("Company name is required");
+    if (!formData.companyName.trim())
+      return toast.error("Company name is required");
 
     try {
       const payload = {
@@ -323,7 +327,10 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                     </AvatarFallback>
                   </Avatar>
                   <div
-                    onClick={() => imageInputRef.current?.click()}
+                    onClick={() => {
+                      if (!isUploadingImage && !isRemovingImage)
+                        imageInputRef.current?.click();
+                    }}
                     className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
                   >
                     <Camera className="h-8 w-8 text-white" />
@@ -488,14 +495,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                   variant="ghost"
                   className="rounded-xl px-6 hover:bg-red-600 border border-slate-300 hover:text-white"
                   onClick={() => {
-                    setFormData({
-                      companyName: updateData?.companyName || "",
-                      industry: updateData?.industry || "",
-                      location: updateData?.location || "",
-                      companySize: updateData?.companySize || "",
-                      website: updateData?.website || "",
-                      description: updateData?.description || "",
-                    });
+                    setFormData(updatedData);
                     setActiveTab("view");
                   }}
                 >
