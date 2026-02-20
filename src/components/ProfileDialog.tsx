@@ -404,7 +404,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                   accept="image/jpeg,image/png,image/webp"
                 />
                 <p className="text-[10px] text-muted-foreground">
-                  JPG, PNG or GIF. Max 2MB
+                  JPG, PNG or WebP. Max 2MB
                 </p>
               </div>
 
