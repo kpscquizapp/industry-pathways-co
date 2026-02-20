@@ -52,10 +52,15 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
   const [updateProfile, { isLoading: isUpdating }] =
     useUpdateEmployerProfileMutation();
   const [activeTab, setActiveTab] = useState("view");
-  const { data: profileImage } = useGetProfileImageQuery(user?.id || "", {
-    skip: !user?.id,
-  });
-  const { data: profile } = useGetEmployerProfileQuery(undefined, {
+  const { data: profileImage, isError: isProfileImageError } =
+    useGetProfileImageQuery(user?.id || "", {
+      skip: !user?.id,
+    });
+  const {
+    data: profile,
+    isLoading: isProfileLoading,
+    isError: isProfileError,
+  } = useGetEmployerProfileQuery(undefined, {
     skip: !open,
   });
   const prevOpen = useRef(false);
@@ -334,8 +339,18 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                     </AvatarFallback>
                   </Avatar>
                   <div
+                    role="button"
+                    tabIndex={0}
                     onClick={() => {
                       if (!isUploadingImage && !isRemovingImage)
+                        imageInputRef.current?.click();
+                    }}
+                    onKeyDown={(e) => {
+                      if (
+                        (e.key === "Enter" || e.key === " ") &&
+                        !isUploadingImage &&
+                        !isRemovingImage
+                      )
                         imageInputRef.current?.click();
                     }}
                     className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
@@ -386,7 +401,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                   ref={imageInputRef}
                   className="hidden"
                   onChange={handleImageUpload}
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                 />
                 <p className="text-[10px] text-muted-foreground">
                   JPG, PNG or GIF. Max 2MB
@@ -500,6 +515,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                 <Button
                   type="button"
                   variant="ghost"
+                  disabled={isUpdating}
                   className="rounded-xl px-6 hover:bg-red-600 border border-slate-300 hover:text-white"
                   onClick={() => {
                     setFormData(updatedData);
