@@ -43,7 +43,8 @@ import useLogout from "@/hooks/useLogout";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import ProfileDialog from "../ProfileDialog";
-import { useGetProfileImageQuery } from "@/app/queries/employerApi";
+import { useGetProfileImageQuery as useGetEmployerProfileImageQuery } from "@/app/queries/employerApi";
+import { useGetProfileImageQuery as useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
 
 type DashboardRole = "contractor" | "bench" | "hire-talent";
 
@@ -134,9 +135,19 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const user = useSelector((state: RootState) => state.user.userDetails);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  const { data: profileImage } = useGetProfileImageQuery(user?.id || "", {
-    skip: !user?.id,
-  });
+  // Use role-appropriate image endpoint:
+  // - employer/bench use /avatar/business (employerApi)
+  // - contractor/candidate use /avatar (profileApi)
+  const isEmployerRole = role === "hire-talent" || role === "bench";
+  const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
+    user?.id || "",
+    { skip: !user?.id || !isEmployerRole },
+  );
+  const { data: candidateProfileImage } = useGetCandidateProfileImageQuery(
+    user?.id || "",
+    { skip: !user?.id || isEmployerRole },
+  );
+  const profileImage = isEmployerRole ? employerProfileImage : candidateProfileImage;
 
   const handleProfile = () => {
     if (role === "hire-talent") {

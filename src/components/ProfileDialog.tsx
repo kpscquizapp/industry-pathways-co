@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,9 +18,10 @@ import {
   useRemoveProfileImageMutation,
   useUpdateEmployerProfileMutation,
   useUploadProfileImageMutation,
+  useGetEmployerProfileQuery,
 } from "@/app/queries/employerApi";
 import SpinnerLoader from "./loader/SpinnerLoader";
-import { useGetProfileQuery } from "@/app/queries/profileApi";
+
 import {
   Select,
   SelectContent,
@@ -54,7 +55,9 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
   const { data: profileImage } = useGetProfileImageQuery(user?.id || "", {
     skip: !user?.id,
   });
-  const { data: profile } = useGetProfileQuery(undefined, { skip: !open });
+  const { data: profile } = useGetEmployerProfileQuery(undefined, {
+    skip: !open,
+  });
   const prevOpen = useRef(false);
   const hasPopulated = useRef(false);
 
@@ -66,14 +69,17 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const updateData = profile?.data?.employerProfile;
 
-  const updatedData = {
-    companyName: updateData?.companyName || "",
-    industry: updateData?.industry || "",
-    location: updateData?.location || "",
-    companySize: updateData?.companySize || "",
-    website: updateData?.website || "",
-    description: updateData?.description || "",
-  };
+  const updatedData = useMemo(
+    () => ({
+      companyName: updateData?.companyName || "",
+      industry: updateData?.industry || "",
+      location: updateData?.location || "",
+      companySize: updateData?.companySize || "",
+      website: updateData?.website || "",
+      description: updateData?.description || "",
+    }),
+    [updateData],
+  );
 
   const [formData, setFormData] = useState({
     companyName: "",
@@ -105,7 +111,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
       });
     }
     prevOpen.current = open;
-  }, [open, updateData]);
+  }, [open, updateData, updatedData]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,

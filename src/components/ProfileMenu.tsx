@@ -14,7 +14,8 @@ import useLogout from "@/hooks/useLogout";
 import { LogOut, User } from "lucide-react";
 import ProfileDialog from "./ProfileDialog";
 import { useNavigate } from "react-router-dom";
-import { useGetProfileImageQuery } from "@/app/queries/employerApi";
+import { useGetProfileImageQuery as useGetEmployerProfileImageQuery } from "@/app/queries/employerApi";
+import { useGetProfileImageQuery as useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
 
 const ProfileMenu = ({
   btnClass,
@@ -27,9 +28,17 @@ const ProfileMenu = ({
   const [handleLogout, isLoading] = useLogout();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
-  const { data: profileImage } = useGetProfileImageQuery(user?.id || "", {
-    skip: !user?.id,
-  });
+  // Use role-appropriate image endpoint
+  const isEmployerOrHr = user?.role === "employer" || user?.role === "hr";
+  const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
+    user?.id || "",
+    { skip: !user?.id || !isEmployerOrHr },
+  );
+  const { data: candidateProfileImage } = useGetCandidateProfileImageQuery(
+    user?.id || "",
+    { skip: !user?.id || isEmployerOrHr },
+  );
+  const profileImage = isEmployerOrHr ? employerProfileImage : candidateProfileImage;
 
   const handleProfile = () => {
     if (user.role === "hr") {

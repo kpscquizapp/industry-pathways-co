@@ -1,7 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { config } from "../../services/service";
 import { getAuthHeaders } from "@/lib/helpers";
-import { profileApi } from "./profileApi";
 
 interface UpdateEmployerProfile {
   companyName?: string;
@@ -33,15 +32,6 @@ export const employerApi = createApi({
         body: data,
       }),
       invalidatesTags: ["EmployerProfile"],
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        try {
-          await queryFulfilled;
-          // Invalidate profileApi's Profile tag manually to sync caches
-          dispatch(profileApi.util.invalidateTags(["Profile"]));
-        } catch (error) {
-          console.error("Profile update failed:", error);
-        }
-      },
     }),
     uploadProfileImage: builder.mutation<void, FormData>({
       query: (formData) => ({
@@ -50,14 +40,6 @@ export const employerApi = createApi({
         body: formData,
       }),
       invalidatesTags: ["EmployerProfile"],
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        try {
-          await queryFulfilled;
-          dispatch(profileApi.util.invalidateTags(["Profile"]));
-        } catch (error) {
-          console.error("Image upload failed:", error);
-        }
-      },
     }),
     getProfileImage: builder.query<string | null, string>({
       query: (id) => ({
@@ -89,25 +71,16 @@ export const employerApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["EmployerProfile"],
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        try {
-          await queryFulfilled;
-          dispatch(profileApi.util.invalidateTags(["Profile"]));
-        } catch (error) {
-          console.error("Image removal failed:", error);
-        }
-      },
-      // // Optional: optimistic update to clear image immediately
-      // async onQueryStarted(id, { dispatch, queryFulfilled }) {
-      //   const patchResult = dispatch(
-      //     employerApi.util.updateQueryData("getProfileImage", id, () => null),
-      //   );
-      //   try {
-      //     await queryFulfilled;
-      //   } catch {
-      //     patchResult.undo();
-      //   }
-      // },
+    }),
+    // Dedicated employer profile query — tagged EmployerProfile so it
+    // auto-refetches after updateEmployerProfile/uploadProfileImage/removeProfileImage.
+    // Keeps employer data completely isolated from profileApi ("Profile" tag).
+    getEmployerProfile: builder.query<any, void>({
+      query: () => ({
+        method: "GET",
+        url: "jobboard/profile",
+      }),
+      providesTags: ["EmployerProfile"],
     }),
   }),
 });
@@ -117,4 +90,5 @@ export const {
   useUploadProfileImageMutation,
   useGetProfileImageQuery,
   useRemoveProfileImageMutation,
+  useGetEmployerProfileQuery,
 } = employerApi;
