@@ -38,13 +38,16 @@ const ProfileMenu = ({
     user?.id || "",
     { skip: !user?.id || isEmployerOrHr },
   );
-  const profileImage = isEmployerOrHr ? employerProfileImage : candidateProfileImage;
+  const profileImage = isEmployerOrHr
+    ? employerProfileImage
+    : candidateProfileImage;
 
   const handleProfile = () => {
     if (user.role === "hr") {
       navigate("/bench-dashboard");
     } else if (user.role === "candidate") {
       navigate("/contractor/profile");
+      return;
     } else if (user.role === "employer") {
       navigate("/hire-talent/dashboard");
     }

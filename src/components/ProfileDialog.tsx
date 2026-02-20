@@ -184,6 +184,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
       await updateProfile(payload).unwrap();
       toast.success("Profile updated successfully");
+      hasPopulated.current = false;
       setActiveTab("view");
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to update profile");
