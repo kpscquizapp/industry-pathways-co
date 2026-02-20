@@ -361,7 +361,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                       className="rounded-xl text-xs h-8 px-3"
                       aria-label="Remove photo"
                       onClick={handleImageRemove}
-                      disabled={isRemovingImage}
+                      disabled={isRemovingImage || isUploadingImage}
                     >
                       {isRemovingImage ? (
                         <SpinnerLoader className="h-3 w-3" />
