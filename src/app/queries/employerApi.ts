@@ -50,6 +50,14 @@ export const employerApi = createApi({
         body: formData,
       }),
       invalidatesTags: ["EmployerProfile"],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(profileApi.util.invalidateTags(["Profile"]));
+        } catch (error) {
+          console.error("Image upload failed:", error);
+        }
+      },
     }),
     getProfileImage: builder.query<string | null, string>({
       query: (id) => ({
@@ -81,17 +89,25 @@ export const employerApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["EmployerProfile"],
-      // Optional: optimistic update to clear image immediately
-      async onQueryStarted(id, { dispatch, queryFulfilled }) {
-        const patchResult = dispatch(
-          employerApi.util.updateQueryData("getProfileImage", id, () => null),
-        );
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
-        } catch {
-          patchResult.undo();
+          dispatch(profileApi.util.invalidateTags(["Profile"]));
+        } catch (error) {
+          console.error("Image removal failed:", error);
         }
       },
+      // // Optional: optimistic update to clear image immediately
+      // async onQueryStarted(id, { dispatch, queryFulfilled }) {
+      //   const patchResult = dispatch(
+      //     employerApi.util.updateQueryData("getProfileImage", id, () => null),
+      //   );
+      //   try {
+      //     await queryFulfilled;
+      //   } catch {
+      //     patchResult.undo();
+      //   }
+      // },
     }),
   }),
 });
