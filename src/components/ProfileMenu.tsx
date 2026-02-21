@@ -14,6 +14,8 @@ import useLogout from "@/hooks/useLogout";
 import { LogOut, User } from "lucide-react";
 import ProfileDialog from "./ProfileDialog";
 import { useNavigate } from "react-router-dom";
+import { useGetProfileImageQuery as useGetEmployerProfileImageQuery } from "@/app/queries/employerApi";
+import { useGetProfileImageQuery as useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
 
 const ProfileMenu = ({
   btnClass,
@@ -26,12 +28,26 @@ const ProfileMenu = ({
   const [handleLogout, isLoading] = useLogout();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
+  // Use role-appropriate image endpoint
+  const isEmployerOrHr = user?.role === "employer" || user?.role === "hr";
+  const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
+    user?.id || "",
+    { skip: !user?.id || !isEmployerOrHr },
+  );
+  const { data: candidateProfileImage } = useGetCandidateProfileImageQuery(
+    user?.id || "",
+    { skip: !user?.id || isEmployerOrHr },
+  );
+  const profileImage = isEmployerOrHr
+    ? employerProfileImage
+    : candidateProfileImage;
 
   const handleProfile = () => {
     if (user.role === "hr") {
       navigate("/bench-dashboard");
     } else if (user.role === "candidate") {
       navigate("/contractor/profile");
+      return;
     } else if (user.role === "employer") {
       navigate("/hire-talent/dashboard");
     }
@@ -44,7 +60,13 @@ const ProfileMenu = ({
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className={btnClass}>
             <Avatar className="h-8 w-8">
-              <AvatarImage src="" />
+              {profileImage && (
+                <AvatarImage
+                  className="object-cover"
+                  src={profileImage}
+                  alt={`${user?.firstName ?? "User"} profile image`}
+                />
+              )}
               <AvatarFallback className={avatarFallback}>
                 {user?.firstName?.charAt(0) || "E"}
               </AvatarFallback>
