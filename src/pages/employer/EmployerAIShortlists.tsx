@@ -277,6 +277,15 @@ const EmployerAIShortlists = () => {
 
   const [shortlistCandidateMutation] = useShortlistCandidateMutation();
 
+  // Sync selectedJob with URL search params on mount and navigation
+  useEffect(() => {
+    const currentJobIdParam = searchParams.get("jobId");
+    const jobIdFromUrl = currentJobIdParam || "all";
+    if (selectedJob !== jobIdFromUrl) {
+      setSelectedJob(jobIdFromUrl);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     const nextJobs = employerJobsResponse?.data ?? [];
     const responsePageNumber = employerJobsResponse?.meta?.page;
@@ -329,7 +338,6 @@ const EmployerAIShortlists = () => {
   }, [
     employerJobs.length,
     employerJobsPage,
-    employerJobsResponse?.data?.length,
     employerJobsResponse?.meta?.total,
     employerJobsResponse?.meta?.totalPages,
   ]);
@@ -353,7 +361,6 @@ const EmployerAIShortlists = () => {
   }, [
     jobMatchesPage,
     loadedMatches.length,
-    matchesResponse?.data?.length,
     matchesResponse?.meta?.total,
     matchesResponse?.meta?.totalPages,
     shouldFetchMatches,
@@ -501,6 +508,14 @@ const EmployerAIShortlists = () => {
     setSelectedJob(value);
     setLoadedMatches([]);
     setJobMatchesPage(1);
+    // Update URL search params so jobId persists across navigation
+    const nextParams = new URLSearchParams(searchParams);
+    if (value === "all") {
+      nextParams.delete("jobId");
+    } else {
+      nextParams.set("jobId", value);
+    }
+    setSearchParams(nextParams);
   };
 
   const handleLoadMoreJobs = () => {
@@ -649,18 +664,18 @@ const EmployerAIShortlists = () => {
           <SelectContent>
             <SelectItem value="all">All Jobs</SelectItem>
             {jobsLoading && (
-              <SelectItem value="loading" disabled>
+              <SelectItem value="__loading__" disabled>
                 Loading jobs...
               </SelectItem>
             )}
             {!jobsLoading && employerJobs.length === 0 && (
-              <SelectItem value="none" disabled>
+              <SelectItem value="__none__" disabled>
                 No jobs found
               </SelectItem>
             )}
             {employerJobs.map((job) => (
               <SelectItem key={job.id} value={String(job.id)}>
-                {job.title}
+                {job.title ?? "Untitled Job"}
               </SelectItem>
             ))}
           </SelectContent>
@@ -747,7 +762,7 @@ const EmployerAIShortlists = () => {
                       <p className="text-sm">
                         {searchTerm
                           ? `No candidates matching "${searchTerm}" in the ${activeTab} category.`
-                          : `No ${activeTab === "matched" ? "matched" : activeTab === "shortlisted" ? "shortlisted" : ""} candidates found.`}
+                          : `No ${activeTab === "matched" ? "matched " : activeTab === "shortlisted" ? "shortlisted " : ""}candidates found.`}
                       </p>
                     </div>
                   </CardContent>
