@@ -21,10 +21,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { useDownloadBenchResumeMutation } from "@/app/queries/benchApi";
+import type { EntityId } from "@/app/queries/aiShortlistApi";
 import { toast } from "sonner";
 
 export interface CandidateProfile {
-  id: number;
+  id: EntityId;
   name: string;
   role: string;
   avatar?: string;
@@ -129,10 +130,17 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
 }) => {
   const [downloadResume] = useDownloadBenchResumeMutation();
 
-  const handleDownload = async (id: number) => {
+  const handleDownload = async (id: EntityId) => {
     if (!candidate) return;
+
+    const numericId = Number(id);
+    if (!Number.isFinite(numericId)) {
+      toast.error("Resume download is unavailable for this candidate.");
+      return;
+    }
+
     try {
-      await downloadResume(id).unwrap();
+      await downloadResume(numericId).unwrap();
       toast.success("Resume downloaded successfully.");
     } catch (error) {
       toast.error("Failed to download resume.");

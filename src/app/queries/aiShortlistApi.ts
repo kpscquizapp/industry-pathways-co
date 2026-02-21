@@ -72,6 +72,23 @@ export interface GetJobMatchesArgs {
   limit?: number;
 }
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 100;
+const MAX_LIMIT = 200;
+
+const resolvePage = (page?: number) =>
+  Number.isFinite(page) && Number(page) > 0
+    ? Math.floor(Number(page))
+    : DEFAULT_PAGE;
+
+const resolveLimit = (limit?: number) => {
+  const parsedLimit =
+    Number.isFinite(limit) && Number(limit) > 0
+      ? Math.floor(Number(limit))
+      : DEFAULT_LIMIT;
+  return Math.min(parsedLimit, MAX_LIMIT);
+};
+
 export const aiShortlistApi = createApi({
   reducerPath: "aiShortlistApi",
   baseQuery: fetchBaseQuery({
@@ -91,18 +108,18 @@ export const aiShortlistApi = createApi({
   tagTypes: ["AiShortlistJobs", "AiShortlistMatches"],
   endpoints: (builder) => ({
     getEmployerJobs: builder.query<EmployerJobsResponse, GetEmployerJobsArgs>({
-      query: ({ page = 1, limit = 50 }) => ({
+      query: ({ page, limit }) => ({
         method: "GET",
         url: "employers/jobs",
-        params: { page, limit },
+        params: { page: resolvePage(page), limit: resolveLimit(limit) },
       }),
       providesTags: ["AiShortlistJobs"],
     }),
     getJobMatches: builder.query<JobMatchesResponse, GetJobMatchesArgs>({
-      query: ({ id, page = 1, limit = 20 }) => ({
+      query: ({ id, page, limit }) => ({
         method: "GET",
         url: `jobs/${id}/matches`,
-        params: { page, limit },
+        params: { page: resolvePage(page), limit: resolveLimit(limit) },
       }),
       providesTags: (_result, _error, { id }) => [
         { type: "AiShortlistMatches", id },
