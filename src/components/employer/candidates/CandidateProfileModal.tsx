@@ -466,7 +466,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
         </div>
 
         {/* Bottom Action Bar */}
-        {/* <div className="sticky bottom-0 bg-card border-t border-border p-4 flex items-center justify-end gap-3">
+        <div className="sticky bottom-0 bg-card border-t border-border p-4 flex items-center justify-end gap-3">
           {onSkillTest && (
             <Button
               variant="outline"
@@ -495,7 +495,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
               Book Interview
             </Button>
           )}
-        </div> */}
+        </div>
       </DialogContent>
     </Dialog>
   );
