@@ -279,12 +279,26 @@ const EmployerAIShortlists = () => {
 
   useEffect(() => {
     const nextJobs = employerJobsResponse?.data ?? [];
+    const responsePageNumber = employerJobsResponse?.meta?.page;
+
+    // Only update if response page matches current page (prevents stale responses from earlier pages)
+    if (
+      responsePageNumber !== undefined &&
+      responsePageNumber !== employerJobsPage
+    ) {
+      return;
+    }
+
     setLoadedEmployerJobs((previousJobs) =>
       employerJobsPage === 1
         ? nextJobs
         : mergeUniqueById(previousJobs, nextJobs),
     );
-  }, [employerJobsPage, employerJobsResponse?.data]);
+  }, [
+    employerJobsPage,
+    employerJobsResponse?.data,
+    employerJobsResponse?.meta?.page,
+  ]);
 
   useEffect(() => {
     if (!shouldFetchMatches) {
@@ -504,7 +518,6 @@ const EmployerAIShortlists = () => {
     dispatch(aiShortlistApi.util.invalidateTags(["AiShortlistMatches"]));
     setLoadedMatches([]);
     setJobMatchesPage(1);
-    refetchMatches();
   };
 
   const handleViewProfile = (candidate: CandidateProfile) => {
@@ -551,17 +564,15 @@ const EmployerAIShortlists = () => {
     );
 
     if (!hasAlreadyShortlisted) {
-      // Optimistic update
-      setShortlistedIds([...shortlistedIds, candidate.id]);
+      // Optimistic update using functional setState to avoid stale closure
+      setShortlistedIds((prev) => [...prev, candidate.id]);
       toast.success(`${candidate.name} added to shortlist!`);
 
       // Call backend mutation
       shortlistCandidateMutation({ candidateId: candidate.id }).catch(() => {
-        // Rollback optimistic update on error
-        setShortlistedIds(
-          shortlistedIds.filter(
-            (id) => getEntityIdKey(id) !== shortlistedCandidateKey,
-          ),
+        // Rollback optimistic update on error using functional setState
+        setShortlistedIds((prev) =>
+          prev.filter((id) => getEntityIdKey(id) !== shortlistedCandidateKey),
         );
         toast.error(`Failed to shortlist ${candidate.name}. Please try again.`);
       });
@@ -754,8 +765,11 @@ const EmployerAIShortlists = () => {
                       <Avatar className="h-14 w-14 bg-primary/10">
                         <AvatarFallback className="text-lg font-semibold text-primary">
                           {candidate.name
-                            .split(" ")
-                            .map((n) => n[0])
+                            .trim()
+                            .split(/\s+/)
+                            .filter((segment) => segment.length > 0)
+                            .map((segment) => segment[0])
+                            .slice(0, 2)
                             .join("")}
                         </AvatarFallback>
                       </Avatar>
