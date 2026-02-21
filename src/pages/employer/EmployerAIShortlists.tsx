@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
 import {
   RefreshCw,
   Filter,
@@ -10,6 +11,7 @@ import {
   Building2,
   User,
   ArrowRight,
+  ChevronDown,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +34,8 @@ import CandidateProfileModal, {
 import {
   useGetEmployerJobsQuery,
   useGetJobMatchesQuery,
+  aiShortlistApi,
+  useShortlistCandidateMutation,
 } from "@/app/queries/aiShortlistApi";
 import type { EntityId, Job, Match } from "@/app/queries/aiShortlistApi";
 
@@ -223,14 +227,13 @@ const mapMatchToCandidate = (match: Match): CandidateProfileWithMeta | null => {
 };
 
 const EmployerAIShortlists = () => {
+  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const jobIdParam = searchParams.get("jobId");
   const candidateIdParam = searchParams.get("candidateId");
-  const [selectedJob, setSelectedJob] = useState(
-    jobIdParam && Number.isFinite(Number(jobIdParam)) ? jobIdParam : "all",
-  );
+  const [selectedJob, setSelectedJob] = useState(jobIdParam || "all");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [shortlistedIds, setShortlistedIds] = useState<EntityId[]>([]);
@@ -250,16 +253,13 @@ const EmployerAIShortlists = () => {
 
   const employerJobs = loadedEmployerJobs;
   const isAllJobsSelected = selectedJob === "all";
-  const selectedJobId =
-    !isAllJobsSelected && Number.isFinite(Number(selectedJob))
-      ? Number(selectedJob)
-      : null;
+  const selectedJobId = !isAllJobsSelected ? String(selectedJob) : null;
   const shouldFetchMatches = selectedJobId !== null;
-  const jobMatchesQueryId = selectedJobId === null ? "" : String(selectedJobId);
+  const jobMatchesQueryId = selectedJobId ?? "";
   const stateJob = (location.state as { job?: Job } | null)?.job;
   const selectedJobDetails =
-    employerJobs.find((job) => Number(job.id) === selectedJobId) ??
-    (stateJob && Number(stateJob.id) === selectedJobId ? stateJob : undefined);
+    employerJobs.find((job) => String(job.id) === selectedJobId) ??
+    (stateJob && String(stateJob.id) === selectedJobId ? stateJob : undefined);
 
   const {
     data: matchesResponse,
@@ -267,9 +267,15 @@ const EmployerAIShortlists = () => {
     isError: matchesError,
     refetch: refetchMatches,
   } = useGetJobMatchesQuery(
-    { id: jobMatchesQueryId, page: jobMatchesPage, limit: JOB_MATCHES_PAGE_SIZE },
+    {
+      id: jobMatchesQueryId,
+      page: jobMatchesPage,
+      limit: JOB_MATCHES_PAGE_SIZE,
+    },
     { skip: !shouldFetchMatches },
   );
+
+  const [shortlistCandidateMutation] = useShortlistCandidateMutation();
 
   useEffect(() => {
     const nextJobs = employerJobsResponse?.data ?? [];
@@ -305,7 +311,7 @@ const EmployerAIShortlists = () => {
       return employerJobs.length < total;
     }
 
-    return (employerJobsResponse?.data?.length ?? 0) > 0;
+    return false; // unknown pagination — don't assume more pages exist
   }, [
     employerJobs.length,
     employerJobsPage,
@@ -329,7 +335,7 @@ const EmployerAIShortlists = () => {
       return loadedMatches.length < total;
     }
 
-    return (matchesResponse?.data?.length ?? 0) > 0;
+    return false;
   }, [
     jobMatchesPage,
     loadedMatches.length,
@@ -339,28 +345,25 @@ const EmployerAIShortlists = () => {
     shouldFetchMatches,
   ]);
 
-  const candidates = useMemo<CandidateListItem[]>(
-    () => {
-      const shortlistedIdKeys = new Set(
-        shortlistedIds.map((shortlistedId) => getEntityIdKey(shortlistedId)),
-      );
+  const candidates = useMemo<CandidateListItem[]>(() => {
+    const shortlistedIdKeys = new Set(
+      shortlistedIds.map((shortlistedId) => getEntityIdKey(shortlistedId)),
+    );
 
-      return loadedMatches
-        .map(mapMatchToCandidate)
-        .filter(
-          (candidate): candidate is CandidateProfileWithMeta =>
-            candidate !== null,
-        )
-        .map((c) => ({
-          ...c,
-          stage: shortlistedIdKeys.has(getEntityIdKey(c.id))
-            ? "shortlisted"
-            : "matched",
-          matchReasons: [],
-        }));
-    },
-    [loadedMatches, shortlistedIds],
-  );
+    return loadedMatches
+      .map(mapMatchToCandidate)
+      .filter(
+        (candidate): candidate is CandidateProfileWithMeta =>
+          candidate !== null,
+      )
+      .map((c) => ({
+        ...c,
+        stage: shortlistedIdKeys.has(getEntityIdKey(c.id))
+          ? "shortlisted"
+          : "matched",
+        matchReasons: [],
+      }));
+  }, [loadedMatches, shortlistedIds]);
 
   // Compare Job API data with AI Shortlist API data
   // Show only profiles that match: job title = role OR job skills = skills
@@ -428,19 +431,20 @@ const EmployerAIShortlists = () => {
   // This ensures search results respect the job title/skills matching conditions
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
 
-  const filteredCandidates = jobRelevantCandidates
-    .filter((c) => {
-      // Filter by tab (all, matched, or shortlisted)
-      if (activeTab === "matched") return c.stage === "matched";
-      if (activeTab === "shortlisted") return c.stage === "shortlisted";
-      return true;
-    })
-    .filter((c) => {
-      // Search filter: Show candidates that match search term in candidate name only
-      // Only applied to candidates already matching job title/skills conditions
-      if (!normalizedSearchTerm) return true;
-      return c.name.toLowerCase().includes(normalizedSearchTerm);
-    });
+  const filteredCandidates = useMemo(
+    () =>
+      jobRelevantCandidates
+        .filter((c) => {
+          if (activeTab === "matched") return c.stage === "matched";
+          if (activeTab === "shortlisted") return c.stage === "shortlisted";
+          return true;
+        })
+        .filter((c) => {
+          if (!normalizedSearchTerm) return true;
+          return c.name.toLowerCase().includes(normalizedSearchTerm);
+        }),
+    [jobRelevantCandidates, activeTab, normalizedSearchTerm],
+  );
 
   const counts = useMemo(() => {
     const matchesSearch = (candidate: CandidateListItem) =>
@@ -460,21 +464,18 @@ const EmployerAIShortlists = () => {
     };
   }, [jobRelevantCandidates, normalizedSearchTerm]);
 
-  const selectedCandidate = useMemo(
-    () => {
-      if (parsedCandidateId === null) {
-        return null;
-      }
+  const selectedCandidate = useMemo(() => {
+    if (parsedCandidateId === null) {
+      return null;
+    }
 
-      const candidateIdKey = getEntityIdKey(parsedCandidateId);
-      return (
-        jobRelevantCandidates.find(
-          (item) => getEntityIdKey(item.id) === candidateIdKey,
-        ) ?? null
-      );
-    },
-    [jobRelevantCandidates, parsedCandidateId],
-  );
+    const candidateIdKey = getEntityIdKey(parsedCandidateId);
+    return (
+      jobRelevantCandidates.find(
+        (item) => getEntityIdKey(item.id) === candidateIdKey,
+      ) ?? null
+    );
+  }, [jobRelevantCandidates, parsedCandidateId]);
   const showProfileModal = selectedCandidate !== null;
 
   // Real-time search as user types
@@ -500,11 +501,9 @@ const EmployerAIShortlists = () => {
 
   const handleRefreshMatches = () => {
     if (!shouldFetchMatches) return;
+    dispatch(aiShortlistApi.util.invalidateTags(["AiShortlistMatches"]));
     setLoadedMatches([]);
-    if (jobMatchesPage !== 1) {
-      setJobMatchesPage(1);
-      return;
-    }
+    setJobMatchesPage(1);
     refetchMatches();
   };
 
@@ -547,12 +546,25 @@ const EmployerAIShortlists = () => {
   const handleShortlist = (candidate: CandidateProfile) => {
     const shortlistedCandidateKey = getEntityIdKey(candidate.id);
     const hasAlreadyShortlisted = shortlistedIds.some(
-      (shortlistedId) => getEntityIdKey(shortlistedId) === shortlistedCandidateKey,
+      (shortlistedId) =>
+        getEntityIdKey(shortlistedId) === shortlistedCandidateKey,
     );
 
     if (!hasAlreadyShortlisted) {
+      // Optimistic update
       setShortlistedIds([...shortlistedIds, candidate.id]);
       toast.success(`${candidate.name} added to shortlist!`);
+
+      // Call backend mutation
+      shortlistCandidateMutation({ candidateId: candidate.id }).catch(() => {
+        // Rollback optimistic update on error
+        setShortlistedIds(
+          shortlistedIds.filter(
+            (id) => getEntityIdKey(id) !== shortlistedCandidateKey,
+          ),
+        );
+        toast.error(`Failed to shortlist ${candidate.name}. Please try again.`);
+      });
     }
     closeProfileModal();
   };
@@ -649,7 +661,7 @@ const EmployerAIShortlists = () => {
           onClick={handleLoadMoreJobs}
           disabled={jobsLoading || !hasMoreEmployerJobs}
         >
-          <Download className="h-4 w-4 mr-2" />
+          <ChevronDown className="h-4 w-4 mr-2" />
           {hasMoreEmployerJobs ? "Load More Jobs" : "All Jobs Loaded"}
         </Button>
 
@@ -905,21 +917,21 @@ const EmployerAIShortlists = () => {
             {shouldFetchMatches &&
               !matchesError &&
               (jobRelevantCandidates.length > 0 || hasMoreMatches) && (
-              <div className="flex justify-center pt-2">
-                <Button
-                  variant="outline"
-                  className="rounded-xl"
-                  onClick={handleLoadMoreMatches}
-                  disabled={matchesLoading || !hasMoreMatches}
-                >
-                  {matchesLoading
-                    ? "Loading..."
-                    : hasMoreMatches
-                      ? "Load More Candidates"
-                      : "All Candidates Loaded"}
-                </Button>
-              </div>
-            )}
+                <div className="flex justify-center pt-2">
+                  <Button
+                    variant="outline"
+                    className="rounded-xl"
+                    onClick={handleLoadMoreMatches}
+                    disabled={matchesLoading || !hasMoreMatches}
+                  >
+                    {matchesLoading
+                      ? "Loading..."
+                      : hasMoreMatches
+                        ? "Load More Candidates"
+                        : "All Candidates Loaded"}
+                  </Button>
+                </div>
+              )}
           </div>
         </TabsContent>
       </Tabs>

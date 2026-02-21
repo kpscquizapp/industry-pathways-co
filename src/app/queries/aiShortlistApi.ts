@@ -72,6 +72,10 @@ export interface GetJobMatchesArgs {
   limit?: number;
 }
 
+export interface ShortlistCandidateArgs {
+  candidateId: EntityId;
+}
+
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 100;
 const MAX_LIMIT = 200;
@@ -126,6 +130,15 @@ export const aiShortlistApi = createApi({
         "AiShortlistMatches",
       ],
     }),
+    shortlistCandidate: builder.mutation<
+      { success: boolean },
+      ShortlistCandidateArgs
+    >({
+      query: ({ candidateId }) => ({
+        method: "POST",
+        url: `candidates/${candidateId}/shortlist`,
+      }),
+    }),
   }),
 });
 
@@ -133,4 +146,5 @@ export const {
   useGetEmployerJobsQuery,
   useGetJobMatchesQuery,
   useLazyGetJobMatchesQuery,
+  useShortlistCandidateMutation,
 } = aiShortlistApi;
