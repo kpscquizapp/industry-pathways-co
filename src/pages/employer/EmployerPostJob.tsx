@@ -154,11 +154,17 @@ const EmployerPostJob = () => {
       const createdJobId = getCreatedJobId(response);
       const jobState =
         enableAiMatching && response?.data ? { job: response.data } : undefined;
-      toast.success(
-        enableAiMatching
-          ? "Job posted! Finding AI-matched candidates..."
-          : "Job posted successfully!",
-      );
+      if (enableAiMatching && !createdJobId) {
+        toast.warning(
+          "Job posted, but could not retrieve job ID for AI matching.",
+        );
+      } else {
+        toast.success(
+          enableAiMatching
+            ? "Job posted! Finding AI-matched candidates..."
+            : "Job posted successfully!",
+        );
+      }
       const redirectUrl =
         enableAiMatching && createdJobId
           ? `${redirectPath}?jobId=${createdJobId}`
@@ -428,7 +434,7 @@ const EmployerPostJob = () => {
                         certifications: e.target.value,
                       })
                     }
-                    placeholder="certificate1, certificate2..."
+                    placeholder="e.g., AWS Certified, PMP, CISSP"
                     className="mt-1.5"
                   />
                 </div>

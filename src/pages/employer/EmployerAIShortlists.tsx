@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   RefreshCw,
   Filter,
@@ -34,6 +34,7 @@ import {
   useGetJobMatchesQuery,
   useLazyGetJobMatchesQuery,
 } from "@/app/queries/aiShortlistApi";
+import type { Job, Match } from "@/app/queries/aiShortlistApi";
 
 const EmployerAIShortlists = () => {
   const location = useLocation();
@@ -51,9 +52,6 @@ const EmployerAIShortlists = () => {
     useState<CandidateProfile | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [shortlistedIds, setShortlistedIds] = useState<number[]>([]);
-  const [allJobsMatches, setAllJobsMatches] = useState<any[]>([]);
-  const [allJobsLoading, setAllJobsLoading] = useState(false);
-  const [allJobsError, setAllJobsError] = useState(false);
   const parsedCandidateId =
     candidateIdParam && Number.isFinite(Number(candidateIdParam))
       ? Number(candidateIdParam)
@@ -67,18 +65,15 @@ const EmployerAIShortlists = () => {
     });
 
   const employerJobs = employerJobsResponse?.data ?? [];
-  const employerJobIdsKey = employerJobs
-    .map((job: any) => String(job.id))
-    .join(",");
   const isAllJobsSelected = selectedJob === "all";
   const selectedJobId =
     !isAllJobsSelected && Number.isFinite(Number(selectedJob))
       ? Number(selectedJob)
       : null;
   const shouldFetchMatches = selectedJobId !== null;
-  const stateJob = (location.state as { job?: any } | null)?.job;
+  const stateJob = (location.state as { job?: Job } | null)?.job;
   const selectedJobDetails =
-    employerJobs.find((job: any) => Number(job.id) === selectedJobId) ??
+    employerJobs.find((job) => Number(job.id) === selectedJobId) ??
     (stateJob && Number(stateJob.id) === selectedJobId ? stateJob : undefined);
 
   const {
@@ -128,11 +123,78 @@ const EmployerAIShortlists = () => {
     return [];
   };
 
+  const normalizeCertifications = (
+    certs: unknown,
+  ): Array<{ name: string; issuer: string; year: string }> => {
+    if (Array.isArray(certs)) {
+      return certs.filter(
+        (cert) =>
+          typeof cert === "object" &&
+          cert !== null &&
+          typeof cert.name === "string" &&
+          typeof cert.issuer === "string" &&
+          typeof cert.year === "string",
+      );
+    }
+    return [];
+  };
+
+  const normalizeWorkExperience = (
+    experience: unknown,
+  ): Array<{
+    role: string;
+    company: string;
+    companyColor?: string;
+    period: string;
+    location: string;
+    highlights: string[];
+  }> => {
+    if (Array.isArray(experience)) {
+      return experience.filter(
+        (exp) =>
+          typeof exp === "object" &&
+          exp !== null &&
+          typeof exp.role === "string" &&
+          typeof exp.company === "string" &&
+          typeof exp.period === "string" &&
+          typeof exp.location === "string" &&
+          Array.isArray(exp.highlights),
+      );
+    }
+    return [];
+  };
+
+  const normalizeProjects = (
+    projects: unknown,
+  ): Array<{
+    name: string;
+    description: string;
+    technologies: string[];
+    icon: "smartphone" | "shopping";
+  }> => {
+    if (Array.isArray(projects)) {
+      return projects.filter(
+        (project) =>
+          typeof project === "object" &&
+          project !== null &&
+          typeof project.name === "string" &&
+          typeof project.description === "string" &&
+          Array.isArray(project.technologies) &&
+          (project.icon === "smartphone" || project.icon === "shopping"),
+      );
+    }
+    return [];
+  };
+
   type CandidateProfileWithMeta = CandidateProfile & {
     experienceYears?: number;
   };
+  type CandidateListItem = CandidateProfileWithMeta & {
+    stage: "matched" | "shortlisted";
+    matchReasons: string[];
+  };
 
-  const mapMatchToCandidate = (match: any): CandidateProfileWithMeta => {
+  const mapMatchToCandidate = (match: Match): CandidateProfileWithMeta => {
     const parsedExperience =
       typeof match.experience === "number"
         ? match.experience
@@ -171,24 +233,26 @@ const EmployerAIShortlists = () => {
       hourlyRate: { min: hourlyFallback, max: hourlyMax },
       location: match.location || "Not specified",
       englishLevel: match.englishLevel,
-      certifications: match.certifications,
+      certifications: normalizeCertifications(match.certifications),
       about: match.about,
-      workExperience: match.workExperience,
-      projects: match.projects,
+      workExperience: normalizeWorkExperience(match.workExperience),
+      projects: normalizeProjects(match.projects),
     };
   };
 
-  const candidates = (matchesResponse?.data ?? [])
-    .map(mapMatchToCandidate)
-    .map((c) => ({
-      ...c,
-      stage: shortlistedIds.includes(c.id) ? "shortlisted" : "matched",
-      matchReasons: [] as string[], // Will be populated in jobRelevantCandidates
-    }));
+  const candidates = useMemo<CandidateListItem[]>(
+    () =>
+      (matchesResponse?.data ?? []).map(mapMatchToCandidate).map((c) => ({
+        ...c,
+        stage: shortlistedIds.includes(c.id) ? "shortlisted" : "matched",
+        matchReasons: [],
+      })),
+    [matchesResponse?.data, shortlistedIds],
+  );
 
   // Compare Job API data with AI Shortlist API data
   // Show only profiles that match: job title = role OR job skills = skills
-  const jobRelevantCandidates = (() => {
+  const jobRelevantCandidates = useMemo<CandidateListItem[]>(() => {
     // If no job is selected or not fetching matches, return all candidates
     if (!shouldFetchMatches) {
       return candidates;
@@ -209,12 +273,6 @@ const EmployerAIShortlists = () => {
       (skill) => skill.toLowerCase(),
     );
     const jobSkillSet = new Set(jobSkills);
-
-    console.log("Job Details:", {
-      title: selectedJobDetails.title,
-      titleTokens: jobTitleTokens,
-      skills: jobSkills,
-    });
 
     // Filter candidates: Show only if job title matches role OR if skills match
     // This compares Job API data with AI Shortlist API data
@@ -239,26 +297,25 @@ const EmployerAIShortlists = () => {
         if (titleMatches) matchReasons.push("Title Match");
         if (skillsMatch) matchReasons.push("Skills Match");
 
-        console.log(`Candidate ${candidate.name}:`, {
-          role: candidate.role,
-          skills: candidate.skills,
-          titleMatches,
-          skillsMatch,
-          shouldShow: titleMatches || skillsMatch,
-          matchReasons,
-        });
-
         return {
           ...candidate,
           matchReasons,
           isRelevant: titleMatches || skillsMatch,
         };
       })
-      .filter((c) => c.isRelevant);
-  })();
+      .filter(
+        (
+          c,
+        ): c is CandidateListItem & {
+          isRelevant: true;
+        } => c.isRelevant,
+      );
+  }, [candidates, selectedJobDetails, shouldFetchMatches]);
 
   // Filter candidates: First by job matching, then by tab, then by search term
   // This ensures search results respect the job title/skills matching conditions
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+
   const filteredCandidates = jobRelevantCandidates
     .filter((c) => {
       // Filter by tab (all, matched, or shortlisted)
@@ -269,18 +326,26 @@ const EmployerAIShortlists = () => {
     .filter((c) => {
       // Search filter: Show candidates that match search term in candidate name only
       // Only applied to candidates already matching job title/skills conditions
-      const query = searchTerm.trim().toLowerCase();
-      if (!query) return true;
-
-      const matchesName = c.name.toLowerCase().includes(query);
-
-      return matchesName;
+      if (!normalizedSearchTerm) return true;
+      return c.name.toLowerCase().includes(normalizedSearchTerm);
     });
 
-  const handleSearchSubmit = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setSearchTerm(searchInput.trim());
-  };
+  const counts = useMemo(() => {
+    const matchesSearch = (candidate: CandidateListItem) =>
+      !normalizedSearchTerm ||
+      candidate.name.toLowerCase().includes(normalizedSearchTerm);
+
+    return {
+      all: jobRelevantCandidates.filter(matchesSearch).length,
+      matched: jobRelevantCandidates.filter(
+        (candidate) => candidate.stage === "matched" && matchesSearch(candidate),
+      ).length,
+      shortlisted: jobRelevantCandidates.filter(
+        (candidate) =>
+          candidate.stage === "shortlisted" && matchesSearch(candidate),
+      ).length,
+    };
+  }, [jobRelevantCandidates, normalizedSearchTerm]);
 
   // Real-time search as user types
   const handleSearchChange = (value: string) => {
@@ -288,12 +353,6 @@ const EmployerAIShortlists = () => {
     // Update search term in real-time
     setSearchTerm(value.trim());
   };
-
-  useEffect(() => {
-    if (searchInput === "") {
-      setSearchTerm("");
-    }
-  }, [searchInput]);
 
   useEffect(() => {
     if (!parsedCandidateId) {
@@ -335,15 +394,17 @@ const EmployerAIShortlists = () => {
 
   // Helper function to highlight matching text in candidate name
   const getHighlightedName = (name: string, query: string) => {
-    if (!query.trim()) return name;
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return name;
 
-    const regex = new RegExp(`(${query})`, "gi");
+    const escapedQuery = trimmedQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(${escapedQuery})`, "i");
     const parts = name.split(regex);
 
     return (
       <span>
         {parts.map((part, index) =>
-          regex.test(part) ? (
+          part.match(regex) ? (
             <span key={index} className="bg-yellow-200 font-semibold">
               {part}
             </span>
@@ -423,11 +484,8 @@ const EmployerAIShortlists = () => {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 items-center">
-        <form
-          className="relative flex-1 min-w-[200px] max-w-md flex gap-2"
-          onSubmit={handleSearchSubmit}
-        >
-          <div className="relative flex-1">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search candidates by name..."
@@ -436,10 +494,7 @@ const EmployerAIShortlists = () => {
               className="pl-10 rounded-xl"
             />
           </div>
-          <Button type="submit" variant="secondary" className="rounded-xl">
-            Search
-          </Button>
-        </form>
+        </div>
 
         <Select value={selectedJob} onValueChange={setSelectedJob}>
           <SelectTrigger className="w-[200px] rounded-xl">
@@ -457,7 +512,7 @@ const EmployerAIShortlists = () => {
                 No jobs found
               </SelectItem>
             )}
-            {employerJobs.map((job: any) => (
+            {employerJobs.map((job) => (
               <SelectItem key={job.id} value={String(job.id)}>
                 {job.title}
               </SelectItem>
@@ -480,41 +535,13 @@ const EmployerAIShortlists = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-muted/50 rounded-xl p-1">
           <TabsTrigger value="all" className="rounded-lg px-6">
-            All (
-            {
-              jobRelevantCandidates.filter((c) => {
-                const query = searchTerm.trim().toLowerCase();
-                if (!query) return true;
-                return c.name.toLowerCase().includes(query);
-              }).length
-            }
-            )
+            All ({counts.all})
           </TabsTrigger>
           <TabsTrigger value="matched" className="rounded-lg px-6">
-            Matched (
-            {
-              jobRelevantCandidates
-                .filter((c) => c.stage === "matched")
-                .filter((c) => {
-                  const query = searchTerm.trim().toLowerCase();
-                  if (!query) return true;
-                  return c.name.toLowerCase().includes(query);
-                }).length
-            }
-            )
+            Matched ({counts.matched})
           </TabsTrigger>
           <TabsTrigger value="shortlisted" className="rounded-lg px-6">
-            Shortlisted (
-            {
-              jobRelevantCandidates
-                .filter((c) => c.stage === "shortlisted")
-                .filter((c) => {
-                  const query = searchTerm.trim().toLowerCase();
-                  if (!query) return true;
-                  return c.name.toLowerCase().includes(query);
-                }).length
-            }
-            )
+            Shortlisted ({counts.shortlisted})
           </TabsTrigger>
         </TabsList>
 
@@ -569,7 +596,7 @@ const EmployerAIShortlists = () => {
                   </CardContent>
                 </Card>
               )}
-            {filteredCandidates.map((candidate) => (
+            {filteredCandidates.map((candidate: CandidateListItem) => (
               <Card
                 key={candidate.id}
                 className="hover:border-primary/30 transition-colors"
@@ -648,14 +675,13 @@ const EmployerAIShortlists = () => {
                     </div>
 
                     {/* Match Validation - Shows why this candidate is relevant */}
-                    {(candidate as any).matchReasons &&
-                      (candidate as any).matchReasons.length > 0 && (
+                    {candidate.matchReasons.length > 0 && (
                         <div className="flex-1 min-w-[200px]">
                           <p className="text-xs text-muted-foreground mb-2">
                             Match Reason
                           </p>
                           <div className="flex flex-wrap gap-1.5">
-                            {(candidate as any).matchReasons.map(
+                            {candidate.matchReasons.map(
                               (reason: string) => (
                                 <Badge
                                   key={reason}
