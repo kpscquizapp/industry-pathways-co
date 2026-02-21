@@ -140,6 +140,15 @@ const EmployerPostJob = () => {
     toast.info("Draft saving is not yet available.");
   };
 
+  const getCreatedJobId = (
+    response:
+      | {
+          data?: { id?: string | number; job?: { id?: string | number } };
+          id?: string | number;
+        }
+      | undefined,
+  ) => response?.data?.id ?? response?.data?.job?.id ?? response?.id;
+
   const submitJob = async (enableAiMatching: boolean, redirectPath: string) => {
     try {
       const payload = buildCreateJobPayload(enableAiMatching);
@@ -147,13 +156,26 @@ const EmployerPostJob = () => {
         toast.error("Job title and description are required.");
         return;
       }
-      await createJob(payload).unwrap();
-      toast.success(
-        enableAiMatching
-          ? "Job posted! Finding AI-matched candidates..."
-          : "Job posted successfully!",
-      );
-      navigate(redirectPath);
+      const response = await createJob(payload).unwrap();
+      const createdJobId = getCreatedJobId(response);
+      const jobState =
+        enableAiMatching && response?.data ? { job: response.data } : undefined;
+      if (enableAiMatching && !createdJobId) {
+        toast.warning(
+          "Job posted, but could not retrieve job ID for AI matching.",
+        );
+      } else {
+        toast.success(
+          enableAiMatching
+            ? "Job posted! Finding AI-matched candidates..."
+            : "Job posted successfully!",
+        );
+      }
+      const redirectUrl =
+        enableAiMatching && createdJobId
+          ? `${redirectPath}?jobId=${createdJobId}`
+          : redirectPath;
+      navigate(redirectUrl, jobState ? { state: jobState } : undefined);
     } catch (error: unknown) {
       const message =
         error && typeof error === "object" && "data" in error
@@ -418,7 +440,7 @@ const EmployerPostJob = () => {
                         certifications: e.target.value,
                       })
                     }
-                    placeholder="e.g., AWS Certified"
+                    placeholder="e.g., AWS Certified, PMP, CISSP"
                     className="mt-1.5"
                   />
                 </div>

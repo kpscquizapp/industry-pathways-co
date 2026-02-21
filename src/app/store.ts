@@ -6,6 +6,7 @@ import { profileApi } from "./queries/profileApi";
 import { jobApi } from "./queries/jobApi";
 import { atsApi } from "./queries/atsApi";
 import { benchApi } from "./queries/benchApi";
+import { aiShortlistApi } from "./queries/aiShortlistApi";
 import { employerApi } from "./queries/employerApi";
 
 const store = configureStore({
@@ -18,6 +19,7 @@ const store = configureStore({
     [jobApi.reducerPath]: jobApi.reducer,
     [atsApi.reducerPath]: atsApi.reducer,
     [benchApi.reducerPath]: benchApi.reducer,
+    [aiShortlistApi.reducerPath]: aiShortlistApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -27,6 +29,7 @@ const store = configureStore({
       jobApi.middleware,
       atsApi.middleware,
       benchApi.middleware,
+      aiShortlistApi.middleware,
     ),
 });
 export type RootState = ReturnType<typeof store.getState>;
