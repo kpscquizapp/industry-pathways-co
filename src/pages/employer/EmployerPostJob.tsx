@@ -140,8 +140,14 @@ const EmployerPostJob = () => {
     toast.info("Draft saving is not yet available.");
   };
 
-  const getCreatedJobId = (response: any) =>
-    response?.data?.id ?? response?.data?.job?.id ?? response?.id;
+  const getCreatedJobId = (
+    response:
+      | {
+          data?: { id?: string | number; job?: { id?: string | number } };
+          id?: string | number;
+        }
+      | undefined,
+  ) => response?.data?.id ?? response?.data?.job?.id ?? response?.id;
 
   const submitJob = async (enableAiMatching: boolean, redirectPath: string) => {
     try {

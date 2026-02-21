@@ -15,8 +15,10 @@ export interface JobSkill {
   [key: string]: unknown;
 }
 
+export type EntityId = number | string;
+
 export interface Job {
-  id: number | string;
+  id: EntityId;
   title?: string;
   skills?: string | Array<string | JobSkill>;
   [key: string]: unknown;
@@ -29,7 +31,7 @@ export interface MatchExpectedSalary {
 }
 
 export interface Match {
-  id: number;
+  id: EntityId;
   name?: string;
   role?: string;
   matchScore?: number;
@@ -102,7 +104,10 @@ export const aiShortlistApi = createApi({
         url: `jobs/${id}/matches`,
         params: { page, limit },
       }),
-      providesTags: ["AiShortlistMatches"],
+      providesTags: (_result, _error, { id }) => [
+        { type: "AiShortlistMatches", id },
+        "AiShortlistMatches",
+      ],
     }),
   }),
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   RefreshCw,
   Filter,
@@ -32,9 +32,168 @@ import CandidateProfileModal, {
 import {
   useGetEmployerJobsQuery,
   useGetJobMatchesQuery,
-  useLazyGetJobMatchesQuery,
 } from "@/app/queries/aiShortlistApi";
 import type { Job, Match } from "@/app/queries/aiShortlistApi";
+
+type CandidateProfileWithMeta = CandidateProfile & {
+  experienceYears?: number;
+};
+
+type CandidateListItem = CandidateProfileWithMeta & {
+  stage: "matched" | "shortlisted";
+  matchReasons: string[];
+};
+
+const normalizeSkills = (skills: unknown): string[] => {
+  if (Array.isArray(skills)) {
+    return skills.filter(
+      (skill) => typeof skill === "string" && skill.trim().length > 0,
+    );
+  }
+  if (typeof skills === "string") {
+    return skills
+      .split(",")
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const normalizeJobSkills = (skills: unknown): string[] => {
+  if (Array.isArray(skills)) {
+    return skills
+      .map((skill) =>
+        typeof skill === "string"
+          ? skill
+          : typeof skill?.name === "string"
+            ? skill.name
+            : "",
+      )
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+  }
+  if (typeof skills === "string") {
+    return skills
+      .split(",")
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const normalizeCertifications = (
+  certs: unknown,
+): Array<{ name: string; issuer: string; year: string }> => {
+  if (Array.isArray(certs)) {
+    return certs.filter(
+      (cert) =>
+        typeof cert === "object" &&
+        cert !== null &&
+        typeof cert.name === "string" &&
+        typeof cert.issuer === "string" &&
+        typeof cert.year === "string",
+    );
+  }
+  return [];
+};
+
+const normalizeWorkExperience = (
+  experience: unknown,
+): Array<{
+  role: string;
+  company: string;
+  companyColor?: string;
+  period: string;
+  location: string;
+  highlights: string[];
+}> => {
+  if (Array.isArray(experience)) {
+    return experience.filter(
+      (exp) =>
+        typeof exp === "object" &&
+        exp !== null &&
+        typeof exp.role === "string" &&
+        typeof exp.company === "string" &&
+        typeof exp.period === "string" &&
+        typeof exp.location === "string" &&
+        Array.isArray(exp.highlights),
+    );
+  }
+  return [];
+};
+
+const normalizeProjects = (
+  projects: unknown,
+): Array<{
+  name: string;
+  description: string;
+  technologies: string[];
+  icon: "smartphone" | "shopping";
+}> => {
+  if (Array.isArray(projects)) {
+    return projects.filter(
+      (project) =>
+        typeof project === "object" &&
+        project !== null &&
+        typeof project.name === "string" &&
+        typeof project.description === "string" &&
+        Array.isArray(project.technologies) &&
+        (project.icon === "smartphone" || project.icon === "shopping"),
+    );
+  }
+  return [];
+};
+
+const mapMatchToCandidate = (match: Match): CandidateProfileWithMeta | null => {
+  const parsedMatchId = Number(match.id);
+  if (!Number.isFinite(parsedMatchId)) {
+    return null;
+  }
+
+  const parsedExperience =
+    typeof match.experience === "number"
+      ? match.experience
+      : typeof match.experience === "string"
+        ? Number.parseFloat(match.experience)
+        : undefined;
+  const hourlyFallback =
+    typeof match.hourlyRate === "number"
+      ? match.hourlyRate
+      : typeof match.expectedSalary?.min === "number"
+        ? match.expectedSalary.min
+        : 0;
+  const hourlyMax =
+    typeof match.hourlyRate === "number"
+      ? match.hourlyRate
+      : typeof match.expectedSalary?.max === "number"
+        ? match.expectedSalary.max
+        : hourlyFallback;
+
+  return {
+    id: parsedMatchId,
+    name: match.name || "Unknown",
+    role: match.role || "Unknown Role",
+    matchScore: typeof match.matchScore === "number" ? match.matchScore : 0,
+    skills: normalizeSkills(match.skills),
+    experience:
+      parsedExperience !== undefined && !Number.isNaN(parsedExperience)
+        ? `${parsedExperience} Years`
+        : "Not specified",
+    experienceYears:
+      parsedExperience !== undefined && !Number.isNaN(parsedExperience)
+        ? parsedExperience
+        : undefined,
+    availability: "Not specified",
+    type: match.source === "bench" ? "bench" : "individual",
+    hourlyRate: { min: hourlyFallback, max: hourlyMax },
+    location: match.location || "Not specified",
+    englishLevel: match.englishLevel,
+    certifications: normalizeCertifications(match.certifications),
+    about: match.about,
+    workExperience: normalizeWorkExperience(match.workExperience),
+    projects: normalizeProjects(match.projects),
+  };
+};
 
 const EmployerAIShortlists = () => {
   const location = useLocation();
@@ -48,16 +207,11 @@ const EmployerAIShortlists = () => {
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const [selectedCandidate, setSelectedCandidate] =
-    useState<CandidateProfile | null>(null);
-  const [showProfileModal, setShowProfileModal] = useState(false);
   const [shortlistedIds, setShortlistedIds] = useState<number[]>([]);
   const parsedCandidateId =
     candidateIdParam && Number.isFinite(Number(candidateIdParam))
       ? Number(candidateIdParam)
       : null;
-  const [fetchJobMatches] = useLazyGetJobMatchesQuery();
-
   const { data: employerJobsResponse, isLoading: jobsLoading } =
     useGetEmployerJobsQuery({
       page: 1,
@@ -71,6 +225,8 @@ const EmployerAIShortlists = () => {
       ? Number(selectedJob)
       : null;
   const shouldFetchMatches = selectedJobId !== null;
+  const jobMatchesQueryId =
+    selectedJobId === null ? "" : String(selectedJobId);
   const stateJob = (location.state as { job?: Job } | null)?.job;
   const selectedJobDetails =
     employerJobs.find((job) => Number(job.id) === selectedJobId) ??
@@ -82,171 +238,23 @@ const EmployerAIShortlists = () => {
     isError: matchesError,
     refetch: refetchMatches,
   } = useGetJobMatchesQuery(
-    { id: String(selectedJobId ?? 0), page: 1, limit: 20 },
+    { id: jobMatchesQueryId, page: 1, limit: 20 },
     { skip: !shouldFetchMatches },
   );
 
-  const normalizeSkills = (skills: unknown): string[] => {
-    if (Array.isArray(skills)) {
-      return skills.filter(
-        (skill) => typeof skill === "string" && skill.trim().length > 0,
-      );
-    }
-    if (typeof skills === "string") {
-      return skills
-        .split(",")
-        .map((skill) => skill.trim())
-        .filter(Boolean);
-    }
-    return [];
-  };
-
-  const normalizeJobSkills = (skills: unknown): string[] => {
-    if (Array.isArray(skills)) {
-      return skills
-        .map((skill) =>
-          typeof skill === "string"
-            ? skill
-            : typeof skill?.name === "string"
-              ? skill.name
-              : "",
-        )
-        .map((skill) => skill.trim())
-        .filter(Boolean);
-    }
-    if (typeof skills === "string") {
-      return skills
-        .split(",")
-        .map((skill) => skill.trim())
-        .filter(Boolean);
-    }
-    return [];
-  };
-
-  const normalizeCertifications = (
-    certs: unknown,
-  ): Array<{ name: string; issuer: string; year: string }> => {
-    if (Array.isArray(certs)) {
-      return certs.filter(
-        (cert) =>
-          typeof cert === "object" &&
-          cert !== null &&
-          typeof cert.name === "string" &&
-          typeof cert.issuer === "string" &&
-          typeof cert.year === "string",
-      );
-    }
-    return [];
-  };
-
-  const normalizeWorkExperience = (
-    experience: unknown,
-  ): Array<{
-    role: string;
-    company: string;
-    companyColor?: string;
-    period: string;
-    location: string;
-    highlights: string[];
-  }> => {
-    if (Array.isArray(experience)) {
-      return experience.filter(
-        (exp) =>
-          typeof exp === "object" &&
-          exp !== null &&
-          typeof exp.role === "string" &&
-          typeof exp.company === "string" &&
-          typeof exp.period === "string" &&
-          typeof exp.location === "string" &&
-          Array.isArray(exp.highlights),
-      );
-    }
-    return [];
-  };
-
-  const normalizeProjects = (
-    projects: unknown,
-  ): Array<{
-    name: string;
-    description: string;
-    technologies: string[];
-    icon: "smartphone" | "shopping";
-  }> => {
-    if (Array.isArray(projects)) {
-      return projects.filter(
-        (project) =>
-          typeof project === "object" &&
-          project !== null &&
-          typeof project.name === "string" &&
-          typeof project.description === "string" &&
-          Array.isArray(project.technologies) &&
-          (project.icon === "smartphone" || project.icon === "shopping"),
-      );
-    }
-    return [];
-  };
-
-  type CandidateProfileWithMeta = CandidateProfile & {
-    experienceYears?: number;
-  };
-  type CandidateListItem = CandidateProfileWithMeta & {
-    stage: "matched" | "shortlisted";
-    matchReasons: string[];
-  };
-
-  const mapMatchToCandidate = (match: Match): CandidateProfileWithMeta => {
-    const parsedExperience =
-      typeof match.experience === "number"
-        ? match.experience
-        : typeof match.experience === "string"
-          ? Number.parseFloat(match.experience)
-          : undefined;
-    const hourlyFallback =
-      typeof match.hourlyRate === "number"
-        ? match.hourlyRate
-        : typeof match.expectedSalary?.min === "number"
-          ? match.expectedSalary.min
-          : 0;
-    const hourlyMax =
-      typeof match.hourlyRate === "number"
-        ? match.hourlyRate
-        : typeof match.expectedSalary?.max === "number"
-          ? match.expectedSalary.max
-          : hourlyFallback;
-
-    return {
-      id: match.id,
-      name: match.name || "Unknown",
-      role: match.role || "Unknown Role",
-      matchScore: typeof match.matchScore === "number" ? match.matchScore : 0,
-      skills: normalizeSkills(match.skills),
-      experience:
-        parsedExperience !== undefined && !Number.isNaN(parsedExperience)
-          ? `${parsedExperience} Years`
-          : "Not specified",
-      experienceYears:
-        parsedExperience !== undefined && !Number.isNaN(parsedExperience)
-          ? parsedExperience
-          : undefined,
-      availability: "Not specified",
-      type: match.source === "bench" ? "bench" : "individual",
-      hourlyRate: { min: hourlyFallback, max: hourlyMax },
-      location: match.location || "Not specified",
-      englishLevel: match.englishLevel,
-      certifications: normalizeCertifications(match.certifications),
-      about: match.about,
-      workExperience: normalizeWorkExperience(match.workExperience),
-      projects: normalizeProjects(match.projects),
-    };
-  };
-
   const candidates = useMemo<CandidateListItem[]>(
     () =>
-      (matchesResponse?.data ?? []).map(mapMatchToCandidate).map((c) => ({
-        ...c,
-        stage: shortlistedIds.includes(c.id) ? "shortlisted" : "matched",
-        matchReasons: [],
-      })),
+      (matchesResponse?.data ?? [])
+        .map(mapMatchToCandidate)
+        .filter(
+          (candidate): candidate is CandidateProfileWithMeta =>
+            candidate !== null,
+        )
+        .map((c) => ({
+          ...c,
+          stage: shortlistedIds.includes(c.id) ? "shortlisted" : "matched",
+          matchReasons: [],
+        })),
     [matchesResponse?.data, shortlistedIds],
   );
 
@@ -266,7 +274,7 @@ const EmployerAIShortlists = () => {
     const jobTitleTokens = jobTitle
       .split(/[^a-z0-9]+/i)
       .map((token) => token.trim())
-      .filter((token) => token.length >= 1);
+      .filter((token) => token.length >= 2);
 
     // Extract and normalize job skills for comparison
     const jobSkills = normalizeJobSkills(selectedJobDetails.skills).map(
@@ -347,44 +355,22 @@ const EmployerAIShortlists = () => {
     };
   }, [jobRelevantCandidates, normalizedSearchTerm]);
 
+  const selectedCandidate = useMemo(
+    () =>
+      parsedCandidateId === null
+        ? null
+        : jobRelevantCandidates.find((item) => item.id === parsedCandidateId) ??
+          null,
+    [jobRelevantCandidates, parsedCandidateId],
+  );
+  const showProfileModal = selectedCandidate !== null;
+
   // Real-time search as user types
   const handleSearchChange = (value: string) => {
     setSearchInput(value);
     // Update search term in real-time
     setSearchTerm(value.trim());
   };
-
-  useEffect(() => {
-    if (!parsedCandidateId) {
-      if (showProfileModal) {
-        setShowProfileModal(false);
-        setSelectedCandidate(null);
-      }
-      return;
-    }
-
-    const candidate = jobRelevantCandidates.find(
-      (item) => item.id === parsedCandidateId,
-    );
-
-    if (!candidate) {
-      if (showProfileModal) {
-        setShowProfileModal(false);
-        setSelectedCandidate(null);
-      }
-      return;
-    }
-
-    if (!showProfileModal || selectedCandidate?.id !== candidate.id) {
-      setSelectedCandidate(candidate);
-      setShowProfileModal(true);
-    }
-  }, [
-    parsedCandidateId,
-    jobRelevantCandidates,
-    selectedCandidate?.id,
-    showProfileModal,
-  ]);
 
   const handleViewProfile = (candidate: CandidateProfile) => {
     const nextParams = new URLSearchParams(searchParams);
