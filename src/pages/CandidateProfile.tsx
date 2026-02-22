@@ -8,11 +8,19 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, DollarSign, Globe, MapPin, Briefcase } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useGetProfileQuery } from "@/app/queries/profileApi";
+import { useSelector } from "react-redux";
 import CandidateProfileUpdate from "./CandidateProfileUpdate";
 import ResumeManager from "./ResumeManager";
 
 const CandidateProfile = () => {
-  const { data: response, isLoading, isError } = useGetProfileQuery();
+  const { token } = useSelector((state: any) => state.user);
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useGetProfileQuery(undefined, {
+    skip: !token,
+  });
   const data = response?.data;
   const profile = data?.candidateProfile;
   const candidateId = useId();
@@ -286,8 +294,8 @@ const CandidateProfile = () => {
                                         ? description
                                         : description
                                           ? description
-                                              .split(/\r?\n/)
-                                              .filter(Boolean)
+                                            .split(/\r?\n/)
+                                            .filter(Boolean)
                                           : []
                                       ).map((bullet, bIndex) => (
                                         <p

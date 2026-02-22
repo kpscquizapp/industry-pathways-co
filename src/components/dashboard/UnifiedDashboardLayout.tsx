@@ -43,9 +43,16 @@ import useLogout from "@/hooks/useLogout";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import ProfileDialog from "../ProfileDialog";
-import { useGetProfileImageQuery as useGetEmployerProfileImageQuery } from "@/app/queries/employerApi";
-import { useGetProfileImageQuery as useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
 import Cookies from "js-cookie";
+import {
+  useGetEmployerProfileImageQuery,
+  useGetEmployerProfileQuery,
+} from "@/app/queries/employerApi";
+import {
+  useGetCandidateProfileImageQuery,
+  useGetProfileQuery,
+} from "@/app/queries/profileApi";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 type DashboardRole = "contractor" | "bench" | "hire-talent";
 
@@ -136,34 +143,46 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const user = useSelector((state: RootState) => state.user.userDetails);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  const token: string | undefined = (() => {
-    try {
-      return JSON.parse(Cookies.get("userInfo") || "{}").token;
-    } catch {
-      return undefined;
-    }
-  })();
+  const { token } = useSelector((state: RootState) => state.user);
 
   // Use role-appropriate image endpoint:
   // - employer/bench use /avatar/business (employerApi)
   // - contractor/candidate use /avatar (profileApi)
   const isEmployerRole = role === "hire-talent" || role === "bench";
-  const { data: employerProfileImage, isError: employerProfileImageError } =
-    useGetEmployerProfileImageQuery(user?.id || "", {
-      skip: !user?.id || !isEmployerRole || !token,
-    });
-  const { data: candidateProfileImage, isError: candidateProfileImageError } =
-    useGetCandidateProfileImageQuery(user?.id || "", {
-      skip: !user?.id || isEmployerRole || !token,
-    });
+
+  // 1. Fetch profile metadata to check for avatar presence
+  const { data: candidateProfileData } = useGetProfileQuery(undefined, {
+    skip: isEmployerRole || !token || !user?.id,
+  });
+
+  const { data: employerProfileData } = useGetEmployerProfileQuery(undefined, {
+    skip: !isEmployerRole || !token || !user?.id,
+  });
+
+  const avatarValue = isEmployerRole
+    ? employerProfileData?.data?.employerProfile?.avatar ||
+      employerProfileData?.data?.avatar
+    : candidateProfileData?.data?.avatar;
+
+  const hasAvatar =
+    !!avatarValue &&
+    avatarValue !== "null" &&
+    avatarValue !== "undefined" &&
+    typeof avatarValue === "string" &&
+    avatarValue.trim().length > 0;
+
+  // 2. Fetch actual image only if metadata indicates it exists
+  const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
+    hasAvatar && isEmployerRole && user?.id ? user.id : skipToken,
+  );
+
+  const { data: candidateProfileImage } = useGetCandidateProfileImageQuery(
+    hasAvatar && !isEmployerRole && user?.id ? user.id : skipToken,
+  );
 
   const profileImage = isEmployerRole
-    ? employerProfileImageError
-      ? null
-      : employerProfileImage
-    : candidateProfileImageError
-      ? null
-      : candidateProfileImage;
+    ? employerProfileImage
+    : candidateProfileImage;
 
   const handleProfile = () => {
     if (role === "hire-talent") {
@@ -181,7 +200,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
       navigate(`/`);
     }
   };
-  
+
   const getRoleBadge = () => {
     switch (role) {
       case "contractor":

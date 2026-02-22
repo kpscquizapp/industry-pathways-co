@@ -115,7 +115,7 @@ export const profileApi = createApi({
       }),
       invalidatesTags: ["Profile"],
     }),
-    getProfileImage: builder.query<string | null, string>({
+    getCandidateProfileImage: builder.query<string | null, string>({
       query: (id) => ({
         url: `users/${id}/avatar`,
         method: "GET",
@@ -144,16 +144,30 @@ export const profileApi = createApi({
         url: `users/${id}/avatar`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Profile"],
-      // Optional: optimistic update to clear image immediately
+      // Removed invalidatesTags: ["Profile"] to prevent automatic re-fetching of the removed image
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        // Optimistically clear the image cache
         const patchResult = dispatch(
-          profileApi.util.updateQueryData("getProfileImage", id, () => null),
+          profileApi.util.updateQueryData("getCandidateProfileImage", id, () => null),
         );
+
+        // Also optimistically clear the avatar in the main profile data if it exists
+        const profilePatch = dispatch(
+          profileApi.util.updateQueryData("getProfile", undefined, (draft) => {
+            if (draft?.data) {
+              draft.data.avatar = null;
+              if (draft.data.candidateProfile) {
+                draft.data.candidateProfile.avatar = null;
+              }
+            }
+          })
+        );
+
         try {
           await queryFulfilled;
         } catch {
           patchResult.undo();
+          profilePatch.undo();
         }
       },
     }),
@@ -166,7 +180,7 @@ export const {
   useSetDefaultResumeMutation,
   useUploadResumeMutation,
   useUpdateProfileMutation,
-  useGetProfileImageQuery,
+  useGetCandidateProfileImageQuery,
   useRemoveResumeMutation,
   useRemoveSkillMutation,
   useRemoveWorkExperienceMutation,

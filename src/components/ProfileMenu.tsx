@@ -13,10 +13,12 @@ import { useSelector } from "react-redux";
 import useLogout from "@/hooks/useLogout";
 import { LogOut, User } from "lucide-react";
 import ProfileDialog from "./ProfileDialog";
-import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { useGetProfileImageQuery as useGetEmployerProfileImageQuery } from "@/app/queries/employerApi";
-import { useGetProfileImageQuery as useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
+import {
+  useGetEmployerProfileImageQuery,
+  useGetEmployerProfileQuery,
+} from "@/app/queries/employerApi";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 const ProfileMenu = ({
   btnClass,
@@ -25,31 +27,37 @@ const ProfileMenu = ({
   btnClass: string;
   avatarFallback: string;
 }) => {
-  const token: string | undefined = (() => {
-    try {
-      return JSON.parse(Cookies.get("userInfo") || "{}").token;
-    } catch {
-      return undefined;
-    }
-  })();
+  const { token } = useSelector((state: any) => state.user);
 
   const user = useSelector((state: any) => state.user.userDetails);
   const [handleLogout, isLoading] = useLogout();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
   // Use role-appropriate image endpoint
-  const isEmployerOrHr = user?.role === "employer" || user?.role === "hr";
+  const isEmployerOrHr = user?.role === "hr";
+
+  const { data: employerProfileData } = useGetEmployerProfileQuery(undefined, {
+    skip: !isEmployerOrHr || !token || !user?.id,
+  });
+
+  const avatarValue =
+    isEmployerOrHr &&
+    (employerProfileData?.data?.employerProfile?.avatar ||
+      employerProfileData?.data?.avatar);
+
+  const hasAvatar =
+    !!avatarValue &&
+    avatarValue !== "null" &&
+    avatarValue !== "undefined" &&
+    typeof avatarValue === "string" &&
+    avatarValue.trim().length > 0;
+
+  // 2. Fetch actual image only if metadata indicates it exists
   const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
-    user?.id || "",
-    { skip: !user?.id || !isEmployerOrHr || !token },
+    hasAvatar && isEmployerOrHr && user?.id ? user.id : skipToken,
   );
-  const { data: candidateProfileImage } = useGetCandidateProfileImageQuery(
-    user?.id || "",
-    { skip: !user?.id || isEmployerOrHr || !token },
-  );
-  const profileImage = isEmployerOrHr
-    ? employerProfileImage
-    : candidateProfileImage;
+
+  const profileImage = isEmployerOrHr && employerProfileImage;
 
   const handleProfile = () => {
     if (!user?.role) return;

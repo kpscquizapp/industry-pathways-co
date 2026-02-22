@@ -17,7 +17,7 @@ import {
   Camera,
 } from "lucide-react";
 import {
-  useGetProfileImageQuery,
+  useGetCandidateProfileImageQuery,
   useRemoveCertificateMutation,
   useRemoveProfileImageMutation,
   useRemoveProjectMutation,
@@ -107,6 +107,7 @@ interface CandidateProfileUpdateProps {
     firstName: string;
     lastName: string;
     email: string;
+    avatar?: string;
     candidateProfile: {
       location?: string;
       country?: string | null;
@@ -321,7 +322,11 @@ const CandidateProfileUpdate = ({
     useRemoveProfileImageMutation();
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { data: profileImage } = useGetProfileImageQuery(data?.id ?? skipToken);
+  const hasAvatar = !!data?.avatar;
+
+  const { data: profileImage } = useGetCandidateProfileImageQuery(
+    hasAvatar ? (data?.id ?? skipToken) : skipToken,
+  );
 
   const [skillInput, setSkillInput] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -1252,7 +1257,6 @@ const CandidateProfileUpdate = ({
   };
 
   const handleRemoveImage = async () => {
-    if (!confirm("Are you sure you want to delete your profile image?")) return;
     try {
       await removeProfileImage((data as any)?.id).unwrap();
       toast.success("Image removed successfully.");
