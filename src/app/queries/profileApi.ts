@@ -148,7 +148,11 @@ export const profileApi = createApi({
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         // Optimistically clear the image cache
         const patchResult = dispatch(
-          profileApi.util.updateQueryData("getCandidateProfileImage", id, () => null),
+          profileApi.util.updateQueryData(
+            "getCandidateProfileImage",
+            id,
+            () => null,
+          ),
         );
 
         // Also optimistically clear the avatar in the main profile data if it exists
@@ -160,11 +164,12 @@ export const profileApi = createApi({
                 draft.data.candidateProfile.avatar = null;
               }
             }
-          })
+          }),
         );
 
         try {
           await queryFulfilled;
+          dispatch(profileApi.util.invalidateTags(["Profile"]));
         } catch {
           patchResult.undo();
           profilePatch.undo();

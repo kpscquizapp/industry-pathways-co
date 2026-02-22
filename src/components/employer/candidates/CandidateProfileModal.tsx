@@ -304,7 +304,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                 >
                   Overview
                 </TabsTrigger>
-                {userDetails.role === "employer" && (
+                {userDetails?.role === "employer" && (
                   <TabsTrigger
                     value="resume"
                     className="rounded-lg px-6 data-[state=active]:bg-background"
@@ -462,7 +462,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                 )}
               </TabsContent>
 
-              {userDetails.role === "employer" && (
+              {userDetails?.role === "employer" && (
                 <TabsContent value="resume">
                   <Card className="border-border">
                     <CardContent className="p-6">
@@ -483,7 +483,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
         </div>
 
         {/* Bottom Action Bar */}
-        {userDetails.role === "employer" && (
+        {userDetails?.role === "employer" && (
           <div className="sticky bottom-0 bg-card border-t border-border p-4 flex items-center justify-end gap-3">
             {onSkillTest && (
               <Button

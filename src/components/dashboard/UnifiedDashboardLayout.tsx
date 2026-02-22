@@ -43,7 +43,6 @@ import useLogout from "@/hooks/useLogout";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import ProfileDialog from "../ProfileDialog";
-import Cookies from "js-cookie";
 import {
   useGetEmployerProfileImageQuery,
   useGetEmployerProfileQuery,

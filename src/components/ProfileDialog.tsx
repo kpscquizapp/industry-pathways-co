@@ -68,7 +68,8 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
   const updateData = profile?.data?.employerProfile || profile?.data;
   const avatarValue = updateData?.avatar || profile?.data?.avatar;
 
-  const hasAvatar = !!avatarValue &&
+  const hasAvatar =
+    !!avatarValue &&
     avatarValue !== "null" &&
     avatarValue !== "undefined" &&
     typeof avatarValue === "string" &&
@@ -76,7 +77,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
   const { data: profileImage, isError: isProfileImageError } =
     useGetEmployerProfileImageQuery(
-      hasAvatar && user?.id ? user.id : skipToken
+      hasAvatar && user?.id ? user.id : skipToken,
     );
   const prevOpen = useRef(false);
   const hasPopulated = useRef(false);
@@ -251,7 +252,23 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
             </div>
 
             <div className="space-y-4 pt-4 border-t border-slate-300 pb-4">
-              {profile?.data ? (
+              {isProfileLoading ? (
+                <div className="flex flex-col items-center justify-center my-12 gap-3 text-center">
+                  <div className="relative">
+                    <SpinnerLoader className="h-10 w-10 text-primary" />
+                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+                  </div>
+                  <p className="text-sm text-slate-500 font-medium tracking-wide animate-pulse">
+                    Synchronizing profile data...
+                  </p>
+                </div>
+              ) : isProfileError ? (
+                <div className="flex flex-col items-center justify-center my-12 gap-3 text-center">
+                  <p className="text-sm text-red-500 font-medium">
+                    Failed to load profile data. Please try again.
+                  </p>
+                </div>
+              ) : profile?.data ? (
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
@@ -335,10 +352,9 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center my-12 gap-3 text-center">
-                  <div className="relative">
-                    <SpinnerLoader className="h-10 w-10 text-primary" />
-                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
-                  </div>
+                  <p className="text-sm text-slate-500 text-center my-12">
+                    No profile data available.
+                  </p>
                   <p className="text-sm text-slate-500 font-medium tracking-wide animate-pulse">
                     Synchronizing profile data...
                   </p>
@@ -407,7 +423,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                       size="sm"
                       variant="destructive"
                       className="rounded-xl text-xs h-8 px-3"
-                      aria-label="Remove photo"
+                      aria-label="Delete photo"
                       onClick={handleImageRemove}
                       disabled={isRemovingImage || isUploadingImage}
                     >
@@ -569,7 +585,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
           </TabsContent>
         </Tabs>
       </DialogContent>
-    </Dialog >
+    </Dialog>
   );
 };
 

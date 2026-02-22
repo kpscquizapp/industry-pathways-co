@@ -19,6 +19,7 @@ import {
   useGetEmployerProfileQuery,
 } from "@/app/queries/employerApi";
 import { skipToken } from "@reduxjs/toolkit/query";
+import { RootState } from "@/app/store";
 
 const ProfileMenu = ({
   btnClass,
@@ -29,7 +30,7 @@ const ProfileMenu = ({
 }) => {
   const { token } = useSelector((state: any) => state.user);
 
-  const user = useSelector((state: any) => state.user.userDetails);
+  const user = useSelector((state: RootState) => state.user.userDetails);
   const [handleLogout, isLoading] = useLogout();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ const ProfileMenu = ({
     hasAvatar && isEmployerOrHr && user?.id ? user.id : skipToken,
   );
 
-  const profileImage = isEmployerOrHr && employerProfileImage;
+  const profileImage = isEmployerOrHr ? employerProfileImage : null;
 
   const handleProfile = () => {
     if (!user?.role) return;

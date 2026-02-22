@@ -74,23 +74,32 @@ export const employerApi = createApi({
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         // Clear the image specific cache
         const patchImage = dispatch(
-          employerApi.util.updateQueryData("getEmployerProfileImage", id, () => null),
+          employerApi.util.updateQueryData(
+            "getEmployerProfileImage",
+            id,
+            () => null,
+          ),
         );
 
         // Clear the avatar field in the main profile object
         const patchProfile = dispatch(
-          employerApi.util.updateQueryData("getEmployerProfile", undefined, (draft) => {
-            if (draft?.data) {
-              draft.data.avatar = null;
-              if (draft.data.employerProfile) {
-                draft.data.employerProfile.avatar = null;
+          employerApi.util.updateQueryData(
+            "getEmployerProfile",
+            undefined,
+            (draft) => {
+              if (draft?.data) {
+                draft.data.avatar = null;
+                if (draft.data.employerProfile) {
+                  draft.data.employerProfile.avatar = null;
+                }
               }
-            }
-          })
+            },
+          ),
         );
 
         try {
           await queryFulfilled;
+          dispatch(employerApi.util.invalidateTags(["EmployerProfile"]));
         } catch {
           patchImage.undo();
           patchProfile.undo();

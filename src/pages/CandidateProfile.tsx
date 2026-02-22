@@ -11,9 +11,10 @@ import { useGetProfileQuery } from "@/app/queries/profileApi";
 import { useSelector } from "react-redux";
 import CandidateProfileUpdate from "./CandidateProfileUpdate";
 import ResumeManager from "./ResumeManager";
+import { RootState } from "@/app/store";
 
 const CandidateProfile = () => {
-  const { token } = useSelector((state: any) => state.user);
+  const { token } = useSelector((state: RootState) => state.user);
   const {
     data: response,
     isLoading,
@@ -294,8 +295,8 @@ const CandidateProfile = () => {
                                         ? description
                                         : description
                                           ? description
-                                            .split(/\r?\n/)
-                                            .filter(Boolean)
+                                              .split(/\r?\n/)
+                                              .filter(Boolean)
                                           : []
                                       ).map((bullet, bIndex) => (
                                         <p
