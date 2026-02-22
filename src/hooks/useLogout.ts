@@ -6,16 +6,10 @@ import { removeUser } from "@/app/slices/userAuth";
 import { employerApi } from "@/app/queries/employerApi";
 import { profileApi } from "@/app/queries/profileApi";
 
-const dispatch = useDispatch();
-
-const resetCache = () => {
-  dispatch(employerApi.util.resetApiState());
-  dispatch(profileApi.util.resetApiState());
-};
-
 const useLogout = () => {
   const user = useSelector((state: any) => state.user.userDetails);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [logout, { isLoading }] = useLogoutMutation();
 
@@ -24,7 +18,8 @@ const useLogout = () => {
   const handleLogout = async () => {
     if (!refreshToken) {
       dispatch(removeUser());
-      resetCache();
+      dispatch(employerApi.util.resetApiState());
+      dispatch(profileApi.util.resetApiState());
       navigate("/");
       return;
     }
@@ -32,12 +27,14 @@ const useLogout = () => {
     try {
       await logout(refreshToken).unwrap();
       dispatch(removeUser());
-      resetCache();
+      dispatch(employerApi.util.resetApiState());
+      dispatch(profileApi.util.resetApiState());
       navigate("/");
     } catch (error) {
       console.error("Backend logout failed", error);
       dispatch(removeUser());
-      resetCache();
+      dispatch(employerApi.util.resetApiState());
+      dispatch(profileApi.util.resetApiState());
       navigate("/");
     }
   };

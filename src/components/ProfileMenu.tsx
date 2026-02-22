@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import useLogout from "@/hooks/useLogout";
 import { LogOut, User } from "lucide-react";
 import ProfileDialog from "./ProfileDialog";
+import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { useGetProfileImageQuery as useGetEmployerProfileImageQuery } from "@/app/queries/employerApi";
 import { useGetProfileImageQuery as useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
@@ -24,6 +25,14 @@ const ProfileMenu = ({
   btnClass: string;
   avatarFallback: string;
 }) => {
+  const token: string | undefined = (() => {
+    try {
+      return JSON.parse(Cookies.get("userInfo") || "{}").token;
+    } catch {
+      return undefined;
+    }
+  })();
+
   const user = useSelector((state: any) => state.user.userDetails);
   const [handleLogout, isLoading] = useLogout();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -32,17 +41,18 @@ const ProfileMenu = ({
   const isEmployerOrHr = user?.role === "employer" || user?.role === "hr";
   const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
     user?.id || "",
-    { skip: !user?.id || !isEmployerOrHr },
+    { skip: !user?.id || !isEmployerOrHr || !token },
   );
   const { data: candidateProfileImage } = useGetCandidateProfileImageQuery(
     user?.id || "",
-    { skip: !user?.id || isEmployerOrHr },
+    { skip: !user?.id || isEmployerOrHr || !token },
   );
   const profileImage = isEmployerOrHr
     ? employerProfileImage
     : candidateProfileImage;
 
   const handleProfile = () => {
+    if (!user?.role) return;
     if (user.role === "hr") {
       navigate("/bench-dashboard");
       return;
@@ -51,6 +61,7 @@ const ProfileMenu = ({
       return;
     } else if (user.role === "employer") {
       navigate("/hire-talent/dashboard");
+      return;
     }
     setIsProfileOpen(true);
   };
