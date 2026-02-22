@@ -365,7 +365,7 @@ const BenchRegistration = () => {
                 <div className="mb-6">
                   <h3 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
                     {currentStep === 1
-                      ? "Partner Account"
+                      ? "Bench Signup"
                       : currentStep === 2
                         ? "Company Details"
                         : "Verification"}
@@ -672,7 +672,7 @@ const BenchRegistration = () => {
                         <div className="flex items-center gap-2">
                           <span>
                             {currentStep === totalSteps
-                              ? "Submit Application"
+                              ? "Sign Up"
                               : "Next Step"}
                           </span>
                           {currentStep < totalSteps ? (
@@ -693,7 +693,7 @@ const BenchRegistration = () => {
                       to="/bench-login"
                       className="text-primary hover:text-primary/80 transition-colors underline-offset-8 underline decoration-primary/30"
                     >
-                      Sign In
+                      Sign In to Dashboard
                     </Link>
                   </p>
                 </div>

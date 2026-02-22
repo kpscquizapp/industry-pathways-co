@@ -68,11 +68,11 @@ const ProfileMenu = ({
                 />
               )}
               <AvatarFallback className={avatarFallback}>
-                {user?.firstName?.charAt(0) || "E"}
+                {user?.firstName?.charAt(0) || "H"}
               </AvatarFallback>
             </Avatar>
             <span className="font-medium text-sm hidden sm:inline">
-              {user?.firstName || "Employer"}
+              {user?.firstName || "HR"}
             </span>
           </Button>
         </DropdownMenuTrigger>

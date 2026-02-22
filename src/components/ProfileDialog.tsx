@@ -326,7 +326,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
               {/* Profile Image Management */}
               <div className="flex flex-col items-center gap-4 py-2">
                 <div className="relative group">
-                  <Avatar className="h-24 w-24 border-2 border-slate-100">
+                  <Avatar className="h-24 w-24 border-2 border-slate-100 bg-slate-300">
                     {profileImage && (
                       <AvatarImage
                         className="object-cover"
@@ -390,7 +390,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                       ) : (
                         <>
                           <Trash2 className="h-3 w-3" />
-                          Remove
+                          Delete
                         </>
                       )}
                     </Button>

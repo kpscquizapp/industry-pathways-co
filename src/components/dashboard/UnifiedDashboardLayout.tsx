@@ -45,6 +45,7 @@ import { RootState } from "@/app/store";
 import ProfileDialog from "../ProfileDialog";
 import { useGetProfileImageQuery as useGetEmployerProfileImageQuery } from "@/app/queries/employerApi";
 import { useGetProfileImageQuery as useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
+import Cookies from "js-cookie";
 
 type DashboardRole = "contractor" | "bench" | "hire-talent";
 
@@ -134,20 +135,28 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const [handleLogout, isLoading] = useLogout();
   const user = useSelector((state: RootState) => state.user.userDetails);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { token } = JSON.parse(Cookies.get("userInfo") || "{}");
 
   // Use role-appropriate image endpoint:
   // - employer/bench use /avatar/business (employerApi)
   // - contractor/candidate use /avatar (profileApi)
   const isEmployerRole = role === "hire-talent" || role === "bench";
-  const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
-    user?.id || "",
-    { skip: !user?.id || !isEmployerRole },
-  );
-  const { data: candidateProfileImage } = useGetCandidateProfileImageQuery(
-    user?.id || "",
-    { skip: !user?.id || isEmployerRole },
-  );
-  const profileImage = isEmployerRole ? employerProfileImage : candidateProfileImage;
+  const { data: employerProfileImage, isError: employerProfileImageError } =
+    useGetEmployerProfileImageQuery(user?.id || "", {
+      skip: !user?.id || !isEmployerRole || !token,
+    });
+  const { data: candidateProfileImage, isError: candidateProfileImageError } =
+    useGetCandidateProfileImageQuery(user?.id || "", {
+      skip: !user?.id || isEmployerRole || !token,
+    });
+
+  const profileImage = isEmployerRole
+    ? employerProfileImageError
+      ? null
+      : employerProfileImage
+    : candidateProfileImageError
+      ? null
+      : candidateProfileImage;
 
   const handleProfile = () => {
     if (role === "hire-talent") {
@@ -248,7 +257,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
                 isCollapsed && "justify-center",
               )}
             >
-              <Avatar className="h-9 w-9 bg-gray-100 flex-shrink-0">
+              <Avatar className="h-9 w-9 bg-slate-300 flex-shrink-0">
                 {profileImage && (
                   <AvatarImage
                     className="object-cover"

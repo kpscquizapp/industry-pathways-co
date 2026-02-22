@@ -367,7 +367,7 @@ const EmployerLogin = () => {
                       <Input
                         name="email"
                         type="email"
-                        placeholder="name@company.com"
+                        placeholder="employer@example.com"
                         autoComplete="email"
                         className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all duration-300 font-medium ${
                           fieldErrors.email && touched.email
@@ -395,7 +395,7 @@ const EmployerLogin = () => {
                         to="/forgot-password"
                         className="text-[10px] font-bold text-blue-600 hover:text-blue-500 uppercase tracking-wider"
                       >
-                        Forgot?
+                        Forgot Password?
                       </Link>
                     </div>
                     <div className="relative group">
