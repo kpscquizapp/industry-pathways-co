@@ -75,10 +75,9 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
     typeof avatarValue === "string" &&
     avatarValue.trim().length > 0;
 
-  const { data: profileImage, isError: isProfileImageError } =
-    useGetEmployerProfileImageQuery(
-      hasAvatar && user?.id ? user.id : skipToken,
-    );
+  const { data: profileImage } = useGetEmployerProfileImageQuery(
+    hasAvatar && user?.id ? user.id : skipToken,
+  );
   const prevOpen = useRef(false);
   const hasPopulated = useRef(false);
 
@@ -354,9 +353,6 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                 <div className="flex flex-col items-center justify-center my-12 gap-3 text-center">
                   <p className="text-sm text-slate-500 text-center my-12">
                     No profile data available.
-                  </p>
-                  <p className="text-sm text-slate-500 font-medium tracking-wide animate-pulse">
-                    Synchronizing profile data...
                   </p>
                 </div>
               )}

@@ -28,7 +28,7 @@ const ProfileMenu = ({
   btnClass: string;
   avatarFallback: string;
 }) => {
-  const { token } = useSelector((state: any) => state.user);
+  const { token } = useSelector((state: RootState) => state.user);
 
   const user = useSelector((state: RootState) => state.user.userDetails);
   const [handleLogout, isLoading] = useLogout();

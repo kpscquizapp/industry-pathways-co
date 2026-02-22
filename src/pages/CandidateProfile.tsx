@@ -109,7 +109,9 @@ const CandidateProfile = () => {
                           <span className="truncate">Experience</span>
                         </span>
                         <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
-                          {profile?.yearsExperience + " Years" || "None"}
+                          {profile?.yearsExperience != null
+                            ? `${profile.yearsExperience} Years`
+                            : "None"}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
