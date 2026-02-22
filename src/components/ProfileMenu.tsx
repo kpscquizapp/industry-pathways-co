@@ -45,6 +45,7 @@ const ProfileMenu = ({
   const handleProfile = () => {
     if (user.role === "hr") {
       navigate("/bench-dashboard");
+      return;
     } else if (user.role === "candidate") {
       navigate("/contractor/profile");
       return;
@@ -68,11 +69,13 @@ const ProfileMenu = ({
                 />
               )}
               <AvatarFallback className={avatarFallback}>
-                {user?.firstName?.charAt(0) || "H"}
+                {user?.firstName?.charAt(0) ||
+                  user?.role?.charAt(0)?.toUpperCase() ||
+                  "U"}
               </AvatarFallback>
             </Avatar>
             <span className="font-medium text-sm hidden sm:inline">
-              {user?.firstName || "HR"}
+              {user?.firstName || user?.role || "User"}
             </span>
           </Button>
         </DropdownMenuTrigger>

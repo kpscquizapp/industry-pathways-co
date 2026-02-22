@@ -214,7 +214,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
           <TabsContent value="view" className="space-y-6 pt-6">
             <div className="flex items-center gap-4">
-              <Avatar className="h-24 w-24 border-2 border-slate-100">
+              <Avatar className="h-24 w-24 border-2 border-slate-100 bg-slate-300">
                 {profileImage && (
                   <AvatarImage
                     className="object-cover"

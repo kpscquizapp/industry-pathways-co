@@ -740,7 +740,7 @@ const CandidateSignup = () => {
                       <div className="grid md:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Candidate Type{" "}
+                            Contractor Type{" "}
                             <span className="text-destructive">*</span>
                           </Label>
                           <Select

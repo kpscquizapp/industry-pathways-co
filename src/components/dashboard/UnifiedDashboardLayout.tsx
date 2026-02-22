@@ -135,7 +135,14 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const [handleLogout, isLoading] = useLogout();
   const user = useSelector((state: RootState) => state.user.userDetails);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { token } = JSON.parse(Cookies.get("userInfo") || "{}");
+
+  const token: string | undefined = (() => {
+    try {
+      return JSON.parse(Cookies.get("userInfo") || "{}").token;
+    } catch {
+      return undefined;
+    }
+  })();
 
   // Use role-appropriate image endpoint:
   // - employer/bench use /avatar/business (employerApi)
