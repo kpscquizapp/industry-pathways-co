@@ -35,14 +35,14 @@ const ProfileMenu = ({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
   // Use role-appropriate image endpoint
-  const isEmployerOrHr = user?.role === "hr";
+  const isHr = user?.role === "hr";
 
   const { data: employerProfileData } = useGetEmployerProfileQuery(undefined, {
-    skip: !isEmployerOrHr || !token || !user?.id,
+    skip: !isHr || !token || !user?.id,
   });
 
   const avatarValue =
-    isEmployerOrHr &&
+    isHr &&
     (employerProfileData?.data?.employerProfile?.avatar ||
       employerProfileData?.data?.avatar);
 
@@ -55,10 +55,10 @@ const ProfileMenu = ({
 
   // 2. Fetch actual image only if metadata indicates it exists
   const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
-    hasAvatar && isEmployerOrHr && user?.id ? user.id : skipToken,
+    hasAvatar && isHr && user?.id ? user.id : skipToken,
   );
 
-  const profileImage = isEmployerOrHr ? employerProfileImage : null;
+  const profileImage = isHr ? employerProfileImage : null;
 
   const handleProfile = () => {
     if (!user?.role) return;

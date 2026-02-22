@@ -30,7 +30,13 @@ const CandidateProfile = () => {
     <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900">
       <Header />
 
-      {isLoading ? (
+      {!token ? (
+        <div className="w-full h-screen flex items-center justify-center">
+          <div className="text-gray-600 dark:text-slate-400">
+            Please log in to view your profile
+          </div>
+        </div>
+      ) : isLoading ? (
         <div className="w-full h-screen text-1xl sm:text-3xl flex items-center justify-center dark:text-white">
           Loading...
         </div>
