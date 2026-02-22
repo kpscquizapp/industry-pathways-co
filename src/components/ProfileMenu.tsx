@@ -55,13 +55,11 @@ const ProfileMenu = ({
     if (!user?.role) return;
     if (user.role === "hr") {
       navigate("/bench-dashboard");
-      return;
     } else if (user.role === "candidate") {
       navigate("/contractor/profile");
       return;
     } else if (user.role === "employer") {
       navigate("/hire-talent/dashboard");
-      return;
     }
     setIsProfileOpen(true);
   };

@@ -274,7 +274,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                     "N/A"}
                 </p>
               </div>
-              {updateData && (
+              {updateData ? (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
@@ -316,6 +316,11 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                       {updateData.description || "N/A"}
                     </p>
                   </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center my-8">
+                  <SpinnerLoader />
+                  Loading...
                 </div>
               )}
             </div>

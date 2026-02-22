@@ -181,7 +181,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
       navigate(`/`);
     }
   };
-
+  
   const getRoleBadge = () => {
     switch (role) {
       case "contractor":
