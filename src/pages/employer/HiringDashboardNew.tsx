@@ -89,7 +89,7 @@ const HiringDashboardNew = () => {
         getJobMatches({
           id: String(job.id),
           page: 1,
-          limit: 1, // Only fetch metadata, not actual records
+          limit: 1000, // Fetch up to 1000 records so data.length is reliable fallback for meta.total
         })
           .unwrap()
           .catch((error) => {
@@ -105,15 +105,12 @@ const HiringDashboardNew = () => {
       jobs.forEach((job, index) => {
         const response = results[index];
         // Get count from metadata (response.meta.total), fallback to data.length, then 0
+        // With limit: 1000, data.length is a reliable fallback for the total count
         const matchCount = response?.meta?.total ?? response?.data?.length ?? 0;
         counts[job.id] = matchCount;
-        if (import.meta.env.DEV) {
-        }
       });
 
       setMatchCounts(counts);
-      if (import.meta.env.DEV) {
-      }
     };
 
     fetchAllMatches();
@@ -121,8 +118,9 @@ const HiringDashboardNew = () => {
 
   // Calculate active jobs count
   const activeJobsCount = React.useMemo(() => {
-    const count = jobs.length;
-    return count;
+    return jobs.filter(
+      (job) => job.status === "active" || job.status === "published",
+    ).length;
   }, [jobs]);
 
   // Calculate total candidates - sum of matches from all jobs

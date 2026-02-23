@@ -27,6 +27,7 @@ interface Job {
   description?: string;
   companyName?: string;
   status?: string;
+  role?: string;
   employmentType?: string;
   location?: string;
   state?: string;
@@ -69,7 +70,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 }) => {
   if (!job) return null;
 
-  const getStatusBadgeStyle = (status: string) => {
+  const getStatusBadgeStyle = (status: string | undefined) => {
     switch (status?.toLowerCase()) {
       case "published":
       case "active":
@@ -92,9 +93,12 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
     });
   };
 
-  const displaySalary = (min: any, max: any) => {
-    const parsedMin = parseFloat(min);
-    const parsedMax = parseFloat(max);
+  const displaySalary = (
+    min: number | string | undefined,
+    max: number | string | undefined,
+  ) => {
+    const parsedMin = parseFloat(String(min));
+    const parsedMax = parseFloat(String(max));
     const minFinite = Number.isFinite(parsedMin);
     const maxFinite = Number.isFinite(parsedMax);
 
@@ -121,7 +125,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             </p>
           </div>
           <Badge className={getStatusBadgeStyle(job.status)}>
-            {job.status === "published"
+            {job.status === "published" || job.status === "active"
               ? "Active"
               : job.status === "closed"
                 ? "Closed"
@@ -194,7 +198,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Role</p>
-                <p className="font-medium">{job.title || "N/A"}</p>
+                <p className="font-medium">{job.role || job.title || "N/A"}</p>
               </div>
             </CardContent>
           </Card>
