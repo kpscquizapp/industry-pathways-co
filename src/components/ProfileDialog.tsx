@@ -14,13 +14,16 @@ import { Upload, Camera, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  useGetProfileImageQuery,
   useRemoveProfileImageMutation,
   useUpdateEmployerProfileMutation,
   useUploadProfileImageMutation,
   useGetEmployerProfileQuery,
+  useGetEmployerProfileImageQuery,
 } from "@/app/queries/employerApi";
 import SpinnerLoader from "./loader/SpinnerLoader";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 import {
   Select,
@@ -52,17 +55,29 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
   const [updateProfile, { isLoading: isUpdating }] =
     useUpdateEmployerProfileMutation();
   const [activeTab, setActiveTab] = useState("view");
-  const { data: profileImage, isError: isProfileImageError } =
-    useGetProfileImageQuery(user?.id || "", {
-      skip: !user?.id,
-    });
+  const { token } = useSelector((state: RootState) => state.user);
   const {
     data: profile,
     isLoading: isProfileLoading,
     isError: isProfileError,
   } = useGetEmployerProfileQuery(undefined, {
-    skip: !open,
+    skip: !open || !token,
   });
+
+  // Robust data picking for HR and Employer roles
+  const updateData = profile?.data?.employerProfile || profile?.data;
+  const avatarValue = updateData?.avatar || profile?.data?.avatar;
+
+  const hasAvatar =
+    !!avatarValue &&
+    avatarValue !== "null" &&
+    avatarValue !== "undefined" &&
+    typeof avatarValue === "string" &&
+    avatarValue.trim().length > 0;
+
+  const { data: profileImage } = useGetEmployerProfileImageQuery(
+    hasAvatar && user?.id ? user.id : skipToken,
+  );
   const prevOpen = useRef(false);
   const hasPopulated = useRef(false);
 
@@ -72,7 +87,6 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
     useRemoveProfileImageMutation();
 
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const updateData = profile?.data?.employerProfile;
 
   const updatedData = useMemo(
     () => ({
@@ -214,7 +228,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
           <TabsContent value="view" className="space-y-6 pt-6">
             <div className="flex items-center gap-4">
-              <Avatar className="h-24 w-24 border-2 border-slate-100">
+              <Avatar className="h-24 w-24 border-2 border-slate-100 bg-slate-300">
                 {profileImage && (
                   <AvatarImage
                     className="object-cover"
@@ -237,85 +251,109 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
             </div>
 
             <div className="space-y-4 pt-4 border-t border-slate-300 pb-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                    First Name
-                  </Label>
-                  <p className="font-medium text-slate-900">
-                    {user?.firstName || "N/A"}
+              {isProfileLoading ? (
+                <div className="flex flex-col items-center justify-center my-12 gap-3 text-center">
+                  <div className="relative">
+                    <SpinnerLoader className="h-10 w-10 text-primary" />
+                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+                  </div>
+                  <p className="text-sm text-slate-500 font-medium tracking-wide animate-pulse">
+                    Synchronizing profile data...
                   </p>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                    Last Name
-                  </Label>
-                  <p className="font-medium text-slate-900">
-                    {user?.lastName || "N/A"}
+              ) : isProfileError ? (
+                <div className="flex flex-col items-center justify-center my-12 gap-3 text-center">
+                  <p className="text-sm text-red-500 font-medium">
+                    Failed to load profile data. Please try again.
                   </p>
                 </div>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                  Email
-                </Label>
-                <p className="font-medium text-slate-900">
-                  {user?.email || "N/A"}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                  Organization
-                </Label>
-                <p className="font-medium text-slate-900">
-                  {updateData?.companyName ||
-                    user?.companyName ||
-                    user?.company ||
-                    "N/A"}
-                </p>
-              </div>
-              {updateData && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                      Industry
-                    </Label>
-                    <p className="font-medium text-slate-900">
-                      {updateData.industry || "N/A"}
-                    </p>
+              ) : profile?.data ? (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                        First Name
+                      </Label>
+                      <p className="font-medium text-slate-900">
+                        {user?.firstName || "N/A"}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                        Last Name
+                      </Label>
+                      <p className="font-medium text-slate-900">
+                        {user?.lastName || "N/A"}
+                      </p>
+                    </div>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                      Location
+                      Email
                     </Label>
                     <p className="font-medium text-slate-900">
-                      {updateData.location || "N/A"}
+                      {user?.email || "N/A"}
                     </p>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                      Company Size
+                      Organization
                     </Label>
                     <p className="font-medium text-slate-900">
-                      {updateData.companySize || "N/A"}
+                      {updateData?.companyName ||
+                        user?.companyName ||
+                        user?.company ||
+                        "N/A"}
                     </p>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                      Website
-                    </Label>
-                    <p className="font-medium text-slate-900">
-                      {updateData.website || "N/A"}
-                    </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                        Industry
+                      </Label>
+                      <p className="font-medium text-slate-900">
+                        {updateData?.industry || "N/A"}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                        Location
+                      </Label>
+                      <p className="font-medium text-slate-900">
+                        {updateData?.location || "N/A"}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                        Company Size
+                      </Label>
+                      <p className="font-medium text-slate-900">
+                        {updateData?.companySize || "N/A"}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                        Website
+                      </Label>
+                      <p className="font-medium text-slate-900">
+                        {updateData?.website || "N/A"}
+                      </p>
+                    </div>
+                    <div className="space-y-1 col-span-2">
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                        Description
+                      </Label>
+                      <p className="font-medium text-slate-900">
+                        {updateData?.description || "N/A"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-1 col-span-2">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                      Description
-                    </Label>
-                    <p className="font-medium text-slate-900">
-                      {updateData.description || "N/A"}
-                    </p>
-                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center my-12 gap-3 text-center">
+                  <p className="text-sm text-slate-500 text-center my-12">
+                    No profile data available.
+                  </p>
                 </div>
               )}
             </div>
@@ -326,7 +364,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
               {/* Profile Image Management */}
               <div className="flex flex-col items-center gap-4 py-2">
                 <div className="relative group">
-                  <Avatar className="h-24 w-24 border-2 border-slate-100">
+                  <Avatar className="h-24 w-24 border-2 border-slate-100 bg-slate-300">
                     {profileImage && (
                       <AvatarImage
                         className="object-cover"
@@ -381,7 +419,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                       size="sm"
                       variant="destructive"
                       className="rounded-xl text-xs h-8 px-3"
-                      aria-label="Remove photo"
+                      aria-label="Delete photo"
                       onClick={handleImageRemove}
                       disabled={isRemovingImage || isUploadingImage}
                     >
@@ -390,7 +428,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
                       ) : (
                         <>
                           <Trash2 className="h-3 w-3" />
-                          Remove
+                          Delete
                         </>
                       )}
                     </Button>

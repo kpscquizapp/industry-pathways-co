@@ -17,7 +17,7 @@ import {
   Camera,
 } from "lucide-react";
 import {
-  useGetProfileImageQuery,
+  useGetCandidateProfileImageQuery,
   useRemoveCertificateMutation,
   useRemoveProfileImageMutation,
   useRemoveProjectMutation,
@@ -107,6 +107,7 @@ interface CandidateProfileUpdateProps {
     firstName: string;
     lastName: string;
     email: string;
+    avatar?: string;
     candidateProfile: {
       location?: string;
       country?: string | null;
@@ -321,7 +322,10 @@ const CandidateProfileUpdate = ({
     useRemoveProfileImageMutation();
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { data: profileImage } = useGetProfileImageQuery(data?.id ?? skipToken);
+  const hasAvatar = !!data?.avatar;
+
+  const { data: profileImage, isLoading: isProfileImageLoading } =
+    useGetCandidateProfileImageQuery(hasAvatar ? data.id : skipToken);
 
   const [skillInput, setSkillInput] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -1252,17 +1256,24 @@ const CandidateProfileUpdate = ({
   };
 
   const handleRemoveImage = async () => {
-    if (!confirm("Are you sure you want to delete your profile image?")) return;
-    try {
-      await removeProfileImage((data as any)?.id).unwrap();
-      toast.success("Image removed successfully.");
-    } catch (error) {
-      const message =
-        typeof error === "object" && error != null && "data" in error
-          ? (error as { data?: { message?: string } }).data?.message
-          : undefined;
-      toast.error(message || "Failed to remove image.");
-    }
+    toast("Are you sure you want to remove profile image?", {
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          try {
+            await removeProfileImage(data.id).unwrap();
+            toast.success("Image removed successfully.");
+          } catch (error) {
+            const message =
+              typeof error === "object" && error != null && "data" in error
+                ? (error as { data?: { message?: string } }).data?.message
+                : undefined;
+            toast.error(message || "Failed to remove image.");
+          }
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
+    });
   };
 
   return (
@@ -1275,12 +1286,15 @@ const CandidateProfileUpdate = ({
           </h2>
           <div className="flex flex-col sm:flex-row items-center gap-6 w-full">
             <Avatar className="w-24 h-24 sm:w-32 sm:h-32 shadow-lg ring-4 ring-white/90 dark:ring-slate-700/90 relative">
-              {isLoadingImage || isRemovingImage ? (
+              {isLoadingImage || isRemovingImage || isProfileImageLoading ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-full">
                   <SpinnerLoader />
                 </div>
               ) : null}
-              <AvatarImage className="object-cover" src={profileImage} />
+              <AvatarImage
+                className="object-cover"
+                src={profileImage ?? undefined}
+              />
               <AvatarFallback className="bg-gray-100 dark:bg-slate-800">
                 <Camera className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
               </AvatarFallback>

@@ -429,7 +429,7 @@ const BenchLogin = () => {
                       to="/bench-registration"
                       className="text-primary hover:text-primary/80 transition-colors underline-offset-8 underline decoration-primary/30"
                     >
-                      Partner Registration
+                      Partner Signup
                     </Link>
                   </p>
                 </div>
