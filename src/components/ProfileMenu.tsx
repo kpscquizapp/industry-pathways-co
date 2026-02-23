@@ -41,10 +41,10 @@ const ProfileMenu = ({
     skip: !isHr || !token || !user?.id,
   });
 
-  const avatarValue =
-    isHr &&
-    (employerProfileData?.data?.employerProfile?.avatar ||
-      employerProfileData?.data?.avatar);
+  const avatarValue = isHr
+    ? employerProfileData?.data?.employerProfile?.avatar ||
+      employerProfileData?.data?.avatar
+    : undefined;
 
   const hasAvatar =
     !!avatarValue &&
@@ -69,6 +69,7 @@ const ProfileMenu = ({
       return;
     } else if (user.role === "employer") {
       navigate("/hire-talent/dashboard");
+      return;
     }
     setIsProfileOpen(true);
   };

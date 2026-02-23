@@ -23,7 +23,7 @@ export const employerApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["EmployerProfile"],
+  tagTypes: ["EmployerProfile", "EmployerProfileImage"],
   endpoints: (builder) => ({
     updateEmployerProfile: builder.mutation<void, UpdateEmployerProfile>({
       query: (data) => ({
@@ -39,7 +39,7 @@ export const employerApi = createApi({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: ["EmployerProfile"],
+      invalidatesTags: ["EmployerProfile", "EmployerProfileImage"],
     }),
     getEmployerProfileImage: builder.query<string | null, string>({
       query: (id) => ({
@@ -62,7 +62,7 @@ export const employerApi = createApi({
           });
         },
       }),
-      providesTags: ["EmployerProfile"],
+      providesTags: ["EmployerProfileImage"],
       keepUnusedDataFor: 30, // seconds; avoids redundant re-fetch on quick remounts
     }),
     removeProfileImage: builder.mutation<void, string>({
@@ -99,6 +99,8 @@ export const employerApi = createApi({
 
         try {
           await queryFulfilled;
+          // Invalidate only profile metadata; image is already null via optimistic patch.
+          // Do NOT invalidate "EmployerProfileImage" — prevents CDN stale-cache re-fetch.
           dispatch(employerApi.util.invalidateTags(["EmployerProfile"]));
         } catch {
           patchImage.undo();

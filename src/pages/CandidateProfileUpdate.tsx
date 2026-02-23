@@ -1260,7 +1260,7 @@ const CandidateProfileUpdate = ({
     try {
       if (!confirm("Are you sure you want to delete your profile image?"))
         return;
-      await removeProfileImage((data as any)?.id).unwrap();
+      await removeProfileImage(data.id).unwrap();
       toast.success("Image removed successfully.");
     } catch (error) {
       const message =

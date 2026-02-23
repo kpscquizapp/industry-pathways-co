@@ -189,7 +189,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                 <Button
                   variant="outline"
                   className="w-full rounded-xl"
-                  onClick={() => handleDownload(candidate?.id)}
+                  onClick={() => handleDownload(candidate.id)}
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Download Resume
@@ -469,7 +469,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                       <Button
                         variant="outline"
                         className="w-full rounded-xl"
-                        onClick={() => handleDownload(candidate?.id)}
+                        onClick={() => handleDownload(candidate.id)}
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Download Full Resume

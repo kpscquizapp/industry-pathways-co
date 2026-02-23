@@ -16,7 +16,7 @@ export const profileApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Profile"],
+  tagTypes: ["Profile", "CandidateProfileImage"],
   endpoints: (builder) => ({
     getProfile: builder.query<any, void>({
       query: () => ({
@@ -113,7 +113,7 @@ export const profileApi = createApi({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: ["Profile"],
+      invalidatesTags: ["Profile", "CandidateProfileImage"],
     }),
     getCandidateProfileImage: builder.query<string | null, string>({
       query: (id) => ({
@@ -136,7 +136,7 @@ export const profileApi = createApi({
           });
         },
       }),
-      providesTags: ["Profile"],
+      providesTags: ["CandidateProfileImage"],
       keepUnusedDataFor: 30,
     }),
     removeProfileImage: builder.mutation<void, string>({
