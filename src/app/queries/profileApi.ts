@@ -136,7 +136,9 @@ export const profileApi = createApi({
           });
         },
       }),
-      providesTags: ["CandidateProfileImage"],
+      providesTags: (_result, _error, id) => [
+        { type: "CandidateProfileImage", id },
+      ],
       keepUnusedDataFor: 30,
     }),
     removeProfileImage: builder.mutation<void, string>({

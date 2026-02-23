@@ -1257,18 +1257,24 @@ const CandidateProfileUpdate = ({
   };
 
   const handleRemoveImage = async () => {
-    try {
-      if (!confirm("Are you sure you want to delete your profile image?"))
-        return;
-      await removeProfileImage(data.id).unwrap();
-      toast.success("Image removed successfully.");
-    } catch (error) {
-      const message =
-        typeof error === "object" && error != null && "data" in error
-          ? (error as { data?: { message?: string } }).data?.message
-          : undefined;
-      toast.error(message || "Failed to remove image.");
-    }
+    toast("Are you sure you want to remove profile image?", {
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          try {
+            await removeProfileImage(data.id).unwrap();
+            toast.success("Image removed successfully.");
+          } catch (error) {
+            const message =
+              typeof error === "object" && error != null && "data" in error
+                ? (error as { data?: { message?: string } }).data?.message
+                : undefined;
+            toast.error(message || "Failed to remove image.");
+          }
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
+    });
   };
 
   return (
