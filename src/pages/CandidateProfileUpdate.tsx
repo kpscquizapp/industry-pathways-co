@@ -324,9 +324,8 @@ const CandidateProfileUpdate = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const hasAvatar = !!data?.avatar;
 
-  const { data: profileImage } = useGetCandidateProfileImageQuery(
-    hasAvatar ? (data?.id ?? skipToken) : skipToken,
-  );
+  const { data: profileImage, isLoading: isProfileImageLoading } =
+    useGetCandidateProfileImageQuery(hasAvatar ? data.id : skipToken);
 
   const [skillInput, setSkillInput] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -1287,7 +1286,7 @@ const CandidateProfileUpdate = ({
           </h2>
           <div className="flex flex-col sm:flex-row items-center gap-6 w-full">
             <Avatar className="w-24 h-24 sm:w-32 sm:h-32 shadow-lg ring-4 ring-white/90 dark:ring-slate-700/90 relative">
-              {isLoadingImage || isRemovingImage ? (
+              {isLoadingImage || isRemovingImage || isProfileImageLoading ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-full">
                   <SpinnerLoader />
                 </div>

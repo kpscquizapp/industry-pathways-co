@@ -125,6 +125,7 @@ export const profileApi = createApi({
         },
         responseHandler: async (response) => {
           if (response.status === 404) return null;
+          if (response.status !== 200) return null;
 
           const blob = await response.blob();
           return new Promise<string>((resolve, reject) => {
