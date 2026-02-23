@@ -14,8 +14,12 @@ import useLogout from "@/hooks/useLogout";
 import { LogOut, User } from "lucide-react";
 import ProfileDialog from "./ProfileDialog";
 import { useNavigate } from "react-router-dom";
-import { useGetProfileImageQuery as useGetEmployerProfileImageQuery } from "@/app/queries/employerApi";
-import { useGetProfileImageQuery as useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
+import {
+  useGetEmployerProfileImageQuery,
+  useGetEmployerProfileQuery,
+} from "@/app/queries/employerApi";
+import { skipToken } from "@reduxjs/toolkit/query";
+import { RootState } from "@/app/store";
 
 const ProfileMenu = ({
   btnClass,
@@ -24,25 +28,40 @@ const ProfileMenu = ({
   btnClass: string;
   avatarFallback: string;
 }) => {
-  const user = useSelector((state: any) => state.user.userDetails);
+  const { token } = useSelector((state: RootState) => state.user);
+
+  const user = useSelector((state: RootState) => state.user.userDetails);
   const [handleLogout, isLoading] = useLogout();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
   // Use role-appropriate image endpoint
-  const isEmployerOrHr = user?.role === "employer" || user?.role === "hr";
+  const isHr = user?.role === "hr";
+
+  const { data: employerProfileData } = useGetEmployerProfileQuery(undefined, {
+    skip: !isHr || !token || !user?.id,
+  });
+
+  const avatarValue = isHr
+    ? employerProfileData?.data?.employerProfile?.avatar ||
+      employerProfileData?.data?.avatar
+    : undefined;
+
+  const hasAvatar =
+    !!avatarValue &&
+    avatarValue !== "null" &&
+    avatarValue !== "undefined" &&
+    typeof avatarValue === "string" &&
+    avatarValue.trim().length > 0;
+
+  // 2. Fetch actual image only if metadata indicates it exists
   const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
-    user?.id || "",
-    { skip: !user?.id || !isEmployerOrHr },
+    hasAvatar && isHr && user?.id ? user.id : skipToken,
   );
-  const { data: candidateProfileImage } = useGetCandidateProfileImageQuery(
-    user?.id || "",
-    { skip: !user?.id || isEmployerOrHr },
-  );
-  const profileImage = isEmployerOrHr
-    ? employerProfileImage
-    : candidateProfileImage;
+
+  const profileImage = isHr ? employerProfileImage : null;
 
   const handleProfile = () => {
+    if (!user?.role) return;
     if (user.role === "hr") {
       navigate("/bench-dashboard");
     } else if (user.role === "candidate") {
@@ -50,6 +69,7 @@ const ProfileMenu = ({
       return;
     } else if (user.role === "employer") {
       navigate("/hire-talent/dashboard");
+      return;
     }
     setIsProfileOpen(true);
   };
@@ -68,11 +88,13 @@ const ProfileMenu = ({
                 />
               )}
               <AvatarFallback className={avatarFallback}>
-                {user?.firstName?.charAt(0) || "E"}
+                {user?.firstName?.charAt(0) ||
+                  user?.role?.charAt(0)?.toUpperCase() ||
+                  "U"}
               </AvatarFallback>
             </Avatar>
             <span className="font-medium text-sm hidden sm:inline">
-              {user?.firstName || "Employer"}
+              {user?.firstName || user?.role || "User"}
             </span>
           </Button>
         </DropdownMenuTrigger>

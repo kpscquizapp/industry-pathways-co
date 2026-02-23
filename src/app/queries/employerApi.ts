@@ -23,7 +23,7 @@ export const employerApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["EmployerProfile"],
+  tagTypes: ["EmployerProfile", "EmployerProfileImage"],
   endpoints: (builder) => ({
     updateEmployerProfile: builder.mutation<void, UpdateEmployerProfile>({
       query: (data) => ({
@@ -39,9 +39,9 @@ export const employerApi = createApi({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: ["EmployerProfile"],
+      invalidatesTags: ["EmployerProfile", "EmployerProfileImage"],
     }),
-    getProfileImage: builder.query<string | null, string>({
+    getEmployerProfileImage: builder.query<string | null, string>({
       query: (id) => ({
         url: `users/${id}/avatar/business`,
         method: "GET",
@@ -62,7 +62,7 @@ export const employerApi = createApi({
           });
         },
       }),
-      providesTags: ["EmployerProfile"],
+      providesTags: ["EmployerProfileImage"],
       keepUnusedDataFor: 30, // seconds; avoids redundant re-fetch on quick remounts
     }),
     removeProfileImage: builder.mutation<void, string>({
@@ -70,7 +70,43 @@ export const employerApi = createApi({
         url: `users/${id}/avatar/business`,
         method: "DELETE",
       }),
-      invalidatesTags: ["EmployerProfile"],
+      // Removed automatic invalidation to prevent re-fetching deleted image
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        // Clear the image specific cache
+        const patchImage = dispatch(
+          employerApi.util.updateQueryData(
+            "getEmployerProfileImage",
+            id,
+            () => null,
+          ),
+        );
+
+        // Clear the avatar field in the main profile object
+        const patchProfile = dispatch(
+          employerApi.util.updateQueryData(
+            "getEmployerProfile",
+            undefined,
+            (draft) => {
+              if (draft?.data) {
+                draft.data.avatar = null;
+                if (draft.data.employerProfile) {
+                  draft.data.employerProfile.avatar = null;
+                }
+              }
+            },
+          ),
+        );
+
+        try {
+          await queryFulfilled;
+          // Invalidate only profile metadata; image is already null via optimistic patch.
+          // Do NOT invalidate "EmployerProfileImage" — prevents CDN stale-cache re-fetch.
+          dispatch(employerApi.util.invalidateTags(["EmployerProfile"]));
+        } catch {
+          patchImage.undo();
+          patchProfile.undo();
+        }
+      },
     }),
     // Dedicated employer profile query — tagged EmployerProfile so it
     // auto-refetches after updateEmployerProfile/uploadProfileImage/removeProfileImage.
@@ -88,7 +124,7 @@ export const employerApi = createApi({
 export const {
   useUpdateEmployerProfileMutation,
   useUploadProfileImageMutation,
-  useGetProfileImageQuery,
+  useGetEmployerProfileImageQuery,
   useRemoveProfileImageMutation,
   useGetEmployerProfileQuery,
 } = employerApi;

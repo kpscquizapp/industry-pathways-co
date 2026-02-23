@@ -12,8 +12,9 @@ import {
   Camera,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useSelector } from "react-redux";
 import {
-  useGetProfileImageQuery,
+  useGetCandidateProfileImageQuery,
   useGetProfileQuery,
 } from "@/app/queries/profileApi";
 const CandidateProfileUpdate = lazy(() => import("../CandidateProfileUpdate"));
@@ -29,17 +30,24 @@ const getSafeProjectUrl = (value?: string) => {
 };
 
 const ContractorProfile = () => {
+  const { token } = useSelector((state: any) => state.user);
   const {
     data: response,
     isLoading: isLoadingProfile,
     isError,
-  } = useGetProfileQuery();
+  } = useGetProfileQuery(undefined, {
+    skip: !token,
+  });
 
   const data = response?.data;
   const profile = data?.candidateProfile;
 
+  const hasAvatar = !!data?.avatar;
+
   const { data: profileImage, isLoading: isLoadingImage } =
-    useGetProfileImageQuery(data?.id ?? skipToken);
+    useGetCandidateProfileImageQuery(
+      hasAvatar ? (data?.id ?? skipToken) : skipToken,
+    );
 
   const candidateId = useId();
 
@@ -65,7 +73,9 @@ const ContractorProfile = () => {
                   <CardContent className="p-4 sm:p-6 text-center">
                     <Avatar className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 shadow-xl ring-4 ring-white/90 dark:ring-slate-700/90 relative">
                       {isLoadingImage ? (
-                        <SpinnerLoader />
+                        <div className="flex items-center justify-center mx-auto">
+                          <SpinnerLoader />
+                        </div>
                       ) : (
                         <>
                           <AvatarImage

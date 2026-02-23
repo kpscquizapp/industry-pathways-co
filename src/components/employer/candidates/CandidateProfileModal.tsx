@@ -23,6 +23,8 @@ import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { useDownloadBenchResumeMutation } from "@/app/queries/benchApi";
 import type { EntityId } from "@/app/queries/aiShortlistApi";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store";
 
 export interface CandidateProfile {
   id: EntityId;
@@ -129,6 +131,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
   onSkillTest,
 }) => {
   const [downloadResume] = useDownloadBenchResumeMutation();
+  const userDetails = useSelector((state: RootState) => state.user.userDetails);
 
   const handleDownload = async (id: EntityId) => {
     if (!candidate) return;
@@ -181,16 +184,18 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-3 mb-6">
-              <Button
-                variant="outline"
-                className="w-full rounded-xl"
-                onClick={() => handleDownload(candidate?.id)}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download Resume
-              </Button>
-            </div>
+            {userDetails?.role === "employer" && (
+              <div className="space-y-3 mb-6">
+                <Button
+                  variant="outline"
+                  className="w-full rounded-xl"
+                  onClick={() => handleDownload(candidate.id)}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Resume
+                </Button>
+              </div>
+            )}
 
             {/* Quick Info */}
             <div className="space-y-4 text-sm">
@@ -299,12 +304,14 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                 >
                   Overview
                 </TabsTrigger>
-                <TabsTrigger
-                  value="resume"
-                  className="rounded-lg px-6 data-[state=active]:bg-background"
-                >
-                  Resume
-                </TabsTrigger>
+                {userDetails?.role === "employer" && (
+                  <TabsTrigger
+                    value="resume"
+                    className="rounded-lg px-6 data-[state=active]:bg-background"
+                  >
+                    Resume
+                  </TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="overview" className="space-y-6">
@@ -455,55 +462,59 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                 )}
               </TabsContent>
 
-              <TabsContent value="resume">
-                <Card className="border-border">
-                  <CardContent className="p-6">
-                    <Button
-                      variant="outline"
-                      className="w-full rounded-xl"
-                      onClick={() => handleDownload(candidate?.id)}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download Full Resume
-                    </Button>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              {userDetails?.role === "employer" && (
+                <TabsContent value="resume">
+                  <Card className="border-border">
+                    <CardContent className="p-6">
+                      <Button
+                        variant="outline"
+                        className="w-full rounded-xl"
+                        onClick={() => handleDownload(candidate.id)}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Full Resume
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         </div>
 
         {/* Bottom Action Bar */}
-        <div className="sticky bottom-0 bg-card border-t border-border p-4 flex items-center justify-end gap-3">
-          {onSkillTest && (
-            <Button
-              variant="outline"
-              className="rounded-xl"
-              onClick={() => onSkillTest(candidate)}
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Schedule Skill Test
-            </Button>
-          )}
-          {onShortlist && (
-            <Button
-              variant="outline"
-              className="rounded-xl text-primary border-primary hover:bg-primary/10"
-              onClick={() => onShortlist(candidate)}
-            >
-              <Star className="h-4 w-4 mr-2" />
-              Shortlist
-            </Button>
-          )}
-          {onScheduleInterview && (
-            <Button
-              className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground"
-              onClick={() => onScheduleInterview(candidate)}
-            >
-              Book Interview
-            </Button>
-          )}
-        </div>
+        {userDetails?.role === "employer" && (
+          <div className="sticky bottom-0 bg-card border-t border-border p-4 flex items-center justify-end gap-3">
+            {onSkillTest && (
+              <Button
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => onSkillTest(candidate)}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Schedule Skill Test
+              </Button>
+            )}
+            {onShortlist && (
+              <Button
+                variant="outline"
+                className="rounded-xl text-primary border-primary hover:bg-primary/10"
+                onClick={() => onShortlist(candidate)}
+              >
+                <Star className="h-4 w-4 mr-2" />
+                Shortlist
+              </Button>
+            )}
+            {onScheduleInterview && (
+              <Button
+                className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground"
+                onClick={() => onScheduleInterview(candidate)}
+              >
+                Book Interview
+              </Button>
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
