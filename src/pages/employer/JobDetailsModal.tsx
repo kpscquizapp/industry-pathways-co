@@ -59,7 +59,7 @@ interface Job {
 interface JobDetailsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  job: Job;
+  job: Job | null;
 }
 
 const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
@@ -95,8 +95,15 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
   const displaySalary = (min: any, max: any) => {
     const parsedMin = parseFloat(min);
     const parsedMax = parseFloat(max);
-    if (Number.isFinite(parsedMin) && Number.isFinite(parsedMax)) {
+    const minFinite = Number.isFinite(parsedMin);
+    const maxFinite = Number.isFinite(parsedMax);
+
+    if (minFinite && maxFinite) {
       return `$${parsedMin.toLocaleString()} - $${parsedMax.toLocaleString()}`;
+    } else if (minFinite) {
+      return `$${parsedMin.toLocaleString()}+`;
+    } else if (maxFinite) {
+      return `Up to $${parsedMax.toLocaleString()}`;
     }
     return "Not Disclosed";
   };
@@ -213,11 +220,15 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                     Required Skills
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {job.skills.map(({ name: skill }, idx: number) => (
-                      <Badge key={idx} variant="default">
-                        {skill}
-                      </Badge>
-                    ))}
+                    {job.skills.map((item: any, idx: number) => {
+                      const skillLabel =
+                        typeof item === "string" ? item : item?.name || "";
+                      return (
+                        <Badge key={`${skillLabel}-${idx}`} variant="default">
+                          {skillLabel}
+                        </Badge>
+                      );
+                    })}
                   </div>
                 </div>
               )}

@@ -107,11 +107,13 @@ const HiringDashboardNew = () => {
         // Get count from metadata (response.meta.total), fallback to data.length, then 0
         const matchCount = response?.meta?.total ?? response?.data?.length ?? 0;
         counts[job.id] = matchCount;
-        console.log(`Job ${job.id} (${job.title}): ${matchCount} matches`);
+        if (import.meta.env.DEV) {
+        }
       });
 
       setMatchCounts(counts);
-      console.log("All match counts loaded:", counts);
+      if (import.meta.env.DEV) {
+      }
     };
 
     fetchAllMatches();
@@ -132,10 +134,25 @@ const HiringDashboardNew = () => {
     return total;
   }, [matchCounts]);
 
+  // Get badge styling based on job status
+  const getStatusBadgeStyle = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+      case "published":
+        return { variant: "default" as const, label: "Active" };
+      case "draft":
+        return { variant: "outline" as const, label: "Draft" };
+      case "closed":
+        return { variant: "destructive" as const, label: "Closed" };
+      default:
+        return { variant: "default" as const, label: "Active" };
+    }
+  };
+
+  // Sync loading state with actual job loading
   React.useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+    setIsLoading(jobsLoading);
+  }, [jobsLoading]);
 
   if (isLoading) {
     return (
@@ -281,7 +298,9 @@ const HiringDashboardNew = () => {
                           {matchCounts[job.id] || 0} candidates
                         </p>
                       </div>
-                      <Badge variant="default">Active</Badge>
+                      <Badge variant={getStatusBadgeStyle(job.status).variant}>
+                        {getStatusBadgeStyle(job.status).label}
+                      </Badge>
                     </div>
 
                     {/* Pipeline Progress */}
@@ -403,6 +422,11 @@ const HiringDashboardNew = () => {
                     size="sm"
                     variant="outline"
                     className="w-full rounded-lg"
+                    onClick={() =>
+                      navigate(
+                        `/hire-talent/ai-shortlists?candidateId=${candidate.id}`,
+                      )
+                    }
                   >
                     View Profile
                   </Button>

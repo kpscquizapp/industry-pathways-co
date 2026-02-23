@@ -32,10 +32,9 @@ import {
 const EmployerPostJob = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const jobId = searchParams.get("jobId")
-    ? Number(searchParams.get("jobId"))
-    : null;
-  const isEditing = !!jobId;
+  const jobIdParam = searchParams.get("jobId");
+  const jobId = jobIdParam ? parseInt(jobIdParam, 10) : null;
+  const isEditing = Number.isFinite(jobId) && jobId !== null;
 
   const [createJob, { isLoading: createJobLoading }] = useCreateJobMutation();
   const [updateJob, { isLoading: updateJobLoading }] = useUpdateJobMutation();
@@ -289,7 +288,7 @@ const EmployerPostJob = () => {
       city: formData.city || undefined,
       state: formData.state || undefined,
       country: formData.country || undefined,
-      // Backend expects misspelled 'mltipleLocationsAllowed', so we map the corrected client-side name
+      // The backend column is misspelled as 'mltipleLocationsAllowed', so we intentionally map the correctly-spelled client field to it
       mltipleLocationsAllowed: formData.multipleLocationsAllowed,
 
       // Employment Details
