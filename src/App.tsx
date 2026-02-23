@@ -99,6 +99,7 @@ const HiringDashboardNew = lazy(
   () => import("./pages/employer/HiringDashboardNew"),
 );
 const EmployerPostJob = lazy(() => import("./pages/employer/EmployerPostJob"));
+const ShowJobs = lazy(() => import("./pages/employer/ShowJobs"));
 const EmployerAIShortlists = lazy(
   () => import("./pages/employer/EmployerAIShortlists"),
 );
@@ -237,6 +238,7 @@ const App = () => {
                           element={<HiringDashboardNew />}
                         />
                         <Route path="post-job" element={<EmployerPostJob />} />
+                        <Route path="jobs" element={<ShowJobs />} />
                         <Route
                           path="ai-shortlists"
                           element={<EmployerAIShortlists />}

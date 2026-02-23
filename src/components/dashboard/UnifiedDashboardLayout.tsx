@@ -15,6 +15,7 @@ import {
   FileCheck,
   BarChart3,
   Plus,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -100,6 +101,7 @@ const getMenuItems = (role: DashboardRole) => {
           href: "/hire-talent/dashboard",
         },
         { icon: PlusCircle, label: "Post Job", href: "/hire-talent/post-job" },
+        { icon: Briefcase, label: "Show Jobs", href: "/hire-talent/jobs" },
         {
           icon: Users,
           label: "AI Shortlists",
@@ -147,7 +149,9 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
     user?.id || "",
     { skip: !user?.id || isEmployerRole },
   );
-  const profileImage = isEmployerRole ? employerProfileImage : candidateProfileImage;
+  const profileImage = isEmployerRole
+    ? employerProfileImage
+    : candidateProfileImage;
 
   const handleProfile = () => {
     if (role === "hire-talent") {
@@ -325,14 +329,14 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
                 <Bell className="h-5 w-5 text-muted-foreground" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
               </Button>
-              {role === "hire-talent" && (
+              {/* {role === "hire-talent" && (
                 <Button size="sm" className="rounded-xl hidden md:flex" asChild>
                   <Link to="/hire-talent/post-job">
                     <Plus className="w-4 h-4 mr-2" />
                     Post Job
                   </Link>
                 </Button>
-              )}
+              )} */}
             </div>
           </header>
 

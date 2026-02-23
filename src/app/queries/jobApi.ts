@@ -45,6 +45,41 @@ export const jobApi = createApi({
       }),
       invalidatesTags: ["Jobs", "DashboardJobs"],
     }),
+    showAllJobs: builder.query({
+      query: (params) => ({
+        headers: getAuthHeaders(),
+        method: "GET",
+        url: "jobs",
+        params: params,
+      }),
+      providesTags: ["Jobs"],
+    }),
+    getEmployerAllJobs: builder.query({
+      query: (params) => ({
+        headers: getAuthHeaders(),
+        method: "GET",
+        url: "employers/jobs",
+        params: params,
+      }),
+      providesTags: ["Jobs"],
+    }),
+    updateJob: builder.mutation({
+      query: ({ id, data }) => ({
+        headers: getAuthHeaders(),
+        method: "PUT",
+        url: `jobs/${id}`,
+        body: data,
+      }),
+      invalidatesTags: ["Jobs", "DashboardJobs"],
+    }),
+    deleteJob: builder.mutation({
+      query: ({ id }) => ({
+        headers: getAuthHeaders(),
+        method: "DELETE",
+        url: `jobs/${id}`,
+      }),
+      invalidatesTags: ["Jobs", "DashboardJobs"],
+    }),
   }),
 });
 
@@ -53,4 +88,8 @@ export const {
   useGetJobsQuery,
   useGetJobsByIdQuery,
   useGetDashboardJobsQuery,
+  useShowAllJobsQuery,
+  useGetEmployerAllJobsQuery,
+  useUpdateJobMutation,
+  useDeleteJobMutation,
 } = jobApi;

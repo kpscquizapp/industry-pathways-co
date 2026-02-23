@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Plus, X, Shield, Save, Send, Sparkles } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Plus, X, Shield, Save, Send, Sparkles, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,44 +20,214 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { useCreateJobMutation } from "@/app/queries/jobApi";
+import {
+  useCreateJobMutation,
+  useGetJobsByIdQuery,
+  useUpdateJobMutation,
+  useDeleteJobMutation,
+} from "@/app/queries/jobApi";
 
 const EmployerPostJob = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const jobId = searchParams.get("jobId")
+    ? Number(searchParams.get("jobId"))
+    : null;
+  const isEditing = !!jobId;
+
   const [createJob, { isLoading: createJobLoading }] = useCreateJobMutation();
+  const [updateJob, { isLoading: updateJobLoading }] = useUpdateJobMutation();
+  const [deleteJob, { isLoading: deleteJobLoading }] = useDeleteJobMutation();
+
+  const { data: jobDetailsData, isLoading: jobDetailsLoading } =
+    useGetJobsByIdQuery({ id: jobId }, { skip: !jobId });
+
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
-  const [openToBench, setOpenToBench] = useState(false);
   const [postingAction, setPostingAction] = useState<
     "post" | "postAndShow" | null
   >(null);
   const [formData, setFormData] = useState({
+    // Basic Information
     title: "",
     description: "",
     category: "",
-    employmentType: "",
-    openings: "",
-    experienceLevel: "",
-    certifications: "",
-    workMode: "",
+    role: "",
+    status: "draft",
+
+    // Location
     location: "",
+    city: "",
+    state: "",
+    country: "",
+    mltipleLocationsAllowed: false,
+
+    // Employment Details
+    employmentType: "",
+    workMode: "",
+
+    // Experience
+    minExperience: "",
+    maxExperience: "",
+    experienceLevel: "",
+    fresherAllowed: false,
+
+    // Compensation
+    salaryMin: "",
+    salaryMax: "",
+    salaryType: "not-disclosed",
+    currency: "USD",
+    expectedBudgetMin: "",
+    expectedBudgetMax: "",
+
+    // Duration & Timing
     duration: "",
     durationUnit: "",
     startDate: "",
+    expiresAt: "",
+
+    // Payment
     paymentType: "",
-    salaryMin: "",
-    salaryMax: "",
-    currency: "",
+
+    // Openings & Visibility
+    openings: "",
+    jobVisibility: "public",
+    urgency: "normal",
+    openToBenchResources: false,
+
+    // Certifications & Education
+    certifications: "",
+    educationQualification: "",
+    languagesKnown: "",
+
+    // Perks & Benefits
+    healthInsurance: false,
+    esops: false,
+    performanceBonus: false,
+    remoteAllowance: false,
+
+    // AI & Screening
+    enableAiMatching: true,
+    autoScreenCandidates: false,
+    enableSkillAssessment: true,
+    scheduleAIInterview: false,
+    testType: "",
+    difficultyLevel: "",
+    timeLimit: "",
+    autoRejectBelowScore: "",
+    interviewType: "",
+    autoAdvanceScore: "",
+
+    // Compliance
+    equalOpportunityEmployer: true,
+    dataPrivacyPolicies: true,
+    termsAndConditions: false,
   });
 
-  const parseOptionalNumber = (value: string) => {
-    if (!value) {
+  useEffect(() => {
+    if (isEditing && jobDetailsData?.data?.[0]) {
+      const job = jobDetailsData.data[0];
+
+      setFormData({
+        // Basic Information
+        title: job.title || "",
+        description: job.description || "",
+        category: job.category || "",
+        role: job.role || "",
+        status: job.status || "draft",
+
+        // Location
+        location: job.location || "",
+        city: job.city || "",
+        state: job.state || "",
+        country: job.country || "",
+        mltipleLocationsAllowed: job.mltipleLocationsAllowed || false,
+
+        // Employment Details
+        employmentType: job.employmentType || "",
+        workMode: job.workMode || "",
+
+        // Experience
+        minExperience: job.minExperience?.toString() || "",
+        maxExperience: job.maxExperience?.toString() || "",
+        experienceLevel: job.experienceLevel || "",
+        fresherAllowed: job.fresherAllowed || false,
+
+        // Compensation
+        salaryMin: job.salaryMin?.toString() || "",
+        salaryMax: job.salaryMax?.toString() || "",
+        salaryType: job.salaryType || "not-disclosed",
+        currency: job.currency || "USD",
+        expectedBudgetMin: job.expectedBudgetMin?.toString() || "",
+        expectedBudgetMax: job.expectedBudgetMax?.toString() || "",
+
+        // Duration & Timing
+        duration: job.duration?.toString() || "",
+        durationUnit: job.durationUnit || "",
+        startDate: job.startDate || "",
+        expiresAt: job.expiresAt || "",
+
+        // Payment
+        paymentType: job.paymentType || "",
+
+        // Openings & Visibility
+        openings: job.numberOfOpenings?.toString() || "",
+        jobVisibility: job.jobVisibility || "public",
+        urgency: job.urgency || "normal",
+        openToBenchResources: job.openToBenchResources || false,
+
+        // Certifications & Education
+        certifications: Array.isArray(job.certifications)
+          ? job.certifications.join(", ")
+          : "",
+        educationQualification: job.educationQualification || "",
+        languagesKnown: job.languagesKnown || "",
+
+        // Perks & Benefits
+        healthInsurance: job.healthInsurance || false,
+        esops: job.ESOPs || false,
+        performanceBonus: job.performanceBonus || false,
+        remoteAllowance: job.remoteAllowance || false,
+
+        // AI & Screening
+        enableAiMatching:
+          job.enableAiTalentMatching || job.aiMatchingEnabled || false,
+        autoScreenCandidates: job.autoScreenCandidates || false,
+        enableSkillAssessment: job.enableSkillAssessment || false,
+        scheduleAIInterview: job.scheduleAIInterviews || false,
+        testType: job.testType || "",
+        difficultyLevel: job.difficultyLevel || "",
+        timeLimit: job.timeLimit?.toString() || "",
+        autoRejectBelowScore: job.autoRejectBelowScore?.toString() || "",
+        interviewType: job.interviewType || "",
+        autoAdvanceScore: job.autoAdvanceScore?.toString() || "",
+
+        // Compliance
+        equalOpportunityEmployer: job.equalOpportunityEmployer || false,
+        dataPrivacyPolicies: job.dataPrivacyPolicies || false,
+        termsAndConditions: job.termsAndConditions || false,
+      });
+
+      if (job.skills && Array.isArray(job.skills)) {
+        setSkills(job.skills.map((s: any) => s.name || s));
+      }
+    }
+  }, [isEditing, jobDetailsData]);
+
+  const parseOptionalNumber = (value: string | number) => {
+    if (value === "" || value === null || value === undefined) {
       return undefined;
     }
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : undefined;
+    const numValue = typeof value === "number" ? value : Number(value);
+    const result =
+      Number.isFinite(numValue) && numValue > 0 ? numValue : undefined;
+    
+    // Always log for openings field
+    if (value === formData.openings || String(value) === formData.openings) {
+    }
+    return result;
   };
 
   const mapDurationUnit = (unit: string) => {
@@ -100,26 +270,91 @@ const EmployerPostJob = () => {
         ? salaryMin
         : salaryMax;
 
+    const numberOfOpenings = parseOptionalNumber(formData.openings);
+    const minExperience = parseOptionalNumber(formData.minExperience);
+    const maxExperience = parseOptionalNumber(formData.maxExperience);
+    const expectedBudgetMin = parseOptionalNumber(formData.expectedBudgetMin);
+    const expectedBudgetMax = parseOptionalNumber(formData.expectedBudgetMax);
+
+
     return {
+      // Basic Information
       title: formData.title,
       description: formData.description,
       category: formData.category || undefined,
+      role: formData.role || undefined,
+      // status: formData.status || "draft",
+
+      // Location
       location: formData.location || undefined,
-      experienceLevel: formData.experienceLevel || undefined,
+      city: formData.city || undefined,
+      state: formData.state || undefined,
+      country: formData.country || undefined,
+      mltipleLocationsAllowed: formData.mltipleLocationsAllowed,
+
+      // Employment Details
       employmentType: formData.employmentType || undefined,
       workMode: formData.workMode || undefined,
+
+      // Experience
+      minExperience: minExperience,
+      maxExperience: maxExperience,
+      fresherAllowed: formData.fresherAllowed,
+
+      // Compensation
+      salaryMin: normalizedSalaryMin,
+      salaryMax: normalizedSalaryMax,
+      salaryType: formData.salaryType || "not-disclosed",
+      currency: formData.currency || "USD",
+      expectedBudgetMin: expectedBudgetMin,
+      expectedBudgetMax: expectedBudgetMax,
+
+      // Duration & Timing
       duration: parseOptionalNumber(formData.duration),
       durationUnit: mapDurationUnit(formData.durationUnit),
       startDate: formData.startDate || undefined,
+      expiresAt: formData.expiresAt || undefined,
+
+      // Payment
       paymentType: formData.paymentType || undefined,
-      salaryMin: normalizedSalaryMin,
-      salaryMax: normalizedSalaryMax,
-      currency: formData.currency || undefined,
-      openToBenchResources: openToBench,
+
+      // Openings & Visibility
+      numberOfOpenings: numberOfOpenings,
+      jobVisibility: formData.jobVisibility || "public",
+      urgency: formData.urgency || "normal",
+      openToBenchResources: formData.openToBenchResources,
+
+      // Certifications & Education
       certifications: parseCertifications(formData.certifications),
-      numberOfOpenings: parseOptionalNumber(formData.openings),
+      educationQualification: formData.educationQualification || undefined,
+      languagesKnown: formData.languagesKnown || undefined,
+
+      // Perks & Benefits
+      healthInsurance: formData.healthInsurance,
+      ESOPs: formData.esops,
+      performanceBonus: formData.performanceBonus,
+      remoteAllowance: formData.remoteAllowance,
+
+      // AI & Screening
       enableAiTalentMatching: enableAiMatching,
       aiMatchingEnabled: enableAiMatching,
+      autoScreenCandidates: formData.autoScreenCandidates,
+      enableSkillAssessment: formData.enableSkillAssessment,
+      scheduleAIInterviews: formData.scheduleAIInterview,
+      testType: formData.testType || undefined,
+      difficultyLevel: formData.difficultyLevel || undefined,
+      timeLimit: parseOptionalNumber(formData.timeLimit),
+      autoRejectBelowScore: parseOptionalNumber(formData.autoRejectBelowScore),
+      interviewType: formData.interviewType || undefined,
+      aiEvaluationCriteria: undefined, // Can be set separately if needed
+      autoAdvanceScore: parseOptionalNumber(formData.autoAdvanceScore),
+
+      // Compliance
+      equalOpportunityEmployer: formData.equalOpportunityEmployer,
+      dataPrivacyPolicies: formData.dataPrivacyPolicies,
+      termsAndConditions: formData.termsAndConditions,
+
+      // Skills
       skills: skills.map((skill) => ({ name: skill })),
     };
   };
@@ -156,32 +391,69 @@ const EmployerPostJob = () => {
         toast.error("Job title and description are required.");
         return;
       }
-      const response = await createJob(payload).unwrap();
-      const createdJobId = getCreatedJobId(response);
-      const jobState =
-        enableAiMatching && response?.data ? { job: response.data } : undefined;
-      if (enableAiMatching && !createdJobId) {
-        toast.warning(
-          "Job posted, but could not retrieve job ID for AI matching.",
-        );
+
+      let response;
+      if (isEditing && jobId) {
+        // Update existing job
+        response = await updateJob({ id: jobId, data: payload }).unwrap();
+        toast.success("Job updated successfully!");
+        navigate("/hire-talent/dashboard");
       } else {
-        toast.success(
-          enableAiMatching
-            ? "Job posted! Finding AI-matched candidates..."
-            : "Job posted successfully!",
-        );
+        // Create new job
+        response = await createJob(payload).unwrap();
+        const createdJobId = getCreatedJobId(response);
+        const jobState =
+          enableAiMatching && response?.data
+            ? { job: response.data }
+            : undefined;
+        if (enableAiMatching && !createdJobId) {
+          toast.warning(
+            "Job posted, but could not retrieve job ID for AI matching.",
+          );
+        } else {
+          toast.success(
+            enableAiMatching
+              ? "Job posted! Finding AI-matched candidates..."
+              : "Job posted successfully!",
+          );
+        }
+        const redirectUrl =
+          enableAiMatching && createdJobId
+            ? `${redirectPath}?jobId=${createdJobId}`
+            : redirectPath;
+        navigate(redirectUrl, jobState ? { state: jobState } : undefined);
       }
-      const redirectUrl =
-        enableAiMatching && createdJobId
-          ? `${redirectPath}?jobId=${createdJobId}`
-          : redirectPath;
-      navigate(redirectUrl, jobState ? { state: jobState } : undefined);
     } catch (error: unknown) {
       const message =
         error && typeof error === "object" && "data" in error
           ? (error as { data?: { message?: string } }).data?.message
           : undefined;
-      toast.error(message || "Failed to post job");
+      toast.error(
+        message || (isEditing ? "Failed to update job" : "Failed to post job"),
+      );
+    }
+  };
+
+  const handleDeleteJob = async () => {
+    if (
+      !jobId ||
+      !window.confirm(
+        "Are you sure you want to delete this job? This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteJob({ id: jobId }).unwrap();
+      toast.success("Job deleted successfully!");
+      navigate("/hire-talent/jobs");
+    } catch (error: unknown) {
+      const message =
+        error && typeof error === "object" && "data" in error
+          ? (error as { data?: { message?: string } }).data?.message
+          : undefined;
+      toast.error(message || "Failed to delete job");
     }
   };
 
@@ -207,12 +479,26 @@ const EmployerPostJob = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Post a New Job</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            {isEditing ? "Edit Job" : "Post a New Job"}
+          </h1>
           <p className="text-muted-foreground">
-            Create a contract opportunity for top talent
+            {isEditing
+              ? "Update the job details"
+              : "Create a contract opportunity for top talent"}
           </p>
         </div>
       </div>
+
+      {jobDetailsLoading && isEditing && (
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-center text-muted-foreground">
+              Loading job details...
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <Accordion
         type="multiple"
@@ -325,10 +611,12 @@ const EmployerPostJob = () => {
                     type="number"
                     placeholder="Enter number of openings"
                     min="1"
+                    max="999"
                     value={formData.openings}
-                    onChange={(e) =>
-                      setFormData({ ...formData, openings: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setFormData({ ...formData, openings: value });
+                    }}
                     className="mt-1.5"
                   />
                 </div>
@@ -511,8 +799,13 @@ const EmployerPostJob = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Switch
-                      checked={openToBench}
-                      onCheckedChange={setOpenToBench}
+                      checked={formData.openToBenchResources}
+                      onCheckedChange={(value) =>
+                        setFormData({
+                          ...formData,
+                          openToBenchResources: value,
+                        })
+                      }
                       className="data-[state=checked]:bg-green-500"
                     />
                     <div>
@@ -686,6 +979,17 @@ const EmployerPostJob = () => {
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-3 justify-end pt-4 border-t border-border">
+        {isEditing && (
+          <Button
+            variant="outline"
+            onClick={handleDeleteJob}
+            className="rounded-xl text-destructive hover:text-destructive"
+            disabled={deleteJobLoading}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            {deleteJobLoading ? "Deleting..." : "Delete Job"}
+          </Button>
+        )}
         <Button
           variant="outline"
           onClick={handleSaveDraft}
@@ -697,23 +1001,29 @@ const EmployerPostJob = () => {
         <Button
           onClick={handlePostJob}
           className="rounded-xl bg-primary hover:bg-primary/90"
-          disabled={createJobLoading}
+          disabled={updateJobLoading || createJobLoading}
         >
           <Send className="h-4 w-4 mr-2" />
-          {createJobLoading && postingAction === "post"
-            ? "Posting..."
-            : "Post Job"}
+          {isEditing
+            ? updateJobLoading
+              ? "Updating..."
+              : "Update Job"
+            : createJobLoading && postingAction === "post"
+              ? "Posting..."
+              : "Post Job"}
         </Button>
-        <Button
-          onClick={handlePostAndShowProfiles}
-          className="rounded-xl bg-gradient-to-r from-primary to-pink-500 hover:opacity-90"
-          disabled={createJobLoading}
-        >
-          <Sparkles className="h-4 w-4 mr-2" />
-          {createJobLoading && postingAction === "postAndShow"
-            ? "Posting..."
-            : "Post & Show Relevant Profiles"}
-        </Button>
+        {!isEditing && (
+          <Button
+            onClick={handlePostAndShowProfiles}
+            className="rounded-xl bg-gradient-to-r from-primary to-pink-500 hover:opacity-90"
+            disabled={createJobLoading}
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            {createJobLoading && postingAction === "postAndShow"
+              ? "Posting..."
+              : "Post & Show Relevant Profiles"}
+          </Button>
+        )}
       </div>
     </div>
   );
