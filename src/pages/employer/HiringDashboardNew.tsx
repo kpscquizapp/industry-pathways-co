@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Briefcase,
   Users,
@@ -49,6 +49,7 @@ const topCandidates = [
 ];
 
 const HiringDashboardNew = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = React.useState(true);
   const [matchCounts, setMatchCounts] = React.useState<
     Record<number | string, number>
@@ -73,10 +74,6 @@ const HiringDashboardNew = () => {
     // The AI Shortlist API returns: { data: jobs[] }
     const jobsArray = jobsResponse.data || [];
 
-    // Log first job structure to see available fields
-    if (jobsArray.length > 0) {
-    }
-
     return Array.isArray(jobsArray) ? jobsArray : [];
   }, [jobsResponse]);
 
@@ -87,25 +84,34 @@ const HiringDashboardNew = () => {
     }
 
     const fetchAllMatches = async () => {
+      // Parallelize all match queries using Promise.all to avoid N+1 queries
+      const matchPromises = jobs.map((job) =>
+        getJobMatches({
+          id: String(job.id),
+          page: 1,
+          limit: 1, // Only fetch metadata, not actual records
+        })
+          .unwrap()
+          .catch((error) => {
+            console.error(`Error fetching matches for job ${job.id}:`, error);
+            return null;
+          }),
+      );
+
+      const results = await Promise.all(matchPromises);
+
+      // Map results to counts, deriving from response metadata
       const counts: Record<number | string, number> = {};
-
-      for (const job of jobs) {
-        try {
-          const response = await getJobMatches({
-            id: String(job.id),
-            page: 1,
-            limit: 1000, // Get all matches
-          }).unwrap();
-
-          // Count matches returned
-          const matchCount = response.data?.length || 0;
-          counts[job.id] = matchCount;
-        } catch (error) {
-          counts[job.id] = 0;
-        }
-      }
+      jobs.forEach((job, index) => {
+        const response = results[index];
+        // Get count from metadata (response.meta.total), fallback to data.length, then 0
+        const matchCount = response?.meta?.total ?? response?.data?.length ?? 0;
+        counts[job.id] = matchCount;
+        console.log(`Job ${job.id} (${job.title}): ${matchCount} matches`);
+      });
 
       setMatchCounts(counts);
+      console.log("All match counts loaded:", counts);
     };
 
     fetchAllMatches();
@@ -152,7 +158,8 @@ const HiringDashboardNew = () => {
               Find Your Next Great Hire 🚀
             </h2>
             <p className="text-primary-foreground/80">
-              AI has shortlisted 12 new candidates matching your open roles.
+              AI has shortlisted {totalCandidates} new candidate
+              {totalCandidates !== 1 ? "s" : ""} matching your open roles.
             </p>
           </div>
           {/* <Button variant="secondary" className="bg-background text-foreground hover:bg-background/90" asChild>
@@ -215,7 +222,7 @@ const HiringDashboardNew = () => {
                 <FileCheck className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">26</p>
+                <p className="text-2xl font-bold text-foreground">—</p>
                 <p className="text-sm text-muted-foreground">AI Shortlisted</p>
               </div>
             </div>
@@ -229,7 +236,7 @@ const HiringDashboardNew = () => {
                 <Video className="w-6 h-6 text-green-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">12</p>
+                <p className="text-2xl font-bold text-foreground">—</p>
                 <p className="text-sm text-muted-foreground">Interviews Done</p>
               </div>
             </div>
@@ -244,7 +251,7 @@ const HiringDashboardNew = () => {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-foreground">Active Jobs</CardTitle>
               <Link
-                to="/employer/post-job"
+                to="/hire-talent/post-job"
                 className="text-sm text-primary hover:underline flex items-center gap-1"
               >
                 Post Job <ChevronRight className="w-4 h-4" />
@@ -300,13 +307,22 @@ const HiringDashboardNew = () => {
                     </div>
 
                     <div className="flex gap-2 mt-4">
-                      <Button size="sm" className="flex-1 rounded-lg">
+                      <Button
+                        size="sm"
+                        className="flex-1 rounded-lg"
+                        onClick={() =>
+                          navigate(`/hire-talent/ai-shortlists?jobId=${job.id}`)
+                        }
+                      >
                         View Shortlist
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         className="rounded-lg"
+                        onClick={() =>
+                          navigate(`/hire-talent/post-job?jobId=${job.id}`)
+                        }
                       >
                         Manage
                       </Button>
@@ -394,7 +410,7 @@ const HiringDashboardNew = () => {
               ))}
 
               <Link
-                to="/employer/ai-shortlists"
+                to="/hire-talent/ai-shortlists"
                 className="block text-center text-sm text-primary hover:underline pt-2"
               >
                 View All Candidates →

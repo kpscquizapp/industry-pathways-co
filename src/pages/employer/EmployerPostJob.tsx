@@ -62,7 +62,7 @@ const EmployerPostJob = () => {
     city: "",
     state: "",
     country: "",
-    mltipleLocationsAllowed: false,
+    multipleLocationsAllowed: false,
 
     // Employment Details
     employmentType: "",
@@ -143,7 +143,8 @@ const EmployerPostJob = () => {
         city: job.city || "",
         state: job.state || "",
         country: job.country || "",
-        mltipleLocationsAllowed: job.mltipleLocationsAllowed || false,
+        multipleLocationsAllowed:
+          job.multipleLocationsAllowed || job.mltipleLocationsAllowed || false,
 
         // Employment Details
         employmentType: job.employmentType || "",
@@ -213,6 +214,9 @@ const EmployerPostJob = () => {
       if (job.skills && Array.isArray(job.skills)) {
         setSkills(job.skills.map((s: any) => s.name || s));
       }
+    } else if (!isEditing) {
+      // Clear skills when switching back to create mode
+      setSkills([]);
     }
   }, [isEditing, jobDetailsData]);
 
@@ -223,10 +227,6 @@ const EmployerPostJob = () => {
     const numValue = typeof value === "number" ? value : Number(value);
     const result =
       Number.isFinite(numValue) && numValue > 0 ? numValue : undefined;
-    
-    // Always log for openings field
-    if (value === formData.openings || String(value) === formData.openings) {
-    }
     return result;
   };
 
@@ -276,7 +276,6 @@ const EmployerPostJob = () => {
     const expectedBudgetMin = parseOptionalNumber(formData.expectedBudgetMin);
     const expectedBudgetMax = parseOptionalNumber(formData.expectedBudgetMax);
 
-
     return {
       // Basic Information
       title: formData.title,
@@ -290,7 +289,8 @@ const EmployerPostJob = () => {
       city: formData.city || undefined,
       state: formData.state || undefined,
       country: formData.country || undefined,
-      mltipleLocationsAllowed: formData.mltipleLocationsAllowed,
+      // Backend expects misspelled 'mltipleLocationsAllowed', so we map the corrected client-side name
+      mltipleLocationsAllowed: formData.multipleLocationsAllowed,
 
       // Employment Details
       employmentType: formData.employmentType || undefined,
@@ -990,14 +990,16 @@ const EmployerPostJob = () => {
             {deleteJobLoading ? "Deleting..." : "Delete Job"}
           </Button>
         )}
-        <Button
-          variant="outline"
-          onClick={handleSaveDraft}
-          className="rounded-xl"
-        >
-          <Save className="h-4 w-4 mr-2" />
-          Save Draft
-        </Button>
+        {!isEditing && (
+          <Button
+            variant="outline"
+            onClick={handleSaveDraft}
+            className="rounded-xl"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save Draft
+          </Button>
+        )}
         <Button
           onClick={handlePostJob}
           className="rounded-xl bg-primary hover:bg-primary/90"

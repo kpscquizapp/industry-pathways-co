@@ -329,14 +329,6 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
                 <Bell className="h-5 w-5 text-muted-foreground" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
               </Button>
-              {/* {role === "hire-talent" && (
-                <Button size="sm" className="rounded-xl hidden md:flex" asChild>
-                  <Link to="/hire-talent/post-job">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Post Job
-                  </Link>
-                </Button>
-              )} */}
             </div>
           </header>
 

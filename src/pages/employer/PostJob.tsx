@@ -50,7 +50,7 @@ interface JobFormData {
   city: string;
   state: string;
   country: string;
-  multipleLocations: boolean;
+  multipleLocationsAllowed: boolean;
 
   // Experience & Skills
   minExperience: string;
@@ -113,7 +113,7 @@ const PostJob = () => {
     city: "",
     state: "",
     country: "India",
-    multipleLocations: false,
+    multipleLocationsAllowed: false,
     minExperience: "",
     maxExperience: "",
     fresherAllowed: false,
@@ -400,13 +400,16 @@ const PostJob = () => {
 
         <div className="flex items-center gap-2">
           <Checkbox
-            id="multipleLocations"
-            checked={formData.multipleLocations}
+            id="multipleLocationsAllowed"
+            checked={formData.multipleLocationsAllowed}
             onCheckedChange={(checked) =>
-              updateFormData("multipleLocations", checked)
+              updateFormData("multipleLocationsAllowed", checked)
             }
           />
-          <Label htmlFor="multipleLocations" className="cursor-pointer text-sm">
+          <Label
+            htmlFor="multipleLocationsAllowed"
+            className="cursor-pointer text-sm"
+          >
             Multiple Locations Allowed
           </Label>
         </div>

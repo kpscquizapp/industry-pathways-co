@@ -21,10 +21,45 @@ import {
   X,
 } from "lucide-react";
 
+interface Job {
+  id: number | string;
+  title: string;
+  description?: string;
+  companyName?: string;
+  status?: string;
+  employmentType?: string;
+  location?: string;
+  state?: string;
+  salaryMin?: number | string;
+  salaryMax?: number | string;
+  postedAt?: string;
+  numberOfOpenings?: number;
+  category?: string;
+  experienceLevel?: string;
+  skills?: Array<{ name: string }>;
+  qualifications?: string[];
+  responsibilities?: string[];
+  educationQualification?: string;
+  languagesKnown?: string;
+  workMode?: string;
+  duration?: number | string;
+  durationUnit?: string;
+  healthInsurance?: boolean;
+  esops?: boolean;
+  performanceBonus?: boolean;
+  remoteAllowance?: boolean;
+  enableAIMatching?: boolean;
+  autoScreenCandidates?: boolean;
+  enableSkillAssessment?: boolean;
+  scheduleAIInterview?: boolean;
+  applicationDeadline?: string;
+  createdAt?: string;
+}
+
 interface JobDetailsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  job: any;
+  job: Job;
 }
 
 const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
@@ -58,8 +93,10 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
   };
 
   const displaySalary = (min: any, max: any) => {
-    if (min && max) {
-      return `$${parseFloat(min).toLocaleString()} - $${parseFloat(max).toLocaleString()}`;
+    const parsedMin = parseFloat(min);
+    const parsedMax = parseFloat(max);
+    if (Number.isFinite(parsedMin) && Number.isFinite(parsedMax)) {
+      return `$${parsedMin.toLocaleString()} - $${parsedMax.toLocaleString()}`;
     }
     return "Not Disclosed";
   };
@@ -100,7 +137,8 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               <div>
                 <p className="text-xs text-muted-foreground">Location</p>
                 <p className="font-medium">
-                  {job.location || "N/A"}, {job.state || ""}
+                  {job.location || "N/A"}
+                  {job.state ? `, ${job.state}` : ""}
                 </p>
               </div>
             </div>
@@ -221,7 +259,9 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               {job.duration && (
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Duration</p>
-                  <p className="font-medium">{job.duration} {job.durationUnit}</p>
+                  <p className="font-medium">
+                    {job.duration} {job.durationUnit}
+                  </p>
                 </div>
               )}
             </CardContent>

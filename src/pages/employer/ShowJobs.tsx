@@ -44,7 +44,6 @@ const ShowJobs = () => {
       jobs = jobsData;
     } else if (jobsData.data?.jobs && Array.isArray(jobsData.data.jobs)) {
       jobs = jobsData.data.jobs;
-      totalPages = jobsData.data.totalPages || 1;
     } else if (jobsData.data && Array.isArray(jobsData.data)) {
       jobs = jobsData.data;
     } else if (jobsData.jobs && Array.isArray(jobsData.jobs)) {
@@ -52,11 +51,18 @@ const ShowJobs = () => {
     }
   }
 
-  // Console log for debugging
-  console.log("Raw API Response:", jobsData);
-  console.log("Processed Jobs Array:", jobs);
-  console.log("Total Jobs:", jobs.length);
-  console.log("Total Pages:", totalPages);
+  // Extract totalPages from multiple possible response shapes
+  // Check in order: jobsData.totalPages, jobsData.meta.totalPages, jobsData.data.totalPages, jobsData.data.meta.totalPages
+  if (jobsData) {
+    totalPages =
+      jobsData.totalPages ||
+      jobsData.meta?.totalPages ||
+      jobsData.data?.totalPages ||
+      jobsData.data?.meta?.totalPages ||
+      jobsData.jobs?.totalPages ||
+      jobsData.jobs?.meta?.totalPages ||
+      1;
+  }
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -75,11 +81,11 @@ const ShowJobs = () => {
     setIsModalOpen(true);
   };
 
-  const handleEditJob = (jobId: number) => {
+  const handleEditJob = (jobId: string | number) => {
     navigate(`/hire-talent/post-job?jobId=${jobId}`);
   };
 
-  const handleDeleteJob = async (jobId: number) => {
+  const handleDeleteJob = async (jobId: string | number) => {
     if (
       !window.confirm(
         "Are you sure you want to delete this job? This action cannot be undone.",
@@ -260,8 +266,10 @@ const ShowJobs = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        title="Download job posting"
-                        className="hover:bg-muted"
+                        title="Download job posting (Coming soon)"
+                        className="hover:bg-muted opacity-50 cursor-not-allowed"
+                        disabled
+                        aria-label="Download job posting - Feature coming soon"
                       >
                         <Download className="h-4 w-4 text-muted-foreground" />
                       </Button>
