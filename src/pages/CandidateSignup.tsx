@@ -558,7 +558,7 @@ const CandidateSignup = () => {
 
                   <h3 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
                     {currentStep === 1
-                      ? "Create Account"
+                      ? "Contractor Signup"
                       : currentStep === 2
                         ? "Professional Profile"
                         : "Career Preferences"}
@@ -740,7 +740,7 @@ const CandidateSignup = () => {
                       <div className="grid md:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Candidate Type{" "}
+                            Contractor Type{" "}
                             <span className="text-destructive">*</span>
                           </Label>
                           <Select

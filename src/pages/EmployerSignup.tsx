@@ -312,7 +312,7 @@ const EmployerSignup = () => {
   ];
 
   const stepInfo = [
-    { title: "Account Registration", sub: "Personal details" },
+    { title: "Hire Talent Signup", sub: "Start your hire talent journey" },
     { title: "Organization", sub: "Company profile" },
     { title: "Verification", sub: "Upload document" },
   ];
@@ -735,7 +735,7 @@ const EmployerSignup = () => {
                       to="/hire-talent-login"
                       className="text-primary hover:opacity-80 transition-colors underline-offset-8 underline decoration-primary/30"
                     >
-                      Sign in here
+                      Sign in to Dashboard
                     </Link>
                   </p>
                 </div>

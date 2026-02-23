@@ -8,11 +8,20 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, DollarSign, Globe, MapPin, Briefcase } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useGetProfileQuery } from "@/app/queries/profileApi";
+import { useSelector } from "react-redux";
 import CandidateProfileUpdate from "./CandidateProfileUpdate";
 import ResumeManager from "./ResumeManager";
+import { RootState } from "@/app/store";
 
 const CandidateProfile = () => {
-  const { data: response, isLoading, isError } = useGetProfileQuery();
+  const { token } = useSelector((state: RootState) => state.user);
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useGetProfileQuery(undefined, {
+    skip: !token,
+  });
   const data = response?.data;
   const profile = data?.candidateProfile;
   const candidateId = useId();
@@ -21,7 +30,13 @@ const CandidateProfile = () => {
     <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900">
       <Header />
 
-      {isLoading ? (
+      {!token ? (
+        <div className="w-full h-screen flex items-center justify-center">
+          <div className="text-gray-600 dark:text-slate-400">
+            Please log in to view your profile
+          </div>
+        </div>
+      ) : isLoading ? (
         <div className="w-full h-screen text-1xl sm:text-3xl flex items-center justify-center dark:text-white">
           Loading...
         </div>
@@ -100,7 +115,9 @@ const CandidateProfile = () => {
                           <span className="truncate">Experience</span>
                         </span>
                         <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
-                          {profile?.yearsExperience + " Years" || "None"}
+                          {profile?.yearsExperience != null
+                            ? `${profile.yearsExperience} Years`
+                            : "None"}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs sm:text-sm gap-2">

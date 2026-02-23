@@ -264,7 +264,7 @@ const CandidateLogin = () => {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
               <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
               <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">
-                Candidate Portal
+                Contractor Portal
               </span>
             </div>
 
@@ -334,7 +334,7 @@ const CandidateLogin = () => {
                     Sign In
                   </h3>
                   <p className="text-slate-500 dark:text-slate-400 font-medium">
-                    Enter your candidate credentials below.
+                    Enter your contractor credentials below.
                   </p>
                 </div>
 
@@ -349,7 +349,7 @@ const CandidateLogin = () => {
                       <Input
                         name="email"
                         type="email"
-                        placeholder="you@example.com"
+                        placeholder="contractor@example.com"
                         autoComplete="email"
                         className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
                           fieldErrors.email && touched.email
@@ -446,7 +446,7 @@ const CandidateLogin = () => {
                       to="/contractor-signup"
                       className="text-primary hover:text-emerald-500 transition-colors underline-offset-8 underline decoration-primary/30"
                     >
-                      Create Contractor Account
+                      Contractor Signup
                     </Link>
                   </p>
                 </div>
