@@ -37,7 +37,7 @@ interface Job {
   numberOfOpenings?: number;
   category?: string;
   experienceLevel?: string;
-  skills?: Array<{ name: string }>;
+  skills?: Array<string | { name: string }>;
   qualifications?: string[];
   responsibilities?: string[];
   educationQualification?: string;
@@ -86,7 +86,12 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
+    const date = new Date(dateString);
+    // Check if the date is valid
+    if (Number.isNaN(date.getTime())) {
+      return "N/A";
+    }
+    return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -224,15 +229,17 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                     Required Skills
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {job.skills.map((item: any, idx: number) => {
-                      const skillLabel =
-                        typeof item === "string" ? item : item?.name || "";
-                      return (
-                        <Badge key={`${skillLabel}-${idx}`} variant="default">
-                          {skillLabel}
-                        </Badge>
-                      );
-                    })}
+                    {job.skills.map(
+                      (item: string | { name: string }, idx: number) => {
+                        const skillLabel =
+                          typeof item === "string" ? item : item?.name || "";
+                        return (
+                          <Badge key={`${skillLabel}-${idx}`} variant="default">
+                            {skillLabel}
+                          </Badge>
+                        );
+                      },
+                    )}
                   </div>
                 </div>
               )}

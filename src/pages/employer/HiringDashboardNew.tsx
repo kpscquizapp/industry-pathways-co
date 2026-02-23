@@ -19,6 +19,7 @@ import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import {
   useGetEmployerJobsQuery,
   useLazyGetJobMatchesQuery,
+  Job,
 } from "@/app/queries/aiShortlistApi";
 
 const topCandidates = [
@@ -50,10 +51,10 @@ const topCandidates = [
 
 const HiringDashboardNew = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = React.useState(true);
   const [matchCounts, setMatchCounts] = React.useState<
     Record<number | string, number>
   >({});
+  const [isMatchCountsLoading, setIsMatchCountsLoading] = React.useState(false);
 
   // Fetch employer's all jobs using AI Shortlist API
   const { data: jobsResponse, isLoading: jobsLoading } =
@@ -66,7 +67,7 @@ const HiringDashboardNew = () => {
   const [getJobMatches] = useLazyGetJobMatchesQuery();
 
   // Extract jobs data from response
-  const jobs = React.useMemo(() => {
+  const jobs = React.useMemo<Job[]>(() => {
     if (!jobsResponse) {
       return [];
     }
@@ -80,9 +81,11 @@ const HiringDashboardNew = () => {
   // Fetch matches for each job to get candidate count
   React.useEffect(() => {
     if (jobs.length === 0) {
+      setIsMatchCountsLoading(false);
       return;
     }
 
+    setIsMatchCountsLoading(true);
     const fetchAllMatches = async () => {
       // Parallelize all match queries using Promise.all to avoid N+1 queries
       const matchPromises = jobs.map((job) =>
@@ -111,6 +114,7 @@ const HiringDashboardNew = () => {
       });
 
       setMatchCounts(counts);
+      setIsMatchCountsLoading(false);
     };
 
     fetchAllMatches();
@@ -137,22 +141,17 @@ const HiringDashboardNew = () => {
     switch (status?.toLowerCase()) {
       case "active":
       case "published":
-        return { variant: "default" as const, label: "Active" };
+        return { variant: "outline" as const, label: status ?? "Unknown" };
       case "draft":
         return { variant: "outline" as const, label: "Draft" };
       case "closed":
         return { variant: "destructive" as const, label: "Closed" };
       default:
-        return { variant: "default" as const, label: "Active" };
+        return { variant: "secondary" as const, label: "Unknown" };
     }
   };
 
-  // Sync loading state with actual job loading
-  React.useEffect(() => {
-    setIsLoading(jobsLoading);
-  }, [jobsLoading]);
-
-  if (isLoading) {
+  if (jobsLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <SpinnerLoader className="w-10 h-10 text-primary" />
@@ -172,10 +171,20 @@ const HiringDashboardNew = () => {
             <h2 className="text-2xl font-bold mb-2">
               Find Your Next Great Hire 🚀
             </h2>
-            <p className="text-primary-foreground/80">
-              AI has shortlisted {totalCandidates} new candidate
-              {totalCandidates !== 1 ? "s" : ""} matching your open roles.
-            </p>
+            {jobs.length === 0 ? (
+              <p className="text-primary-foreground/80">
+                Post a job to start finding matching candidates.
+              </p>
+            ) : isMatchCountsLoading ? (
+              <p className="text-primary-foreground/80">
+                Loading candidate matches...
+              </p>
+            ) : (
+              <p className="text-primary-foreground/80">
+                AI has found {totalCandidates} matching candidate
+                {totalCandidates !== 1 ? "s" : ""} across your open roles.
+              </p>
+            )}
           </div>
           {/* <Button variant="secondary" className="bg-background text-foreground hover:bg-background/90" asChild>
             <Link to="/bench/post-job">
@@ -282,70 +291,79 @@ const HiringDashboardNew = () => {
                   No jobs posted yet
                 </p>
               ) : (
-                jobs.slice(0, 3).map((job: any) => (
-                  <div
-                    key={job.id}
-                    className="p-4 border border-border rounded-xl hover:border-primary/30 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="font-semibold text-foreground">
-                          {job.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {matchCounts[job.id] || 0} candidates
-                        </p>
+                jobs.slice(0, 3).map((job) => {
+                  const badgeStyle = getStatusBadgeStyle(
+                    job.status as string | undefined,
+                  );
+                  return (
+                    <div
+                      key={job.id}
+                      className="p-4 border border-border rounded-xl hover:border-primary/30 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="font-semibold text-foreground">
+                            {job.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {matchCounts[job.id] || 0} candidates
+                          </p>
+                        </div>
+                        <Badge variant={badgeStyle.variant}>
+                          {badgeStyle.label}
+                        </Badge>
                       </div>
-                      <Badge variant={getStatusBadgeStyle(job.status).variant}>
-                        {getStatusBadgeStyle(job.status).label}
-                      </Badge>
-                    </div>
 
-                    {/* Pipeline Progress */}
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <p className="text-lg font-bold text-foreground">
-                          {matchCounts[job.id] || 0}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Matched</p>
+                      {/* Pipeline Progress */}
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="text-center p-3 bg-muted/50 rounded-lg">
+                          <p className="text-lg font-bold text-foreground">
+                            {matchCounts[job.id] || 0}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Matched
+                          </p>
+                        </div>
+                        <div className="text-center p-3 bg-primary/10 rounded-lg">
+                          <p className="text-lg font-bold text-primary">—</p>
+                          <p className="text-xs text-muted-foreground">
+                            AI Shortlisted
+                          </p>
+                        </div>
+                        <div className="text-center p-3 bg-green-500/10 rounded-lg">
+                          <p className="text-lg font-bold text-green-600">—</p>
+                          <p className="text-xs text-muted-foreground">
+                            Interviewed
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-center p-3 bg-primary/10 rounded-lg">
-                        <p className="text-lg font-bold text-primary">—</p>
-                        <p className="text-xs text-muted-foreground">
-                          AI Shortlisted
-                        </p>
-                      </div>
-                      <div className="text-center p-3 bg-green-500/10 rounded-lg">
-                        <p className="text-lg font-bold text-green-600">—</p>
-                        <p className="text-xs text-muted-foreground">
-                          Interviewed
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="flex gap-2 mt-4">
-                      <Button
-                        size="sm"
-                        className="flex-1 rounded-lg"
-                        onClick={() =>
-                          navigate(`/hire-talent/ai-shortlists?jobId=${job.id}`)
-                        }
-                      >
-                        View Shortlist
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="rounded-lg"
-                        onClick={() =>
-                          navigate(`/hire-talent/post-job?jobId=${job.id}`)
-                        }
-                      >
-                        Manage
-                      </Button>
+                      <div className="flex gap-2 mt-4">
+                        <Button
+                          size="sm"
+                          className="flex-1 rounded-lg"
+                          onClick={() =>
+                            navigate(
+                              `/hire-talent/ai-shortlists?jobId=${job.id}`,
+                            )
+                          }
+                        >
+                          View Shortlist
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-lg"
+                          onClick={() =>
+                            navigate(`/hire-talent/post-job?jobId=${job.id}`)
+                          }
+                        >
+                          Manage
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>

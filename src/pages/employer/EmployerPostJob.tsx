@@ -20,6 +20,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -48,6 +57,7 @@ const EmployerPostJob = () => {
   const [postingAction, setPostingAction] = useState<
     "post" | "postAndShow" | null
   >(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [formData, setFormData] = useState({
     // Basic Information
     title: "",
@@ -225,8 +235,16 @@ const EmployerPostJob = () => {
     }
     const numValue = typeof value === "number" ? value : Number(value);
     const result =
-      Number.isFinite(numValue) && numValue > 0 ? numValue : undefined;
+      Number.isFinite(numValue) && numValue >= 0 ? numValue : undefined;
     return result;
+  };
+
+  const parsePositiveNumber = (value: string | number) => {
+    if (value === "" || value === null || value === undefined) {
+      return undefined;
+    }
+    const numValue = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(numValue) && numValue >= 0 ? numValue : undefined;
   };
 
   const mapDurationUnit = (unit: string) => {
@@ -269,11 +287,11 @@ const EmployerPostJob = () => {
         ? salaryMin
         : salaryMax;
 
-    const numberOfOpenings = parseOptionalNumber(formData.openings);
-    const minExperience = parseOptionalNumber(formData.minExperience);
-    const maxExperience = parseOptionalNumber(formData.maxExperience);
-    const expectedBudgetMin = parseOptionalNumber(formData.expectedBudgetMin);
-    const expectedBudgetMax = parseOptionalNumber(formData.expectedBudgetMax);
+    const numberOfOpenings = parsePositiveNumber(formData.openings);
+    const minExperience = parsePositiveNumber(formData.minExperience);
+    const maxExperience = parsePositiveNumber(formData.maxExperience);
+    const expectedBudgetMin = parsePositiveNumber(formData.expectedBudgetMin);
+    const expectedBudgetMax = parsePositiveNumber(formData.expectedBudgetMax);
 
     return {
       // Basic Information
@@ -298,6 +316,7 @@ const EmployerPostJob = () => {
       // Experience
       minExperience: minExperience,
       maxExperience: maxExperience,
+      experienceLevel: formData.experienceLevel || undefined,
       fresherAllowed: formData.fresherAllowed,
 
       // Compensation
@@ -335,8 +354,8 @@ const EmployerPostJob = () => {
       remoteAllowance: formData.remoteAllowance,
 
       // AI & Screening
-      enableAiTalentMatching: enableAiMatching,
-      aiMatchingEnabled: enableAiMatching,
+      enableAiTalentMatching: isEditing ? formData.enableAiMatching : enableAiMatching,
+      aiMatchingEnabled: isEditing ? formData.enableAiMatching : enableAiMatching,
       autoScreenCandidates: formData.autoScreenCandidates,
       enableSkillAssessment: formData.enableSkillAssessment,
       scheduleAIInterviews: formData.scheduleAIInterview,
@@ -433,13 +452,15 @@ const EmployerPostJob = () => {
     }
   };
 
-  const handleDeleteJob = async () => {
-    if (
-      !jobId ||
-      !window.confirm(
-        "Are you sure you want to delete this job? This action cannot be undone.",
-      )
-    ) {
+  const handleDeleteJob = () => {
+    if (!jobId) {
+      return;
+    }
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteJob = async () => {
+    if (!jobId) {
       return;
     }
 
@@ -1047,6 +1068,31 @@ const EmployerPostJob = () => {
           </Button>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={isDeleteConfirmOpen}
+        onOpenChange={setIsDeleteConfirmOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Job</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this job? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3 justify-end">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteJob}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
