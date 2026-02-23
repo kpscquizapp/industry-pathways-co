@@ -1286,7 +1286,10 @@ const CandidateProfileUpdate = ({
                   <SpinnerLoader />
                 </div>
               ) : null}
-              <AvatarImage className="object-cover" src={profileImage} />
+              <AvatarImage
+                className="object-cover"
+                src={profileImage ?? undefined}
+              />
               <AvatarFallback className="bg-gray-100 dark:bg-slate-800">
                 <Camera className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
               </AvatarFallback>
