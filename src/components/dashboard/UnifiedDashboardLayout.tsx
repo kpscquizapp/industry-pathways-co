@@ -133,7 +133,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   const menuItems = getMenuItems(role);
   const navigate = useNavigate();
   const [handleLogout, isLoading] = useLogout();
-  const token = useSelector((state: RootState) => state.user.token);
+  const token = useSelector((rootState: RootState) => rootState.user.token);
   const user = useSelector((state: RootState) => state.user.userDetails);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -142,7 +142,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   // - contractor/candidate use /avatar (profileApi)
   const isEmployerRole = role === "hire-talent" || role === "bench";
 
-  // 2. Fetch actual image only if metadata indicates it exists
+  // Fetch the role-appropriate profile image; queries are skipped when unauthenticated.
   const { currentData: employerProfileImage } = useGetEmployerProfileImageQuery(
     isEmployerRole && token && user?.id ? user.id : skipToken,
   );

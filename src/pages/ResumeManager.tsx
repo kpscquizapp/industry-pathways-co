@@ -359,7 +359,8 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                           disabled={
                             loadingViewId !== null ||
                             loadingDeleteId !== null ||
-                            loadingDefaultId !== null
+                            loadingDefaultId !== null ||
+                            resume.isDefault
                           }
                           onClick={() => handleDefaultResume(resume.id)}
                           className={`text-xs md:text-sm flex items-center justify-center gap-2 transition-colors ${
@@ -372,9 +373,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                             {loadingDefaultId === resume.id ? (
                               <LoaderCircle className="animate-spin w-4 h-4 md:w-5 md:h-5" />
                             ) : !resume.isDefault ? (
-                              <Star
-                                className="w-3 h-3 md:w-4 md:h-4 mr-1"
-                              />
+                              <Star className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                             ) : null}
                             {resume.isDefault ? "Default" : "Set as Default"}
                           </>
