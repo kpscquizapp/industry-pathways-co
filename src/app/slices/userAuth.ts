@@ -35,7 +35,6 @@ const cookieData = (() => {
   }
 })();
 
-// console.log(cookieData, 'cookieData')
 const initialState: UserState = {
   token: cookieData?.token ?? null,
   refreshToken: cookieData?.refreshToken ?? null,
