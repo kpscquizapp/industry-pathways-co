@@ -324,8 +324,11 @@ const CandidateProfileUpdate = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const hasAvatar = !!data?.avatar;
 
-  const { data: profileImage, isLoading: isProfileImageLoading } =
-    useGetCandidateProfileImageQuery(hasAvatar ? data.id : skipToken);
+  const {
+    data: profileImage,
+    isLoading: isProfileImageLoading,
+    refetch: refetchCandidateProfileImage,
+  } = useGetCandidateProfileImageQuery(hasAvatar ? data.id : skipToken);
 
   const [skillInput, setSkillInput] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -1262,6 +1265,7 @@ const CandidateProfileUpdate = ({
         onClick: async () => {
           try {
             await removeProfileImage(data.id).unwrap();
+            await refetchCandidateProfileImage();
             toast.success("Image removed successfully.");
           } catch (error) {
             const message =

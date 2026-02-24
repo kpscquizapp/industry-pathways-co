@@ -14,10 +14,7 @@ import useLogout from "@/hooks/useLogout";
 import { LogOut, User } from "lucide-react";
 import ProfileDialog from "./ProfileDialog";
 import { useNavigate } from "react-router-dom";
-import {
-  useGetEmployerProfileImageQuery,
-  useGetEmployerProfileQuery,
-} from "@/app/queries/employerApi";
+import { useGetEmployerProfileImageQuery } from "@/app/queries/employerApi";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { RootState } from "@/app/store";
 
@@ -28,8 +25,6 @@ const ProfileMenu = ({
   btnClass: string;
   avatarFallback: string;
 }) => {
-  const { token } = useSelector((state: RootState) => state.user);
-
   const user = useSelector((state: RootState) => state.user.userDetails);
   const [handleLogout, isLoading] = useLogout();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -37,25 +32,10 @@ const ProfileMenu = ({
   // Use role-appropriate image endpoint
   const isHr = user?.role === "hr";
 
-  const { data: employerProfileData } = useGetEmployerProfileQuery(undefined, {
-    skip: !isHr || !token || !user?.id,
-  });
-
-  const avatarValue = isHr
-    ? employerProfileData?.data?.employerProfile?.avatar ||
-      employerProfileData?.data?.avatar
-    : undefined;
-
-  const hasAvatar =
-    !!avatarValue &&
-    avatarValue !== "null" &&
-    avatarValue !== "undefined" &&
-    typeof avatarValue === "string" &&
-    avatarValue.trim().length > 0;
-
-  // 2. Fetch actual image only if metadata indicates it exists
-  const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
-    hasAvatar && isHr && user?.id ? user.id : skipToken,
+  // Always resolve image from the avatar endpoint for HR users.
+  // This avoids stale UI when metadata and image cache get out of sync.
+  const { currentData: employerProfileImage } = useGetEmployerProfileImageQuery(
+    isHr && user?.id ? user.id : skipToken,
   );
 
   const profileImage = isHr ? employerProfileImage : null;
@@ -79,7 +59,7 @@ const ProfileMenu = ({
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className={btnClass}>
-            <Avatar className="h-8 w-8">
+            <Avatar className="h-8 w-8 bg-gray-200">
               {profileImage && (
                 <AvatarImage
                   className="object-cover"

@@ -66,17 +66,9 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
 
   // Robust data picking for HR and Employer roles
   const updateData = profile?.data?.employerProfile || profile?.data;
-  const avatarValue = updateData?.avatar || profile?.data?.avatar;
-
-  const hasAvatar =
-    !!avatarValue &&
-    avatarValue !== "null" &&
-    avatarValue !== "undefined" &&
-    typeof avatarValue === "string" &&
-    avatarValue.trim().length > 0;
 
   const { data: profileImage } = useGetEmployerProfileImageQuery(
-    hasAvatar && user?.id ? user.id : skipToken,
+    user?.id ? user.id : skipToken,
   );
   const prevOpen = useRef(false);
   const hasPopulated = useRef(false);

@@ -23,7 +23,7 @@ export const employerApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["EmployerProfile", "EmployerProfileImage"],
+  tagTypes: ["EmployerProfile"],
   endpoints: (builder) => ({
     updateEmployerProfile: builder.mutation<void, UpdateEmployerProfile>({
       query: (data) => ({
@@ -39,16 +39,12 @@ export const employerApi = createApi({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: ["EmployerProfile", "EmployerProfileImage"],
+      invalidatesTags: ["EmployerProfile"],
     }),
     getEmployerProfileImage: builder.query<string | null, string>({
       query: (id) => ({
         url: `users/${id}/avatar/business`,
         method: "GET",
-        validateStatus: (response) => {
-          // Treat both 200 and 404 as successful responses
-          return response.status === 200 || response.status === 404;
-        },
         responseHandler: async (response) => {
           if (response.status === 404) return null;
 
@@ -61,52 +57,17 @@ export const employerApi = createApi({
             reader.readAsDataURL(blob);
           });
         },
+        validateStatus: (response) =>
+          response.status === 200 || response.status === 404,
       }),
-      providesTags: ["EmployerProfileImage"],
-      keepUnusedDataFor: 30, // seconds; avoids redundant re-fetch on quick remounts
+      providesTags: ["EmployerProfile"],
     }),
     removeProfileImage: builder.mutation<void, string>({
       query: (id) => ({
         url: `users/${id}/avatar/business`,
         method: "DELETE",
       }),
-      // Removed automatic invalidation to prevent re-fetching deleted image
-      async onQueryStarted(id, { dispatch, queryFulfilled }) {
-        // Clear the image specific cache
-        const patchImage = dispatch(
-          employerApi.util.updateQueryData(
-            "getEmployerProfileImage",
-            id,
-            () => null,
-          ),
-        );
-
-        // Clear the avatar field in the main profile object
-        const patchProfile = dispatch(
-          employerApi.util.updateQueryData(
-            "getEmployerProfile",
-            undefined,
-            (draft) => {
-              if (draft?.data) {
-                draft.data.avatar = null;
-                if (draft.data.employerProfile) {
-                  draft.data.employerProfile.avatar = null;
-                }
-              }
-            },
-          ),
-        );
-
-        try {
-          await queryFulfilled;
-          // Invalidate only profile metadata; image is already null via optimistic patch.
-          // Do NOT invalidate "EmployerProfileImage" — prevents CDN stale-cache re-fetch.
-          dispatch(employerApi.util.invalidateTags(["EmployerProfile"]));
-        } catch {
-          patchImage.undo();
-          patchProfile.undo();
-        }
-      },
+      invalidatesTags: ["EmployerProfile"],
     }),
     // Dedicated employer profile query — tagged EmployerProfile so it
     // auto-refetches after updateEmployerProfile/uploadProfileImage/removeProfileImage.

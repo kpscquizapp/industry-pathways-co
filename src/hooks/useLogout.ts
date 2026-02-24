@@ -16,26 +16,20 @@ const useLogout = () => {
   const { refreshToken } = useSelector((state: RootState) => state.user);
 
   const handleLogout = async () => {
-    if (!refreshToken) {
-      dispatch(removeUser());
-      dispatch(employerApi.util.resetApiState());
-      dispatch(profileApi.util.resetApiState());
-      navigate("/");
-      return;
-    }
-
     try {
-      await logout(refreshToken).unwrap();
-      dispatch(removeUser());
-      dispatch(employerApi.util.resetApiState());
-      dispatch(profileApi.util.resetApiState());
-      navigate("/");
+      if (refreshToken) {
+        await logout(refreshToken).unwrap();
+      }
     } catch (error) {
       console.error("Backend logout failed", error);
-      dispatch(removeUser());
-      dispatch(employerApi.util.resetApiState());
-      dispatch(profileApi.util.resetApiState());
+    } finally {
       navigate("/");
+      // Let components unmount before clearing state
+      setTimeout(() => {
+        dispatch(removeUser());
+        dispatch(employerApi.util.resetApiState());
+        dispatch(profileApi.util.resetApiState());
+      }, 0);
     }
   };
 
