@@ -28,6 +28,7 @@ import {
   AlertDialogDescription,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -37,20 +38,22 @@ import {
   useUpdateJobMutation,
   useDeleteJobMutation,
 } from "@/app/queries/jobApi";
+import { skipToken } from "@reduxjs/toolkit/query/react";
 
 const EmployerPostJob = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const jobIdParam = searchParams.get("jobId");
-  const jobId = jobIdParam ? parseInt(jobIdParam, 10) : null;
-  const isEditing = Number.isFinite(jobId) && jobId !== null;
+  const jobIdRaw = jobIdParam ? parseInt(jobIdParam, 10) : null;
+  const jobId = typeof jobIdRaw === "number" && jobIdRaw > 0 ? jobIdRaw : null;
+  const isEditing = jobId !== null;
 
   const [createJob, { isLoading: createJobLoading }] = useCreateJobMutation();
   const [updateJob, { isLoading: updateJobLoading }] = useUpdateJobMutation();
   const [deleteJob, { isLoading: deleteJobLoading }] = useDeleteJobMutation();
 
   const { data: jobDetailsData, isLoading: jobDetailsLoading } =
-    useGetJobsByIdQuery({ id: jobId }, { skip: !jobId });
+    useGetJobsByIdQuery(isEditing ? { id: jobId } : skipToken);
 
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
@@ -244,7 +247,7 @@ const EmployerPostJob = () => {
       return undefined;
     }
     const numValue = typeof value === "number" ? value : Number(value);
-    return Number.isFinite(numValue) && numValue >= 0 ? numValue : undefined;
+    return Number.isFinite(numValue) && numValue > 0 ? numValue : undefined;
   };
 
   const mapDurationUnit = (unit: string) => {
@@ -354,8 +357,12 @@ const EmployerPostJob = () => {
       remoteAllowance: formData.remoteAllowance,
 
       // AI & Screening
-      enableAiTalentMatching: isEditing ? formData.enableAiMatching : enableAiMatching,
-      aiMatchingEnabled: isEditing ? formData.enableAiMatching : enableAiMatching,
+      enableAiTalentMatching: isEditing
+        ? formData.enableAiMatching
+        : enableAiMatching,
+      aiMatchingEnabled: isEditing
+        ? formData.enableAiMatching
+        : enableAiMatching,
       autoScreenCandidates: formData.autoScreenCandidates,
       enableSkillAssessment: formData.enableSkillAssessment,
       scheduleAIInterviews: formData.scheduleAIInterview,
@@ -1082,7 +1089,7 @@ const EmployerPostJob = () => {
               undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="flex gap-3 justify-end">
+          <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteJob}
@@ -1090,7 +1097,7 @@ const EmployerPostJob = () => {
             >
               Delete
             </AlertDialogAction>
-          </div>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>

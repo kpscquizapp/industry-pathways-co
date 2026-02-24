@@ -22,39 +22,18 @@ import {
   Job,
 } from "@/app/queries/aiShortlistApi";
 
-const topCandidates = [
-  {
-    id: 1,
-    name: "Sarah Chen",
-    role: "React Developer",
-    match: 94,
-    testScore: 92,
-    interviewScore: 95,
-  },
-  {
-    id: 2,
-    name: "Alex Kumar",
-    role: "React Developer",
-    match: 91,
-    testScore: 88,
-    interviewScore: null,
-  },
-  {
-    id: 3,
-    name: "Maria Silva",
-    role: "React Developer",
-    match: 89,
-    testScore: 90,
-    interviewScore: null,
-  },
-];
-
 const HiringDashboardNew = () => {
   const navigate = useNavigate();
   const [matchCounts, setMatchCounts] = React.useState<
     Record<number | string, number>
   >({});
   const [isMatchCountsLoading, setIsMatchCountsLoading] = React.useState(false);
+  const [topCandidates, setTopCandidates] = React.useState<any[]>([]);
+  const [isTopCandidatesLoading, setIsTopCandidatesLoading] =
+    React.useState(false);
+  const [topCandidatesJobId, setTopCandidatesJobId] = React.useState<
+    string | null
+  >(null);
 
   // Fetch employer's all jobs using AI Shortlist API
   const { data: jobsResponse, isLoading: jobsLoading } =
@@ -84,7 +63,7 @@ const HiringDashboardNew = () => {
       setIsMatchCountsLoading(false);
       return;
     }
-
+    let active = true;
     setIsMatchCountsLoading(true);
     const fetchAllMatches = async () => {
       // Parallelize all match queries using Promise.all to avoid N+1 queries
@@ -102,6 +81,7 @@ const HiringDashboardNew = () => {
       );
 
       const results = await Promise.all(matchPromises);
+      if (!active) return;
 
       // Map results to counts, deriving from response metadata
       const counts: Record<number | string, number> = {};
@@ -118,6 +98,50 @@ const HiringDashboardNew = () => {
     };
 
     fetchAllMatches();
+    return () => { active = false; };
+  }, [jobs, getJobMatches]);
+
+  // Fetch top candidates from the AI Shortlist API
+  React.useEffect(() => {
+    if (jobs.length === 0) {
+      setTopCandidates([]);
+      setTopCandidatesJobId(null);
+      setIsTopCandidatesLoading(false);
+      return;
+    }
+
+    setIsTopCandidatesLoading(true);
+    const fetchTopCandidates = async () => {
+      try {
+        // Fetch candidates from the first active job to get top matches
+        const firstActiveJob = jobs.find(
+          (job) => job.status === "active" || job.status === "published",
+        );
+
+        const jobToFetch = firstActiveJob || jobs[0];
+
+        // Set job ID immediately so it's available even if fetch fails
+        setTopCandidatesJobId(String(jobToFetch.id));
+
+        const response = await getJobMatches({
+          id: String(jobToFetch.id),
+          page: 1,
+          limit: 3, // Fetch top 3 candidates
+        }).unwrap();
+
+        // Extract candidates from response and limit to top 3
+        const candidates = (response?.data || []).slice(0, 3);
+        setTopCandidates(candidates);
+      } catch (error) {
+        console.error("Error fetching top candidates:", error);
+        // On error, show empty list instead of fake data
+        setTopCandidates([]);
+      } finally {
+        setIsTopCandidatesLoading(false);
+      }
+    };
+
+    fetchTopCandidates();
   }, [jobs, getJobMatches]);
 
   // Calculate active jobs count
@@ -141,7 +165,7 @@ const HiringDashboardNew = () => {
     switch (status?.toLowerCase()) {
       case "active":
       case "published":
-        return { variant: "outline" as const, label: status ?? "Unknown" };
+       return { variant: "outline" as const, label: "Active" };
       case "draft":
         return { variant: "outline" as const, label: "Draft" };
       case "closed":
@@ -225,7 +249,7 @@ const HiringDashboardNew = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {jobsLoading ? (
+                  {jobsLoading || isMatchCountsLoading ? (
                     <span className="animate-pulse">—</span>
                   ) : (
                     totalCandidates
@@ -379,75 +403,107 @@ const HiringDashboardNew = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {topCandidates.map((candidate, index) => (
-                <div
-                  key={candidate.id}
-                  className="p-4 border border-border rounded-xl"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="font-semibold text-sm">
-                        {candidate.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{candidate.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {candidate.role}
-                      </p>
-                    </div>
-                    <div className="w-10 h-10 rounded-full border-2 border-primary flex items-center justify-center">
-                      <span className="text-xs font-bold text-primary">
-                        {candidate.match}%
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    <div className="text-center p-2 bg-muted/50 rounded-lg">
-                      <p className="text-sm font-bold">{candidate.testScore}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Test Score
-                      </p>
-                    </div>
-                    <div className="text-center p-2 bg-muted/50 rounded-lg">
-                      {candidate.interviewScore ? (
-                        <>
-                          <p className="text-sm font-bold text-primary">
-                            {candidate.interviewScore}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Interview
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-sm font-bold text-orange-500">—</p>
-                          <p className="text-xs text-muted-foreground">
-                            Pending
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full rounded-lg"
-                    onClick={() =>
-                      navigate(
-                        `/hire-talent/ai-shortlists?candidateId=${candidate.id}`,
-                      )
-                    }
-                  >
-                    View Profile
-                  </Button>
+              {isTopCandidatesLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <SpinnerLoader />
                 </div>
-              ))}
+              ) : topCandidates.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    No candidates available yet. Post a job to start receiving
+                    matches.
+                  </p>
+                  <Link
+                    to="/hire-talent/post-job"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Post a Job →
+                  </Link>
+                </div>
+              ) : (
+                <>
+                  {topCandidates.map((candidate, index) => (
+                    <div
+                      key={candidate.id}
+                      className="p-4 border border-border rounded-xl"
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="font-semibold text-sm">
+                            {candidate.name
+                              ? candidate.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                              : "?"}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">
+                            {candidate.name || "Unknown"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {candidate.role || "Candidate"}
+                          </p>
+                        </div>
+                        <div className="w-10 h-10 rounded-full border-2 border-primary flex items-center justify-center">
+                          <span className="text-xs font-bold text-primary">
+                            {candidate.match || 0}%
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div className="text-center p-2 bg-muted/50 rounded-lg">
+                          <p className="text-sm font-bold">
+                            {candidate.testScore || "—"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Test Score
+                          </p>
+                        </div>
+                        <div className="text-center p-2 bg-muted/50 rounded-lg">
+                          {candidate.interviewScore ? (
+                            <>
+                              <p className="text-sm font-bold text-primary">
+                                {candidate.interviewScore}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Interview
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-sm font-bold text-orange-500">
+                                —
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Pending
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full rounded-lg"
+                        onClick={() => {
+                          if (topCandidatesJobId) {
+                            navigate(
+                              `/hire-talent/ai-shortlists?jobId=${topCandidatesJobId}&candidateId=${candidate.id}`,
+                            );
+                          }
+                        }}
+                        disabled={!topCandidatesJobId}
+                      >
+                        View Profile
+                      </Button>
+                    </div>
+                  ))}
+                </>
+              )}
 
               <Link
                 to="/hire-talent/ai-shortlists"

@@ -277,6 +277,14 @@ const EmployerAIShortlists = () => {
 
   const [shortlistCandidateMutation] = useShortlistCandidateMutation();
 
+  // On component mount, ensure we load the correct job if it's in URL params
+  useEffect(() => {
+    const initialJobId = searchParams.get("jobId");
+    if (initialJobId && initialJobId !== "all" && selectedJob === "all") {
+      setSelectedJob(initialJobId);
+    }
+  }, []); // Run only on mount
+
   // Sync selectedJob with URL search params on mount and navigation
   useEffect(() => {
     const currentJobIdParam = searchParams.get("jobId");
@@ -284,7 +292,7 @@ const EmployerAIShortlists = () => {
     if (selectedJob !== jobIdFromUrl) {
       setSelectedJob(jobIdFromUrl);
     }
-  }, [searchParams]);
+  }, [searchParams.toString()]);
 
   useEffect(() => {
     const nextJobs = employerJobsResponse?.data ?? [];

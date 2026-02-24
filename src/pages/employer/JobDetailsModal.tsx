@@ -33,7 +33,6 @@ interface Job {
   state?: string;
   salaryMin?: number | string;
   salaryMax?: number | string;
-  postedAt?: string;
   numberOfOpenings?: number;
   category?: string;
   experienceLevel?: string;
@@ -171,7 +170,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               <Users className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">Openings</p>
-                <p className="font-medium">{job.numberOfOpenings || 1}</p>
+                <p className="font-medium">{job.numberOfOpenings ?? 1}</p>
               </div>
             </div>
           </div>
