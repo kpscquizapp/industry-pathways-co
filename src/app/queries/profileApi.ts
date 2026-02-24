@@ -16,7 +16,7 @@ export const profileApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Profile", "CandidateProfileImage"],
+  tagTypes: ["Profile"],
   endpoints: (builder) => ({
     getProfile: builder.query<any, void>({
       query: () => ({
@@ -113,19 +113,14 @@ export const profileApi = createApi({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: ["Profile", "CandidateProfileImage"],
+      invalidatesTags: ["Profile"],
     }),
     getCandidateProfileImage: builder.query<string | null, string>({
       query: (id) => ({
         url: `users/${id}/avatar`,
         method: "GET",
-        validateStatus: (response) => {
-          // Treat both 200 and 404 as successful responses
-          return response.status === 200 || response.status === 404;
-        },
         responseHandler: async (response) => {
           if (response.status === 404) return null;
-          if (response.status !== 200) return null;
 
           const blob = await response.blob();
           return new Promise<string>((resolve, reject) => {
@@ -136,48 +131,17 @@ export const profileApi = createApi({
             reader.readAsDataURL(blob);
           });
         },
+        validateStatus: (response) =>
+          response.status === 200 || response.status === 404,
       }),
-      providesTags: (_result, _error, id) => [
-        { type: "CandidateProfileImage", id },
-      ],
-      keepUnusedDataFor: 30,
+      providesTags: ["Profile"],
     }),
     removeProfileImage: builder.mutation<void, string>({
       query: (id) => ({
         url: `users/${id}/avatar`,
         method: "DELETE",
       }),
-      // Removed invalidatesTags: ["Profile"] to prevent automatic re-fetching of the removed image
-      async onQueryStarted(id, { dispatch, queryFulfilled }) {
-        // Optimistically clear the image cache
-        const patchResult = dispatch(
-          profileApi.util.updateQueryData(
-            "getCandidateProfileImage",
-            id,
-            () => null,
-          ),
-        );
-
-        // Also optimistically clear the avatar in the main profile data if it exists
-        const profilePatch = dispatch(
-          profileApi.util.updateQueryData("getProfile", undefined, (draft) => {
-            if (draft?.data) {
-              draft.data.avatar = null;
-              if (draft.data.candidateProfile) {
-                draft.data.candidateProfile.avatar = null;
-              }
-            }
-          }),
-        );
-
-        try {
-          await queryFulfilled;
-          dispatch(profileApi.util.invalidateTags(["Profile"]));
-        } catch {
-          patchResult.undo();
-          profilePatch.undo();
-        }
-      },
+      invalidatesTags: ["Profile"],
     }),
   }),
 });

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useLogoutMutation } from "@/app/queries/loginApi";
+import { loginApi, useLogoutMutation } from "@/app/queries/loginApi";
 import { RootState } from "@/app/store";
 import { removeUser } from "@/app/slices/userAuth";
 import { employerApi } from "@/app/queries/employerApi";
@@ -16,26 +16,21 @@ const useLogout = () => {
   const { refreshToken } = useSelector((state: RootState) => state.user);
 
   const handleLogout = async () => {
-    if (!refreshToken) {
-      dispatch(removeUser());
-      dispatch(employerApi.util.resetApiState());
-      dispatch(profileApi.util.resetApiState());
-      navigate("/");
-      return;
-    }
-
     try {
-      await logout(refreshToken).unwrap();
-      dispatch(removeUser());
-      dispatch(employerApi.util.resetApiState());
-      dispatch(profileApi.util.resetApiState());
-      navigate("/");
+      if (refreshToken) {
+        await logout(refreshToken).unwrap();
+      }
     } catch (error) {
       console.error("Backend logout failed", error);
-      dispatch(removeUser());
-      dispatch(employerApi.util.resetApiState());
-      dispatch(profileApi.util.resetApiState());
+    } finally {
       navigate("/");
+      // Let components unmount before clearing state
+      setTimeout(() => {
+        dispatch(removeUser());
+        dispatch(employerApi.util.resetApiState());
+        dispatch(profileApi.util.resetApiState());
+        dispatch(loginApi.util.resetApiState());
+      }, 0);
     }
   };
 
