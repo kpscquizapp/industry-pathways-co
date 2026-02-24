@@ -73,7 +73,6 @@ export const loginApi = createApi({
     }),
     getRefreshToken: builder.mutation({
       query: (data) => ({
-        headers: getAuthHeaders(),
         method: "POST",
         url: `auth/refresh`,
         body: data,

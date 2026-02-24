@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 
 export type UserState = {
@@ -15,9 +15,25 @@ export type UserState = {
   } | null;
 };
 
-const cookieData = Cookies.get("userInfo")
-  ? JSON.parse(Cookies.get("userInfo") as string)
-  : null;
+type SetUserPayload = {
+  accessToken: string;
+  refreshToken: string;
+  user: UserState["userDetails"];
+};
+
+const cookieData = (() => {
+  try {
+    const raw = Cookies.get("userInfo");
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as UserState;
+    }
+    return null;
+  } catch {
+    Cookies.remove("userInfo"); // evict the bad cookie
+    return null;
+  }
+})();
 
 // console.log(cookieData, 'cookieData')
 const initialState: UserState = {
@@ -26,17 +42,22 @@ const initialState: UserState = {
   userDetails: cookieData?.userDetails ?? null,
 };
 
-
-
-
 export const userAuth = createSlice({
   name: "userAuth",
   initialState,
   reducers: {
-    setUser: (state, action) => {
-      const { accessToken: token, refreshToken, user: userDetails } = action.payload;
+    setUser: (state, action: PayloadAction<SetUserPayload>) => {
+      const {
+        accessToken: token,
+        refreshToken,
+        user: userDetails,
+      } = action.payload;
       const payloadToStore = { token, refreshToken, userDetails };
-      Cookies.set("userInfo", JSON.stringify(payloadToStore), { expires: 15 });
+      Cookies.set("userInfo", JSON.stringify(payloadToStore), {
+        expires: 15,
+        secure: true,
+        sameSite: "strict",
+      });
       state.token = token;
       state.refreshToken = refreshToken;
       state.userDetails = userDetails;
@@ -47,8 +68,18 @@ export const userAuth = createSlice({
       state.refreshToken = null;
       state.userDetails = null;
     },
-    setNewAccessToken: (state, action) => {
-      Cookies.set("userInfo", JSON.stringify({ ...state, token: action.payload }), { expires: 15 });
+    setNewAccessToken: (state, action: PayloadAction<string>) => {
+      state.token = action.payload;
+      const payloadToStore = {
+        token: action.payload,
+        refreshToken: state.refreshToken,
+        userDetails: state.userDetails,
+      };
+      Cookies.set("userInfo", JSON.stringify(payloadToStore), {
+        expires: 15,
+        secure: true,
+        sameSite: "strict",
+      });
     },
   },
 });

@@ -1,8 +1,11 @@
 import { useEffect } from "react";
-import Cookies from "js-cookie";
-import { useGetRefreshTokenMutation, useLogoutMutation } from "../../../app/queries/loginApi";
+import {
+  useGetRefreshTokenMutation,
+  useLogoutMutation,
+} from "../../../app/queries/loginApi";
 import { removeUser, setNewAccessToken } from "../../../app/slices/userAuth";
 import { useDispatch, useSelector } from "react-redux";
+import { isTokenExpired } from "../../../lib/helpers";
 
 const REFRESH_INTERVAL = 12 * 60 * 1000;
 
@@ -12,58 +15,61 @@ export const useFetchRefreshToken = () => {
 
   const [triggerRefresh] = useGetRefreshTokenMutation();
 
-
   const [logout] = useLogoutMutation();
 
-
-  const handleLogoutUser = async () => {
-    try {
-      await logout('').unwrap();
-      window.alert('')
-    } catch (error) {
-      window.alert('')
-
-      console.error("Logout failed:", error);
-    }
-  };
   useEffect(() => {
     if (!userDetails?.refreshToken || !userDetails?.token) {
       return;
     }
 
+    const handleLogoutUser = async () => {
+      try {
+        await logout(userDetails.refreshToken).unwrap();
+      } catch (error) {
+        console.error("Logout failed:", error);
+      }
+    };
+
     const refreshAccessToken = async () => {
       try {
-        const result = await triggerRefresh({ refreshToken: userDetails?.refreshToken }).unwrap();
-
+        const result = await triggerRefresh({
+          refreshToken: userDetails?.refreshToken,
+        }).unwrap();
         const newAccessToken = result?.accessToken;
 
         if (newAccessToken) {
           dispatch(setNewAccessToken(newAccessToken));
-
-          const existingUserInfo = Cookies.get("userInfo");
-          if (existingUserInfo) {
-            const parsed = JSON.parse(existingUserInfo);
-            Cookies.set("userInfo", JSON.stringify({ ...parsed, token: newAccessToken }), {
-              expires: 15,
-            });
-          }
         }
       } catch (error: any) {
         console.error("Refresh token failed:", error);
 
-        if (error?.status === 401 || error?.data?.message?.includes("invalid")) {
-          handleLogoutUser();
+        if (
+          error?.status === 401 ||
+          error?.status === 403 ||
+          error?.data?.message?.toLowerCase().includes("invalid") ||
+          error?.data?.message?.toLowerCase().includes("expired")
+        ) {
+          await handleLogoutUser();
           dispatch(removeUser());
         }
       }
     };
 
-    refreshAccessToken();
+    // Only refresh on mount if the token is already expired
+    if (isTokenExpired(userDetails.token)) {
+      refreshAccessToken();
+    }
 
     const intervalId = setInterval(refreshAccessToken, REFRESH_INTERVAL);
 
     return () => {
       clearInterval(intervalId);
     };
-  }, [userDetails?.refreshToken, userDetails?.token, dispatch, triggerRefresh]);
+  }, [
+    userDetails?.refreshToken,
+    userDetails?.token,
+    logout,
+    dispatch,
+    triggerRefresh,
+  ]);
 };
