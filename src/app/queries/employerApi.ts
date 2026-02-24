@@ -23,7 +23,7 @@ export const employerApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["EmployerProfile"],
+  tagTypes: ["EmployerProfile", "EmployerProfileImage"],
   endpoints: (builder) => ({
     updateEmployerProfile: builder.mutation<void, UpdateEmployerProfile>({
       query: (data) => ({
@@ -39,7 +39,7 @@ export const employerApi = createApi({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: ["EmployerProfile"],
+      invalidatesTags: ["EmployerProfile", "EmployerProfileImage"],
     }),
     getEmployerProfileImage: builder.query<string | null, string>({
       query: (id) => ({
@@ -60,18 +60,15 @@ export const employerApi = createApi({
         validateStatus: (response) =>
           response.status === 200 || response.status === 404,
       }),
-      providesTags: ["EmployerProfile"],
+      providesTags: ["EmployerProfileImage"],
     }),
     removeProfileImage: builder.mutation<void, string>({
       query: (id) => ({
         url: `users/${id}/avatar/business`,
         method: "DELETE",
       }),
-      invalidatesTags: ["EmployerProfile"],
+      invalidatesTags: ["EmployerProfileImage"],
     }),
-    // Dedicated employer profile query — tagged EmployerProfile so it
-    // auto-refetches after updateEmployerProfile/uploadProfileImage/removeProfileImage.
-    // Keeps employer data completely isolated from profileApi ("Profile" tag).
     getEmployerProfile: builder.query<any, void>({
       query: () => ({
         method: "GET",

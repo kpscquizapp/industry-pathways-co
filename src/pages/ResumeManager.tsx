@@ -365,7 +365,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                           onClick={() => handleDefaultResume(resume.id)}
                           className={`text-xs md:text-sm flex items-center justify-center gap-2 transition-colors ${
                             resume.isDefault
-                              ? "bg-emerald-600 hover:bg-emerald-600 text-white border-emerald-600 cursor-default"
+                              ? "bg-emerald-600 hover:bg-emerald-600 text-white border-emerald-600 pointer-events-none disabled:opacity-100"
                               : "border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
                           }`}
                         >

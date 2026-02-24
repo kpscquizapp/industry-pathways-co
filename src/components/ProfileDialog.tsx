@@ -68,7 +68,7 @@ const ProfileDialog = ({ open, onOpenChange, user }: ProfileDialogProps) => {
   const updateData = profile?.data?.employerProfile || profile?.data;
 
   const { data: profileImage } = useGetEmployerProfileImageQuery(
-    user?.id ? user.id : skipToken,
+    open && token && user?.id ? user.id : skipToken,
   );
   const prevOpen = useRef(false);
   const hasPopulated = useRef(false);

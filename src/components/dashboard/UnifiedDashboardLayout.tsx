@@ -144,12 +144,12 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
 
   // Fetch the role-appropriate profile image; queries are skipped when unauthenticated.
   const { currentData: employerProfileImage } = useGetEmployerProfileImageQuery(
-    isEmployerRole && token && user?.id ? user.id : skipToken,
+    isEmployerRole && token && user?.id != null ? user.id : skipToken,
   );
 
   const { currentData: candidateProfileImage } =
     useGetCandidateProfileImageQuery(
-      !isEmployerRole && token && user?.id ? user.id : skipToken,
+      !isEmployerRole && token && user?.id != null ? user.id : skipToken,
     );
 
   const profileImage = isEmployerRole

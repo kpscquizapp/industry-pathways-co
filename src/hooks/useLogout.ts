@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useLogoutMutation } from "@/app/queries/loginApi";
+import { loginApi, useLogoutMutation } from "@/app/queries/loginApi";
 import { RootState } from "@/app/store";
 import { removeUser } from "@/app/slices/userAuth";
 import { employerApi } from "@/app/queries/employerApi";
@@ -29,6 +29,7 @@ const useLogout = () => {
         dispatch(removeUser());
         dispatch(employerApi.util.resetApiState());
         dispatch(profileApi.util.resetApiState());
+        dispatch(loginApi.util.resetApiState());
       }, 0);
     }
   };

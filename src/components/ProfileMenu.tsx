@@ -35,7 +35,7 @@ const ProfileMenu = ({
   // Always resolve image from the avatar endpoint for HR users.
   // This avoids stale UI when metadata and image cache get out of sync.
   const { currentData: employerProfileImage } = useGetEmployerProfileImageQuery(
-    isHr && user?.id ? user.id : skipToken,
+    isHr && user?.id != null ? user.id : skipToken,
   );
 
   const profileImage = isHr ? employerProfileImage : null;
