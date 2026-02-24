@@ -4,7 +4,7 @@ import { useGetRefreshTokenMutation, useLogoutMutation } from "../../../app/quer
 import { removeUser, setNewAccessToken } from "../../../app/slices/userAuth";
 import { useDispatch, useSelector } from "react-redux";
 
-const REFRESH_INTERVAL = 12 * 60 * 1000; 
+const REFRESH_INTERVAL = 12 * 60 * 1000;
 
 export const useFetchRefreshToken = () => {
   const dispatch = useDispatch();
@@ -16,16 +16,16 @@ export const useFetchRefreshToken = () => {
   const [logout] = useLogoutMutation();
 
 
-const handleLogoutUser = async () => {
+  const handleLogoutUser = async () => {
     try {
-        await logout('').unwrap();
-        window.alert('')
+      await logout('').unwrap();
+      window.alert('')
     } catch (error) {
-              window.alert('')
+      window.alert('')
 
-        console.error("Logout failed:", error);
+      console.error("Logout failed:", error);
     }
-};
+  };
   useEffect(() => {
     if (!userDetails?.refreshToken || !userDetails?.token) {
       return;
@@ -33,9 +33,9 @@ const handleLogoutUser = async () => {
 
     const refreshAccessToken = async () => {
       try {
-        const result = await triggerRefresh({ refreshToken:userDetails?.refreshToken }).unwrap();
+        const result = await triggerRefresh({ refreshToken: userDetails?.refreshToken }).unwrap();
 
-        const newAccessToken =  result?.accessToken;
+        const newAccessToken = result?.accessToken;
 
         if (newAccessToken) {
           dispatch(setNewAccessToken(newAccessToken));

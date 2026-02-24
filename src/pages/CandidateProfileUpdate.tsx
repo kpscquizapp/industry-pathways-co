@@ -1357,7 +1357,7 @@ const CandidateProfileUpdate = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left pb-2">
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                First Name *
+                First Name <span className="text-destructive">*</span>
               </Label>
               <Input
                 type="text"
@@ -1377,7 +1377,7 @@ const CandidateProfileUpdate = ({
 
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Last Name *
+                Last Name <span className="text-destructive">*</span>
               </Label>
               <Input
                 type="text"
@@ -1399,7 +1399,7 @@ const CandidateProfileUpdate = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left pb-2">
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Email *
+                Email <span className="text-destructive">*</span>
               </Label>
               <Input
                 type="email"
@@ -1685,7 +1685,7 @@ const CandidateProfileUpdate = ({
         {/* Skills */}
         <div className="space-y-4 text-left">
           <h2 className="text-xl font-semibold text-gray-800 border-b pb-6 text-left dark:border-b-gray-600 dark:text-white">
-            Skills & Tech *
+            Skills & Tech <span className="text-destructive">*</span>
           </h2>
 
           <div className="flex gap-2">

@@ -19,7 +19,7 @@ const cookieData = Cookies.get("userInfo")
   ? JSON.parse(Cookies.get("userInfo") as string)
   : null;
 
-  // console.log(cookieData, 'cookieData')
+// console.log(cookieData, 'cookieData')
 const initialState: UserState = {
   token: cookieData?.token ?? null,
   refreshToken: cookieData?.refreshToken ?? null,
@@ -34,8 +34,8 @@ export const userAuth = createSlice({
   initialState,
   reducers: {
     setUser: (state, action) => {
-      const { accessToken: token, refreshToken, user:userDetails } = action.payload;
-      const payloadToStore = { token, refreshToken, userDetails  };
+      const { accessToken: token, refreshToken, user: userDetails } = action.payload;
+      const payloadToStore = { token, refreshToken, userDetails };
       Cookies.set("userInfo", JSON.stringify(payloadToStore), { expires: 15 });
       state.token = token;
       state.refreshToken = refreshToken;
@@ -53,6 +53,6 @@ export const userAuth = createSlice({
   },
 });
 
-export const { setUser, removeUser,setNewAccessToken } = userAuth.actions;
+export const { setUser, removeUser, setNewAccessToken } = userAuth.actions;
 
 export default userAuth.reducer;
