@@ -56,7 +56,13 @@ export const useFetchRefreshToken = () => {
     };
 
     // Only refresh on mount if the token is already expired
-    if (isTokenExpired(userDetails.token)) {
+    let expired = true;
+    try {
+      expired = isTokenExpired(userDetails.token);
+    } catch {
+      expired = true;
+    }
+    if (expired) {
       refreshAccessToken();
     }
 

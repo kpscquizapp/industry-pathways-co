@@ -15,7 +15,7 @@ export type UserState = {
   } | null;
 };
 
-type SetUserPayload = {
+export type SetUserPayload = {
   accessToken: string;
   refreshToken: string;
   user: UserState["userDetails"];
@@ -42,6 +42,13 @@ const initialState: UserState = {
   userDetails: cookieData?.userDetails ?? null,
 };
 
+const cookieOptions = (): Cookies.CookieAttributes => ({
+  expires: 15,
+  secure:
+    typeof window !== "undefined" && window.location.protocol === "https:",
+  sameSite: "strict",
+});
+
 export const userAuth = createSlice({
   name: "userAuth",
   initialState,
@@ -53,11 +60,7 @@ export const userAuth = createSlice({
         user: userDetails,
       } = action.payload;
       const payloadToStore = { token, refreshToken, userDetails };
-      Cookies.set("userInfo", JSON.stringify(payloadToStore), {
-        expires: 15,
-        secure: true,
-        sameSite: "strict",
-      });
+      Cookies.set("userInfo", JSON.stringify(payloadToStore), cookieOptions());
       state.token = token;
       state.refreshToken = refreshToken;
       state.userDetails = userDetails;
@@ -75,11 +78,7 @@ export const userAuth = createSlice({
         refreshToken: state.refreshToken,
         userDetails: state.userDetails,
       };
-      Cookies.set("userInfo", JSON.stringify(payloadToStore), {
-        expires: 15,
-        secure: true,
-        sameSite: "strict",
-      });
+      Cookies.set("userInfo", JSON.stringify(payloadToStore), cookieOptions());
     },
   },
 });
