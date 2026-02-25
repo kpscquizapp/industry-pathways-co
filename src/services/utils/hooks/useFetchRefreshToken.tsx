@@ -40,7 +40,9 @@ export const useFetchRefreshToken = () => {
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
-      dispatch(removeUser());
+      if (isMountedRef.current) {
+        dispatch(removeUser());
+      }
     }
   }, [logout, dispatch]);
 
