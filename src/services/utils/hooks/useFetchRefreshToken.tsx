@@ -9,8 +9,8 @@ import { isTokenExpired, getTokenExpiry } from "../../../lib/helpers";
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 min before expiry
 const FALLBACK_REFRESH_MS = 55 * 60 * 1000; // used when token has no exp claim
-const TRANSIENT_RETRY_MS = 30_000;
-const MAX_TRANSIENT_RETRIES = 5;
+const TRANSIENT_RETRY_MS = 30_000; // 30s
+const MAX_TRANSIENT_RETRIES = 5; // 5 retries
 
 export const useFetchRefreshToken = () => {
   const dispatch = useDispatch();
@@ -81,8 +81,10 @@ export const useFetchRefreshToken = () => {
       }).unwrap();
 
       const newAccessToken = result?.accessToken;
+
       if (newAccessToken) {
         if (!isMountedRef.current) return;
+        retryCountRef.current = 0; // reset on success
         dispatch(setNewAccessToken(newAccessToken));
         scheduleRefresh(newAccessToken); // schedule next refresh
       } else {
@@ -93,10 +95,7 @@ export const useFetchRefreshToken = () => {
     } catch (error: any) {
       console.error("Refresh failed:", error);
       const status = error?.status;
-      const msg =
-        typeof error?.data?.message === "string"
-          ? error.data.message.toLowerCase()
-          : "";
+
       if (isMountedRef.current && (status === 401 || status === 403)) {
         await handleLogout();
       } else if (

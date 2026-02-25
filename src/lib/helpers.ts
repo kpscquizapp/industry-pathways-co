@@ -78,7 +78,6 @@ const decodeJwt = (token: string): { exp?: number } | null => {
  * Decodes a JWT and returns its expiry as a Unix timestamp in milliseconds.
  * @throws {Error} If the token is invalid or has no `exp` claim.
  */
-// Returns expiry timestamp in ms
 export const getTokenExpiry = (token: string): number => {
   const decoded = decodeJwt(token);
   if (!decoded || typeof decoded.exp !== "number") {
