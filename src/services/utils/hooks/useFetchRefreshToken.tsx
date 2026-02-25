@@ -133,6 +133,7 @@ export const useFetchRefreshToken = () => {
   useEffect(() => {
     if (!userDetails?.refreshToken) return;
     isMountedRef.current = true;
+    retryCountRef.current = 0; // reset retry budget on new session / token rotation
 
     // Refresh immediately when access token is missing/expired, otherwise schedule.
     if (!userDetails?.token || isTokenExpired(userDetails.token)) {
