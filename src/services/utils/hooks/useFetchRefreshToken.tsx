@@ -62,6 +62,7 @@ export const useFetchRefreshToken = () => {
 
     isRefreshingRef.current = true;
     try {
+      if (!isMountedRef.current) return;
       const result = await triggerRefresh({
         refreshToken: refreshTokenRef.current,
       }).unwrap();
@@ -84,10 +85,11 @@ export const useFetchRefreshToken = () => {
           ? error.data.message.toLowerCase()
           : "";
       if (
-        (isMountedRef.current && status === 401) ||
-        status === 403 ||
-        msg.includes("invalid") ||
-        msg.includes("expired")
+        isMountedRef.current &&
+        (status === 401 ||
+          status === 403 ||
+          msg.includes("invalid") ||
+          msg.includes("expired"))
       ) {
         await handleLogout();
       }
@@ -99,7 +101,7 @@ export const useFetchRefreshToken = () => {
   // Keep the ref in sync so the setTimeout callback always calls the latest doRefresh
   useLayoutEffect(() => {
     doRefreshRef.current = doRefresh;
-  });
+  }, [doRefresh]);
 
   useEffect(() => {
     if (!userDetails?.refreshToken) return;

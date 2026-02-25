@@ -64,8 +64,10 @@ const decodeJwt = (token: string): { exp?: number } | null => {
     const part = token.split(".")[1];
     if (!part) return null;
     // Replace URL-safe characters and add padding
-    const base64 = part.replace(/-/g, "+").replace(/_/g, "/")
-      .padEnd(part.length + (4 - part.length % 4) % 4, "=");
+    const base64 = part
+      .replace(/-/g, "+")
+      .replace(/_/g, "/")
+      .padEnd(part.length + ((4 - (part.length % 4)) % 4), "=");
     return JSON.parse(atob(base64));
   } catch (e) {
     console.error("JWT Decode error:", e);
@@ -75,11 +77,11 @@ const decodeJwt = (token: string): { exp?: number } | null => {
 
 export const isTokenExpired = (token: string | null) => {
   if (!token) return true;
-  const decodedToken = decodeJwt(token);
-  if (!decodedToken || typeof decodedToken.exp !== "number") return true;
-  const expirationTime = decodedToken.exp * 1000; // convert to milliseconds
-  const currentTime = Date.now(); // get the current time in milliseconds
-  return expirationTime < currentTime; // compare expiration time with current time
+  try {
+    return getTokenExpiry(token) < Date.now();
+  } catch {
+    return true;
+  }
 };
 
 export const handleDelete = async (id: string, queryDetails: any) => {
