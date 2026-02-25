@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useLayoutEffect } from "react";
 import {
   useGetRefreshTokenMutation,
   useLogoutMutation,
@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { isTokenExpired, getTokenExpiry } from "../../../lib/helpers";
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 min before expiry
+const FALLBACK_REFRESH_MS = 55 * 60 * 1000; // used when token has no exp claim
 
 export const useFetchRefreshToken = () => {
   const dispatch = useDispatch();
@@ -17,19 +18,21 @@ export const useFetchRefreshToken = () => {
 
   // Stable refs to avoid effect re-runs
   const refreshTokenRef = useRef(userDetails?.refreshToken);
-  const accessTokenRef = useRef(userDetails?.token);
   const isRefreshingRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const doRefreshRef = useRef<() => Promise<void>>();
+  const doRefreshRef = useRef<(() => Promise<void>) | null>(null);
+  const isMountedRef = useRef(false);
 
   useEffect(() => {
     refreshTokenRef.current = userDetails?.refreshToken;
-    accessTokenRef.current = userDetails?.token;
-  }, [userDetails?.refreshToken, userDetails?.token]);
+  }, [userDetails?.refreshToken]);
 
   const handleLogout = useCallback(async () => {
     try {
-      await logout(refreshTokenRef.current).unwrap();
+      const refreshToken = refreshTokenRef.current;
+      if (refreshToken) {
+        await logout(refreshToken).unwrap();
+      }
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
@@ -46,7 +49,7 @@ export const useFetchRefreshToken = () => {
       const exp = getTokenExpiry(accessToken);
       delay = Math.max(0, exp - Date.now() - REFRESH_BUFFER_MS);
     } catch {
-      delay = 55 * 60 * 1000; // fallback if exp claim is missing: 55 min
+      delay = FALLBACK_REFRESH_MS; // fallback if exp claim is missing: 55 min
     }
 
     timeoutRef.current = setTimeout(() => doRefreshRef.current?.(), delay);
@@ -65,9 +68,11 @@ export const useFetchRefreshToken = () => {
 
       const newAccessToken = result?.accessToken;
       if (newAccessToken) {
+        if (!isMountedRef.current) return;
         dispatch(setNewAccessToken(newAccessToken));
         scheduleRefresh(newAccessToken); // schedule next refresh
       } else {
+        if (!isMountedRef.current) return;
         console.error("Refresh response missing accessToken, logging out");
         await handleLogout();
       }
@@ -79,7 +84,7 @@ export const useFetchRefreshToken = () => {
           ? error.data.message.toLowerCase()
           : "";
       if (
-        status === 401 ||
+        (isMountedRef.current && status === 401) ||
         status === 403 ||
         msg.includes("invalid") ||
         msg.includes("expired")
@@ -92,22 +97,26 @@ export const useFetchRefreshToken = () => {
   }, [triggerRefresh, dispatch, handleLogout, scheduleRefresh]);
 
   // Keep the ref in sync so the setTimeout callback always calls the latest doRefresh
-  doRefreshRef.current = doRefresh;
+  useLayoutEffect(() => {
+    doRefreshRef.current = doRefresh;
+  });
 
   useEffect(() => {
-    if (!userDetails?.refreshToken || !userDetails?.token) return;
+    if (!userDetails?.refreshToken) return;
+    isMountedRef.current = true;
 
-    // Kick off immediately if already expired, otherwise schedule
-    if (isTokenExpired(userDetails.token)) {
-      doRefresh();
+    // Refresh immediately when access token is missing/expired, otherwise schedule.
+    if (!userDetails?.token || isTokenExpired(userDetails.token)) {
+      doRefreshRef.current?.();
     } else {
       scheduleRefresh(userDetails.token);
     }
 
     return () => {
+      isMountedRef.current = false;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-    // Only run on mount / login — refs handle token updates
+    // Only run on mount/login; refs handle token updates.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userDetails?.refreshToken]);
 };

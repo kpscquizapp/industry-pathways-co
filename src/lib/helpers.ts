@@ -3,9 +3,13 @@ import Cookies from "js-cookie";
 
 //custom hook for checking screenwidth
 export const useScreenWidth = (): number => {
-  const [width, setWidth] = useState(window.innerWidth);
+  const [width, setWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 0,
+  );
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const handleResize = () => {
       setWidth(window.innerWidth);
     };
@@ -55,7 +59,7 @@ export const isObjectEmpty = (obj: Record<string, any>): boolean => {
   return Object.keys(obj).length === 0;
 };
 
-const decodeJwt = (token: string): any => {
+const decodeJwt = (token: string): { exp?: number } | null => {
   try {
     const part = token.split(".")[1];
     if (!part) return null;
@@ -72,7 +76,7 @@ const decodeJwt = (token: string): any => {
 export const isTokenExpired = (token: string | null) => {
   if (!token) return true;
   const decodedToken = decodeJwt(token);
-  // console.log(decodedToken,'decodedToken');
+  if (!decodedToken || typeof decodedToken.exp !== "number") return true;
   const expirationTime = decodedToken.exp * 1000; // convert to milliseconds
   const currentTime = Date.now(); // get the current time in milliseconds
   return expirationTime < currentTime; // compare expiration time with current time
@@ -80,23 +84,22 @@ export const isTokenExpired = (token: string | null) => {
 
 export const handleDelete = async (id: string, queryDetails: any) => {
   try {
-    // console.log("Delete coach with id:", id);
     const response = await queryDetails(id);
-    // alert(response.error)
     if (response?.error) {
-      alert("Data deleted sucessfully");
+      alert("Failed to delete data");
     } else {
-      alert("Data deleted sucessfully");
+      alert("Data deleted successfully");
     }
   } catch (error) {
-    alert("Failed to delete Data");
-    // console.log(error, "delete error");
+    alert("Failed to delete data");
   }
 };
 
 // Returns expiry timestamp in ms
 export const getTokenExpiry = (token: string): number => {
   const decoded = decodeJwt(token);
-  if (!decoded || !decoded.exp) throw new Error("Invalid token or no exp claim");
+  if (!decoded || typeof decoded.exp !== "number") {
+    throw new Error("Invalid token or no exp claim");
+  }
   return decoded.exp * 1000;
 };
