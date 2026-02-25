@@ -3,9 +3,13 @@ import Cookies from "js-cookie";
 
 //custom hook for checking screenwidth
 export const useScreenWidth = (): number => {
-  const [width, setWidth] = useState(window.innerWidth);
+  const [width, setWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 0,
+  );
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const handleResize = () => {
       setWidth(window.innerWidth);
     };
@@ -18,10 +22,10 @@ export const useScreenWidth = (): number => {
 };
 
 //function for creating the antd select options with label and value
-export const createSelectOption = (
-  arr: any[],
-  value: string,
-  label: string,
+export const createSelectOption = <T extends Record<string, unknown>>(
+  arr: T[],
+  value: keyof T,
+  label: keyof T,
 ) => {
   const newArr = arr?.map((item) => {
     return {
@@ -55,27 +59,51 @@ export const isObjectEmpty = (obj: Record<string, any>): boolean => {
   return Object.keys(obj).length === 0;
 };
 
+const decodeJwt = (token: string): { exp?: number } | null => {
+  try {
+    const part = token.split(".")[1];
+    if (!part) return null;
+    // Replace URL-safe characters and add padding
+    const base64 = part
+      .replace(/-/g, "+")
+      .replace(/_/g, "/")
+      .padEnd(part.length + ((4 - (part.length % 4)) % 4), "=");
+    return JSON.parse(atob(base64));
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * Decodes a JWT and returns its expiry as a Unix timestamp in milliseconds.
+ * @throws {Error} If the token is invalid or has no `exp` claim.
+ */
+export const getTokenExpiry = (token: string): number => {
+  const decoded = decodeJwt(token);
+  if (!decoded || typeof decoded.exp !== "number") {
+    throw new Error("Invalid token or no exp claim");
+  }
+  return decoded.exp * 1000;
+};
+
 export const isTokenExpired = (token: string | null) => {
   if (!token) return true;
-  const decodedToken = JSON.parse(atob(token?.split(".")[1])); // decode the token
-  // console.log(decodedToken,'decodedToken');
-  const expirationTime = decodedToken.exp * 1000; // convert to milliseconds
-  const currentTime = Date.now(); // get the current time in milliseconds
-  return expirationTime < currentTime; // compare expiration time with current time
+  try {
+    return getTokenExpiry(token) < Date.now();
+  } catch {
+    return true;
+  }
 };
 
 export const handleDelete = async (id: string, queryDetails: any) => {
   try {
-    // console.log("Delete coach with id:", id);
     const response = await queryDetails(id);
-    // alert(response.error)
     if (response?.error) {
-      alert("Data deleted sucessfully");
+      alert("Failed to delete data");
     } else {
-      alert("Data deleted sucessfully");
+      alert("Data deleted successfully");
     }
   } catch (error) {
-    alert("Failed to delete Data");
-    // console.log(error, "delete error");
+    alert("Failed to delete data");
   }
 };
