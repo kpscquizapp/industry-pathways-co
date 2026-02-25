@@ -55,9 +55,23 @@ export const isObjectEmpty = (obj: Record<string, any>): boolean => {
   return Object.keys(obj).length === 0;
 };
 
+const decodeJwt = (token: string): any => {
+  try {
+    const part = token.split(".")[1];
+    if (!part) return null;
+    // Replace URL-safe characters and add padding
+    const base64 = part.replace(/-/g, "+").replace(/_/g, "/")
+      .padEnd(part.length + (4 - part.length % 4) % 4, "=");
+    return JSON.parse(atob(base64));
+  } catch (e) {
+    console.error("JWT Decode error:", e);
+    return null;
+  }
+};
+
 export const isTokenExpired = (token: string | null) => {
   if (!token) return true;
-  const decodedToken = JSON.parse(atob(token?.split(".")[1])); // decode the token
+  const decodedToken = decodeJwt(token);
   // console.log(decodedToken,'decodedToken');
   const expirationTime = decodedToken.exp * 1000; // convert to milliseconds
   const currentTime = Date.now(); // get the current time in milliseconds
@@ -78,4 +92,11 @@ export const handleDelete = async (id: string, queryDetails: any) => {
     alert("Failed to delete Data");
     // console.log(error, "delete error");
   }
+};
+
+// Returns expiry timestamp in ms
+export const getTokenExpiry = (token: string): number => {
+  const decoded = decodeJwt(token);
+  if (!decoded || !decoded.exp) throw new Error("Invalid token or no exp claim");
+  return decoded.exp * 1000;
 };
