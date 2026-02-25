@@ -75,6 +75,15 @@ const decodeJwt = (token: string): { exp?: number } | null => {
   }
 };
 
+// Returns expiry timestamp in ms
+export const getTokenExpiry = (token: string): number => {
+  const decoded = decodeJwt(token);
+  if (!decoded || typeof decoded.exp !== "number") {
+    throw new Error("Invalid token or no exp claim");
+  }
+  return decoded.exp * 1000;
+};
+
 export const isTokenExpired = (token: string | null) => {
   if (!token) return true;
   try {
@@ -95,13 +104,4 @@ export const handleDelete = async (id: string, queryDetails: any) => {
   } catch (error) {
     alert("Failed to delete data");
   }
-};
-
-// Returns expiry timestamp in ms
-export const getTokenExpiry = (token: string): number => {
-  const decoded = decodeJwt(token);
-  if (!decoded || typeof decoded.exp !== "number") {
-    throw new Error("Invalid token or no exp claim");
-  }
-  return decoded.exp * 1000;
 };

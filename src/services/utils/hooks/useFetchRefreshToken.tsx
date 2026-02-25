@@ -84,14 +84,11 @@ export const useFetchRefreshToken = () => {
         typeof error?.data?.message === "string"
           ? error.data.message.toLowerCase()
           : "";
-      if (
-        isMountedRef.current &&
-        (status === 401 ||
-          status === 403 ||
-          msg.includes("invalid") ||
-          msg.includes("expired"))
-      ) {
+      if (isMountedRef.current && (status === 401 || status === 403)) {
         await handleLogout();
+      } else if (isMountedRef.current && refreshTokenRef.current) {
+        // Retry after a short delay on transient errors
+        timeoutRef.current = setTimeout(() => doRefreshRef.current?.(), 30_000);
       }
     } finally {
       isRefreshingRef.current = false;
@@ -118,7 +115,11 @@ export const useFetchRefreshToken = () => {
       isMountedRef.current = false;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-    // Only run on mount/login; refs handle token updates.
+    // Intentional dependency choice:
+    // - This effect keys off refreshToken (session boundary) only.
+    // - Access-token refresh done by this hook schedules the next timer inside doRefresh.
+    // - If another flow updates accessToken without changing refreshToken,
+    //   this effect will not re-run and the existing schedule is kept.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userDetails?.refreshToken]);
 };
