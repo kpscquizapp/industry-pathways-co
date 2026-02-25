@@ -11,6 +11,7 @@ const REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 min before expiry
 const FALLBACK_REFRESH_MS = 55 * 60 * 1000; // used when token has no exp claim
 const TRANSIENT_RETRY_MS = 30_000; // 30s
 const MAX_TRANSIENT_RETRIES = 5; // 5 retries
+const MAX_BACKOFF_MS = 5 * 60 * 1000; // 5 min cap
 
 export const useFetchRefreshToken = () => {
   const dispatch = useDispatch();
@@ -53,7 +54,7 @@ export const useFetchRefreshToken = () => {
       const now = Date.now();
       const ttl = exp - now;
       if (ttl <= 0) {
-        delay = 0;
+        delay = 5_000; // floor to prevent tight loops on clock-skew or bad tokens
       } else {
         const effectiveBuffer = Math.min(
           REFRESH_BUFFER_MS,
@@ -104,8 +105,10 @@ export const useFetchRefreshToken = () => {
         retryCountRef.current < MAX_TRANSIENT_RETRIES
       ) {
         retryCountRef.current += 1;
-        const backoff =
-          TRANSIENT_RETRY_MS * Math.pow(2, retryCountRef.current - 1);
+        const backoff = Math.min(
+          MAX_BACKOFF_MS,
+          TRANSIENT_RETRY_MS * Math.pow(2, retryCountRef.current - 1),
+        );
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(
           () => doRefreshRef.current?.(),
