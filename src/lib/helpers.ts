@@ -22,10 +22,10 @@ export const useScreenWidth = (): number => {
 };
 
 //function for creating the antd select options with label and value
-export const createSelectOption = (
-  arr: any[],
-  value: string,
-  label: string,
+export const createSelectOption = <T extends Record<string, unknown>>(
+  arr: T[],
+  value: keyof T,
+  label: keyof T,
 ) => {
   const newArr = arr?.map((item) => {
     return {
@@ -70,11 +70,14 @@ const decodeJwt = (token: string): { exp?: number } | null => {
       .padEnd(part.length + ((4 - (part.length % 4)) % 4), "=");
     return JSON.parse(atob(base64));
   } catch (e) {
-    console.error("JWT Decode error:", e);
     return null;
   }
 };
 
+/**
+ * Decodes a JWT and returns its expiry as a Unix timestamp in milliseconds.
+ * @throws {Error} If the token is invalid or has no `exp` claim.
+ */
 // Returns expiry timestamp in ms
 export const getTokenExpiry = (token: string): number => {
   const decoded = decodeJwt(token);

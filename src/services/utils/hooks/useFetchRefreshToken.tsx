@@ -9,6 +9,8 @@ import { isTokenExpired, getTokenExpiry } from "../../../lib/helpers";
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 min before expiry
 const FALLBACK_REFRESH_MS = 55 * 60 * 1000; // used when token has no exp claim
+const TRANSIENT_RETRY_MS = 30_000;
+const MAX_TRANSIENT_RETRIES = 5;
 
 export const useFetchRefreshToken = () => {
   const dispatch = useDispatch();
@@ -22,6 +24,7 @@ export const useFetchRefreshToken = () => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const doRefreshRef = useRef<(() => Promise<void>) | null>(null);
   const isMountedRef = useRef(false);
+  const retryCountRef = useRef(0);
 
   useEffect(() => {
     refreshTokenRef.current = userDetails?.refreshToken;
@@ -47,7 +50,17 @@ export const useFetchRefreshToken = () => {
     try {
       // getTokenExpiry returns exp in ms
       const exp = getTokenExpiry(accessToken);
-      delay = Math.max(0, exp - Date.now() - REFRESH_BUFFER_MS);
+      const now = Date.now();
+      const ttl = exp - now;
+      if (ttl <= 0) {
+        delay = 0;
+      } else {
+        const effectiveBuffer = Math.min(
+          REFRESH_BUFFER_MS,
+          Math.floor(ttl / 2),
+        );
+        delay = Math.min(ttl, Math.max(5_000, ttl - effectiveBuffer));
+      }
     } catch {
       delay = FALLBACK_REFRESH_MS; // fallback if exp claim is missing: 55 min
     }
@@ -86,9 +99,22 @@ export const useFetchRefreshToken = () => {
           : "";
       if (isMountedRef.current && (status === 401 || status === 403)) {
         await handleLogout();
-      } else if (isMountedRef.current && refreshTokenRef.current) {
-        // Retry after a short delay on transient errors
-        timeoutRef.current = setTimeout(() => doRefreshRef.current?.(), 30_000);
+      } else if (
+        isMountedRef.current &&
+        refreshTokenRef.current &&
+        retryCountRef.current < MAX_TRANSIENT_RETRIES
+      ) {
+        retryCountRef.current += 1;
+        const backoff =
+          TRANSIENT_RETRY_MS * Math.pow(2, retryCountRef.current - 1);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(
+          () => doRefreshRef.current?.(),
+          backoff,
+        );
+      } else if (isMountedRef.current) {
+        // Exhausted retries — treat as auth failure
+        await handleLogout();
       }
     } finally {
       isRefreshingRef.current = false;
