@@ -161,7 +161,17 @@ const parseLocalDate = (dateStr: string): Date | null => {
   const parts = dateStr.split("-").map(Number);
   if (parts.length !== 3 || parts.some(isNaN)) return null;
   const [year, month, day] = parts;
-  return new Date(year, month - 1, day);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const date = new Date(year, month - 1, day);
+  // Verify the date wasn't normalized (e.g., Feb 30 → Mar 2)
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+  return date;
 };
 
 const VALIDATION = {
@@ -1154,7 +1164,10 @@ const CandidateProfileUpdate = ({
             cert.expiryDate ?? null,
           );
           if (dateError) {
-            if (dateError.toLowerCase().includes("issue date")) {
+            if (
+              dateError.toLowerCase().startsWith("issue date") ||
+              dateError.toLowerCase().startsWith("invalid issue")
+            ) {
               errors[`cert_${index}_issueDate`] = dateError;
             } else {
               errors[`cert_${index}_expiryDate`] = dateError;
