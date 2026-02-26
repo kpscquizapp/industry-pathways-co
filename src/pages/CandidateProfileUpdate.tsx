@@ -157,6 +157,13 @@ interface CandidateProfileUpdateProps {
 }
 
 // ==================== VALIDATION ====================
+const parseLocalDate = (dateStr: string): Date | null => {
+  const parts = dateStr.split("-").map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) return null;
+  const [year, month, day] = parts;
+  return new Date(year, month - 1, day);
+};
+
 const VALIDATION = {
   name: {
     minLength: 1,
@@ -262,10 +269,8 @@ const VALIDATION = {
     validate: (issueDate: string, expiryDate: string | null) => {
       if (!issueDate) return "Issue date is required";
 
-      const [issueYear, issueMonth, issueDay] = issueDate
-        .split("-")
-        .map(Number);
-      const issue = new Date(issueYear, issueMonth - 1, issueDay);
+      const issue = parseLocalDate(issueDate);
+      if (!issue || isNaN(issue.getTime())) return "Invalid issue date format";
       const now = new Date();
       now.setHours(23, 59, 59, 999);
 
