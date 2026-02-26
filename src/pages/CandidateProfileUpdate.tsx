@@ -91,7 +91,7 @@ interface FormDataState {
   primarySkills: string[];
   headline: string;
   resourceType: string;
-  availableIn: string;
+  availableToJoin: string;
   englishProficiency: string;
   preferredWorkType: string[];
   hourlyRateMin: number | string;
@@ -118,7 +118,7 @@ interface CandidateProfileUpdateProps {
       primarySkills?: Skill[];
       headline?: string;
       resourceType?: string;
-      availableIn?: string;
+      availableToJoin?: string;
       englishProficiency?: string;
       preferredWorkType?: string[];
       hourlyRateMin?: number | string;
@@ -157,6 +157,23 @@ interface CandidateProfileUpdateProps {
 }
 
 // ==================== VALIDATION ====================
+const parseLocalDate = (dateStr: string): Date | null => {
+  const parts = dateStr.split("-").map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) return null;
+  const [year, month, day] = parts;
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const date = new Date(year, month - 1, day);
+  // Verify the date wasn't normalized (e.g., Feb 30 → Mar 2)
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+  return date;
+};
+
 const VALIDATION = {
   name: {
     minLength: 1,
@@ -258,6 +275,43 @@ const VALIDATION = {
       }
     },
   },
+  certificationDate: {
+    validate: (
+      issueDate: string,
+      expiryDate: string | null,
+    ): { field: "issueDate" | "expiryDate"; message: string } | null => {
+      if (!issueDate)
+        return { field: "issueDate", message: "Issue date is required" };
+
+      const issue = parseLocalDate(issueDate);
+      if (!issue)
+        return { field: "issueDate", message: "Invalid issue date format" };
+      const now = new Date();
+      now.setHours(23, 59, 59, 999);
+
+      if (issue > now) {
+        return {
+          field: "issueDate",
+          message: "Issue date cannot be in the future",
+        };
+      }
+
+      if (expiryDate) {
+        const expiry = parseLocalDate(expiryDate);
+        if (!expiry)
+          return { field: "expiryDate", message: "Invalid expiry date format" };
+        if (expiry < issue) {
+          return {
+            field: "expiryDate",
+            message: "Expiry date cannot be before issue date",
+          };
+        }
+        // Note: expiry date CAN be in the future - that's valid
+      }
+
+      return null;
+    },
+  },
   date: {
     validate: (
       startDate: string,
@@ -266,7 +320,10 @@ const VALIDATION = {
     ) => {
       if (!startDate) return `Start date is required for ${fieldName}`;
 
-      const start = new Date(startDate);
+      const start = parseLocalDate(startDate);
+      if (!start) {
+        return `Invalid start date format for ${fieldName}`;
+      }
       const now = new Date();
 
       // Normalize to date-only (strip time) for fair comparison
@@ -277,7 +334,10 @@ const VALIDATION = {
       }
 
       if (endDate) {
-        const end = new Date(endDate);
+        const end = parseLocalDate(endDate);
+        if (!end) {
+          return `Invalid end date format for ${fieldName}`;
+        }
         if (end < start) {
           return "End date cannot be before start date";
         }
@@ -467,7 +527,7 @@ const CandidateProfileUpdate = ({
         primarySkills: [],
         headline: "",
         resourceType: "",
-        availableIn: "",
+        availableToJoin: "",
         englishProficiency: "",
         preferredWorkType: [],
         hourlyRateMin: "",
@@ -489,7 +549,7 @@ const CandidateProfileUpdate = ({
       primarySkills: skills || [],
       headline: data?.candidateProfile.headline || "",
       resourceType: data?.candidateProfile.resourceType || "",
-      availableIn: data?.candidateProfile.availableIn || "",
+      availableToJoin: data?.candidateProfile.availableToJoin || "",
       englishProficiency: data?.candidateProfile.englishProficiency ?? "",
       preferredWorkType: data?.candidateProfile.preferredWorkType ?? [],
       hourlyRateMin:
@@ -531,13 +591,18 @@ const CandidateProfileUpdate = ({
     });
   }, [data, handleForm, skills]);
 
-  const availabilityOptions = ["freelance", "full-time", "both"];
+  const availabilityTypeOptions = ["freelance", "full-time", "both"];
   const resourceTypeOptions = [
     "Bench Resource",
     "Active Resource",
     "Available",
   ];
-  const availableInOptions = ["Immediate", "15 Days", "30 Days"];
+  const availableToJoinOptions = [
+    "Immediate / Serving Notice",
+    "15 Days",
+    "30 Days",
+    "60 Days+",
+  ];
   const preferredWorkTypeOptions = ["remote", "hybrid", "onsite"];
   const englishProficiencyOptions = [
     "Basic",
@@ -1109,18 +1174,12 @@ const CandidateProfileUpdate = ({
         if (!cert.issueDate)
           errors[`cert_${index}_issueDate`] = "Issue date is required";
         else {
-          const dateError = VALIDATION.date.validate(
+          const dateError = VALIDATION.certificationDate.validate(
             cert.issueDate,
             cert.expiryDate ?? null,
-            "certification",
           );
           if (dateError) {
-            // Determine which field the error relates to
-            if (dateError.includes("Start date")) {
-              errors[`cert_${index}_issueDate`] = dateError;
-            } else {
-              errors[`cert_${index}_expiryDate`] = dateError;
-            }
+            errors[`cert_${index}_${dateError.field}`] = dateError.message;
           }
         }
         if (cert.credentialUrl) {
@@ -1167,6 +1226,10 @@ const CandidateProfileUpdate = ({
       bio: formData.bio.trim(),
       primarySkills: formData.primarySkills,
       preferredWorkType: formData.preferredWorkType,
+      hourlyRateMin:
+        formData.hourlyRateMin === "" ? null : Number(formData.hourlyRateMin),
+      hourlyRateMax:
+        formData.hourlyRateMax === "" ? null : Number(formData.hourlyRateMax),
       certifications: formData.certifications
         .filter((cert) => cert.name && cert.issuedBy && cert.issueDate) // Only include completed certifications
         .map(({ localId, ...cert }) => ({
@@ -1468,8 +1531,7 @@ const CandidateProfileUpdate = ({
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border capitalize dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
               >
-                <option value="">Select availability</option>
-                {availabilityOptions.map((option) => (
+                {availabilityTypeOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
@@ -1554,16 +1616,16 @@ const CandidateProfileUpdate = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Available In
+                Available To Join
               </Label>
               <select
-                name="availableIn"
-                value={formData.availableIn}
+                name="availableToJoin"
+                value={formData.availableToJoin}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white capitalize"
               >
                 <option value="">Select availability</option>
-                {availableInOptions.map((option) => (
+                {availableToJoinOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
@@ -1581,7 +1643,6 @@ const CandidateProfileUpdate = ({
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white capitalize"
               >
-                <option value="">Select proficiency</option>
                 {englishProficiencyOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
@@ -1607,7 +1668,7 @@ const CandidateProfileUpdate = ({
                       formData.preferredWorkType?.includes(workType) || false
                     }
                     onChange={() => handleWorkTypeChange(workType)}
-                    className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary dark:border-slate-500 dark:bg-slate-800"
+                    className="w-4 h-4 min-h-0 min-w-0 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary dark:border-slate-500 dark:bg-slate-800"
                   />
                   <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
                     {workType}
@@ -1627,6 +1688,7 @@ const CandidateProfileUpdate = ({
                 name="hourlyRateMin"
                 value={formData.hourlyRateMin}
                 onChange={handleInputChange}
+                placeholder="Enter your hourly rate (min)"
                 min="0"
                 max="10000"
                 className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
@@ -1648,6 +1710,7 @@ const CandidateProfileUpdate = ({
                 onChange={handleInputChange}
                 min="0"
                 max="10000"
+                placeholder="Enter your hourly rate (max)"
                 className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
                   fieldErrors.hourlyRate
                     ? "border-red-500 dark:border-red-500"

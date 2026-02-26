@@ -6,6 +6,7 @@ import {
 import { removeUser, setNewAccessToken } from "../../../app/slices/userAuth";
 import { useDispatch, useSelector } from "react-redux";
 import { isTokenExpired, getTokenExpiry } from "../../../lib/helpers";
+import { RootState } from "@/app/store";
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 min before expiry
 const FALLBACK_REFRESH_MS = 55 * 60 * 1000; // used when token has no exp claim
@@ -15,7 +16,7 @@ const MAX_BACKOFF_MS = 5 * 60 * 1000; // 5 min cap
 
 export const useFetchRefreshToken = () => {
   const dispatch = useDispatch();
-  const userDetails = useSelector((state: any) => state.user);
+  const userDetails = useSelector((state: RootState) => state.user);
   const [triggerRefresh] = useGetRefreshTokenMutation();
   const [logout] = useLogoutMutation();
 
@@ -79,11 +80,9 @@ export const useFetchRefreshToken = () => {
     isRefreshingRef.current = true;
     try {
       if (!isMountedRef.current) return;
-      const result = await triggerRefresh({
-        refreshToken: refreshTokenRef.current,
-      }).unwrap();
+      const result = await triggerRefresh(refreshTokenRef.current).unwrap();
 
-      const newAccessToken = result?.accessToken;
+      const newAccessToken = result?.accessToken || result?.token;
 
       if (newAccessToken) {
         if (!isMountedRef.current) return;
@@ -92,7 +91,9 @@ export const useFetchRefreshToken = () => {
         scheduleRefresh(newAccessToken); // schedule next refresh
       } else {
         if (!isMountedRef.current) return;
-        console.error("Refresh response missing accessToken, logging out");
+        console.error(
+          "Refresh response missing accessToken/token, logging out",
+        );
         await handleLogout();
       }
     } catch (error: any) {

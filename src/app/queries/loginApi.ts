@@ -71,18 +71,23 @@ export const loginApi = createApi({
         url: "auth/login-hr",
       }),
     }),
-    getRefreshToken: builder.mutation({
-      query: (data) => ({
+    getRefreshToken: builder.mutation<
+      { accessToken?: string; token?: string },
+      string
+    >({
+      query: (refreshToken) => ({
+        headers: getAuthHeaders(),
         method: "POST",
         url: `auth/refresh`,
-        body: data,
+        // Backend accepts both field names for compatibility
+        body: { refreshToken, token: refreshToken },
       }),
     }),
     logout: builder.mutation<void, string>({
       query: (refreshToken) => ({
         headers: getAuthHeaders(),
         method: "POST",
-        url: `auth/logout`, // sample api
+        url: `auth/logout`,
         body: { refreshToken },
       }),
     }),

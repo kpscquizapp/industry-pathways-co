@@ -966,7 +966,7 @@ const CandidateSignup = () => {
                           <span className="text-destructive">*</span>
                         </Label>
                         <div className="flex flex-wrap gap-4 mt-2">
-                          {["remote", "hybrid", "on-site"].map((type) => (
+                          {["remote", "hybrid", "onsite"].map((type) => (
                             <div
                               key={type}
                               className="flex items-center space-x-2"
