@@ -279,8 +279,10 @@ const VALIDATION = {
       }
 
       if (expiryDate) {
-        const [expYear, expMonth, expDay] = expiryDate.split("-").map(Number);
-        const expiry = new Date(expYear, expMonth - 1, expDay);
+        const expiry = parseLocalDate(expiryDate);
+        if (!expiry || isNaN(expiry.getTime())) {
+          return "Invalid expiry date format";
+        }
         if (expiry < issue) {
           return "Expiry date cannot be before issue date";
         }
@@ -298,11 +300,10 @@ const VALIDATION = {
     ) => {
       if (!startDate) return `Start date is required for ${fieldName}`;
 
-      // Parse as local date to avoid timezone issues with YYYY-MM-DD format
-      const [startYear, startMonth, startDay] = startDate
-        .split("-")
-        .map(Number);
-      const start = new Date(startYear, startMonth - 1, startDay);
+      const start = parseLocalDate(startDate);
+      if (!start || isNaN(start.getTime())) {
+        return `Invalid start date format for ${fieldName}`;
+      }
       const now = new Date();
 
       // Normalize to date-only (strip time) for fair comparison
@@ -313,8 +314,10 @@ const VALIDATION = {
       }
 
       if (endDate) {
-        const [endYear, endMonth, endDay] = endDate.split("-").map(Number);
-        const end = new Date(endYear, endMonth - 1, endDay);
+        const end = parseLocalDate(endDate);
+        if (!end || isNaN(end.getTime())) {
+          return `Invalid end date format for ${fieldName}`;
+        }
         if (end < start) {
           return "End date cannot be before start date";
         }
@@ -1151,7 +1154,7 @@ const CandidateProfileUpdate = ({
             cert.expiryDate ?? null,
           );
           if (dateError) {
-            if (dateError.includes("Issue date")) {
+            if (dateError.toLowerCase().includes("issue date")) {
               errors[`cert_${index}_issueDate`] = dateError;
             } else {
               errors[`cert_${index}_expiryDate`] = dateError;
