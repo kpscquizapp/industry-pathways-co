@@ -280,7 +280,7 @@ const VALIDATION = {
       if (!issueDate) return "Issue date is required";
 
       const issue = parseLocalDate(issueDate);
-      if (!issue || isNaN(issue.getTime())) return "Invalid issue date format";
+      if (!issue) return "Invalid issue date format";
       const now = new Date();
       now.setHours(23, 59, 59, 999);
 
@@ -290,7 +290,7 @@ const VALIDATION = {
 
       if (expiryDate) {
         const expiry = parseLocalDate(expiryDate);
-        if (!expiry || isNaN(expiry.getTime())) {
+        if (!expiry) {
           return "Invalid expiry date format";
         }
         if (expiry < issue) {
@@ -311,7 +311,7 @@ const VALIDATION = {
       if (!startDate) return `Start date is required for ${fieldName}`;
 
       const start = parseLocalDate(startDate);
-      if (!start || isNaN(start.getTime())) {
+      if (!start) {
         return `Invalid start date format for ${fieldName}`;
       }
       const now = new Date();
@@ -325,7 +325,7 @@ const VALIDATION = {
 
       if (endDate) {
         const end = parseLocalDate(endDate);
-        if (!end || isNaN(end.getTime())) {
+        if (!end) {
           return `Invalid end date format for ${fieldName}`;
         }
         if (end < start) {
@@ -1636,7 +1636,6 @@ const CandidateProfileUpdate = ({
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white capitalize"
               >
-                <option value="">Select proficiency</option>
                 {englishProficiencyOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
