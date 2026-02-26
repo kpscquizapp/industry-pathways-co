@@ -1,36 +1,28 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { Suspense, useMemo } from "react";
+import { Suspense } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store";
 import BarLoader from "../loader/BarLoader";
-import Cookies from "js-cookie";
 import LazyErrorBoundary from "@/pages/LazyErrorBoundary";
+import { isTokenExpired } from "@/lib/helpers";
 
 interface ProtectedLayoutProps {
   allowedRoles?: string[];
 }
 
-interface UserInfo {
-  userDetails: {
-    role: string;
-    // Add other user properties as needed
-  };
-}
-
 export const ProtectedLayout = ({ allowedRoles }: ProtectedLayoutProps) => {
   const location = useLocation();
-  // Memoize user parsing to avoid repeated JSON.parse on re-renders
-  const userInfo = Cookies.get("userInfo");
-  const user = useMemo(() => {
-    try {
-      if (!userInfo) return null;
-      const parsed: UserInfo = JSON.parse(userInfo);
-      return parsed.userDetails;
-    } catch (error) {
-      return null;
-    }
-  }, [userInfo]);
 
-  if (!user) {
-    return <Navigate to="/" replace />;
+  // 3. Replace the Cookie logic with the Selector
+  const { userDetails: user, token } = useSelector(
+    (state: RootState) => state.user,
+  );
+
+  const isExpired = isTokenExpired(token);
+
+  // 4. Check for both user and token for better security
+  if (!user || !token || isExpired) {
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   if (allowedRoles?.length && !allowedRoles.includes(user.role)) {

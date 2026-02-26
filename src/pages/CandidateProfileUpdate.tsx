@@ -258,6 +258,33 @@ const VALIDATION = {
       }
     },
   },
+  certificationDate: {
+    validate: (issueDate: string, expiryDate: string | null) => {
+      if (!issueDate) return "Issue date is required";
+
+      const [issueYear, issueMonth, issueDay] = issueDate
+        .split("-")
+        .map(Number);
+      const issue = new Date(issueYear, issueMonth - 1, issueDay);
+      const now = new Date();
+      now.setHours(23, 59, 59, 999);
+
+      if (issue > now) {
+        return "Issue date cannot be in the future";
+      }
+
+      if (expiryDate) {
+        const [expYear, expMonth, expDay] = expiryDate.split("-").map(Number);
+        const expiry = new Date(expYear, expMonth - 1, expDay);
+        if (expiry < issue) {
+          return "Expiry date cannot be before issue date";
+        }
+        // Note: expiry date CAN be in the future - that's valid
+      }
+
+      return null;
+    },
+  },
   date: {
     validate: (
       startDate: string,
@@ -266,7 +293,11 @@ const VALIDATION = {
     ) => {
       if (!startDate) return `Start date is required for ${fieldName}`;
 
-      const start = new Date(startDate);
+      // Parse as local date to avoid timezone issues with YYYY-MM-DD format
+      const [startYear, startMonth, startDay] = startDate
+        .split("-")
+        .map(Number);
+      const start = new Date(startYear, startMonth - 1, startDay);
       const now = new Date();
 
       // Normalize to date-only (strip time) for fair comparison
@@ -277,7 +308,8 @@ const VALIDATION = {
       }
 
       if (endDate) {
-        const end = new Date(endDate);
+        const [endYear, endMonth, endDay] = endDate.split("-").map(Number);
+        const end = new Date(endYear, endMonth - 1, endDay);
         if (end < start) {
           return "End date cannot be before start date";
         }
@@ -1109,14 +1141,12 @@ const CandidateProfileUpdate = ({
         if (!cert.issueDate)
           errors[`cert_${index}_issueDate`] = "Issue date is required";
         else {
-          const dateError = VALIDATION.date.validate(
+          const dateError = VALIDATION.certificationDate.validate(
             cert.issueDate,
             cert.expiryDate ?? null,
-            "certification",
           );
           if (dateError) {
-            // Determine which field the error relates to
-            if (dateError.includes("Start date")) {
+            if (dateError.includes("Issue date")) {
               errors[`cert_${index}_issueDate`] = dateError;
             } else {
               errors[`cert_${index}_expiryDate`] = dateError;
@@ -1167,6 +1197,10 @@ const CandidateProfileUpdate = ({
       bio: formData.bio.trim(),
       primarySkills: formData.primarySkills,
       preferredWorkType: formData.preferredWorkType,
+      hourlyRateMin:
+        formData.hourlyRateMin === "" ? null : Number(formData.hourlyRateMin),
+      hourlyRateMax:
+        formData.hourlyRateMax === "" ? null : Number(formData.hourlyRateMax),
       certifications: formData.certifications
         .filter((cert) => cert.name && cert.issuedBy && cert.issueDate) // Only include completed certifications
         .map(({ localId, ...cert }) => ({
@@ -1607,7 +1641,7 @@ const CandidateProfileUpdate = ({
                       formData.preferredWorkType?.includes(workType) || false
                     }
                     onChange={() => handleWorkTypeChange(workType)}
-                    className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary dark:border-slate-500 dark:bg-slate-800"
+                    className="w-4 h-4 min-h-0 min-w-0 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary dark:border-slate-500 dark:bg-slate-800"
                   />
                   <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
                     {workType}
@@ -1627,6 +1661,7 @@ const CandidateProfileUpdate = ({
                 name="hourlyRateMin"
                 value={formData.hourlyRateMin}
                 onChange={handleInputChange}
+                placeholder="Enter your hourly rate (min)"
                 min="0"
                 max="10000"
                 className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
@@ -1648,6 +1683,7 @@ const CandidateProfileUpdate = ({
                 onChange={handleInputChange}
                 min="0"
                 max="10000"
+                placeholder="Enter your hourly rate (max)"
                 className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
                   fieldErrors.hourlyRate
                     ? "border-red-500 dark:border-red-500"
