@@ -591,13 +591,13 @@ const CandidateProfileUpdate = ({
     });
   }, [data, handleForm, skills]);
 
-  const availableToJoinOptions = ["freelance", "full-time", "both"];
+  const availabilityTypeOptions = ["freelance", "full-time", "both"];
   const resourceTypeOptions = [
     "Bench Resource",
     "Active Resource",
     "Available",
   ];
-  const availableInOptions = [
+  const availableToJoinOptions = [
     "Immediate / Serving Notice",
     "15 Days",
     "30 Days",
@@ -1531,7 +1531,7 @@ const CandidateProfileUpdate = ({
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border capitalize dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
               >
-                {availableToJoinOptions.map((option) => (
+                {availabilityTypeOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
@@ -1625,7 +1625,7 @@ const CandidateProfileUpdate = ({
                 className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white capitalize"
               >
                 <option value="">Select availability</option>
-                {availableInOptions.map((option) => (
+                {availableToJoinOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
