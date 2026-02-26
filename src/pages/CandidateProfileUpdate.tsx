@@ -591,7 +591,7 @@ const CandidateProfileUpdate = ({
     });
   }, [data, handleForm, skills]);
 
-  const availabilityOptions = ["freelance", "full-time", "both"];
+  const availableToJoinOptions = ["freelance", "full-time", "both"];
   const resourceTypeOptions = [
     "Bench Resource",
     "Active Resource",
@@ -1531,8 +1531,7 @@ const CandidateProfileUpdate = ({
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border capitalize dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
               >
-                <option value="">Select availability</option>
-                {availabilityOptions.map((option) => (
+                {availableToJoinOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
