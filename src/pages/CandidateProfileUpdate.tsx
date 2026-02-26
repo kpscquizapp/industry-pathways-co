@@ -276,25 +276,35 @@ const VALIDATION = {
     },
   },
   certificationDate: {
-    validate: (issueDate: string, expiryDate: string | null) => {
-      if (!issueDate) return "Issue date is required";
+    validate: (
+      issueDate: string,
+      expiryDate: string | null,
+    ): { field: "issueDate" | "expiryDate"; message: string } | null => {
+      if (!issueDate)
+        return { field: "issueDate", message: "Issue date is required" };
 
       const issue = parseLocalDate(issueDate);
-      if (!issue) return "Invalid issue date format";
+      if (!issue)
+        return { field: "issueDate", message: "Invalid issue date format" };
       const now = new Date();
       now.setHours(23, 59, 59, 999);
 
       if (issue > now) {
-        return "Issue date cannot be in the future";
+        return {
+          field: "issueDate",
+          message: "Issue date cannot be in the future",
+        };
       }
 
       if (expiryDate) {
         const expiry = parseLocalDate(expiryDate);
-        if (!expiry) {
-          return "Invalid expiry date format";
-        }
+        if (!expiry)
+          return { field: "expiryDate", message: "Invalid expiry date format" };
         if (expiry < issue) {
-          return "Expiry date cannot be before issue date";
+          return {
+            field: "expiryDate",
+            message: "Expiry date cannot be before issue date",
+          };
         }
         // Note: expiry date CAN be in the future - that's valid
       }
@@ -1164,14 +1174,7 @@ const CandidateProfileUpdate = ({
             cert.expiryDate ?? null,
           );
           if (dateError) {
-            if (
-              dateError.toLowerCase().startsWith("issue date") ||
-              dateError.toLowerCase().startsWith("invalid issue")
-            ) {
-              errors[`cert_${index}_issueDate`] = dateError;
-            } else {
-              errors[`cert_${index}_expiryDate`] = dateError;
-            }
+            errors[`cert_${index}_${dateError.field}`] = dateError.message;
           }
         }
         if (cert.credentialUrl) {
