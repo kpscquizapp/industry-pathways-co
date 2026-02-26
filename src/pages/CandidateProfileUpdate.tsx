@@ -91,7 +91,7 @@ interface FormDataState {
   primarySkills: string[];
   headline: string;
   resourceType: string;
-  availableIn: string;
+  availableToJoin: string;
   englishProficiency: string;
   preferredWorkType: string[];
   hourlyRateMin: number | string;
@@ -118,7 +118,7 @@ interface CandidateProfileUpdateProps {
       primarySkills?: Skill[];
       headline?: string;
       resourceType?: string;
-      availableIn?: string;
+      availableToJoin?: string;
       englishProficiency?: string;
       preferredWorkType?: string[];
       hourlyRateMin?: number | string;
@@ -527,7 +527,7 @@ const CandidateProfileUpdate = ({
         primarySkills: [],
         headline: "",
         resourceType: "",
-        availableIn: "",
+        availableToJoin: "",
         englishProficiency: "",
         preferredWorkType: [],
         hourlyRateMin: "",
@@ -549,7 +549,7 @@ const CandidateProfileUpdate = ({
       primarySkills: skills || [],
       headline: data?.candidateProfile.headline || "",
       resourceType: data?.candidateProfile.resourceType || "",
-      availableIn: data?.candidateProfile.availableIn || "",
+      availableToJoin: data?.candidateProfile.availableToJoin || "",
       englishProficiency: data?.candidateProfile.englishProficiency ?? "",
       preferredWorkType: data?.candidateProfile.preferredWorkType ?? [],
       hourlyRateMin:
@@ -597,7 +597,12 @@ const CandidateProfileUpdate = ({
     "Active Resource",
     "Available",
   ];
-  const availableInOptions = ["Immediate", "15 Days", "30 Days"];
+  const availableInOptions = [
+    "Immediate / Serving Notice",
+    "15 Days",
+    "30 Days",
+    "60 Days+",
+  ];
   const preferredWorkTypeOptions = ["remote", "hybrid", "onsite"];
   const englishProficiencyOptions = [
     "Basic",
@@ -1612,11 +1617,11 @@ const CandidateProfileUpdate = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Available In
+                Available To Join
               </Label>
               <select
-                name="availableIn"
-                value={formData.availableIn}
+                name="availableToJoin"
+                value={formData.availableToJoin}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white capitalize"
               >
