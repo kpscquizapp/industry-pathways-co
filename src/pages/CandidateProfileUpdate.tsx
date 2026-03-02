@@ -641,6 +641,12 @@ const CandidateProfileUpdate = ({
     if (name === "hourlyRateMin" || name === "hourlyRateMax") {
       errorKeysToCheck.push("hourlyRate");
     }
+
+    // expected salary has paired validation behavior (min/max relationship)
+    if (name === "expectedSalaryMin" || name === "expectedSalaryMax") {
+      errorKeysToCheck.push("expectedSalaryMin", "expectedSalaryMax");
+    }
+
     setFieldErrors((prev) => {
       const hasMatch = errorKeysToCheck.some((key) => prev[key]);
       if (!hasMatch) return prev;
@@ -1617,6 +1623,7 @@ const CandidateProfileUpdate = ({
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border capitalize dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
               >
+                {/* <option value="">Select contractor type</option> if someone choose this and submit "" will show validation error i don't want that thats why i removed it */}
                 {candidateTypeOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
