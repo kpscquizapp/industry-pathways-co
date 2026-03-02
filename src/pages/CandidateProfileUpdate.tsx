@@ -519,7 +519,7 @@ const CandidateProfileUpdate = ({
   const toNumberOrEmpty = (value: number | string | null | undefined) => {
     if (value === "" || value == null) return "";
     const n = Number(value);
-    return Number.isNaN(n) ? "" : n;
+    return Number.isFinite(n) ? n : "";
   };
 
   const handleForm = useCallback((): FormDataState => {
@@ -667,7 +667,7 @@ const CandidateProfileUpdate = ({
       case "expectedSalaryMax":
         {
           const parsed = value === "" ? "" : Number(value);
-          if (parsed === "" || !Number.isNaN(parsed)) {
+          if (parsed === "" || Number.isFinite(parsed)) {
             setFormData((prev) => ({
               ...prev,
               [name]: parsed,
