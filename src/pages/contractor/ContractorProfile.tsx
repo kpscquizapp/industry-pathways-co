@@ -125,7 +125,7 @@ const ContractorProfile = () => {
                           <span className="truncate">Availability</span>
                         </span>
                         <span className="font-semibold text-green-600 whitespace-nowrap text-right capitalize">
-                          {profile?.availableIn || "None"}
+                          {profile?.availableToJoin || "None"}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
