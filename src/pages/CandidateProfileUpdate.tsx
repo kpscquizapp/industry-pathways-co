@@ -1169,7 +1169,7 @@ const CandidateProfileUpdate = ({
       formData.expectedSalaryMin == null
     ) {
       errors.expectedSalaryMin = "Minimum expected salary is required";
-    } else if (isNaN(salaryMinNum) || salaryMinNum < 0) {
+    } else if (!Number.isFinite(salaryMinNum) || salaryMinNum < 0) {
       errors.expectedSalaryMin = "Please enter a valid minimum salary";
     }
 
@@ -1178,7 +1178,7 @@ const CandidateProfileUpdate = ({
       formData.expectedSalaryMax == null
     ) {
       errors.expectedSalaryMax = "Maximum expected salary is required";
-    } else if (isNaN(salaryMaxNum) || salaryMaxNum < 0) {
+    } else if (!Number.isFinite(salaryMaxNum) || salaryMaxNum < 0) {
       errors.expectedSalaryMax = "Please enter a valid maximum salary";
     }
 
