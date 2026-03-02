@@ -82,18 +82,20 @@ interface FormDataState {
   firstName: string;
   lastName: string;
   email: string;
+  mobileNumber: string;
   location: string;
   country: string | null;
   city: string | null;
-  availability: string;
+  candidateType: string;
   bio: string;
   yearsExperience: string | number;
   primarySkills: string[];
   headline: string;
-  resourceType: string;
   availableToJoin: string;
   englishProficiency: string;
   preferredWorkType: string[];
+  expectedSalaryMin: number | string;
+  expectedSalaryMax: number | string;
   hourlyRateMin: number | string;
   hourlyRateMax: number | string;
   workExperiences: WorkExperienceForm[];
@@ -110,19 +112,21 @@ interface CandidateProfileUpdateProps {
     avatar?: string;
     candidateProfile: {
       location?: string;
+      mobileNumber?: string;
       country?: string | null;
       city?: string | null;
-      availability?: string;
+      candidateType?: string;
       bio?: string;
       yearsExperience?: string | number;
       primarySkills?: Skill[];
       headline?: string;
-      resourceType?: string;
       availableToJoin?: string;
       englishProficiency?: string;
       preferredWorkType?: string[];
       hourlyRateMin?: number | string;
       hourlyRateMax?: number | string;
+      expectedSalaryMin?: number | string;
+      expectedSalaryMax?: number | string;
       workExperiences?: Array<{
         id: number | null;
         localId?: string;
@@ -512,26 +516,34 @@ const CandidateProfileUpdate = ({
     [data],
   );
 
+  const toNumberOrEmpty = (value: number | string | null | undefined) => {
+    if (value === "" || value == null) return "";
+    const n = Number(value);
+    return Number.isFinite(n) ? n : "";
+  };
+
   const handleForm = useCallback((): FormDataState => {
     if (!data)
       return {
         firstName: "",
         lastName: "",
         email: "",
+        mobileNumber: "",
         location: "",
         country: null,
         city: null,
-        availability: "",
+        candidateType: "",
         bio: "",
         yearsExperience: "",
         primarySkills: [],
         headline: "",
-        resourceType: "",
         availableToJoin: "",
         englishProficiency: "",
         preferredWorkType: [],
         hourlyRateMin: "",
         hourlyRateMax: "",
+        expectedSalaryMin: "",
+        expectedSalaryMax: "",
         workExperiences: [],
         projects: [],
         certifications: [],
@@ -540,15 +552,15 @@ const CandidateProfileUpdate = ({
       firstName: data?.firstName || "",
       lastName: data?.lastName || "",
       email: data?.email || "",
+      mobileNumber: data?.candidateProfile.mobileNumber || "",
       location: data?.candidateProfile.location || "",
       country: data?.candidateProfile.country ?? null,
       city: data?.candidateProfile.city ?? null,
-      availability: data?.candidateProfile.availability || "",
+      candidateType: data?.candidateProfile.candidateType || "",
       bio: data?.candidateProfile.bio || "",
       yearsExperience: data?.candidateProfile.yearsExperience ?? "",
       primarySkills: skills || [],
       headline: data?.candidateProfile.headline || "",
-      resourceType: data?.candidateProfile.resourceType || "",
       availableToJoin: data?.candidateProfile.availableToJoin || "",
       englishProficiency: data?.candidateProfile.englishProficiency ?? "",
       preferredWorkType: data?.candidateProfile.preferredWorkType ?? [],
@@ -562,6 +574,12 @@ const CandidateProfileUpdate = ({
         data?.candidateProfile.hourlyRateMax == null
           ? ""
           : Number(data?.candidateProfile.hourlyRateMax),
+      expectedSalaryMin: toNumberOrEmpty(
+        data?.candidateProfile.expectedSalaryMin,
+      ),
+      expectedSalaryMax: toNumberOrEmpty(
+        data?.candidateProfile.expectedSalaryMax,
+      ),
       workExperiences: workExperiences || [],
       projects: projects || [],
       certifications: certification || [],
@@ -591,14 +609,13 @@ const CandidateProfileUpdate = ({
     });
   }, [data, handleForm, skills]);
 
-  const availabilityTypeOptions = ["freelance", "full-time", "both"];
-  const resourceTypeOptions = [
-    "Bench Resource",
-    "Active Resource",
-    "Available",
+  const candidateTypeOptions = [
+    "Full-Time Job Seeker",
+    "Contract / Freelance",
+    "Hybrid Professional",
   ];
   const availableToJoinOptions = [
-    "Immediate / Serving Notice",
+    "Immediate",
     "15 Days",
     "30 Days",
     "60 Days+",
@@ -626,6 +643,12 @@ const CandidateProfileUpdate = ({
     if (name === "hourlyRateMin" || name === "hourlyRateMax") {
       errorKeysToCheck.push("hourlyRate");
     }
+
+    // expected salary has paired validation behavior (min/max relationship)
+    if (name === "expectedSalaryMin" || name === "expectedSalaryMax") {
+      errorKeysToCheck.push("expectedSalaryMin", "expectedSalaryMax");
+    }
+
     setFieldErrors((prev) => {
       const hasMatch = errorKeysToCheck.some((key) => prev[key]);
       if (!hasMatch) return prev;
@@ -640,9 +663,11 @@ const CandidateProfileUpdate = ({
       case "hourlyRateMin":
       case "hourlyRateMax":
       case "yearsExperience":
+      case "expectedSalaryMin":
+      case "expectedSalaryMax":
         {
           const parsed = value === "" ? "" : Number(value);
-          if (parsed === "" || !Number.isNaN(parsed)) {
+          if (parsed === "" || Number.isFinite(parsed)) {
             setFormData((prev) => ({
               ...prev,
               [name]: parsed,
@@ -1090,6 +1115,18 @@ const CandidateProfileUpdate = ({
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
+    if (!formData.candidateType) {
+      errors.candidateType = "Contractor type is required";
+    }
+
+    // Validate mobile number
+    const sanitizedMobile = formData.mobileNumber.replace(/[\s\-()]/g, "");
+    if (!sanitizedMobile) {
+      errors.mobileNumber = "Mobile number is required";
+    } else if (!/^\+?\d{7,15}$/.test(sanitizedMobile)) {
+      errors.mobileNumber = "Please enter a valid mobile number";
+    }
+
     // Validate basic fields
     const firstNameError = VALIDATION.name.validate(
       formData.firstName,
@@ -1122,6 +1159,37 @@ const CandidateProfileUpdate = ({
       formData.hourlyRateMax,
     );
     if (rateError) errors.hourlyRate = rateError;
+
+    // Validate expected salary
+    const salaryMinNum = Number(formData.expectedSalaryMin);
+    const salaryMaxNum = Number(formData.expectedSalaryMax);
+
+    if (
+      formData.expectedSalaryMin === "" ||
+      formData.expectedSalaryMin == null
+    ) {
+      errors.expectedSalaryMin = "Minimum expected salary is required";
+    } else if (!Number.isFinite(salaryMinNum) || salaryMinNum < 0) {
+      errors.expectedSalaryMin = "Please enter a valid minimum salary";
+    }
+
+    if (
+      formData.expectedSalaryMax === "" ||
+      formData.expectedSalaryMax == null
+    ) {
+      errors.expectedSalaryMax = "Maximum expected salary is required";
+    } else if (!Number.isFinite(salaryMaxNum) || salaryMaxNum < 0) {
+      errors.expectedSalaryMax = "Please enter a valid maximum salary";
+    }
+
+    if (
+      !errors.expectedSalaryMin &&
+      !errors.expectedSalaryMax &&
+      salaryMinNum > salaryMaxNum
+    ) {
+      errors.expectedSalaryMax =
+        "Maximum salary cannot be less than minimum salary";
+    }
 
     const skillsError = VALIDATION.skill.validate(formData.primarySkills);
     if (skillsError) errors.primarySkills = skillsError;
@@ -1219,6 +1287,7 @@ const CandidateProfileUpdate = ({
       firstName: formData.firstName.trim(),
       lastName: formData.lastName.trim(),
       email: formData.email.toLowerCase().trim(),
+      mobileNumber: formData.mobileNumber.replace(/[\s\-()]/g, ""),
       location: formData.location.trim(),
       country: formData.country?.trim() || null,
       city: formData.city?.trim() || null,
@@ -1230,6 +1299,14 @@ const CandidateProfileUpdate = ({
         formData.hourlyRateMin === "" ? null : Number(formData.hourlyRateMin),
       hourlyRateMax:
         formData.hourlyRateMax === "" ? null : Number(formData.hourlyRateMax),
+      expectedSalaryMin:
+        formData.expectedSalaryMin === ""
+          ? null
+          : Number(formData.expectedSalaryMin),
+      expectedSalaryMax:
+        formData.expectedSalaryMax === ""
+          ? null
+          : Number(formData.expectedSalaryMax),
       certifications: formData.certifications
         .filter((cert) => cert.name && cert.issuedBy && cert.issueDate) // Only include completed certifications
         .map(({ localId, ...cert }) => ({
@@ -1498,6 +1575,27 @@ const CandidateProfileUpdate = ({
               <ErrorMessage error={fieldErrors.headline} />
             </div>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left pb-2">
+            <div>
+              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+                Mobile Number <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                type="text"
+                name="mobileNumber"
+                value={formData.mobileNumber}
+                onChange={handleInputChange}
+                maxLength={20}
+                placeholder="Enter your mobile number"
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors.mobileNumber
+                    ? "border-red-500 dark:border-red-500"
+                    : ""
+                }`}
+              />
+              <ErrorMessage error={fieldErrors.mobileNumber} />
+            </div>
+          </div>
         </div>
 
         {/* Professional Details */}
@@ -1523,20 +1621,26 @@ const CandidateProfileUpdate = ({
 
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Availability
+                Contractor Type
               </Label>
               <select
-                name="availability"
-                value={formData.availability}
+                name="candidateType"
+                value={formData.candidateType}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border capitalize dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                className={`w-full px-3 py-2 border capitalize dark:border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 bg-white ${
+                  fieldErrors.candidateType
+                    ? "border-red-500 dark:border-red-500"
+                    : "border-gray-300 dark:border-slate-500"
+                }`}
               >
-                {availabilityTypeOptions.map((option) => (
+                <option value="">Select contractor type</option>
+                {candidateTypeOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
                 ))}
               </select>
+              <ErrorMessage error={fieldErrors.candidateType} />
             </div>
           </div>
 
@@ -1569,47 +1673,6 @@ const CandidateProfileUpdate = ({
                 maxLength={100}
                 className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
               />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
-            <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Years of Experience
-              </Label>
-              <Input
-                type="number"
-                name="yearsExperience"
-                value={formData.yearsExperience}
-                onChange={handleInputChange}
-                min="0"
-                max="70"
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors.yearsExperience
-                    ? "border-red-500 dark:border-red-500"
-                    : ""
-                }`}
-              />
-              <ErrorMessage error={fieldErrors.yearsExperience} />
-            </div>
-
-            <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Resource Type
-              </Label>
-              <select
-                name="resourceType"
-                value={formData.resourceType}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white capitalize"
-              >
-                <option value="">Select resource type</option>
-                {resourceTypeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
 
@@ -1652,6 +1715,28 @@ const CandidateProfileUpdate = ({
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
+            <div>
+              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+                Years of Experience
+              </Label>
+              <Input
+                type="number"
+                name="yearsExperience"
+                value={formData.yearsExperience}
+                onChange={handleInputChange}
+                min="0"
+                max="70"
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors.yearsExperience
+                    ? "border-red-500 dark:border-red-500"
+                    : ""
+                }`}
+              />
+              <ErrorMessage error={fieldErrors.yearsExperience} />
+            </div>
+          </div>
+
           <div className="pb-2">
             <Label className="block text-sm font-medium text-gray-700 mb-2 dark:text-white">
               Preferred Work Type
@@ -1677,11 +1762,53 @@ const CandidateProfileUpdate = ({
               ))}
             </div>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
+            <div>
+              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+                Expected Salary (Min){" "}
+                <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                type="number"
+                name="expectedSalaryMin"
+                value={formData.expectedSalaryMin}
+                onChange={handleInputChange}
+                min="0"
+                placeholder="Enter your expected salary (min)"
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors.expectedSalaryMin
+                    ? "border-red-500 dark:border-red-500"
+                    : ""
+                }`}
+              />
+              <ErrorMessage error={fieldErrors.expectedSalaryMin} />
+            </div>
+            <div>
+              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+                Expected Salary (Max){" "}
+                <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                type="number"
+                name="expectedSalaryMax"
+                value={formData.expectedSalaryMax}
+                onChange={handleInputChange}
+                min="0"
+                placeholder="Enter your expected salary (max)"
+                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                  fieldErrors.expectedSalaryMax
+                    ? "border-red-500 dark:border-red-500"
+                    : ""
+                }`}
+              />
+              <ErrorMessage error={fieldErrors.expectedSalaryMax} />
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Hourly Rate (Min) $
+                Hourly Rate (Min)
               </Label>
               <Input
                 type="number"
@@ -1701,7 +1828,7 @@ const CandidateProfileUpdate = ({
 
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Hourly Rate (Max) $
+                Hourly Rate (Max)
               </Label>
               <Input
                 type="number"
