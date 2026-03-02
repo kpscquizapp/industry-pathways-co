@@ -611,7 +611,7 @@ const CandidateProfileUpdate = ({
 
   const candidateTypeOptions = [
     "Full-Time Job Seeker",
-    "Contractor / Freelancer",
+    "Contract / Freelance",
     "Hybrid Professional",
   ];
   const availableToJoinOptions = [
