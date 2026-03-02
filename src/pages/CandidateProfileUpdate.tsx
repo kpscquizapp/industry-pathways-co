@@ -516,6 +516,12 @@ const CandidateProfileUpdate = ({
     [data],
   );
 
+  const toNumberOrEmpty = (value: number | string | null | undefined) => {
+    if (value === "" || value == null) return "";
+    const n = Number(value);
+    return Number.isNaN(n) ? "" : n;
+  };
+
   const handleForm = useCallback((): FormDataState => {
     if (!data)
       return {
@@ -568,16 +574,12 @@ const CandidateProfileUpdate = ({
         data?.candidateProfile.hourlyRateMax == null
           ? ""
           : Number(data?.candidateProfile.hourlyRateMax),
-      expectedSalaryMin:
-        data?.candidateProfile.expectedSalaryMin === "" ||
-        data?.candidateProfile.expectedSalaryMin == null
-          ? ""
-          : Number(data?.candidateProfile.expectedSalaryMin),
-      expectedSalaryMax:
-        data?.candidateProfile.expectedSalaryMax === "" ||
-        data?.candidateProfile.expectedSalaryMax == null
-          ? ""
-          : Number(data?.candidateProfile.expectedSalaryMax),
+      expectedSalaryMin: toNumberOrEmpty(
+        data?.candidateProfile.expectedSalaryMin,
+      ),
+      expectedSalaryMax: toNumberOrEmpty(
+        data?.candidateProfile.expectedSalaryMax,
+      ),
       workExperiences: workExperiences || [],
       projects: projects || [],
       certifications: certification || [],
@@ -1113,6 +1115,10 @@ const CandidateProfileUpdate = ({
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
+    if (!formData.candidateType) {
+      errors.candidateType = "Contractor type is required";
+    }
+
     // Validate mobile number
     const sanitizedMobile = formData.mobileNumber.replace(/[\s\-()]/g, "");
     if (!sanitizedMobile) {
@@ -1621,15 +1627,20 @@ const CandidateProfileUpdate = ({
                 name="candidateType"
                 value={formData.candidateType}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border capitalize dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                className={`w-full px-3 py-2 border capitalize dark:border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 bg-white ${
+                  fieldErrors.candidateType
+                    ? "border-red-500 dark:border-red-500"
+                    : "border-gray-300 dark:border-slate-500"
+                }`}
               >
-                {/* <option value="">Select contractor type</option> if someone choose this and submit "" will show validation error i don't want that thats why i removed it */}
+                <option value="">Select contractor type</option>
                 {candidateTypeOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
                 ))}
               </select>
+              <ErrorMessage error={fieldErrors.candidateType} />
             </div>
           </div>
 
@@ -1770,6 +1781,7 @@ const CandidateProfileUpdate = ({
                     : ""
                 }`}
               />
+              <ErrorMessage error={fieldErrors.expectedSalaryMin} />
             </div>
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
@@ -1789,6 +1801,7 @@ const CandidateProfileUpdate = ({
                     : ""
                 }`}
               />
+              <ErrorMessage error={fieldErrors.expectedSalaryMax} />
             </div>
           </div>
 
