@@ -612,11 +612,6 @@ const CandidateProfileUpdate = ({
     "Contractor / Freelancer",
     "Hybrid Professional",
   ];
-  const resourceTypeOptions = [
-    "Bench Resource",
-    "Active Resource",
-    "Available",
-  ];
   const availableToJoinOptions = [
     "Immediate",
     "15 Days",
@@ -1153,6 +1148,37 @@ const CandidateProfileUpdate = ({
     );
     if (rateError) errors.hourlyRate = rateError;
 
+    // Validate expected salary
+    const salaryMinNum = Number(formData.expectedSalaryMin);
+    const salaryMaxNum = Number(formData.expectedSalaryMax);
+
+    if (
+      formData.expectedSalaryMin === "" ||
+      formData.expectedSalaryMin == null
+    ) {
+      errors.expectedSalaryMin = "Minimum expected salary is required";
+    } else if (isNaN(salaryMinNum) || salaryMinNum < 0) {
+      errors.expectedSalaryMin = "Please enter a valid minimum salary";
+    }
+
+    if (
+      formData.expectedSalaryMax === "" ||
+      formData.expectedSalaryMax == null
+    ) {
+      errors.expectedSalaryMax = "Maximum expected salary is required";
+    } else if (isNaN(salaryMaxNum) || salaryMaxNum < 0) {
+      errors.expectedSalaryMax = "Please enter a valid maximum salary";
+    }
+
+    if (
+      !errors.expectedSalaryMin &&
+      !errors.expectedSalaryMax &&
+      salaryMinNum > salaryMaxNum
+    ) {
+      errors.expectedSalaryMax =
+        "Maximum salary cannot be less than minimum salary";
+    }
+
     const skillsError = VALIDATION.skill.validate(formData.primarySkills);
     if (skillsError) errors.primarySkills = skillsError;
 
@@ -1261,6 +1287,14 @@ const CandidateProfileUpdate = ({
         formData.hourlyRateMin === "" ? null : Number(formData.hourlyRateMin),
       hourlyRateMax:
         formData.hourlyRateMax === "" ? null : Number(formData.hourlyRateMax),
+      expectedSalaryMin:
+        formData.expectedSalaryMin === ""
+          ? null
+          : Number(formData.expectedSalaryMin),
+      expectedSalaryMax:
+        formData.expectedSalaryMax === ""
+          ? null
+          : Number(formData.expectedSalaryMax),
       certifications: formData.certifications
         .filter((cert) => cert.name && cert.issuedBy && cert.issueDate) // Only include completed certifications
         .map(({ localId, ...cert }) => ({
