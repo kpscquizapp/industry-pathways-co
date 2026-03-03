@@ -412,6 +412,7 @@ const CandidateProfileUpdate = ({
     string | number | null
   >(null);
   const resumeData = useSelector((state: RootState) => state.resumeSkills.data);
+  const preferredLocationsDirtyRef = useRef(false);
 
   const skills = useMemo(() => {
     // Get resume skills (priority)
@@ -609,10 +610,9 @@ const CandidateProfileUpdate = ({
           prev.primarySkills.length > 0
             ? [...prev.primarySkills, ...newSkills]
             : base.primarySkills,
-        preferredJobLocations:
-          prev.preferredJobLocations.length > 0
-            ? prev.preferredJobLocations
-            : base.preferredJobLocations,
+        preferredJobLocations: preferredLocationsDirtyRef.current
+          ? prev.preferredJobLocations
+          : base.preferredJobLocations,
       };
     });
   }, [data, handleForm, skills]);
@@ -733,16 +733,18 @@ const CandidateProfileUpdate = ({
       ...prev,
       preferredJobLocations: [...prev.preferredJobLocations, name],
     }));
+    preferredLocationsDirtyRef.current = true;
     setLocationInput("");
   };
 
-  const removeLocation = (locationToRemove: string) => {
+  const removeLocation = (indexToRemove: number) => {
     setFormData((prev) => ({
       ...prev,
       preferredJobLocations: prev.preferredJobLocations.filter(
-        (loc) => loc.toLowerCase() !== locationToRemove.toLowerCase(),
+        (_, index) => index !== indexToRemove,
       ),
     }));
+    preferredLocationsDirtyRef.current = true;
   };
 
   const addSkill = () => {
@@ -1801,7 +1803,7 @@ const CandidateProfileUpdate = ({
                       addLocation();
                     }
                   }}
-                  placeholder="e.g., New York, London"
+                  placeholder="e.g., New York, Mumbai, London"
                   maxLength={100}
                   className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
                 />
@@ -1818,15 +1820,15 @@ const CandidateProfileUpdate = ({
               </div>
               {formData.preferredJobLocations.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.preferredJobLocations.map((location) => (
+                  {formData.preferredJobLocations.map((location, index) => (
                     <span
-                      key={location}
+                      key={`${location}-${index}`}
                       className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
                     >
                       {location}
                       <button
                         type="button"
-                        onClick={() => removeLocation(location)}
+                        onClick={() => removeLocation(index)}
                         className="hover:text-red-500 transition-colors"
                         aria-label={`Remove ${location}`}
                       >
