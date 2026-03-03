@@ -93,6 +93,7 @@ interface FormDataState {
   headline: string;
   availableToJoin: string;
   englishProficiency: string;
+  preferredJobLocations: string[];
   preferredWorkType: string[];
   expectedSalaryMin: number | string;
   expectedSalaryMax: number | string;
@@ -122,6 +123,7 @@ interface CandidateProfileUpdateProps {
       headline?: string;
       availableToJoin?: string;
       englishProficiency?: string;
+      preferredJobLocations?: string[];
       preferredWorkType?: string[];
       hourlyRateMin?: number | string;
       hourlyRateMax?: number | string;
@@ -395,6 +397,7 @@ const CandidateProfileUpdate = ({
   } = useGetCandidateProfileImageQuery(hasAvatar ? data.id : skipToken);
 
   const [skillInput, setSkillInput] = useState("");
+  const [locationInput, setLocationInput] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [removingSkillId, setRemovingSkillId] = useState<
     string | number | null
@@ -409,6 +412,11 @@ const CandidateProfileUpdate = ({
     string | number | null
   >(null);
   const resumeData = useSelector((state: RootState) => state.resumeSkills.data);
+  const preferredLocationsDirtyRef = useRef(false);
+
+  useEffect(() => {
+    preferredLocationsDirtyRef.current = false;
+  }, [data?.id]);
 
   const skills = useMemo(() => {
     // Get resume skills (priority)
@@ -539,6 +547,7 @@ const CandidateProfileUpdate = ({
         headline: "",
         availableToJoin: "",
         englishProficiency: "",
+        preferredJobLocations: [],
         preferredWorkType: [],
         hourlyRateMin: "",
         hourlyRateMax: "",
@@ -563,6 +572,7 @@ const CandidateProfileUpdate = ({
       headline: data?.candidateProfile.headline || "",
       availableToJoin: data?.candidateProfile.availableToJoin || "",
       englishProficiency: data?.candidateProfile.englishProficiency ?? "",
+      preferredJobLocations: data?.candidateProfile.preferredJobLocations ?? [],
       preferredWorkType: data?.candidateProfile.preferredWorkType ?? [],
       hourlyRateMin:
         data?.candidateProfile.hourlyRateMin === "" ||
@@ -592,20 +602,22 @@ const CandidateProfileUpdate = ({
     if (!data) return;
     setFormData((prev) => {
       const base = handleForm();
-      // Preserve user's skill edits by merging rather than replacing
-      if (prev.primarySkills.length > 0) {
-        const existingLower = new Set(
-          prev.primarySkills.map((s) => s.toLowerCase().trim()),
-        );
-        const newSkills = skills.filter(
-          (s) => !existingLower.has(s.toLowerCase().trim()),
-        );
-        return {
-          ...base,
-          primarySkills: [...prev.primarySkills, ...newSkills],
-        };
-      }
-      return base;
+      const existingLower = new Set(
+        prev.primarySkills.map((s) => s.toLowerCase().trim()),
+      );
+      const newSkills = skills.filter(
+        (s) => !existingLower.has(s.toLowerCase().trim()),
+      );
+      return {
+        ...base,
+        primarySkills:
+          prev.primarySkills.length > 0
+            ? [...prev.primarySkills, ...newSkills]
+            : base.primarySkills,
+        preferredJobLocations: preferredLocationsDirtyRef.current
+          ? prev.preferredJobLocations
+          : base.preferredJobLocations,
+      };
     });
   }, [data, handleForm, skills]);
 
@@ -692,6 +704,51 @@ const CandidateProfileUpdate = ({
           : [...currentTypes, workType],
       };
     });
+  };
+
+  const addLocation = () => {
+    const name = locationInput.trim();
+
+    if (!name) {
+      toast.error("Please enter a location");
+      return;
+    }
+
+    if (name.length > 100) {
+      toast.error("Location must be less than 100 characters");
+      return;
+    }
+
+    if (formData.preferredJobLocations.length >= 100) {
+      toast.error("You can add a maximum of 100 preferred locations");
+      return;
+    }
+
+    if (
+      formData.preferredJobLocations.some(
+        (loc) => loc.trim().toLowerCase() === name.toLowerCase(),
+      )
+    ) {
+      toast.error("This location has already been added");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      preferredJobLocations: [...prev.preferredJobLocations, name],
+    }));
+    preferredLocationsDirtyRef.current = true;
+    setLocationInput("");
+  };
+
+  const removeLocation = (indexToRemove: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      preferredJobLocations: prev.preferredJobLocations.filter(
+        (_, index) => index !== indexToRemove,
+      ),
+    }));
+    preferredLocationsDirtyRef.current = true;
   };
 
   const addSkill = () => {
@@ -1295,6 +1352,7 @@ const CandidateProfileUpdate = ({
       bio: formData.bio.trim(),
       primarySkills: formData.primarySkills,
       preferredWorkType: formData.preferredWorkType,
+      preferredJobLocations: formData.preferredJobLocations,
       hourlyRateMin:
         formData.hourlyRateMin === "" ? null : Number(formData.hourlyRateMin),
       hourlyRateMax:
@@ -1345,6 +1403,7 @@ const CandidateProfileUpdate = ({
     };
     try {
       await updateProfile(payload).unwrap();
+      preferredLocationsDirtyRef.current = false;
       toast.success("Profile updated successfully!");
       setFieldErrors({}); // Clear all errors on success
     } catch (err: unknown) {
@@ -1734,6 +1793,57 @@ const CandidateProfileUpdate = ({
                 }`}
               />
               <ErrorMessage error={fieldErrors.yearsExperience} />
+            </div>
+            <div>
+              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+                Preferred Job Locations
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addLocation();
+                    }
+                  }}
+                  placeholder="e.g., New York, Mumbai, London"
+                  maxLength={100}
+                  className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                />
+                <Button
+                  type="button"
+                  onClick={addLocation}
+                  variant="outline"
+                  className="shrink-0"
+                  aria-label="Add preferred job location"
+                  title="Add preferred job location"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              {formData.preferredJobLocations.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.preferredJobLocations.map((location, index) => (
+                    <span
+                      key={`${location}-${index}`}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                    >
+                      {location}
+                      <button
+                        type="button"
+                        onClick={() => removeLocation(index)}
+                        className="hover:text-red-500 transition-colors"
+                        aria-label={`Remove ${location}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -2435,6 +2545,8 @@ const CandidateProfileUpdate = ({
           onClick={() => {
             setFormData(handleForm());
             setFieldErrors({}); // Clear errors on cancel
+            setLocationInput("");
+            preferredLocationsDirtyRef.current = false;
             toast.info("Changes discarded");
           }}
           type="button"
