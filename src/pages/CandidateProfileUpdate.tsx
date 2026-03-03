@@ -1352,6 +1352,7 @@ const CandidateProfileUpdate = ({
       bio: formData.bio.trim(),
       primarySkills: formData.primarySkills,
       preferredWorkType: formData.preferredWorkType,
+      preferredJobLocations: formData.preferredJobLocations,
       hourlyRateMin:
         formData.hourlyRateMin === "" ? null : Number(formData.hourlyRateMin),
       hourlyRateMax:
