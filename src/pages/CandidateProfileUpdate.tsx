@@ -93,6 +93,7 @@ interface FormDataState {
   headline: string;
   availableToJoin: string;
   englishProficiency: string;
+  preferredJobLocations: string[];
   preferredWorkType: string[];
   expectedSalaryMin: number | string;
   expectedSalaryMax: number | string;
@@ -122,6 +123,7 @@ interface CandidateProfileUpdateProps {
       headline?: string;
       availableToJoin?: string;
       englishProficiency?: string;
+      preferredJobLocations?: string[];
       preferredWorkType?: string[];
       hourlyRateMin?: number | string;
       hourlyRateMax?: number | string;
@@ -373,6 +375,7 @@ const VALIDATION = {
 const CandidateProfileUpdate = ({
   data,
 }: CandidateProfileUpdateProps): JSX.Element => {
+  console.log(data);
   // API calls
   const [updateProfile, { isLoading: isUpdating, isError: updateError }] =
     useUpdateProfileMutation();
@@ -395,6 +398,7 @@ const CandidateProfileUpdate = ({
   } = useGetCandidateProfileImageQuery(hasAvatar ? data.id : skipToken);
 
   const [skillInput, setSkillInput] = useState("");
+  const [locationInput, setLocationInput] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [removingSkillId, setRemovingSkillId] = useState<
     string | number | null
@@ -539,6 +543,7 @@ const CandidateProfileUpdate = ({
         headline: "",
         availableToJoin: "",
         englishProficiency: "",
+        preferredJobLocations: [],
         preferredWorkType: [],
         hourlyRateMin: "",
         hourlyRateMax: "",
@@ -563,6 +568,7 @@ const CandidateProfileUpdate = ({
       headline: data?.candidateProfile.headline || "",
       availableToJoin: data?.candidateProfile.availableToJoin || "",
       englishProficiency: data?.candidateProfile.englishProficiency ?? "",
+      preferredJobLocations: data?.candidateProfile.preferredJobLocations ?? [],
       preferredWorkType: data?.candidateProfile.preferredWorkType ?? [],
       hourlyRateMin:
         data?.candidateProfile.hourlyRateMin === "" ||
@@ -692,6 +698,44 @@ const CandidateProfileUpdate = ({
           : [...currentTypes, workType],
       };
     });
+  };
+
+  const addLocation = () => {
+    const name = locationInput.trim();
+
+    if (name.length > 100) {
+      toast.error("Location must be less than 100 characters");
+      return;
+    }
+
+    if (formData.preferredJobLocations.length >= 100) {
+      toast.error("You can add a maximum of 100 preferred locations");
+      return;
+    }
+
+    if (
+      formData.preferredJobLocations.some(
+        (loc) => loc.toLowerCase() === name.toLowerCase(),
+      )
+    ) {
+      toast.error("This location has already been added");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      preferredJobLocations: [...prev.preferredJobLocations, name],
+    }));
+    setLocationInput("");
+  };
+
+  const removeLocation = (locationToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      preferredJobLocations: prev.preferredJobLocations.filter(
+        (loc) => loc.toLowerCase() !== locationToRemove.toLowerCase(),
+      ),
+    }));
   };
 
   const addSkill = () => {
@@ -1734,6 +1778,54 @@ const CandidateProfileUpdate = ({
                 }`}
               />
               <ErrorMessage error={fieldErrors.yearsExperience} />
+            </div>
+            <div>
+              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+                Preferred Job Locations
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addLocation();
+                    }
+                  }}
+                  placeholder="e.g., New York, London"
+                  maxLength={100}
+                  className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                />
+                <Button
+                  type="button"
+                  onClick={addLocation}
+                  variant="outline"
+                  className="shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              {formData.preferredJobLocations.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.preferredJobLocations.map((location) => (
+                    <span
+                      key={location}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                    >
+                      {location}
+                      <button
+                        type="button"
+                        onClick={() => removeLocation(location)}
+                        className="hover:text-red-500 transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
