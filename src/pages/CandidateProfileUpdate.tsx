@@ -726,7 +726,7 @@ const CandidateProfileUpdate = ({
 
     if (
       formData.preferredJobLocations.some(
-        (loc) => loc.toLowerCase() === name.toLowerCase(),
+        (loc) => loc.trim().toLowerCase() === name.toLowerCase(),
       )
     ) {
       toast.error("This location has already been added");
