@@ -375,7 +375,6 @@ const VALIDATION = {
 const CandidateProfileUpdate = ({
   data,
 }: CandidateProfileUpdateProps): JSX.Element => {
-  console.log(data);
   // API calls
   const [updateProfile, { isLoading: isUpdating, isError: updateError }] =
     useUpdateProfileMutation();
@@ -702,6 +701,11 @@ const CandidateProfileUpdate = ({
 
   const addLocation = () => {
     const name = locationInput.trim();
+
+    if (!name) {
+      toast.error("Please enter a location");
+      return;
+    }
 
     if (name.length > 100) {
       toast.error("Location must be less than 100 characters");
@@ -1819,6 +1823,7 @@ const CandidateProfileUpdate = ({
                         type="button"
                         onClick={() => removeLocation(location)}
                         className="hover:text-red-500 transition-colors"
+                        aria-label={`Remove ${location}`}
                       >
                         <X className="w-3 h-3" />
                       </button>
