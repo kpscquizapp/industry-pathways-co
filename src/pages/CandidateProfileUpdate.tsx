@@ -597,20 +597,23 @@ const CandidateProfileUpdate = ({
     if (!data) return;
     setFormData((prev) => {
       const base = handleForm();
-      // Preserve user's skill edits by merging rather than replacing
-      if (prev.primarySkills.length > 0) {
-        const existingLower = new Set(
-          prev.primarySkills.map((s) => s.toLowerCase().trim()),
-        );
-        const newSkills = skills.filter(
-          (s) => !existingLower.has(s.toLowerCase().trim()),
-        );
-        return {
-          ...base,
-          primarySkills: [...prev.primarySkills, ...newSkills],
-        };
-      }
-      return base;
+      const existingLower = new Set(
+        prev.primarySkills.map((s) => s.toLowerCase().trim()),
+      );
+      const newSkills = skills.filter(
+        (s) => !existingLower.has(s.toLowerCase().trim()),
+      );
+      return {
+        ...base,
+        primarySkills:
+          prev.primarySkills.length > 0
+            ? [...prev.primarySkills, ...newSkills]
+            : base.primarySkills,
+        preferredJobLocations:
+          prev.preferredJobLocations.length > 0
+            ? prev.preferredJobLocations
+            : base.preferredJobLocations,
+      };
     });
   }, [data, handleForm, skills]);
 
@@ -1807,6 +1810,8 @@ const CandidateProfileUpdate = ({
                   onClick={addLocation}
                   variant="outline"
                   className="shrink-0"
+                  aria-label="Add preferred job location"
+                  title="Add preferred job location"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -2532,6 +2537,7 @@ const CandidateProfileUpdate = ({
           onClick={() => {
             setFormData(handleForm());
             setFieldErrors({}); // Clear errors on cancel
+            setLocationInput("");
             toast.info("Changes discarded");
           }}
           type="button"
