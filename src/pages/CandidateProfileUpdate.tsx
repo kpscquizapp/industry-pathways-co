@@ -414,6 +414,10 @@ const CandidateProfileUpdate = ({
   const resumeData = useSelector((state: RootState) => state.resumeSkills.data);
   const preferredLocationsDirtyRef = useRef(false);
 
+  useEffect(() => {
+    preferredLocationsDirtyRef.current = false;
+  }, [data?.id]);
+
   const skills = useMemo(() => {
     // Get resume skills (priority)
     const resumeSkills = Array.isArray(resumeData)
@@ -1398,6 +1402,7 @@ const CandidateProfileUpdate = ({
     };
     try {
       await updateProfile(payload).unwrap();
+      preferredLocationsDirtyRef.current = false;
       toast.success("Profile updated successfully!");
       setFieldErrors({}); // Clear all errors on success
     } catch (err: unknown) {
@@ -2540,6 +2545,7 @@ const CandidateProfileUpdate = ({
             setFormData(handleForm());
             setFieldErrors({}); // Clear errors on cancel
             setLocationInput("");
+            preferredLocationsDirtyRef.current = false;
             toast.info("Changes discarded");
           }}
           type="button"
