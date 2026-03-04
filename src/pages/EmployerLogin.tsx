@@ -23,31 +23,15 @@ import { setUser } from "@/app/slices/userAuth";
 import { RootState } from "@/app/store";
 import { useLoginEmployerMutation } from "@/app/queries/loginApi";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
-import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
-
-// ==================== VALIDATION ====================
-const CREDENTIAL_ERROR_MSG = "Please check your credentials";
-
-const VALIDATION = {
-  email: {
-    regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    validate: (email: string) => {
-      const trimmed = email?.trim() ?? "";
-      if (!trimmed) return "Email address is required";
-      if (!VALIDATION.email.regex.test(trimmed)) {
-        return "Please enter a valid email address";
-      }
-      return null;
-    },
-  },
-  password: {
-    validate: (password: string) => {
-      if (!password) return "Password is required";
-      if (password.length < 8) return "Password must be at least 8 characters";
-      return null;
-    },
-  },
-};
+import {
+  CREDENTIAL_ERROR_MSG,
+  clearCredentialErrors,
+  clearLoginFieldErrors,
+  getLoginErrorDetails,
+  sanitizeLoginEmail,
+  validateLoginField,
+  validateLoginForm,
+} from "@/services/utils/loginValidation";
 
 // ==================== COMPONENT ====================
 const EmployerLogin = () => {
@@ -78,33 +62,20 @@ const EmployerLogin = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     // Clear field error when user starts typing
-    if (fieldErrors[name]) {
+    if ((name === "email" || name === "password") && fieldErrors[name]) {
       setFieldErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        // Clear credential-related errors on both fields
-        const otherField = name === "email" ? "password" : "email";
-        if (prev[otherField] === CREDENTIAL_ERROR_MSG) {
-          delete newErrors[otherField];
-        }
-        return newErrors;
+        return clearLoginFieldErrors(prev, name);
       });
     }
   };
 
-  const handleBlur = (field: string) => {
+  const handleBlur = (field: "email" | "password") => {
     setTouched((prev) => ({ ...prev, [field]: true }));
     validateField(field);
   };
 
-  const validateField = (field: string) => {
-    let error: string | null = null;
-
-    if (field === "email") {
-      error = VALIDATION.email.validate(formData.email);
-    } else if (field === "password") {
-      error = VALIDATION.password.validate(formData.password);
-    }
+  const validateField = (field: "email" | "password") => {
+    const error = validateLoginField(field, formData);
 
     if (error) {
       setFieldErrors((prev) => ({ ...prev, [field]: error }));
@@ -120,23 +91,16 @@ const EmployerLogin = () => {
   };
 
   const validateForm = (): boolean => {
-    const errors: Record<string, string> = {};
-
     // Always mark all fields as touched on submit attempt
     setTouched({ email: true, password: true });
 
-    const emailError = VALIDATION.email.validate(formData.email);
-    if (emailError) errors.email = emailError;
-
-    const passwordError = VALIDATION.password.validate(formData.password);
-    if (passwordError) errors.password = passwordError;
+    const { errors, firstError } = validateLoginForm(formData);
 
     if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
+      setFieldErrors(errors as Record<string, string>);
 
       // Show the first error in a toast
-      const firstError = Object.values(errors)[0];
-      toast.error(firstError);
+      if (firstError) toast.error(firstError);
 
       return false;
     }
@@ -154,18 +118,12 @@ const EmployerLogin = () => {
 
     // Clear previous API-set field errors before making new request
     setFieldErrors((prev) => {
-      const newErrors = { ...prev };
-      for (const key of Object.keys(newErrors)) {
-        if (newErrors[key] === CREDENTIAL_ERROR_MSG) {
-          delete newErrors[key];
-        }
-      }
-      return newErrors;
+      return clearCredentialErrors(prev);
     });
 
     try {
       const result = await login({
-        email: formData.email.toLowerCase().trim(), // Sanitize email
+        email: sanitizeLoginEmail(formData.email),
         password: formData.password,
       }).unwrap();
 
@@ -175,45 +133,14 @@ const EmployerLogin = () => {
       );
       navigate("/hire-talent/dashboard");
     } catch (error: unknown) {
-      // Extract error message
-      let errorMessage = "Login failed. Please try again.";
+      const { message, hasCredentialError } = getLoginErrorDetails(error);
+      toast.error(message);
 
-      if (isFetchBaseQueryError(error)) {
-        // Handle different status codes
-        if (error.status === 401 || error.status === 404) {
-          errorMessage =
-            "Invalid email or password. Please check your credentials and try again.";
-        } else if (error.status === 403) {
-          errorMessage =
-            "Your account has been suspended. Please contact support.";
-        } else if (error.status === 429) {
-          errorMessage =
-            "Too many login attempts. Please try again in a few minutes.";
-        } else if (error.status === 500 || error.status === 503) {
-          errorMessage =
-            "Server error. Please try again later or contact support.";
-        } else if (
-          typeof error.data === "object" &&
-          error.data !== null &&
-          "message" in error.data &&
-          typeof (error.data as { message: string }).message === "string"
-        ) {
-          errorMessage = (error.data as { message: string }).message;
-        }
-      } else if (error instanceof Error) {
-        errorMessage = error.message || errorMessage;
-      }
-
-      toast.error(errorMessage);
-
-      // Mark credential fields with errors for auth failures
-      if (isFetchBaseQueryError(error)) {
-        if (error.status === 404 || error.status === 401) {
-          setFieldErrors({
-            email: CREDENTIAL_ERROR_MSG,
-            password: CREDENTIAL_ERROR_MSG,
-          });
-        }
+      if (hasCredentialError) {
+        setFieldErrors({
+          email: CREDENTIAL_ERROR_MSG,
+          password: CREDENTIAL_ERROR_MSG,
+        });
       }
     }
   };
@@ -403,7 +330,7 @@ const EmployerLogin = () => {
                       <Input
                         name="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
+                        placeholder="Enter your password"
                         autoComplete="current-password"
                         className={`h-12 pl-12 pr-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all duration-300 font-medium ${
                           fieldErrors.password && touched.password
@@ -484,7 +411,7 @@ const EmployerLogin = () => {
                       to="/hire-talent-signup"
                       className="text-blue-600 dark:text-blue-400 hover:opacity-80 transition-colors underline-offset-8 underline decoration-blue-500/30"
                     >
-                      Sign up here
+                      Hire Talent Signup
                     </Link>
                   </p>
                 </div>
