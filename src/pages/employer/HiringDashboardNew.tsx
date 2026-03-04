@@ -130,9 +130,20 @@ const HiringDashboardNew = () => {
     return Array.isArray(jobsArray) ? jobsArray : [];
   }, [jobsResponse]);
 
+  // Memoize active jobs list and count
+  const activeJobs = React.useMemo(
+    () =>
+      jobs.filter(
+        (job) => job.status === "active" || job.status === "published",
+      ),
+    [jobs],
+  );
+  const activeJobsCount = activeJobs.length;
+
   // Fetch matches for each job to get candidate count
   React.useEffect(() => {
-    if (jobs.length === 0) {
+    if (activeJobsCount === 0) {
+      setMatchCounts({});
       setIsMatchCountsLoading(false);
       return;
     }
@@ -140,7 +151,7 @@ const HiringDashboardNew = () => {
     setIsMatchCountsLoading(true);
     const fetchAllMatches = async () => {
       // Parallelize all match queries using Promise.all to avoid N+1 queries
-      const matchPromises = jobs.map((job) =>
+      const matchPromises = activeJobs.map((job) =>
         getJobMatches({
           id: String(job.id),
           page: 1,
@@ -159,7 +170,7 @@ const HiringDashboardNew = () => {
       // Map results to counts using the same filtering logic as EmployerAIShortlists:
       // Only count matches where job title matches candidate role OR skills overlap
       const counts: Record<number | string, number> = {};
-      jobs.forEach((job, index) => {
+      activeJobs.forEach((job, index) => {
         const response = results[index];
         const matchesData: Match[] = response?.data ?? [];
         counts[job.id] = countRelevantMatches(job, matchesData);
@@ -173,11 +184,11 @@ const HiringDashboardNew = () => {
     return () => {
       active = false;
     };
-  }, [jobs, getJobMatches]);
+  }, [activeJobs, activeJobsCount, getJobMatches]);
 
   // Fetch top candidates from the AI Shortlist API
   React.useEffect(() => {
-    if (jobs.length === 0) {
+    if (activeJobsCount === 0) {
       setTopCandidates([]);
       setTopCandidatesJobId(null);
       setIsTopCandidatesLoading(false);
@@ -187,12 +198,7 @@ const HiringDashboardNew = () => {
     setIsTopCandidatesLoading(true);
     const fetchTopCandidates = async () => {
       try {
-        // Fetch candidates from the first active job to get top matches
-        const firstActiveJob = jobs.find(
-          (job) => job.status === "active" || job.status === "published",
-        );
-
-        const jobToFetch = firstActiveJob || jobs[0];
+        const jobToFetch = activeJobs[0];
 
         // Set job ID immediately so it's available even if fetch fails
         setTopCandidatesJobId(String(jobToFetch.id));
@@ -216,19 +222,9 @@ const HiringDashboardNew = () => {
     };
 
     fetchTopCandidates();
-  }, [jobs, getJobMatches]);
+  }, [activeJobs, activeJobsCount, getJobMatches]);
 
-  // Memoize active jobs list and count
-  const activeJobs = React.useMemo(
-    () =>
-      jobs.filter(
-        (job) => job.status === "active" || job.status === "published",
-      ),
-    [jobs],
-  );
-  const activeJobsCount = activeJobs.length;
-
-  // Calculate total candidates - sum of matches from all jobs
+  // Calculate total candidates - sum of matches from all active jobs
   const totalCandidates = React.useMemo(() => {
     const total = Object.values(matchCounts).reduce(
       (sum, count) => sum + count,

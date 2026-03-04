@@ -304,7 +304,7 @@ const EmployerAIShortlists = () => {
 
     setLoadedEmployerJobs((previousJobs) => {
       const publishedJobs = nextJobs.filter(
-        (job: Job) => job.status === "published",
+        (job: Job) => job.status === "published" || job.status === "active",
       );
       return employerJobsPage === 1
         ? publishedJobs

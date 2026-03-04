@@ -761,10 +761,16 @@ const CandidateProfileView = () => {
                                       )}
                                     </div>
                                     <p className="text-xs text-gray-500 dark:text-slate-400">
-                                      {formatFileSize(defaultResume.fileSize)} •{" "}
-                                      {new Date(
-                                        defaultResume.uploadedAt,
-                                      ).toLocaleDateString()}
+                                      {typeof defaultResume.fileSize ===
+                                      "number"
+                                        ? formatFileSize(defaultResume.fileSize)
+                                        : "Unknown size"}{" "}
+                                      •{" "}
+                                      {defaultResume.uploadedAt
+                                        ? new Date(
+                                            defaultResume.uploadedAt,
+                                          ).toLocaleDateString()
+                                        : "Unknown date"}
                                     </p>
                                   </div>
                                 </div>

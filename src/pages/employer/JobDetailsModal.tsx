@@ -74,8 +74,11 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
   const getExperienceLevelFromYears = (
     min?: number | null,
     max?: number | null,
+    experienceLevel?: string,
   ) => {
-    if (min === undefined || min === null) return "Not specified";
+    if (min === undefined || min === null) {
+      return experienceLevel?.trim() || "Not specified";
+    }
 
     if (min === 0 && max === 2) return "Junior (0-2 Years)";
     if (min === 3 && max === 5) return "Mid Level (3-5 Years)";
@@ -242,6 +245,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                   {getExperienceLevelFromYears(
                     job.minExperience,
                     job.maxExperience,
+                    job.experienceLevel,
                   )}
                 </p>
               </div>

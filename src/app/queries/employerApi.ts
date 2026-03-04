@@ -166,20 +166,11 @@ export const employerApi = createApi({
         method: "GET",
         url: `employers/candidates/${candidateId}/resume/${resumeId}?view=inline`,
         responseHandler: async (response: Response) => {
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw errorData;
-          }
-          const blob = await response.blob();
-          return new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = () =>
-              reject(new Error("Failed to read resume blob"));
-            reader.readAsDataURL(blob);
-          });
+          if (!response.ok) throw new Error("Failed to fetch resume");
+          return response.blob();
         },
       }),
+      transformResponse: (blob: Blob) => URL.createObjectURL(blob),
       keepUnusedDataFor: 0,
     }),
   }),

@@ -294,8 +294,8 @@ const EmployerPostJob = () => {
     maxExp: string | number | undefined,
   ) => {
     // If explicit min/max experience is provided, use those
-    const minExperience = parsePositiveNumber(minExp || "");
-    const maxExperience = parsePositiveNumber(maxExp || "");
+    const minExperience = parseOptionalNumber(minExp ?? "");
+    const maxExperience = parseOptionalNumber(maxExp ?? "");
 
     if (minExperience !== undefined || maxExperience !== undefined) {
       return { minExperience, maxExperience };
@@ -443,6 +443,16 @@ const EmployerPostJob = () => {
     setSkills(skills.filter((skill) => skill !== skillToRemove));
   };
 
+  const getErrorMessage = (error: unknown, fallback: string): string => {
+    if (error && typeof error === "object" && "data" in error) {
+      return (
+        (error as { data?: { message?: string } }).data?.message || fallback
+      );
+    }
+
+    return fallback;
+  };
+
   const handleSaveDraft = async () => {
     try {
       const payload = buildCreateJobPayload(false);
@@ -452,14 +462,12 @@ const EmployerPostJob = () => {
         return;
       }
 
-      await saveJobAsDraft(payload).unwrap();
+      const response = await saveJobAsDraft(payload).unwrap();
       toast.success("Job saved as draft successfully!");
-    } catch (error) {
-      const message =
-        error && typeof error === "object" && "data" in error
-          ? (error as { data?: { message?: string } }).data?.message
-          : undefined;
-      toast.error(message || "Failed to save draft");
+      // Navigate to jobs list to prevent duplicate drafts
+      navigate("/hire-talent/jobs");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to save draft"));
     }
   };
 
@@ -515,12 +523,11 @@ const EmployerPostJob = () => {
         navigate(redirectUrl, jobState ? { state: jobState } : undefined);
       }
     } catch (error: unknown) {
-      const message =
-        error && typeof error === "object" && "data" in error
-          ? (error as { data?: { message?: string } }).data?.message
-          : undefined;
       toast.error(
-        message || (isEditing ? "Failed to update job" : "Failed to post job"),
+        getErrorMessage(
+          error,
+          isEditing ? "Failed to update job" : "Failed to post job",
+        ),
       );
     }
   };
@@ -542,11 +549,7 @@ const EmployerPostJob = () => {
       toast.success("Job deleted successfully!");
       navigate("/hire-talent/jobs");
     } catch (error: unknown) {
-      const message =
-        error && typeof error === "object" && "data" in error
-          ? (error as { data?: { message?: string } }).data?.message
-          : undefined;
-      toast.error(message || "Failed to delete job");
+      toast.error(getErrorMessage(error, "Failed to delete job"));
     }
   };
 

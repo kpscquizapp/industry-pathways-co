@@ -223,7 +223,7 @@ const ShowJobs = () => {
                 {filteredJobs.map((job: any, index: number) => (
                   <TableRow key={job.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium text-muted-foreground">
-                      {(currentPage - 1) * 10 + index + 1}
+                      {(currentPage - 1) * queryParams.limit + index + 1}
                     </TableCell>
                     <TableCell>
                       <div className="min-w-0">
