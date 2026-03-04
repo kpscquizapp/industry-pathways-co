@@ -91,6 +91,10 @@ export const clearCredentialErrors = (
 };
 
 const extractApiMessage = (error: FetchBaseQueryError): string | null => {
+  if (typeof error.data === "string" && error.data.trim()) {
+    return error.data;
+  }
+
   if (
     typeof error.data === "object" &&
     error.data !== null &&
