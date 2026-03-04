@@ -80,10 +80,19 @@ export const jobApi = createApi({
       }),
       invalidatesTags: ["Jobs", "DashboardJobs"],
     }),
+    saveJobAsDraft: builder.mutation({
+      query: (data) => ({
+        headers: getAuthHeaders(),
+        method: "POST",
+        body: data,
+        url: "jobs/draft",
+      }),
+      invalidatesTags: ["Jobs", "DashboardJobs"],
+    }),
   }),
 });
 
-export const {
+export const { 
   useCreateJobMutation,
   useGetJobsQuery,
   useGetJobsByIdQuery,
@@ -92,4 +101,5 @@ export const {
   useGetEmployerAllJobsQuery,
   useUpdateJobMutation,
   useDeleteJobMutation,
+  useSaveJobAsDraftMutation,
 } = jobApi;

@@ -24,7 +24,17 @@ export const atsApi = createApi({
         };
       },
     }),
+    extractSkills: builder.mutation<
+      { success: boolean; data: { technicalSkills: string[] } },
+      { title: string; content: string }
+    >({
+      query: (body) => ({
+        url: "api/v1/extract-skills",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
-export const { useExtractResumeMutation } = atsApi;
+export const { useExtractResumeMutation, useExtractSkillsMutation } = atsApi;

@@ -36,6 +36,8 @@ interface Job {
   numberOfOpenings?: number;
   category?: string;
   experienceLevel?: string;
+  minExperience?: number | null;
+  maxExperience?: number | null;
   skills?: Array<string | { name: string }>;
   qualifications?: string[];
   responsibilities?: string[];
@@ -68,6 +70,25 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
   job,
 }) => {
   if (!job) return null;
+
+  const getExperienceLevelFromYears = (
+    min?: number | null,
+    max?: number | null,
+  ) => {
+    if (min === undefined || min === null) return "Not specified";
+
+    if (min === 0 && max === 2) return "Junior (0-2 Years)";
+    if (min === 3 && max === 5) return "Mid Level (3-5 Years)";
+    if (min === 6 && max === 9) return "Mid Senior (6-9 Years)";
+    if (min === 10 && max === null) return "Senior (10+ Years)";
+    if (min === 10 && max === undefined) return "Senior (10+ Years)";
+    if (min === 15 && (max === null || max === undefined))
+      return "Lead/Principal (15+ Years)";
+
+    // Fallback to displaying the range
+    if (max === null || max === undefined) return `${min}+ Years`;
+    return `${min}-${max} Years`;
+  };
 
   const getStatusBadgeStyle = (status: string | undefined) => {
     switch (status?.toLowerCase()) {
@@ -218,7 +239,10 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                   Experience Level
                 </p>
                 <p className="font-medium">
-                  {job.experienceLevel || "Not specified"}
+                  {getExperienceLevelFromYears(
+                    job.minExperience,
+                    job.maxExperience,
+                  )}
                 </p>
               </div>
 

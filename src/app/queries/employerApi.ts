@@ -11,6 +11,82 @@ interface UpdateEmployerProfile {
   description?: string;
 }
 
+export interface CandidateWorkExperience {
+  id: number;
+  companyName: string;
+  role: string;
+  startDate: string;
+  endDate?: string | null;
+  isCurrent?: boolean;
+  description?: string;
+}
+
+export interface CandidateProject {
+  id: number;
+  name: string;
+  description?: string;
+  technologies?: string[];
+  url?: string;
+}
+
+export interface CandidateCertification {
+  id: number;
+  name: string;
+  issuer: string;
+  year?: string;
+}
+
+export interface CandidateResume {
+  id: number;
+  candidateProfileId: number;
+  filePath: string;
+  originalName: string;
+  fileSize?: number;
+  mimeType?: string;
+  isDefault?: boolean;
+}
+
+export interface CandidateProfile {
+  id: number;
+  userId: number;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  mobileNumber?: string;
+  location?: string;
+  city?: string;
+  country?: string;
+  candidateType?: string;
+  primaryJobRole?: string;
+  bio?: string;
+  headline?: string;
+  resourceType?: string;
+  availability?: string;
+  availableIn?: string;
+  yearsExperience?: number;
+  primarySkills?: string[];
+  secondarySkills?: string[];
+  preferredWorkType?: string;
+  preferredJobLocations?: string[];
+  hourlyRateMin?: number;
+  hourlyRateMax?: number;
+  expectedSalaryMin?: number;
+  expectedSalaryMax?: number;
+  englishProficiency?: string;
+  enableAiMatching?: boolean;
+  workExperiences: CandidateWorkExperience[];
+  projects: CandidateProject[];
+  certifications: CandidateCertification[];
+  resumes: CandidateResume[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CandidateByIdResponse {
+  success: boolean;
+  data: CandidateProfile;
+}
+
 export const employerApi = createApi({
   reducerPath: "employerApi",
   baseQuery: fetchBaseQuery({
@@ -76,6 +152,36 @@ export const employerApi = createApi({
       }),
       providesTags: ["EmployerProfile"],
     }),
+    getCandidateById: builder.query<CandidateByIdResponse, string | number>({
+      query: (id) => ({
+        method: "GET",
+        url: `employers/candidates/${id}`,
+      }),
+    }),
+    viewCandidateResume: builder.query<
+      string,
+      { candidateId: string | number; resumeId: number }
+    >({
+      query: ({ candidateId, resumeId }) => ({
+        method: "GET",
+        url: `employers/candidates/${candidateId}/resume/${resumeId}?view=inline`,
+        responseHandler: async (response: Response) => {
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw errorData;
+          }
+          const blob = await response.blob();
+          return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () =>
+              reject(new Error("Failed to read resume blob"));
+            reader.readAsDataURL(blob);
+          });
+        },
+      }),
+      keepUnusedDataFor: 0,
+    }),
   }),
 });
 
@@ -85,4 +191,6 @@ export const {
   useGetEmployerProfileImageQuery,
   useRemoveProfileImageMutation,
   useGetEmployerProfileQuery,
+  useGetCandidateByIdQuery,
+  useLazyViewCandidateResumeQuery,
 } = employerApi;

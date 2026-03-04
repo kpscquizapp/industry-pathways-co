@@ -20,7 +20,80 @@ import {
   useGetEmployerJobsQuery,
   useLazyGetJobMatchesQuery,
   Job,
+  Match,
 } from "@/app/queries/aiShortlistApi";
+
+/** Normalize candidate skills from the Match object */
+const normalizeSkills = (skills: unknown): string[] => {
+  if (Array.isArray(skills)) {
+    return skills.filter(
+      (skill) => typeof skill === "string" && skill.trim().length > 0,
+    );
+  }
+  if (typeof skills === "string") {
+    return skills
+      .split(",")
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+/** Normalize job skills which may be objects with a `name` field */
+const normalizeJobSkills = (skills: unknown): string[] => {
+  if (Array.isArray(skills)) {
+    return skills
+      .map((skill) =>
+        typeof skill === "string"
+          ? skill
+          : typeof skill?.name === "string"
+            ? skill.name
+            : "",
+      )
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+  }
+  if (typeof skills === "string") {
+    return skills
+      .split(",")
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+/**
+ * Count relevant matches for a job using the same logic as EmployerAIShortlists:
+ * A match is relevant if the job title tokens appear in the candidate role
+ * OR if any candidate skill matches a job skill.
+ */
+const countRelevantMatches = (job: Job, matches: Match[]): number => {
+  const jobTitle = (job.title ?? "").toLowerCase();
+  const jobTitleTokens = jobTitle
+    .split(/[^a-z0-9]+/i)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
+
+  const jobSkills = normalizeJobSkills(job.skills).map((s) => s.toLowerCase());
+  const jobSkillSet = new Set(jobSkills);
+
+  return matches.filter((match) => {
+    const candidateRole = (match.role || "").toLowerCase();
+    const candidateSkills = normalizeSkills(match.skills).map((s) =>
+      s.toLowerCase(),
+    );
+
+    const titleMatches =
+      jobTitleTokens.length > 0 &&
+      jobTitleTokens.some((token) => candidateRole.includes(token));
+
+    const skillsMatch =
+      jobSkillSet.size > 0 &&
+      candidateSkills.some((skill) => jobSkillSet.has(skill));
+
+    return titleMatches || skillsMatch;
+  }).length;
+};
 
 const HiringDashboardNew = () => {
   const navigate = useNavigate();
@@ -83,14 +156,13 @@ const HiringDashboardNew = () => {
       const results = await Promise.all(matchPromises);
       if (!active) return;
 
-      // Map results to counts, deriving from response metadata
+      // Map results to counts using the same filtering logic as EmployerAIShortlists:
+      // Only count matches where job title matches candidate role OR skills overlap
       const counts: Record<number | string, number> = {};
       jobs.forEach((job, index) => {
         const response = results[index];
-        // Get count from metadata (response.meta.total), fallback to data.length, then 0
-        // With limit: 1000, data.length is a reliable fallback for the total count
-        const matchCount = response?.meta?.total ?? response?.data?.length ?? 0;
-        counts[job.id] = matchCount;
+        const matchesData: Match[] = response?.data ?? [];
+        counts[job.id] = countRelevantMatches(job, matchesData);
       });
 
       setMatchCounts(counts);
@@ -98,7 +170,9 @@ const HiringDashboardNew = () => {
     };
 
     fetchAllMatches();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [jobs, getJobMatches]);
 
   // Fetch top candidates from the AI Shortlist API
@@ -144,12 +218,15 @@ const HiringDashboardNew = () => {
     fetchTopCandidates();
   }, [jobs, getJobMatches]);
 
-  // Calculate active jobs count
-  const activeJobsCount = React.useMemo(() => {
-    return jobs.filter(
-      (job) => job.status === "active" || job.status === "published",
-    ).length;
-  }, [jobs]);
+  // Memoize active jobs list and count
+  const activeJobs = React.useMemo(
+    () =>
+      jobs.filter(
+        (job) => job.status === "active" || job.status === "published",
+      ),
+    [jobs],
+  );
+  const activeJobsCount = activeJobs.length;
 
   // Calculate total candidates - sum of matches from all jobs
   const totalCandidates = React.useMemo(() => {
@@ -165,7 +242,7 @@ const HiringDashboardNew = () => {
     switch (status?.toLowerCase()) {
       case "active":
       case "published":
-       return { variant: "outline" as const, label: "Active" };
+        return { variant: "outline" as const, label: "Active" };
       case "draft":
         return { variant: "outline" as const, label: "Draft" };
       case "closed":
@@ -248,13 +325,7 @@ const HiringDashboardNew = () => {
                 <Users className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">
-                  {jobsLoading || isMatchCountsLoading ? (
-                    <span className="animate-pulse">—</span>
-                  ) : (
-                    totalCandidates
-                  )}
-                </p>
+                <p className="text-2xl font-bold text-foreground">—</p>
                 <p className="text-sm text-muted-foreground">
                   Total Candidates
                 </p>
@@ -310,12 +381,12 @@ const HiringDashboardNew = () => {
                 <div className="flex items-center justify-center py-8">
                   <SpinnerLoader className="w-6 h-6 text-primary" />
                 </div>
-              ) : jobs.length === 0 ? (
+              ) : activeJobs.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">
-                  No jobs posted yet
+                  No active jobs posted yet
                 </p>
               ) : (
-                jobs.slice(0, 3).map((job) => {
+                activeJobs.slice(0, 3).map((job) => {
                   const badgeStyle = getStatusBadgeStyle(
                     job.status as string | undefined,
                   );
@@ -448,7 +519,7 @@ const HiringDashboardNew = () => {
                         </div>
                         <div className="w-10 h-10 rounded-full border-2 border-primary flex items-center justify-center">
                           <span className="text-xs font-bold text-primary">
-                            {candidate.match || 0}%
+                            {candidate.matchScore || 0}%
                           </span>
                         </div>
                       </div>
@@ -490,13 +561,8 @@ const HiringDashboardNew = () => {
                         variant="outline"
                         className="w-full rounded-lg"
                         onClick={() => {
-                          if (topCandidatesJobId) {
-                            navigate(
-                              `/hire-talent/ai-shortlists?jobId=${topCandidatesJobId}&candidateId=${candidate.id}`,
-                            );
-                          }
+                          navigate(`/hire-talent/candidate/${candidate.id}`);
                         }}
-                        disabled={!topCandidatesJobId}
                       >
                         View Profile
                       </Button>
