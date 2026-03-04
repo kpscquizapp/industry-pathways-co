@@ -299,13 +299,13 @@ const EmployerSignup = () => {
   const stats = [
     {
       id: "stat-time-to-hire",
-      value: "-40%",
+      value: "40%",
       label: "Time to Hire",
       sub: "with AI scoring",
     },
     {
       id: "stat-bench-util",
-      value: "↑ 30%",
+      value: "30%",
       label: "Bench Utilization",
       sub: "revenue growth",
     },
@@ -424,7 +424,7 @@ const EmployerSignup = () => {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} noValidate className="space-y-6">
                   {currentStep === 1 && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -507,7 +507,7 @@ const EmployerSignup = () => {
                             <Input
                               name="password"
                               type="password"
-                              placeholder="••••••••"
+                              placeholder="Enter your password"
                               value={formData.password}
                               onChange={handleInputChange}
                               className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
@@ -530,7 +530,7 @@ const EmployerSignup = () => {
                             <Input
                               name="confirmPassword"
                               type="password"
-                              placeholder="••••••••"
+                              placeholder="Confirm your password"
                               value={formData.confirmPassword}
                               onChange={handleInputChange}
                               className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${

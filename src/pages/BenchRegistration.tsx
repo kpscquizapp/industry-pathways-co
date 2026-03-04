@@ -94,6 +94,10 @@ const BenchRegistration = () => {
       if (fileError) {
         toast.error(fileError);
         setCompanyDocument(null);
+        setFieldErrors((prev) => ({
+          ...prev,
+          companyDocument: fileError,
+        }));
         e.target.value = "";
         return;
       }
@@ -379,7 +383,7 @@ const BenchRegistration = () => {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} noValidate className="space-y-6">
                   {currentStep === 1 && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                       <div className="grid md:grid-cols-2 gap-5">
@@ -462,7 +466,7 @@ const BenchRegistration = () => {
                             <Input
                               name="password"
                               type="password"
-                              placeholder="••••••••"
+                              placeholder="Enter your password"
                               className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
                                 fieldErrors.password
                                   ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
@@ -485,7 +489,7 @@ const BenchRegistration = () => {
                             <Input
                               name="confirmPassword"
                               type="password"
-                              placeholder="••••••••"
+                              placeholder="Confirm your password"
                               className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
                                 fieldErrors.confirmPassword
                                   ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"

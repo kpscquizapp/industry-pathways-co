@@ -406,7 +406,7 @@ const CandidateSignup = () => {
       );
       navigate("/contractor-login");
     } catch (error: unknown) {
-      console.error("Registration error:", error);
+      toast.error("Registration error. Please try again.");
 
       // Handle specific error cases
       if (isFetchBaseQueryError(error)) {
@@ -683,7 +683,7 @@ const CandidateSignup = () => {
                             <Input
                               name="password"
                               type="password"
-                              placeholder="••••••••"
+                              placeholder="Enter your password"
                               maxLength={128}
                               className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
                                 fieldErrors.password
@@ -707,7 +707,7 @@ const CandidateSignup = () => {
                             <Input
                               name="confirmPassword"
                               type="password"
-                              placeholder="••••••••"
+                              placeholder="Confirm your password"
                               maxLength={128}
                               className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
                                 fieldErrors.confirmPassword
@@ -856,10 +856,13 @@ const CandidateSignup = () => {
                               className="px-3 py-1.5 bg-primary/10 text-primary dark:text-emerald-400 border-primary/20 flex items-center gap-2 group"
                             >
                               {skill}
-                              <X
-                                className="w-3 h-3 cursor-pointer group-hover:text-red-500 transition-colors"
+                              <button
+                                type="button"
+                                aria-label="remove skill"
                                 onClick={() => removeSkill(skill)}
-                              />
+                              >
+                                <X className="w-3 h-3 cursor-pointer group-hover:text-red-500 transition-colors" />
+                              </button>
                             </Badge>
                           ))}
                           {primarySkills.length === 0 && (
