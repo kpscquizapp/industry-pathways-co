@@ -1,4 +1,4 @@
-import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 
 export const CREDENTIAL_ERROR_MSG = "Please check your credentials";
 
