@@ -406,8 +406,6 @@ const CandidateSignup = () => {
       );
       navigate("/contractor-login");
     } catch (error: unknown) {
-      toast.error("Registration error. Please try again.");
-
       // Handle specific error cases
       if (isFetchBaseQueryError(error)) {
         if (error.status === 409) {

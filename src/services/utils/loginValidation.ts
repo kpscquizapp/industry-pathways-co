@@ -1,5 +1,4 @@
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
-import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 
 export const CREDENTIAL_ERROR_MSG = "Please check your credentials";
 
@@ -104,6 +103,12 @@ const extractApiMessage = (error: FetchBaseQueryError): string | null => {
   return null;
 };
 
+const isStatusError = (
+  error: unknown,
+): error is { status: unknown; data?: unknown } => {
+  return typeof error === "object" && error != null && "status" in error;
+};
+
 export const getLoginErrorDetails = (
   error: unknown,
 ): {
@@ -113,20 +118,33 @@ export const getLoginErrorDetails = (
   let message = "Login failed. Please try again.";
   let hasCredentialError = false;
 
-  if (isFetchBaseQueryError(error)) {
-    if (error.status === 401 || error.status === 404) {
-      message =
-        "Invalid email or password. Please check your credentials and try again.";
-      hasCredentialError = true;
-    } else if (error.status === 403) {
-      message = "Your account has been suspended. Please contact support.";
-    } else if (error.status === 429) {
-      message = "Too many login attempts. Please try again in a few minutes.";
-    } else if (error.status === 500 || error.status === 503) {
-      message = "Server error. Please try again later or contact support.";
-    } else {
-      const apiMessage = extractApiMessage(error);
-      if (apiMessage) message = apiMessage;
+  if (isStatusError(error)) {
+    if (typeof error.status === "string") {
+      if (error.status === "FETCH_ERROR") {
+        message =
+          "Network error. Please check your internet connection and try again.";
+      } else if (error.status === "TIMEOUT_ERROR") {
+        message = "Request timed out. Please try again in a moment.";
+      } else if (error.status === "PARSING_ERROR") {
+        message = "Unexpected server response. Please try again later.";
+      } else if (error.status === "CUSTOM_ERROR") {
+        message = "Unable to complete login right now. Please try again.";
+      }
+    } else if (typeof error.status === "number") {
+      if (error.status === 401 || error.status === 404) {
+        message =
+          "Invalid email or password. Please check your credentials and try again.";
+        hasCredentialError = true;
+      } else if (error.status === 403) {
+        message = "Your account has been suspended. Please contact support.";
+      } else if (error.status === 429) {
+        message = "Too many login attempts. Please try again in a few minutes.";
+      } else if (error.status === 500 || error.status === 503) {
+        message = "Server error. Please try again later or contact support.";
+      } else {
+        const apiMessage = extractApiMessage(error as FetchBaseQueryError);
+        if (apiMessage) message = apiMessage;
+      }
     }
   } else if (error instanceof Error) {
     message = error.message || message;

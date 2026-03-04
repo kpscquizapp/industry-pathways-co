@@ -320,7 +320,7 @@ const EmployerSignup = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
       {/* Left Panel - Immersive Branding */}
-      <div className="hidden lg:flex lg:w-[45%] bg-[#080b14] p-12 flex-col justify-between relative overflow-hidden shrink-0 border-r border-white/5">
+      <div className="hidden lg:flex lg:w-[50%] bg-[#080b14] p-12 flex-col justify-between relative overflow-hidden shrink-0 border-r border-white/5">
         <div className="absolute top-[-10%] right-[-10%] w-[80%] h-[80%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-500/10 rounded-full blur-[100px]" />
 
@@ -334,7 +334,7 @@ const EmployerSignup = () => {
             </span>
           </Link>
 
-          <div className="space-y-8 max-w-md">
+          <div className="space-y-8 max-w-lg">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
               <Sparkles className="h-3 w-3 text-primary" />
               <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">
@@ -392,7 +392,7 @@ const EmployerSignup = () => {
       {/* Right Panel - Registration Section */}
       <div className="flex-1 flex flex-col bg-[#fafafa] dark:bg-[#030303] overflow-y-auto">
         <div className="flex-1 flex flex-col items-center justify-center py-12 px-6 lg:p-12 xl:p-20">
-          <div className="w-full max-w-xl">
+          <div className="w-full max-w-2xl">
             <div className="lg:hidden mb-12 flex flex-col items-center text-center">
               <Link to="/" className="flex items-center gap-2 mb-6">
                 <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-xl shadow-primary/20">
