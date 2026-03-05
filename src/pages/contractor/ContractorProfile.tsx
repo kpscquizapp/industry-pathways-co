@@ -309,11 +309,17 @@ const ContractorProfile = () => {
                                 const bIsCurrent = isCurrentWorkExperience(
                                   b.endDate,
                                 );
-                                if (aIsCurrent === bIsCurrent) return 0;
-                                return aIsCurrent ? -1 : 1;
+                                if (aIsCurrent !== bIsCurrent) {
+                                  return aIsCurrent ? -1 : 1;
+                                }
+                                // Secondary sort: most recent startDate first
+                                return (b.startDate ?? "").localeCompare(
+                                  a.startDate ?? "",
+                                );
                               })
                               .map((entry, index) => {
                                 const {
+                                  id,
                                   role,
                                   companyName,
                                   startDate,
@@ -321,7 +327,7 @@ const ContractorProfile = () => {
                                   location,
                                   description,
                                 } = entry;
-                                const entryId = `${candidateId}-work-${index}`;
+                                const entryId = `${candidateId}-work-${id ?? index}`;
                                 const isCurrentRole =
                                   isCurrentWorkExperience(endDate);
                                 return (

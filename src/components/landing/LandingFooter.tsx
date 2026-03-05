@@ -165,14 +165,11 @@ const LandingFooter = () => {
             <a
               href="https://www.linkedin.com/company/hiringchampion/posts/?feedView=all"
               target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+              className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
             >
-              <button
-                type="button"
-                aria-label="LinkedIn"
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
-              >
-                <Linkedin className="w-4 h-4 text-white/60" />
-              </button>
+              <Linkedin className="w-4 h-4 text-white/60" />
             </a>
             <button
               type="button"
