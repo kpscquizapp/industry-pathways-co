@@ -631,8 +631,12 @@ const EmployerPostJob = () => {
           if (extracted.length > 0) {
             setSkills((prev) => {
               const merged = [...prev];
+              const lowerSet = new Set(merged.map((s) => s.toLowerCase()));
               extracted.forEach((s: string) => {
-                if (!merged.includes(s)) merged.push(s);
+                if (!lowerSet.has(s.toLowerCase())) {
+                  merged.push(s);
+                  lowerSet.add(s.toLowerCase());
+                }
               });
               return merged;
             });

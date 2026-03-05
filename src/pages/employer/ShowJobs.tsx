@@ -176,10 +176,10 @@ const ShowJobs = () => {
       >
         <TabsList className="grid w-full max-w-xs grid-cols-2">
           <TabsTrigger value="active">
-            Active{!isLoading && ` (${activeCount})`}
+            Active{!isLoading && ` (${activeCount} on page)`}
           </TabsTrigger>
           <TabsTrigger value="draft">
-            Draft{!isLoading && ` (${draftCount})`}
+            Draft{!isLoading && ` (${draftCount} on page)`}
           </TabsTrigger>
         </TabsList>
       </Tabs>

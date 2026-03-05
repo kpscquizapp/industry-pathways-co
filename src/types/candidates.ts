@@ -31,6 +31,6 @@ export interface CandidateProfile {
     name: string;
     description: string;
     technologies: string[];
-    icon: "smartphone" | "shopping";
+    icon: "smartphone" | "shopping" | string;
   }[];
 }

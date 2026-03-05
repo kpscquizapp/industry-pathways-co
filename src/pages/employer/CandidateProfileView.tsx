@@ -67,6 +67,7 @@ const CandidateProfileView = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingViewId, setLoadingViewId] = useState<number | null>(null);
   const latestRequestIdRef = useRef<number | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
   const {
     data: response,
@@ -96,7 +97,7 @@ const CandidateProfileView = () => {
 
   const clearPreview = () => {
     latestRequestIdRef.current = null;
-    revokePreviewUrl(previewUrl);
+    revokePreviewUrl(previewUrlRef.current);
     setPreviewUrl(null);
     setSelectedResume(null);
     setIsModalOpen(false);
@@ -161,7 +162,7 @@ const CandidateProfileView = () => {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isModalOpen]);
+  }, [isModalOpen, clearPreview]);
 
   // Close modal on mobile viewport
   useEffect(() => {
@@ -169,8 +170,9 @@ const CandidateProfileView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile]);
 
-  // Cleanup blob URLs
+  // Keep ref in sync so clearPreview always sees the latest URL
   useEffect(() => {
+    previewUrlRef.current = previewUrl;
     return () => revokePreviewUrl(previewUrl);
   }, [previewUrl]);
 
