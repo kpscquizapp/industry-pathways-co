@@ -40,6 +40,7 @@ const ShowJobs = () => {
   const queryParams = {
     page: currentPage,
     limit: 10,
+    status: activeTab === "active" ? "published" : activeTab,
   };
 
   const {
@@ -66,7 +67,8 @@ const ShowJobs = () => {
     totalPages = total > 0 ? Math.ceil(total / limit) : 1;
   }
 
-  // Filter jobs by active tab
+  // Server already filters by status via queryParams.status; keep a defensive
+  // client-side filter in case a stale cache page mixes statuses.
   const filteredJobs = useMemo(() => {
     if (activeTab === "draft") {
       return jobs.filter((job: any) => job.status === "draft");
@@ -76,16 +78,8 @@ const ShowJobs = () => {
     );
   }, [jobs, activeTab]);
 
-  const activeCount = useMemo(
-    () =>
-      jobs.filter((j: any) => j.status === "published" || j.status === "active")
-        .length,
-    [jobs],
-  );
-  const draftCount = useMemo(
-    () => jobs.filter((j: any) => j.status === "draft").length,
-    [jobs],
-  );
+  // Use server-reported total (already filtered by status) for accurate counts.
+  const totalForCurrentTab = jobsData?.pagination?.total ?? filteredJobs.length;
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -158,9 +152,9 @@ const ShowJobs = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">All Jobs</h1>
           <p className="text-muted-foreground mt-2">
-            Page {currentPage} of {totalPages} • {filteredJobs.length}{" "}
+            Page {currentPage} of {totalPages} • {totalForCurrentTab}{" "}
             {activeTab === "draft" ? "draft" : "active"} job
-            {filteredJobs.length !== 1 ? "s" : ""} on this page
+            {totalForCurrentTab !== 1 ? "s" : ""}
           </p>
         </div>
       </div>
@@ -168,16 +162,15 @@ const ShowJobs = () => {
       {/* Tabs */}
       <Tabs
         value={activeTab}
-        onValueChange={(v) => setActiveTab(v as "active" | "draft")}
+        onValueChange={(v) => {
+          setActiveTab(v as "active" | "draft");
+          setCurrentPage(1);
+        }}
         className="w-full"
       >
         <TabsList className="grid w-full max-w-xs grid-cols-2">
-          <TabsTrigger value="active">
-            Active{!isLoading && ` (${activeCount})`}
-          </TabsTrigger>
-          <TabsTrigger value="draft">
-            Draft{!isLoading && ` (${draftCount})`}
-          </TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="draft">Draft</TabsTrigger>
         </TabsList>
       </Tabs>
 

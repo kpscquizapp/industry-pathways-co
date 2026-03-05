@@ -693,9 +693,7 @@ const CandidateProfileView = () => {
                                     <CardContent className="p-4 sm:p-6">
                                       <div className="w-full h-24 sm:h-32 bg-gray-100 dark:bg-slate-700/50 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                                         <div className="w-10 h-14 sm:w-12 sm:h-16 border-2 border-gray-300 dark:border-slate-500 rounded flex items-center justify-center text-2xl dark:text-slate-300">
-                                          {project.url || project.projectUrl
-                                            ? "🌐"
-                                            : "📂"}
+                                          {safeProjectUrl ? "🌐" : "📂"}
                                         </div>
                                       </div>
                                       <div className="flex items-center justify-between">

@@ -482,7 +482,7 @@ const EmployerPostJob = () => {
         return;
       }
 
-      const response = await saveJobAsDraft(payload).unwrap();
+      await saveJobAsDraft(payload).unwrap();
       toast.success("Job saved as draft successfully!");
       // Navigate to jobs list to prevent duplicate drafts
       navigate("/hire-talent/jobs");
@@ -510,16 +510,20 @@ const EmployerPostJob = () => {
 
       let response;
       if (isEditing && jobId) {
-        // Update existing job — preserve its current status
-        const nextStatus = formData.status === "draft" ? "draft" : "published";
+        // Update existing job — drafts get published; other statuses are preserved
+        const job = jobDetailsData?.data?.[0];
+        const nextStatus =
+          formData.status === "draft"
+            ? "published"
+            : (job?.status ?? formData.status);
         response = await updateJob({
           id: jobId,
           data: { ...payload, status: nextStatus },
         }).unwrap();
         toast.success(
-          nextStatus === "published"
-            ? "Job updated and published successfully!"
-            : "Draft updated successfully!",
+          formData.status === "draft"
+            ? "Job published successfully!"
+            : "Job updated successfully!",
         );
         navigate("/hire-talent/dashboard");
       } else {
