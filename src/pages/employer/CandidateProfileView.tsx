@@ -335,8 +335,9 @@ const CandidateProfileView = () => {
                           <span className="truncate">Experience</span>
                         </span>
                         <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
-                          {profile?.yearsExperience != null
-                            ? `${profile.yearsExperience} Years`
+                          {(profile?.yearsExperience ?? profile?.experience) !=
+                          null
+                            ? `${profile?.yearsExperience ?? profile?.experience} Years`
                             : "None"}
                         </span>
                       </div>
@@ -596,63 +597,65 @@ const CandidateProfileView = () => {
                         <h3 className="text-base sm:text-lg font-bold mb-4 dark:text-slate-100">
                           Work Experience
                         </h3>
-                        {(profile?.workExperiences?.length ?? 0) > 0 ? (
+                        {((profile?.workExperiences ?? profile?.workExperience)
+                          ?.length ?? 0) > 0 ? (
                           <div className="space-y-6">
-                            {profile?.workExperiences?.map(
-                              (entry: any, index: number) => {
-                                const {
-                                  role,
-                                  companyName,
-                                  startDate,
-                                  endDate,
-                                  location,
-                                  description,
-                                } = entry;
-                                const entryId = `${candidateId}-work-${index}`;
-                                return (
+                            {(
+                              profile?.workExperiences ??
+                              profile?.workExperience
+                            )?.map((entry: any, index: number) => {
+                              const {
+                                role,
+                                companyName,
+                                startDate,
+                                endDate,
+                                location,
+                                description,
+                              } = entry;
+                              const entryId = `${candidateId}-work-${index}`;
+                              return (
+                                <div
+                                  key={entryId}
+                                  id={entryId}
+                                  className="flex gap-3 sm:gap-4"
+                                >
                                   <div
-                                    key={entryId}
-                                    id={entryId}
-                                    className="flex gap-3 sm:gap-4"
-                                  >
-                                    <div
-                                      className={`w-1 ${index === 0 ? "bg-green-600 dark:bg-green-600" : "bg-gray-300 dark:bg-slate-600"} rounded-full flex-shrink-0`}
-                                    ></div>
-                                    <div className="flex-1 min-w-0">
-                                      <h4 className="font-bold text-sm sm:text-base dark:text-slate-100 break-words">
-                                        {role}
-                                      </h4>
-                                      <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mb-1 font-semibold break-words">
-                                        {companyName}
-                                      </p>
-                                      <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-2 break-words">
-                                        {startDate} - {endDate ?? "Present"} •{" "}
-                                        {location}
-                                      </p>
-                                      <div className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 space-y-1">
-                                        {(Array.isArray(description)
+                                    className={`w-1 ${index === 0 ? "bg-green-600 dark:bg-green-600" : "bg-gray-300 dark:bg-slate-600"} rounded-full flex-shrink-0`}
+                                  ></div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-sm sm:text-base dark:text-slate-100 break-words">
+                                      {role}
+                                    </h4>
+                                    <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mb-1 font-semibold break-words">
+                                      {companyName}
+                                    </p>
+                                    <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-2 break-words">
+                                      {startDate} - {endDate ?? "Present"} •{" "}
+                                      {location}
+                                    </p>
+                                    <div className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 space-y-1">
+                                      {(Array.isArray(description)
+                                        ? description
+                                        : description
                                           ? description
-                                          : description
-                                            ? description
-                                                .split(/\r?\n/)
-                                                .filter(Boolean)
-                                            : []
-                                        ).map(
-                                          (bullet: string, bIndex: number) => (
-                                            <p
-                                              key={`${entryId}-bullet-${bIndex}`}
-                                              className="break-words"
-                                            >
-                                              {bullet}
-                                            </p>
-                                          ),
-                                        )}
-                                      </div>
+                                              .split(/\r?\n/)
+                                              .filter(Boolean)
+                                          : []
+                                      ).map(
+                                        (bullet: string, bIndex: number) => (
+                                          <p
+                                            key={`${entryId}-bullet-${bIndex}`}
+                                            className="break-words"
+                                          >
+                                            {bullet}
+                                          </p>
+                                        ),
+                                      )}
                                     </div>
                                   </div>
-                                );
-                              },
-                            )}
+                                </div>
+                              );
+                            })}
                           </div>
                         ) : (
                           <p className="text-sm sm:text-base text-gray-700 dark:text-slate-300">

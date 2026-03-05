@@ -510,21 +510,14 @@ const EmployerPostJob = () => {
 
       let response;
       if (isEditing && jobId) {
-        // Update existing job — drafts get published; other statuses are preserved
+        // Update existing job — preserve existing status unless an explicit publish action is added
         const job = jobDetailsData?.data?.[0];
-        const nextStatus =
-          formData.status === "draft"
-            ? "published"
-            : (job?.status ?? formData.status);
+        const nextStatus = job?.status ?? formData.status;
         response = await updateJob({
           id: jobId,
           data: { ...payload, status: nextStatus },
         }).unwrap();
-        toast.success(
-          formData.status === "draft"
-            ? "Job published successfully!"
-            : "Job updated successfully!",
-        );
+        toast.success("Job updated successfully!");
         navigate("/hire-talent/dashboard");
       } else {
         // Create new job

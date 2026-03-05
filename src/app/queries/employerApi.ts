@@ -64,6 +64,8 @@ export interface CandidateProfile {
   availability?: string;
   availableIn?: string;
   yearsExperience?: number;
+  /** @deprecated Legacy alias — prefer yearsExperience */
+  experience?: number | string;
   primarySkills?: string[];
   secondarySkills?: string[];
   preferredWorkType?: string | string[];
@@ -75,6 +77,8 @@ export interface CandidateProfile {
   englishProficiency?: string;
   enableAiMatching?: boolean;
   workExperiences: CandidateWorkExperience[];
+  /** @deprecated Legacy alias — prefer workExperiences */
+  workExperience?: CandidateWorkExperience[];
   projects: CandidateProject[];
   certifications: CandidateCertification[];
   resumes: CandidateResume[];

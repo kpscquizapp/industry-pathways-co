@@ -73,9 +73,7 @@ const ShowJobs = () => {
     if (activeTab === "draft") {
       return jobs.filter((job: any) => job.status === "draft");
     }
-    return jobs.filter(
-      (job: any) => job.status === "published" || job.status === "active",
-    );
+    return jobs.filter((job: any) => job.status === "published");
   }, [jobs, activeTab]);
 
   // Use server-reported total (already filtered by status) for accurate counts.
@@ -240,18 +238,25 @@ const ShowJobs = () => {
                     <TableCell>
                       <Badge
                         className={`whitespace-nowrap ${
-                          job.status === "published" || job.status === "active"
+                          job.status === "published"
                             ? "bg-green-500 hover:bg-green-600 text-white"
-                            : job.status === "closed"
-                              ? "bg-gray-400 hover:bg-gray-500 text-white"
-                              : "bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
+                            : job.status === "draft"
+                              ? "bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
+                              : job.status === "closed"
+                                ? "bg-gray-400 hover:bg-gray-500 text-white"
+                                : "bg-slate-200 hover:bg-slate-300 text-slate-700"
                         }`}
                       >
-                        {job.status === "published" || job.status === "active"
+                        {job.status === "published"
                           ? "Active"
-                          : job.status === "closed"
-                            ? "Closed"
-                            : "Draft"}
+                          : job.status === "draft"
+                            ? "Draft"
+                            : job.status === "closed"
+                              ? "Closed"
+                              : job.status
+                                ? job.status.charAt(0).toUpperCase() +
+                                  job.status.slice(1)
+                                : "Unknown"}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -260,6 +265,7 @@ const ShowJobs = () => {
                           variant="ghost"
                           size="icon"
                           title="View job details"
+                          aria-label={`View details for ${job.title || "job"}`}
                           className="h-8 w-8 hover:bg-muted"
                           onClick={() => handleViewJob(job)}
                         >
@@ -269,6 +275,7 @@ const ShowJobs = () => {
                           variant="ghost"
                           size="icon"
                           title="Edit job"
+                          aria-label={`Edit ${job.title || "job"}`}
                           className="h-8 w-8 hover:bg-muted"
                           onClick={() => handleEditJob(job.id)}
                         >
@@ -278,6 +285,7 @@ const ShowJobs = () => {
                           variant="ghost"
                           size="icon"
                           title="Delete job"
+                          aria-label={`Delete ${job.title || "job"}`}
                           className="h-8 w-8 hover:bg-muted"
                           onClick={() => handleDeleteJob(job.id)}
                         >
@@ -287,6 +295,7 @@ const ShowJobs = () => {
                           variant="ghost"
                           size="icon"
                           title="View matching profiles"
+                          aria-label={`View matching profiles for ${job.title || "job"}`}
                           className="h-8 w-8 hover:bg-muted"
                           onClick={() => handleViewProfiles(job.id)}
                         >
