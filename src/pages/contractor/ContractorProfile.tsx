@@ -29,6 +29,11 @@ const getSafeProjectUrl = (value?: string) => {
   return /^https?:\/\//i.test(trimmed) ? trimmed : undefined;
 };
 
+const isCurrentWorkExperience = (endDate?: string | null) => {
+  if (typeof endDate !== "string") return endDate == null;
+  return endDate.trim().length === 0;
+};
+
 const ContractorProfile = () => {
   const { token } = useSelector((state: any) => state.user);
   const {
@@ -296,57 +301,71 @@ const ContractorProfile = () => {
                         </h3>
                         {(profile?.workExperiences?.length ?? 0) > 0 ? (
                           <div className="space-y-6">
-                            {profile?.workExperiences?.map((entry, index) => {
-                              const {
-                                role,
-                                companyName,
-                                startDate,
-                                endDate,
-                                location,
-                                description,
-                              } = entry;
-                              const entryId = `${candidateId}-work-${index}`;
-                              return (
-                                <div
-                                  key={entryId}
-                                  id={entryId}
-                                  className="flex gap-3 sm:gap-4"
-                                >
+                            {[...(profile?.workExperiences ?? [])]
+                              .sort((a, b) => {
+                                const aIsCurrent = isCurrentWorkExperience(
+                                  a.endDate,
+                                );
+                                const bIsCurrent = isCurrentWorkExperience(
+                                  b.endDate,
+                                );
+                                if (aIsCurrent === bIsCurrent) return 0;
+                                return aIsCurrent ? -1 : 1;
+                              })
+                              .map((entry, index) => {
+                                const {
+                                  role,
+                                  companyName,
+                                  startDate,
+                                  endDate,
+                                  location,
+                                  description,
+                                } = entry;
+                                const entryId = `${candidateId}-work-${index}`;
+                                const isCurrentRole =
+                                  isCurrentWorkExperience(endDate);
+                                return (
                                   <div
-                                    className={`w-1 ${index === 0 ? "bg-green-600 dark:bg-green-1" : "bg-gray-300 dark:bg-slate-600"}  rounded-full flex-shrink-0`}
-                                  ></div>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="font-bold text-sm sm:text-base dark:text-slate-100 break-words">
-                                      {role}
-                                    </h4>
-                                    <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mb-1 font-semibold break-words">
-                                      {companyName}
-                                    </p>
-                                    <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-2 break-words">
-                                      {startDate} - {endDate ?? "Present"} •{" "}
-                                      {location}
-                                    </p>
-                                    <div className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 space-y-1">
-                                      {(Array.isArray(description)
-                                        ? description
-                                        : description
+                                    key={entryId}
+                                    id={entryId}
+                                    className="flex gap-3 sm:gap-4"
+                                  >
+                                    <div
+                                      className={`w-1 ${isCurrentRole ? "bg-green-600 dark:bg-green-500" : "bg-gray-300 dark:bg-slate-600"} rounded-full flex-shrink-0`}
+                                    ></div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="font-bold text-sm sm:text-base dark:text-slate-100 break-words">
+                                        {role}
+                                      </h4>
+                                      <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mb-1 font-semibold break-words">
+                                        {companyName}
+                                      </p>
+                                      <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-2 break-words">
+                                        {startDate} -{" "}
+                                        {isCurrentRole ? "Present" : endDate} •{" "}
+                                        {location}
+                                      </p>
+                                      <div className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 space-y-1">
+                                        {(Array.isArray(description)
                                           ? description
-                                              .split(/\r?\n/)
-                                              .filter(Boolean)
-                                          : []
-                                      ).map((bullet, bIndex) => (
-                                        <p
-                                          key={`${entryId}-bullet-${bIndex}`}
-                                          className="break-words"
-                                        >
-                                          {bullet}
-                                        </p>
-                                      ))}
+                                          : description
+                                            ? description
+                                                .split(/\r?\n/)
+                                                .filter(Boolean)
+                                            : []
+                                        ).map((bullet, bIndex) => (
+                                          <p
+                                            key={`${entryId}-bullet-${bIndex}`}
+                                            className="break-words"
+                                          >
+                                            {bullet}
+                                          </p>
+                                        ))}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              );
-                            })}
+                                );
+                              })}
                           </div>
                         ) : (
                           <p className="text-sm sm:text-base text-gray-700 dark:text-slate-300">
