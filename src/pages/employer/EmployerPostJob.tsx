@@ -444,10 +444,30 @@ const EmployerPostJob = () => {
   };
 
   const getErrorMessage = (error: unknown, fallback: string): string => {
-    if (error && typeof error === "object" && "data" in error) {
-      return (
-        (error as { data?: { message?: string } }).data?.message || fallback
-      );
+    if (typeof error === "string" && error.trim()) {
+      return error;
+    }
+
+    if (error && typeof error === "object") {
+      const data = (error as { data?: unknown }).data;
+
+      if (typeof data === "string" && data.trim()) {
+        return data;
+      }
+
+      if (data && typeof data === "object" && "message" in data) {
+        const message = (data as { message?: unknown }).message;
+        if (typeof message === "string" && message.trim()) {
+          return message;
+        }
+      }
+
+      if ("message" in error) {
+        const message = (error as { message?: unknown }).message;
+        if (typeof message === "string" && message.trim()) {
+          return message;
+        }
+      }
     }
 
     return fallback;
@@ -713,7 +733,7 @@ const EmployerPostJob = () => {
                       className="absolute top-4 left-1/2 right-0 h-0.5 -translate-y-1/2"
                       style={{
                         background:
-                          index < currentStep
+                          index < currentStep - 1
                             ? "hsl(var(--primary))"
                             : "hsl(var(--border))",
                       }}
@@ -962,6 +982,8 @@ const EmployerPostJob = () => {
                         >
                           {skill}
                           <button
+                            type="button"
+                            aria-label={`Remove skill ${skill}`}
                             onClick={() => removeSkill(skill)}
                             className="hover:text-destructive transition-colors"
                           >

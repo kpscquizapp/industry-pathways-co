@@ -26,9 +26,10 @@ import {
 /** Normalize candidate skills from the Match object */
 const normalizeSkills = (skills: unknown): string[] => {
   if (Array.isArray(skills)) {
-    return skills.filter(
-      (skill) => typeof skill === "string" && skill.trim().length > 0,
-    );
+    return skills
+      .filter((skill): skill is string => typeof skill === "string")
+      .map((skill) => skill.trim())
+      .filter(Boolean);
   }
   if (typeof skills === "string") {
     return skills
@@ -188,11 +189,14 @@ const HiringDashboardNew = () => {
 
   // Fetch top candidates from the AI Shortlist API
   React.useEffect(() => {
+    let active = true;
     if (activeJobsCount === 0) {
       setTopCandidates([]);
       setTopCandidatesJobId(null);
       setIsTopCandidatesLoading(false);
-      return;
+      return () => {
+        active = false;
+      };
     }
 
     setIsTopCandidatesLoading(true);
@@ -201,7 +205,7 @@ const HiringDashboardNew = () => {
         const jobToFetch = activeJobs[0];
 
         // Set job ID immediately so it's available even if fetch fails
-        setTopCandidatesJobId(String(jobToFetch.id));
+        if (active) setTopCandidatesJobId(String(jobToFetch.id));
 
         const response = await getJobMatches({
           id: String(jobToFetch.id),
@@ -211,17 +215,20 @@ const HiringDashboardNew = () => {
 
         // Extract candidates from response and limit to top 3
         const candidates = (response?.data || []).slice(0, 3);
-        setTopCandidates(candidates);
+        if (active) setTopCandidates(candidates);
       } catch (error) {
         console.error("Error fetching top candidates:", error);
         // On error, show empty list instead of fake data
-        setTopCandidates([]);
+        if (active) setTopCandidates([]);
       } finally {
-        setIsTopCandidatesLoading(false);
+        if (active) setIsTopCandidatesLoading(false);
       }
     };
 
     fetchTopCandidates();
+    return () => {
+      active = false;
+    };
   }, [activeJobs, activeJobsCount, getJobMatches]);
 
   // Calculate total candidates - sum of matches from all active jobs
@@ -321,7 +328,13 @@ const HiringDashboardNew = () => {
                 <Users className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">—</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {isMatchCountsLoading ? (
+                    <span className="animate-pulse">—</span>
+                  ) : (
+                    totalCandidates
+                  )}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   Total Candidates
                 </p>

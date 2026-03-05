@@ -168,7 +168,10 @@ const ShowJobs = () => {
       {/* Tabs */}
       <Tabs
         value={activeTab}
-        onValueChange={(v) => setActiveTab(v as "active" | "draft")}
+        onValueChange={(v) => {
+          setActiveTab(v as "active" | "draft");
+          setCurrentPage(1);
+        }}
         className="w-full"
       >
         <TabsList className="grid w-full max-w-xs grid-cols-2">

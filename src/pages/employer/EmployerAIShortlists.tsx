@@ -28,7 +28,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import type { CandidateProfile } from "@/components/employer/candidates/CandidateProfileModal";
+import type { CandidateProfile } from "@/types/candidates";
 import {
   useGetEmployerJobsQuery,
   useGetJobMatchesQuery,
@@ -230,7 +230,9 @@ const EmployerAIShortlists = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const jobIdParam = searchParams.get("jobId");
-  const [selectedJob, setSelectedJob] = useState(jobIdParam || "");
+  const [selectedJob, setSelectedJob] = useState(
+    jobIdParam && jobIdParam !== "all" ? jobIdParam : "",
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [shortlistedIds, setShortlistedIds] = useState<EntityId[]>([]);
@@ -284,7 +286,8 @@ const EmployerAIShortlists = () => {
   // Sync selectedJob with URL search params on mount and navigation
   useEffect(() => {
     const currentJobIdParam = searchParams.get("jobId");
-    const jobIdFromUrl = currentJobIdParam || "";
+    const jobIdFromUrl =
+      currentJobIdParam && currentJobIdParam !== "all" ? currentJobIdParam : "";
     if (selectedJob !== jobIdFromUrl) {
       setSelectedJob(jobIdFromUrl);
     }
@@ -498,7 +501,7 @@ const EmployerAIShortlists = () => {
   };
 
   const handleSelectedJobChange = (value: string) => {
-    setSelectedJob(value);
+    setSelectedJob(value === "all" ? "" : value);
     setLoadedMatches([]);
     setJobMatchesPage(1);
     // Update URL search params so jobId persists across navigation

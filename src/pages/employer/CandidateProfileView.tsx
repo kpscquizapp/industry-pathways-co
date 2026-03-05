@@ -48,9 +48,7 @@ type Resume = {
 };
 
 const isPdfFile = (resume?: Resume | null): boolean =>
-  !!resume &&
-  (resume.mimeType === "application/pdf" ||
-    resume.originalName.toLowerCase().endsWith(".pdf"));
+  !!resume && resume.mimeType?.toLowerCase() === "application/pdf";
 
 const formatFileSize = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`;
@@ -115,6 +113,7 @@ const CandidateProfileView = () => {
       });
 
       if (latestRequestIdRef.current !== resume.id) {
+        revokePreviewUrl(data as string);
         return;
       }
 
@@ -125,7 +124,8 @@ const CandidateProfileView = () => {
       const isPdf = isPdfFile(resume);
 
       if (isMobile && isPdf) {
-        window.open(data, "_blank");
+        window.open(data, "_blank", "noopener,noreferrer");
+        window.setTimeout(() => revokePreviewUrl(data), 60_000);
         return;
       }
 
@@ -439,10 +439,15 @@ const CandidateProfileView = () => {
                               </div>
                               <div className="min-w-0 flex-1">
                                 <p className="font-semibold text-xs sm:text-sm dark:text-slate-200 break-words">
-                                  {cert.name}
+                                  {cert.name || cert.title}
                                 </p>
+                                {cert.issuer && (
+                                  <p className="text-xs text-gray-500 dark:text-slate-400">
+                                    {cert.issuer}
+                                  </p>
+                                )}
                                 <p className="text-xs text-gray-500 dark:text-slate-400">
-                                  {cert.issueDate}
+                                  {cert.year || cert.issueDate}
                                 </p>
                               </div>
                             </div>
@@ -675,23 +680,25 @@ const CandidateProfileView = () => {
                             profile.projects.map(
                               (project: any, pIndex: number) => {
                                 const safeProjectUrl = getSafeProjectUrl(
-                                  project.projectUrl,
+                                  project.url ?? project.projectUrl,
                                 );
                                 return (
                                   <Card
                                     id={`CandidateProfile-${candidateId}-project-${pIndex}`}
                                     className="border dark:border-slate-700 dark:bg-slate-800 w-full"
-                                    key={`${project.title}-${pIndex}`}
+                                    key={`${project.name || project.title}-${pIndex}`}
                                   >
                                     <CardContent className="p-4 sm:p-6">
                                       <div className="w-full h-24 sm:h-32 bg-gray-100 dark:bg-slate-700/50 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                                         <div className="w-10 h-14 sm:w-12 sm:h-16 border-2 border-gray-300 dark:border-slate-500 rounded flex items-center justify-center text-2xl dark:text-slate-300">
-                                          {project.projectUrl ? "🌐" : "📂"}
+                                          {project.url || project.projectUrl
+                                            ? "🌐"
+                                            : "📂"}
                                         </div>
                                       </div>
                                       <div className="flex items-center justify-between">
                                         <h4 className="font-bold mb-1 sm:mb-2 text-sm sm:text-base dark:text-slate-100 break-words">
-                                          {project.title}
+                                          {project.name || project.title}
                                         </h4>
                                         {safeProjectUrl && (
                                           <a
@@ -705,9 +712,16 @@ const CandidateProfileView = () => {
                                         )}
                                       </div>
                                       <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
-                                        {Array.isArray(project.techStack)
-                                          ? project.techStack.join(", ")
-                                          : project.techStack}
+                                        {Array.isArray(
+                                          project.technologies ??
+                                            project.techStack,
+                                        )
+                                          ? (
+                                              project.technologies ??
+                                              project.techStack
+                                            ).join(", ")
+                                          : (project.technologies ??
+                                            project.techStack)}
                                       </p>
                                       <p className="mt-3 text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
                                         {project.description}

@@ -66,7 +66,7 @@ export interface CandidateProfile {
   yearsExperience?: number;
   primarySkills?: string[];
   secondarySkills?: string[];
-  preferredWorkType?: string;
+  preferredWorkType?: string | string[];
   preferredJobLocations?: string[];
   hourlyRateMin?: number;
   hourlyRateMax?: number;
