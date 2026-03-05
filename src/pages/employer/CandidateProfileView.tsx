@@ -782,7 +782,10 @@ const CandidateProfileView = () => {
                                         ? formatFileSize(defaultResume.fileSize)
                                         : "Unknown size"}{" "}
                                       •{" "}
-                                      {defaultResume.uploadedAt
+                                      {defaultResume.uploadedAt &&
+                                      !Number.isNaN(
+                                        Date.parse(defaultResume.uploadedAt),
+                                      )
                                         ? new Date(
                                             defaultResume.uploadedAt,
                                           ).toLocaleDateString()
@@ -850,6 +853,7 @@ const CandidateProfileView = () => {
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Close resume preview"
                 onClick={clearPreview}
                 className="flex-shrink-0"
               >

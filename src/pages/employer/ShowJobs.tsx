@@ -168,18 +168,15 @@ const ShowJobs = () => {
       {/* Tabs */}
       <Tabs
         value={activeTab}
-        onValueChange={(v) => {
-          setActiveTab(v as "active" | "draft");
-          setCurrentPage(1);
-        }}
+        onValueChange={(v) => setActiveTab(v as "active" | "draft")}
         className="w-full"
       >
         <TabsList className="grid w-full max-w-xs grid-cols-2">
           <TabsTrigger value="active">
-            Active{!isLoading && ` (${activeCount} on page)`}
+            Active{!isLoading && ` (${activeCount})`}
           </TabsTrigger>
           <TabsTrigger value="draft">
-            Draft{!isLoading && ` (${draftCount} on page)`}
+            Draft{!isLoading && ` (${draftCount})`}
           </TabsTrigger>
         </TabsList>
       </Tabs>
