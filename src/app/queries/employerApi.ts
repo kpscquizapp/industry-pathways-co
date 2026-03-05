@@ -46,7 +46,7 @@ export interface CandidateResume {
   isDefault?: boolean;
 }
 
-export interface CandidateProfile {
+export interface EmployerCandidateProfileDto {
   id: number;
   userId: number;
   email?: string;
@@ -88,7 +88,7 @@ export interface CandidateProfile {
 
 export interface CandidateByIdResponse {
   success: boolean;
-  data: CandidateProfile;
+  data: EmployerCandidateProfileDto;
 }
 
 export const employerApi = createApi({

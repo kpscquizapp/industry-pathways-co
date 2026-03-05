@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,15 +69,27 @@ const ShowJobs = () => {
 
   // Server already filters by status via queryParams.status; keep a defensive
   // client-side filter in case a stale cache page mixes statuses.
+  const ACTIVE_STATUSES = new Set(["published", "active"]);
+
   const filteredJobs = useMemo(() => {
     if (activeTab === "draft") {
       return jobs.filter((job: any) => job.status === "draft");
     }
-    return jobs.filter((job: any) => job.status === "published");
+    return jobs.filter((job: any) =>
+      ACTIVE_STATUSES.has(String(job.status ?? "").toLowerCase()),
+    );
   }, [jobs, activeTab]);
 
   // Use server-reported total (already filtered by status) for accurate counts.
   const totalForCurrentTab = jobsData?.pagination?.total ?? filteredJobs.length;
+
+  // Clamp currentPage so it never exceeds totalPages after data changes.
+  useEffect(() => {
+    const maxPage = Math.max(1, totalPages);
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage);
+    }
+  }, [totalPages, currentPage]);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -238,7 +250,7 @@ const ShowJobs = () => {
                     <TableCell>
                       <Badge
                         className={`whitespace-nowrap ${
-                          job.status === "published"
+                          job.status === "published" || job.status === "active"
                             ? "bg-green-500 hover:bg-green-600 text-white"
                             : job.status === "draft"
                               ? "bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
@@ -247,7 +259,7 @@ const ShowJobs = () => {
                                 : "bg-slate-200 hover:bg-slate-300 text-slate-700"
                         }`}
                       >
-                        {job.status === "published"
+                        {job.status === "published" || job.status === "active"
                           ? "Active"
                           : job.status === "draft"
                             ? "Draft"
@@ -312,7 +324,7 @@ const ShowJobs = () => {
       </Card>
 
       {/* Pagination Controls */}
-      {jobs.length > 0 && (
+      {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6">
           <p className="text-sm text-muted-foreground">
             Page {currentPage} of {totalPages}

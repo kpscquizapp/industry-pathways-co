@@ -335,10 +335,14 @@ const CandidateProfileView = () => {
                           <span className="truncate">Experience</span>
                         </span>
                         <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
-                          {(profile?.yearsExperience ?? profile?.experience) !=
-                          null
-                            ? `${profile?.yearsExperience ?? profile?.experience} Years`
-                            : "None"}
+                          {(() => {
+                            const exp =
+                              profile?.yearsExperience ?? profile?.experience;
+                            if (exp == null) return "None";
+                            return typeof exp === "number"
+                              ? `${exp} Years`
+                              : String(exp);
+                          })()}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs sm:text-sm gap-2">

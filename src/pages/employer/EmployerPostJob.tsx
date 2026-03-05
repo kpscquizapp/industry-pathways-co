@@ -659,7 +659,7 @@ const EmployerPostJob = () => {
           }
         }
       }
-      setCurrentStep(currentStep + 1);
+      setCurrentStep((prev) => prev + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -667,7 +667,7 @@ const EmployerPostJob = () => {
   const prevStep = () => {
     if (currentStep > 1) {
       setFieldErrors({});
-      setCurrentStep(currentStep - 1);
+      setCurrentStep((prev) => prev - 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
