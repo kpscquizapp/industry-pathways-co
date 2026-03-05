@@ -29,6 +29,8 @@ import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import JobDetailsModal from "./JobDetailsModal";
 import { toast } from "sonner";
 
+const ACTIVE_STATUSES = new Set(["published", "active"]);
+
 const ShowJobs = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,7 +71,6 @@ const ShowJobs = () => {
 
   // Server already filters by status via queryParams.status; keep a defensive
   // client-side filter in case a stale cache page mixes statuses.
-  const ACTIVE_STATUSES = new Set(["published", "active"]);
 
   const filteredJobs = useMemo(() => {
     if (activeTab === "draft") {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Plus,
   X,
@@ -73,6 +73,7 @@ const EmployerPostJob = () => {
     "post" | "postAndShow" | null
   >(null);
   const [currentStep, setCurrentStep] = useState(1);
+  const stepAdvanceInFlightRef = useRef(false);
   const totalSteps = 4;
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -621,8 +622,11 @@ const EmployerPostJob = () => {
   };
 
   const nextStep = async () => {
+    if (stepAdvanceInFlightRef.current) return;
     if (!validateStep(currentStep)) return;
     if (currentStep < totalSteps) {
+      stepAdvanceInFlightRef.current = true;
+      try {
       if (currentStep === 1) {
         try {
           const result = await extractSkills({
@@ -661,6 +665,9 @@ const EmployerPostJob = () => {
       }
       setCurrentStep((prev) => prev + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
+      } finally {
+        stepAdvanceInFlightRef.current = false;
+      }
     }
   };
 
@@ -1381,7 +1388,7 @@ const EmployerPostJob = () => {
             <Button
               onClick={nextStep}
               className="rounded-xl bg-primary hover:bg-primary/90 px-8"
-              disabled={isExtractingSkills}
+              disabled={isExtractingSkills || stepAdvanceInFlightRef.current}
             >
               {isExtractingSkills && currentStep === 1
                 ? "Extracting Skills..."

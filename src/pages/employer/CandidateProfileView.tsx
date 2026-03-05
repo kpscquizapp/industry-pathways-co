@@ -1,4 +1,11 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -95,13 +102,13 @@ const CandidateProfileView = () => {
     if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
   };
 
-  const clearPreview = () => {
+  const clearPreview = useCallback(() => {
     latestRequestIdRef.current = null;
     revokePreviewUrl(previewUrlRef.current);
     setPreviewUrl(null);
     setSelectedResume(null);
     setIsModalOpen(false);
-  };
+  }, []);
 
   const handleViewResume = async (resume: Resume) => {
     if (!id) return;
