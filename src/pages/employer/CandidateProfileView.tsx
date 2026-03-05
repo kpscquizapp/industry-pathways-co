@@ -88,7 +88,7 @@ const CandidateProfileView = () => {
 
   const { data: profileImage, isLoading: isLoadingImage } =
     useGetCandidateProfileImageQuery(
-      hasAvatar ? String(profile?.userId) : (skipToken as any),
+      hasAvatar && profile?.userId != null ? String(profile.userId) : skipToken,
     );
 
   const [viewCandidateResume] = useLazyViewCandidateResumeQuery();

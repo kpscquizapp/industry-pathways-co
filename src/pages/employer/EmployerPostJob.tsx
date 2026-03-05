@@ -1388,7 +1388,7 @@ const EmployerPostJob = () => {
             <Button
               onClick={nextStep}
               className="rounded-xl bg-primary hover:bg-primary/90 px-8"
-              disabled={isExtractingSkills || stepAdvanceInFlightRef.current}
+              disabled={isExtractingSkills}
             >
               {isExtractingSkills && currentStep === 1
                 ? "Extracting Skills..."

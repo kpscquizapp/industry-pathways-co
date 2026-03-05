@@ -249,28 +249,33 @@ const ShowJobs = () => {
                       {job.numberOfOpenings || 0}
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        className={`whitespace-nowrap ${
-                          job.status === "published" || job.status === "active"
+                      {(() => {
+                        const status = (job.status ?? "").toLowerCase().trim();
+                        const badgeClass =
+                          status === "published" || status === "active"
                             ? "bg-green-500 hover:bg-green-600 text-white"
-                            : job.status === "draft"
+                            : status === "draft"
                               ? "bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
-                              : job.status === "closed"
+                              : status === "closed"
                                 ? "bg-gray-400 hover:bg-gray-500 text-white"
-                                : "bg-slate-200 hover:bg-slate-300 text-slate-700"
-                        }`}
-                      >
-                        {job.status === "published" || job.status === "active"
-                          ? "Active"
-                          : job.status === "draft"
-                            ? "Draft"
-                            : job.status === "closed"
-                              ? "Closed"
-                              : job.status
-                                ? job.status.charAt(0).toUpperCase() +
-                                  job.status.slice(1)
-                                : "Unknown"}
-                      </Badge>
+                                : "bg-slate-200 hover:bg-slate-300 text-slate-700";
+                        const label =
+                          status === "published" || status === "active"
+                            ? "Active"
+                            : status === "draft"
+                              ? "Draft"
+                              : status === "closed"
+                                ? "Closed"
+                                : status
+                                  ? status.charAt(0).toUpperCase() +
+                                    status.slice(1)
+                                  : "Unknown";
+                        return (
+                          <Badge className={`whitespace-nowrap ${badgeClass}`}>
+                            {label}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-1">
