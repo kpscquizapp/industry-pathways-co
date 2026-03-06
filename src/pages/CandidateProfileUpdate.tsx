@@ -611,18 +611,18 @@ const CandidateProfileUpdate = ({
 
     if (previousProfileIdRef.current !== data.id) {
       // Clear any pending removal timeouts from the previous profile
-      Object.values(removeSkillTimeoutsRef.current).forEach((t) =>
-        clearTimeout(t),
-      );
-      Object.values(removeWorkTimeoutsRef.current).forEach((t) =>
-        clearTimeout(t),
-      );
-      Object.values(removeProjectTimeoutsRef.current).forEach((t) =>
-        clearTimeout(t),
-      );
-      Object.values(removeCertTimeoutsRef.current).forEach((t) =>
-        clearTimeout(t),
-      );
+      Object.values(removeSkillTimeoutsRef.current).forEach((t) => {
+        clearTimeout(t);
+      });
+      Object.values(removeWorkTimeoutsRef.current).forEach((t) => {
+        clearTimeout(t);
+      });
+      Object.values(removeProjectTimeoutsRef.current).forEach((t) => {
+        clearTimeout(t);
+      });
+      Object.values(removeCertTimeoutsRef.current).forEach((t) => {
+        clearTimeout(t);
+      });
       removeSkillTimeoutsRef.current = {};
       removeWorkTimeoutsRef.current = {};
       removeProjectTimeoutsRef.current = {};

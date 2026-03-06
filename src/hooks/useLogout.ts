@@ -6,12 +6,7 @@ import { removeUser } from "@/app/slices/userAuth";
 import { employerApi } from "@/app/queries/employerApi";
 import { profileApi } from "@/app/queries/profileApi";
 import { isTokenExpired } from "@/lib/helpers";
-
-const isExpectedLogoutError = (error: any) => {
-  const status = error?.status;
-  const code = error?.data?.code;
-  return status === 401 || status === 403 || code === "ERR_NO_TOKEN";
-};
+import { isExpectedLogoutError } from "@/lib/authErrorUtils";
 
 const useLogout = () => {
   const user = useSelector((state: any) => state.user.userDetails);
@@ -20,13 +15,11 @@ const useLogout = () => {
 
   const [logout, { isLoading }] = useLogoutMutation();
 
-  const { refreshToken, token } = useSelector(
-    (state: RootState) => state.user,
-  );
+  const { refreshToken } = useSelector((state: RootState) => state.user);
 
   const handleLogout = async () => {
     try {
-      if (refreshToken && token && !isTokenExpired(token)) {
+      if (refreshToken) {
         await logout(refreshToken).unwrap();
       }
     } catch (error) {

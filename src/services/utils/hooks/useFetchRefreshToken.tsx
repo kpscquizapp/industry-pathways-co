@@ -7,6 +7,7 @@ import { removeUser, setNewAccessToken } from "../../../app/slices/userAuth";
 import { useDispatch, useSelector } from "react-redux";
 import { isTokenExpired, getTokenExpiry } from "../../../lib/helpers";
 import { RootState } from "@/app/store";
+import { isExpectedLogoutError } from "@/lib/authErrorUtils";
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 min before expiry
 const FALLBACK_REFRESH_MS = 55 * 60 * 1000; // used when token has no exp claim
@@ -24,12 +25,6 @@ const isRefreshJwtExpired = (token: string) => {
     // If decode fails, do not force logout; let backend validate.
     return false;
   }
-};
-
-const isExpectedLogoutError = (error: any) => {
-  const status = error?.status;
-  const code = error?.data?.code;
-  return status === 401 || status === 403 || code === "ERR_NO_TOKEN";
 };
 
 export const useFetchRefreshToken = () => {
@@ -138,11 +133,11 @@ export const useFetchRefreshToken = () => {
         status === "TIMEOUT_ERROR" ||
         status === "PARSING_ERROR";
 
-      if (isMountedRef.current && (isAuthError || isServerError)) {
+      if (isMountedRef.current && isAuthError) {
         await handleLogout();
       } else if (
         isMountedRef.current &&
-        isTransientError &&
+        (isTransientError || isServerError) &&
         refreshTokenRef.current &&
         retryCountRef.current < MAX_TRANSIENT_RETRIES
       ) {
