@@ -121,12 +121,10 @@ const LandingHeader = () => {
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <User className="w-4 h-4 text-primary" />
+                    <User className="w-4 h-4" />
                     <div>
                       <p className="font-medium">For Contractors</p>
-                      <p className="text-xs text-muted-foreground">
-                        Find your next gig
-                      </p>
+                      <p className="text-xs">Find your next gig</p>
                     </div>
                   </Link>
                 </DropdownMenuItem>
@@ -140,12 +138,10 @@ const LandingHeader = () => {
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Building2 className="w-4 h-4 text-primary" />
+                    <Building2 className="w-4 h-4" />
                     <div>
                       <p className="font-medium">For Bench Resources</p>
-                      <p className="text-xs text-muted-foreground">
-                        List your talent
-                      </p>
+                      <p className="text-xs">List your talent</p>
                     </div>
                   </Link>
                 </DropdownMenuItem>
@@ -159,12 +155,10 @@ const LandingHeader = () => {
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Briefcase className="w-4 h-4 text-primary" />
+                    <Briefcase className="w-4 h-4" />
                     <div>
                       <p className="font-medium">For Hiring Companies</p>
-                      <p className="text-xs text-muted-foreground">
-                        Hire top talent
-                      </p>
+                      <p className="text-xs">Hire top talent</p>
                     </div>
                   </Link>
                 </DropdownMenuItem>

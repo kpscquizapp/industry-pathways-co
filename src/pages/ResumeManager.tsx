@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Upload,
   Eye,
@@ -37,6 +37,14 @@ const isPdfFile = (resume?: Resume | null): boolean =>
   (resume.mimeType === "application/pdf" ||
     resume.originalName.toLowerCase().endsWith(".pdf"));
 
+const getDateSortValue = (dateValue?: string | null): number => {
+  if (typeof dateValue !== "string" || dateValue.trim().length === 0) {
+    return Number.NEGATIVE_INFINITY;
+  }
+  const timestamp = new Date(dateValue).getTime();
+  return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp;
+};
+
 type ResumeManagerProps = {
   resumes: Resume[];
   // Optional: remove if the parent cannot provide a meaningful resume-specific loading state.
@@ -58,12 +66,36 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
   const [loadingDefaultId, setLoadingDefaultId] = useState<number | null>(null);
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const latestRequestIdRef = useRef<number | null>(null);
+  const latestViewRequestTokenRef = useRef(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingViewId, setLoadingViewId] = useState<number | null>(null);
   const [loadingDeleteId, setLoadingDeleteId] = useState<number | null>(null);
+  const previousBodyOverflowRef = useRef<string | null>(null);
+  const modalContentRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const dispatch = useDispatch();
+
+  const dateTimeFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat("default", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    [],
+  );
+
+  const getUploadedAtLabel = useCallback(
+    (uploadedAt: string) => {
+      const parsedDate = new Date(uploadedAt);
+      if (Number.isNaN(parsedDate.getTime())) return "Unknown date";
+      return dateTimeFormatter.format(parsedDate);
+    },
+    [dateTimeFormatter],
+  );
 
   const sortedResumes = useMemo(() => {
     return [...resumes].sort((a, b) => {
@@ -72,9 +104,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
       if (!a.isDefault && b.isDefault) return 1;
 
       // Secondary sort: optional (e.g., by upload date, newest first)
-      return (
-        new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
-      );
+      return getDateSortValue(b.uploadedAt) - getDateSortValue(a.uploadedAt);
     });
   }, [resumes]);
 
@@ -82,38 +112,38 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
 
   // Prevent body scroll when modal is open
   useEffect(() => {
-    if (isModalOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
+    if (!isModalOpen) return;
+    previousBodyOverflowRef.current = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = previousBodyOverflowRef.current ?? "";
+      previousBodyOverflowRef.current = null;
     };
   }, [isModalOpen]);
 
-  const revokePreviewUrl = (url?: string | null) => {
+  const revokePreviewUrl = useCallback((url?: string | null) => {
     if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
-  };
+  }, []);
 
-  const clearPreview = () => {
-    latestRequestIdRef.current = null;
-    revokePreviewUrl(previewUrl);
-    setPreviewUrl(null);
+  const clearPreview = useCallback(() => {
+    latestViewRequestTokenRef.current += 1;
+    setPreviewUrl((previousUrl) => {
+      revokePreviewUrl(previousUrl);
+      return null;
+    });
     setSelectedResume(null);
     setIsModalOpen(false);
-  };
+  }, [revokePreviewUrl]);
 
   const handleView = async (resume: Resume) => {
+    const requestToken = ++latestViewRequestTokenRef.current;
     setLoadingViewId(resume.id);
     try {
       const { data, error } = await viewResume({ resumeId: resume.id });
 
-      // Stale response check
-      if (
-        latestRequestIdRef.current !== null &&
-        latestRequestIdRef.current !== resume.id
-      ) {
+      // Ignore stale responses when a newer view request has started.
+      if (latestViewRequestTokenRef.current !== requestToken) {
+        revokePreviewUrl(data);
         return;
       }
 
@@ -125,33 +155,73 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
 
       // Mobile → open PDF in new tab
       if (isMobile && isPdf) {
-        window.open(data, "_blank");
+        window.open(data, "_blank", "noopener,noreferrer");
+        window.setTimeout(() => revokePreviewUrl(data), 60_000);
         return;
       }
 
       // Desktop → modal preview
-      latestRequestIdRef.current = resume.id;
       setSelectedResume(resume);
       setIsModalOpen(true);
-
-      revokePreviewUrl(previewUrl);
-      setPreviewUrl(data);
+      setPreviewUrl((previousUrl) => {
+        revokePreviewUrl(previousUrl);
+        return data;
+      });
     } catch (err) {
       console.error("Error loading resume:", err);
       toast.error("Failed to open resume");
     } finally {
-      setLoadingViewId(null);
+      if (latestViewRequestTokenRef.current === requestToken) {
+        setLoadingViewId(null);
+      }
     }
   };
   useEffect(() => {
     if (isMobile && isModalOpen) clearPreview();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only react to viewport changes, not modal state
-  }, [isMobile]);
+  }, [clearPreview, isMobile, isModalOpen]);
 
   // Cleanup blob URLs
   useEffect(() => {
     return () => revokePreviewUrl(previewUrl);
-  }, [previewUrl]);
+  }, [previewUrl, revokePreviewUrl]);
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        clearPreview();
+        return;
+      }
+
+      if (event.key !== "Tab" || !modalContentRef.current) return;
+
+      const focusableElements = modalContentRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusableElements.length === 0) return;
+
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, [clearPreview, isModalOpen]);
 
   const handleDelete = async (resumeId: number) => {
     setLoadingDeleteId(resumeId);
@@ -197,9 +267,13 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
+    const lowerFileName = file.name.toLowerCase();
+    const hasAllowedExtension =
+      lowerFileName.endsWith(".pdf") || lowerFileName.endsWith(".docx");
+    const hasAllowedMime = allowedTypes.includes(file.type);
 
     // Separate validation checks for better error messages
-    if (!allowedTypes.includes(file.type)) {
+    if (!hasAllowedMime && !hasAllowedExtension) {
       toast.error("Please upload a PDF or DOCX file.");
       input.value = "";
       return;
@@ -320,13 +394,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                           <p className="text-xs md:text-sm text-slate-500 mt-1 dark:text-slate-400">
                             {(resume.fileSize / (1024 * 1024)).toFixed(1)} MB •
                             Uploaded{" "}
-                            {new Intl.DateTimeFormat("default", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }).format(new Date(resume.uploadedAt))}
+                            {getUploadedAtLabel(resume.uploadedAt)}
                           </p>
                         </div>
                       </div>
@@ -424,6 +492,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
           <div
             className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl w-[95vw] h-[95vh] md:w-[90vw] md:h-[90vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
+            ref={modalContentRef}
           >
             {/* Modal Header */}
             <div className="bg-white dark:bg-slate-800 border-b border-slate-200 px-3 md:px-6 py-3 md:py-4 flex items-center justify-between flex-shrink-0">
@@ -442,6 +511,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                 aria-label="Close preview"
                 onClick={clearPreview}
                 className="flex-shrink-0 ml-2"
+                ref={closeButtonRef}
               >
                 <X className="w-4 h-4 md:w-5 md:h-5" />
               </Button>
