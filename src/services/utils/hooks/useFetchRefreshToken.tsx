@@ -14,6 +14,24 @@ const TRANSIENT_RETRY_MS = 30_000; // 30s
 const MAX_TRANSIENT_RETRIES = 5; // 5 retries
 const MAX_BACKOFF_MS = 5 * 60 * 1000; // 5 min cap
 
+const isJwtToken = (token: string) => token.split(".").length === 3;
+
+const isRefreshJwtExpired = (token: string) => {
+  if (!isJwtToken(token)) return false;
+  try {
+    return getTokenExpiry(token) <= Date.now();
+  } catch {
+    // If decode fails, do not force logout; let backend validate.
+    return false;
+  }
+};
+
+const isExpectedLogoutError = (error: any) => {
+  const status = error?.status;
+  const code = error?.data?.code;
+  return status === 401 || status === 403 || code === "ERR_NO_TOKEN";
+};
+
 export const useFetchRefreshToken = () => {
   const dispatch = useDispatch();
   const userDetails = useSelector((state: RootState) => state.user);
@@ -22,6 +40,7 @@ export const useFetchRefreshToken = () => {
 
   // Stable refs to avoid effect re-runs
   const refreshTokenRef = useRef(userDetails?.refreshToken);
+  const accessTokenRef = useRef(userDetails?.token);
   const isRefreshingRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const doRefreshRef = useRef<(() => Promise<void>) | null>(null);
@@ -32,14 +51,21 @@ export const useFetchRefreshToken = () => {
     refreshTokenRef.current = userDetails?.refreshToken;
   }, [userDetails?.refreshToken]);
 
+  useEffect(() => {
+    accessTokenRef.current = userDetails?.token;
+  }, [userDetails?.token]);
+
   const handleLogout = useCallback(async () => {
     try {
       const refreshToken = refreshTokenRef.current;
-      if (refreshToken) {
+      const accessToken = accessTokenRef.current;
+      if (refreshToken && accessToken && !isTokenExpired(accessToken)) {
         await logout(refreshToken).unwrap();
       }
     } catch (error) {
-      console.error("Logout failed:", error);
+      if (!isExpectedLogoutError(error)) {
+        console.error("Logout failed:", error);
+      }
     } finally {
       if (isMountedRef.current) {
         dispatch(removeUser());
@@ -75,12 +101,18 @@ export const useFetchRefreshToken = () => {
 
   const doRefresh = useCallback(async () => {
     if (isRefreshingRef.current) return;
-    if (!refreshTokenRef.current) return;
+    const refreshToken = refreshTokenRef.current;
+    if (!refreshToken) return;
 
     isRefreshingRef.current = true;
     try {
       if (!isMountedRef.current) return;
-      const result = await triggerRefresh(refreshTokenRef.current).unwrap();
+      if (isRefreshJwtExpired(refreshToken)) {
+        await handleLogout();
+        return;
+      }
+
+      const result = await triggerRefresh(refreshToken).unwrap();
 
       const newAccessToken = result?.accessToken || result?.token;
 
@@ -99,11 +131,18 @@ export const useFetchRefreshToken = () => {
     } catch (error: any) {
       console.error("Refresh failed:", error);
       const status = error?.status;
+      const isAuthError = status === 401 || status === 403;
+      const isServerError = typeof status === "number" && status >= 500;
+      const isTransientError =
+        status === "FETCH_ERROR" ||
+        status === "TIMEOUT_ERROR" ||
+        status === "PARSING_ERROR";
 
-      if (isMountedRef.current && (status === 401 || status === 403)) {
+      if (isMountedRef.current && (isAuthError || isServerError)) {
         await handleLogout();
       } else if (
         isMountedRef.current &&
+        isTransientError &&
         refreshTokenRef.current &&
         retryCountRef.current < MAX_TRANSIENT_RETRIES
       ) {

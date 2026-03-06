@@ -610,6 +610,27 @@ const CandidateProfileUpdate = ({
     }
 
     if (previousProfileIdRef.current !== data.id) {
+      // Clear any pending removal timeouts from the previous profile
+      Object.values(removeSkillTimeoutsRef.current).forEach((t) =>
+        clearTimeout(t),
+      );
+      Object.values(removeWorkTimeoutsRef.current).forEach((t) =>
+        clearTimeout(t),
+      );
+      Object.values(removeProjectTimeoutsRef.current).forEach((t) =>
+        clearTimeout(t),
+      );
+      Object.values(removeCertTimeoutsRef.current).forEach((t) =>
+        clearTimeout(t),
+      );
+      removeSkillTimeoutsRef.current = {};
+      removeWorkTimeoutsRef.current = {};
+      removeProjectTimeoutsRef.current = {};
+      removeCertTimeoutsRef.current = {};
+      setRemovingSkillId(null);
+      setRemovingWorkExperienceId(null);
+      setRemovingProjectId(null);
+      setRemovingCertificateId(null);
       previousProfileIdRef.current = data.id;
       preferredLocationsDirtyRef.current = false;
       setFormData(handleForm());
@@ -638,18 +659,18 @@ const CandidateProfileUpdate = ({
 
   useEffect(() => {
     return () => {
-      Object.values(removeSkillTimeoutsRef.current).forEach((timer) =>
-        clearTimeout(timer),
-      );
-      Object.values(removeWorkTimeoutsRef.current).forEach((timer) =>
-        clearTimeout(timer),
-      );
-      Object.values(removeProjectTimeoutsRef.current).forEach((timer) =>
-        clearTimeout(timer),
-      );
-      Object.values(removeCertTimeoutsRef.current).forEach((timer) =>
-        clearTimeout(timer),
-      );
+      Object.values(removeSkillTimeoutsRef.current).forEach((timer) => {
+        clearTimeout(timer);
+      });
+      Object.values(removeWorkTimeoutsRef.current).forEach((timer) => {
+        clearTimeout(timer);
+      });
+      Object.values(removeProjectTimeoutsRef.current).forEach((timer) => {
+        clearTimeout(timer);
+      });
+      Object.values(removeCertTimeoutsRef.current).forEach((timer) => {
+        clearTimeout(timer);
+      });
       removeSkillTimeoutsRef.current = {};
       removeWorkTimeoutsRef.current = {};
       removeProjectTimeoutsRef.current = {};
@@ -2630,6 +2651,27 @@ const CandidateProfileUpdate = ({
         </button>
         <button
           onClick={() => {
+            // Clear any pending removal timeouts
+            Object.values(removeSkillTimeoutsRef.current).forEach((t) => {
+              clearTimeout(t);
+            });
+            Object.values(removeWorkTimeoutsRef.current).forEach((t) => {
+              clearTimeout(t);
+            });
+            Object.values(removeProjectTimeoutsRef.current).forEach((t) => {
+              clearTimeout(t);
+            });
+            Object.values(removeCertTimeoutsRef.current).forEach((t) => {
+              clearTimeout(t);
+            });
+            removeSkillTimeoutsRef.current = {};
+            removeWorkTimeoutsRef.current = {};
+            removeProjectTimeoutsRef.current = {};
+            removeCertTimeoutsRef.current = {};
+            setRemovingSkillId(null);
+            setRemovingWorkExperienceId(null);
+            setRemovingProjectId(null);
+            setRemovingCertificateId(null);
             setFormData(handleForm());
             setFieldErrors({}); // Clear errors on cancel
             setLocationInput("");
