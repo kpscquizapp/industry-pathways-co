@@ -32,6 +32,36 @@ import { toast } from "sonner";
 
 const ACTIVE_STATUSES = new Set(["published", "active"]);
 
+const getStatusBadgeProps = (
+  rawStatus: string | undefined,
+): { label: string; className: string } => {
+  const status = (rawStatus ?? "").toLowerCase().trim();
+  if (status === "published" || status === "active") {
+    return {
+      label: "Active",
+      className: "bg-green-500 hover:bg-green-600 text-white",
+    };
+  }
+  if (status === "draft") {
+    return {
+      label: "Draft",
+      className: "bg-yellow-100 hover:bg-yellow-200 text-yellow-800",
+    };
+  }
+  if (status === "closed") {
+    return {
+      label: "Closed",
+      className: "bg-gray-400 hover:bg-gray-500 text-white",
+    };
+  }
+  return {
+    label: status
+      ? status.charAt(0).toUpperCase() + status.slice(1)
+      : "Unknown",
+    className: "bg-slate-200 hover:bg-slate-300 text-slate-700",
+  };
+};
+
 const ShowJobs = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -259,28 +289,11 @@ const ShowJobs = () => {
                     </TableCell>
                     <TableCell>
                       {(() => {
-                        const status = (job.status ?? "").toLowerCase().trim();
-                        const badgeClass =
-                          status === "published" || status === "active"
-                            ? "bg-green-500 hover:bg-green-600 text-white"
-                            : status === "draft"
-                              ? "bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
-                              : status === "closed"
-                                ? "bg-gray-400 hover:bg-gray-500 text-white"
-                                : "bg-slate-200 hover:bg-slate-300 text-slate-700";
-                        const label =
-                          status === "published" || status === "active"
-                            ? "Active"
-                            : status === "draft"
-                              ? "Draft"
-                              : status === "closed"
-                                ? "Closed"
-                                : status
-                                  ? status.charAt(0).toUpperCase() +
-                                    status.slice(1)
-                                  : "Unknown";
+                        const { label, className } = getStatusBadgeProps(
+                          job.status,
+                        );
                         return (
-                          <Badge className={`whitespace-nowrap ${badgeClass}`}>
+                          <Badge className={`whitespace-nowrap ${className}`}>
                             {label}
                           </Badge>
                         );

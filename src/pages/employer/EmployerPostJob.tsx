@@ -241,13 +241,15 @@ const EmployerPostJob = () => {
         termsAndConditions: job.termsAndConditions || false,
       });
 
-      if (job.skills && Array.isArray(job.skills)) {
-        setSkills(
-          job.skills.map((s: { name?: string } | string) =>
-            typeof s === "string" ? s : (s.name ?? ""),
-          ),
-        );
-      }
+      const normalizedSkills = Array.isArray(job.skills)
+        ? job.skills
+            .map((s: { name?: string } | string) =>
+              typeof s === "string" ? s : (s.name ?? ""),
+            )
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
+      setSkills(normalizedSkills);
     } else if (!isEditing) {
       // Reset form when switching back to create mode
       setFormData({ ...INITIAL_FORM_DATA });
