@@ -45,8 +45,9 @@ import {
   useDeleteJobMutation,
   useSaveJobAsDraftMutation,
 } from "@/app/queries/jobApi";
-import { skipToken, FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
+import { skipToken } from "@reduxjs/toolkit/query/react";
 import { useExtractSkillsMutation } from "@/app/queries/atsApi";
+import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 
 const EmployerPostJob = () => {
   const navigate = useNavigate();
@@ -289,21 +290,10 @@ const EmployerPostJob = () => {
     return items.length > 0 ? items : undefined;
   };
 
-  const mapExperienceLevelToYears = (
-    experienceLevel: string,
-    minExp: string | number | undefined,
-    maxExp: string | number | undefined,
-  ) => {
-    // If explicit min/max experience is provided, use those
-    const minExperience = parseOptionalNumber(minExp ?? "");
-    const maxExperience = parseOptionalNumber(maxExp ?? "");
-
-    if (minExperience !== undefined || maxExperience !== undefined) {
-      return { minExperience, maxExperience };
-    }
-
-    // Otherwise, map from experience level
-    switch (experienceLevel?.toLowerCase()) {
+  const experienceLevelToRange = (
+    level: string,
+  ): { minExperience: number; maxExperience: number | undefined } | null => {
+    switch (level?.toLowerCase()) {
       case "junior":
         return { minExperience: 0, maxExperience: 2 };
       case "mid":
@@ -317,8 +307,23 @@ const EmployerPostJob = () => {
       case "principal":
         return { minExperience: 15, maxExperience: undefined };
       default:
-        return { minExperience, maxExperience };
+        return null;
     }
+  };
+
+  const mapExperienceLevelToYears = (
+    experienceLevel: string,
+    minExp: string | number | undefined,
+    maxExp: string | number | undefined,
+  ) => {
+    // If an experience level is selected, prefer its mapped range
+    const mapped = experienceLevelToRange(experienceLevel);
+    if (mapped) return mapped;
+
+    // Fallback to explicit min/max when no level is set
+    const minExperience = parseOptionalNumber(minExp ?? "");
+    const maxExperience = parseOptionalNumber(maxExp ?? "");
+    return { minExperience, maxExperience };
   };
 
   const buildCreateJobPayload = (enableAiMatching: boolean) => {
@@ -367,6 +372,7 @@ const EmployerPostJob = () => {
       workMode: formData.workMode || undefined,
 
       // Experience
+      experienceLevel: formData.experienceLevel || undefined,
       minExperience: minExperience,
       maxExperience: maxExperience,
       fresherAllowed: formData.fresherAllowed,
@@ -449,25 +455,40 @@ const EmployerPostJob = () => {
       return error;
     }
 
-    if (error && typeof error === "object") {
-      const data = (error as { data?: unknown }).data;
-
-      if (typeof data === "string" && data.trim()) {
-        return data;
-      }
-
-      if (data && typeof data === "object" && "message" in data) {
-        const message = (data as { message?: unknown }).message;
-        if (typeof message === "string" && message.trim()) {
-          return message;
+    // Handle RTK Query FetchBaseQueryError cases first
+    if (isFetchBaseQueryError(error)) {
+      if (typeof error.status === "string") {
+        switch (error.status) {
+          case "FETCH_ERROR":
+            return "Network error. Please check your connection and try again.";
+          case "TIMEOUT_ERROR":
+            return "Request timed out. Please try again in a moment.";
+          case "PARSING_ERROR":
+            return "Unexpected server response. Please try again later.";
         }
       }
 
-      if ("message" in error) {
-        const message = (error as { message?: unknown }).message;
-        if (typeof message === "string" && message.trim()) {
-          return message;
+      // Extract message from error.data for HTTP status errors
+      if (typeof error.data === "string" && error.data.trim()) {
+        return error.data;
+      }
+      if (
+        typeof error.data === "object" &&
+        error.data !== null &&
+        "message" in error.data
+      ) {
+        const msg = (error.data as { message?: unknown }).message;
+        if (typeof msg === "string" && msg.trim()) {
+          return msg;
         }
+      }
+    }
+
+    // Fallback: generic object with .message
+    if (error && typeof error === "object" && "message" in error) {
+      const message = (error as { message?: unknown }).message;
+      if (typeof message === "string" && message.trim()) {
+        return message;
       }
     }
 
@@ -657,10 +678,7 @@ const EmployerPostJob = () => {
               }
             }
           } catch (err: unknown) {
-            const isFetchError = (e: unknown): e is FetchBaseQueryError =>
-              typeof e === "object" && e !== null && "status" in e;
-
-            if (isFetchError(err) && err.status === 404) {
+            if (isFetchBaseQueryError(err) && err.status === 404) {
               toast.warning(
                 "Skill extraction endpoint not available. Add skills manually.",
               );
@@ -1027,9 +1045,20 @@ const EmployerPostJob = () => {
                       </Label>
                       <Select
                         value={formData.experienceLevel}
-                        onValueChange={(v) =>
-                          setFormData({ ...formData, experienceLevel: v })
-                        }
+                        onValueChange={(v) => {
+                          const range = experienceLevelToRange(v);
+                          setFormData({
+                            ...formData,
+                            experienceLevel: v,
+                            minExperience: range
+                              ? String(range.minExperience)
+                              : "",
+                            maxExperience:
+                              range?.maxExperience != null
+                                ? String(range.maxExperience)
+                                : "",
+                          });
+                        }}
                       >
                         <SelectTrigger className="mt-1.5">
                           <SelectValue placeholder="Select experience level" />
@@ -1046,6 +1075,10 @@ const EmployerPostJob = () => {
                           </SelectItem>
                           <SelectItem value="senior">
                             Senior (10+ Years)
+                          </SelectItem>
+                          <SelectItem value="lead">Lead (15+ Years)</SelectItem>
+                          <SelectItem value="principal">
+                            Principal (15+ Years)
                           </SelectItem>
                         </SelectContent>
                       </Select>

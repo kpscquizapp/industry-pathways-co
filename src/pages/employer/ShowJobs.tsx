@@ -65,9 +65,14 @@ const ShowJobs = () => {
       jobs = jobsData;
     }
 
-    const total = jobsData.pagination?.total ?? 0;
-    const limit = queryParams.limit;
-    totalPages = total > 0 ? Math.ceil(total / limit) : 1;
+    const serverTotalPages = jobsData.pagination?.totalPages;
+    if (typeof serverTotalPages === "number" && serverTotalPages >= 1) {
+      totalPages = serverTotalPages;
+    } else {
+      const total = jobsData.pagination?.total ?? 0;
+      const appliedLimit = jobsData.pagination?.limit ?? queryParams.limit;
+      totalPages = total > 0 ? Math.ceil(total / appliedLimit) : 1;
+    }
   }
 
   // Server already filters by status via queryParams.status; keep a defensive
@@ -115,7 +120,9 @@ const ShowJobs = () => {
   };
 
   const handleViewProfiles = (jobId: string | number) => {
-    navigate(`/hire-talent/ai-shortlists?jobId=${jobId}`);
+    navigate(
+      `/hire-talent/ai-shortlists?jobId=${encodeURIComponent(String(jobId))}`,
+    );
   };
 
   const handleDeleteJob = async (jobId: string | number) => {
@@ -228,7 +235,10 @@ const ShowJobs = () => {
                 {filteredJobs.map((job, index) => (
                   <TableRow key={job.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium text-muted-foreground">
-                      {(currentPage - 1) * queryParams.limit + index + 1}
+                      {(currentPage - 1) *
+                        (jobsData?.pagination?.limit ?? queryParams.limit) +
+                        index +
+                        1}
                     </TableCell>
                     <TableCell>
                       <p className="font-semibold text-sm truncate max-w-[200px]">
