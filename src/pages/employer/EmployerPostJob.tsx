@@ -49,6 +49,83 @@ import { skipToken } from "@reduxjs/toolkit/query/react";
 import { useExtractSkillsMutation } from "@/app/queries/atsApi";
 import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 
+const INITIAL_FORM_DATA = {
+  // Basic Information
+  title: "",
+  description: "",
+  category: "",
+  role: "",
+  status: "draft",
+
+  // Location
+  location: "",
+  city: "",
+  state: "",
+  country: "",
+  multipleLocationsAllowed: false,
+
+  // Employment Details
+  employmentType: "",
+  workMode: "",
+
+  // Experience
+  minExperience: "",
+  maxExperience: "",
+  experienceLevel: "",
+  fresherAllowed: false,
+
+  // Compensation
+  salaryMin: "",
+  salaryMax: "",
+  salaryType: "not-disclosed",
+  currency: "USD",
+  expectedBudgetMin: "",
+  expectedBudgetMax: "",
+
+  // Duration & Timing
+  duration: "",
+  durationUnit: "",
+  startDate: "",
+  expiresAt: "",
+
+  // Payment
+  paymentType: "",
+
+  // Openings & Visibility
+  openings: "",
+  jobVisibility: "public",
+  urgency: "normal",
+  openToBenchResources: false,
+
+  // Certifications & Education
+  certifications: "",
+  educationQualification: "",
+  languagesKnown: "",
+
+  // Perks & Benefits
+  healthInsurance: false,
+  esops: false,
+  performanceBonus: false,
+  remoteAllowance: false,
+
+  // AI & Screening
+  enableAiMatching: true,
+  autoScreenCandidates: false,
+  enableSkillAssessment: true,
+  scheduleAIInterview: false,
+  testType: "",
+  difficultyLevel: "",
+  timeLimit: "",
+  autoRejectBelowScore: "",
+  interviewType: "",
+  autoAdvanceScore: "",
+
+  // Compliance
+  equalOpportunityEmployer: true,
+  dataPrivacyPolicies: true,
+  termsAndConditions: false,
+};
+
 const EmployerPostJob = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -77,82 +154,7 @@ const EmployerPostJob = () => {
   const stepAdvanceInFlightRef = useRef(false);
   const totalSteps = 4;
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    // Basic Information
-    title: "",
-    description: "",
-    category: "",
-    role: "",
-    status: "draft",
-
-    // Location
-    location: "",
-    city: "",
-    state: "",
-    country: "",
-    multipleLocationsAllowed: false,
-
-    // Employment Details
-    employmentType: "",
-    workMode: "",
-
-    // Experience
-    minExperience: "",
-    maxExperience: "",
-    experienceLevel: "",
-    fresherAllowed: false,
-
-    // Compensation
-    salaryMin: "",
-    salaryMax: "",
-    salaryType: "not-disclosed",
-    currency: "USD",
-    expectedBudgetMin: "",
-    expectedBudgetMax: "",
-
-    // Duration & Timing
-    duration: "",
-    durationUnit: "",
-    startDate: "",
-    expiresAt: "",
-
-    // Payment
-    paymentType: "",
-
-    // Openings & Visibility
-    openings: "",
-    jobVisibility: "public",
-    urgency: "normal",
-    openToBenchResources: false,
-
-    // Certifications & Education
-    certifications: "",
-    educationQualification: "",
-    languagesKnown: "",
-
-    // Perks & Benefits
-    healthInsurance: false,
-    esops: false,
-    performanceBonus: false,
-    remoteAllowance: false,
-
-    // AI & Screening
-    enableAiMatching: true,
-    autoScreenCandidates: false,
-    enableSkillAssessment: true,
-    scheduleAIInterview: false,
-    testType: "",
-    difficultyLevel: "",
-    timeLimit: "",
-    autoRejectBelowScore: "",
-    interviewType: "",
-    autoAdvanceScore: "",
-
-    // Compliance
-    equalOpportunityEmployer: true,
-    dataPrivacyPolicies: true,
-    termsAndConditions: false,
-  });
+  const [formData, setFormData] = useState({ ...INITIAL_FORM_DATA });
 
   useEffect(() => {
     if (isEditing && jobDetailsData?.data?.[0]) {
@@ -247,8 +249,10 @@ const EmployerPostJob = () => {
         );
       }
     } else if (!isEditing) {
-      // Clear skills when switching back to create mode
+      // Reset form when switching back to create mode
+      setFormData({ ...INITIAL_FORM_DATA });
       setSkills([]);
+      setCurrentStep(1);
     }
   }, [isEditing, jobDetailsData]);
 
@@ -536,9 +540,11 @@ const EmployerPostJob = () => {
 
       let response;
       if (isEditing && jobId) {
-        // Update existing job — preserve existing status unless an explicit publish action is added
+        // Update existing job — promote drafts to published on submit
         const job = jobDetailsData?.data?.[0];
-        const nextStatus = job?.status ?? formData.status;
+        const currentStatus = job?.status ?? formData.status;
+        const nextStatus =
+          currentStatus === "draft" ? "published" : currentStatus;
         response = await updateJob({
           id: jobId,
           data: { ...payload, status: nextStatus },

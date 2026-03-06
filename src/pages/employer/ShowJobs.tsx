@@ -80,12 +80,14 @@ const ShowJobs = () => {
   // client-side filter in case a stale cache page mixes statuses.
 
   const filteredJobs = useMemo(() => {
-    if (activeTab === "draft") {
-      return jobs.filter((job) => job.status === "draft");
-    }
-    return jobs.filter((job) =>
-      ACTIVE_STATUSES.has(String(job.status ?? "").toLowerCase()),
-    );
+    return jobs.filter((job) => {
+      const status = String(job.status ?? "")
+        .toLowerCase()
+        .trim();
+      return activeTab === "draft"
+        ? status === "draft"
+        : ACTIVE_STATUSES.has(status);
+    });
   }, [jobs, activeTab]);
 
   // Use server-reported total (already filtered by status) for accurate counts.
