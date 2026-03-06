@@ -240,7 +240,11 @@ const EmployerPostJob = () => {
       });
 
       if (job.skills && Array.isArray(job.skills)) {
-        setSkills(job.skills.map((s: any) => s.name || s));
+        setSkills(
+          job.skills.map((s: { name?: string } | string) =>
+            typeof s === "string" ? s : (s.name ?? ""),
+          ),
+        );
       }
     } else if (!isEditing) {
       // Clear skills when switching back to create mode

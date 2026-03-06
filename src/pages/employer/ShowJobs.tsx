@@ -47,8 +47,9 @@ const ShowJobs = () => {
   };
 
   const {
-    data: jobsData,
+    currentData: jobsData,
     isLoading,
+    isFetching,
     error,
   } = useGetEmployerAllJobsQuery(queryParams);
 
@@ -196,7 +197,7 @@ const ShowJobs = () => {
       {/* Jobs Table */}
       <Card>
         <CardContent className="p-0">
-          {isLoading ? (
+          {isLoading || isFetching ? (
             <div className="flex items-center justify-center h-64">
               <SpinnerLoader className="w-8 h-8 text-primary" />
             </div>
