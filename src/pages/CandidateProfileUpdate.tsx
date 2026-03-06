@@ -414,6 +414,7 @@ const CandidateProfileUpdate = ({
   const resumeData = useSelector((state: RootState) => state.resumeSkills.data);
   const preferredLocationsDirtyRef = useRef(false);
   const previousProfileIdRef = useRef<string | null>(null);
+  const prevSourceSkillsRef = useRef<string[]>([]);
   const removeSkillTimeoutsRef = useRef<
     Record<string, ReturnType<typeof setTimeout>>
   >({});
@@ -430,6 +431,8 @@ const CandidateProfileUpdate = ({
   useEffect(() => {
     preferredLocationsDirtyRef.current = false;
   }, [data?.id]);
+
+  const normalizeSkill = (value: string) => value.toLowerCase().trim();
 
   const skills = useMemo(() => {
     // Get resume skills (priority)
@@ -603,49 +606,64 @@ const CandidateProfileUpdate = ({
 
   const [formData, setFormData] = useState<FormDataState>(handleForm);
 
+  const teardownPendingRemovals = useCallback(() => {
+    Object.values(removeSkillTimeoutsRef.current).forEach((t) => {
+      clearTimeout(t);
+    });
+    Object.values(removeWorkTimeoutsRef.current).forEach((t) => {
+      clearTimeout(t);
+    });
+    Object.values(removeProjectTimeoutsRef.current).forEach((t) => {
+      clearTimeout(t);
+    });
+    Object.values(removeCertTimeoutsRef.current).forEach((t) => {
+      clearTimeout(t);
+    });
+    removeSkillTimeoutsRef.current = {};
+    removeWorkTimeoutsRef.current = {};
+    removeProjectTimeoutsRef.current = {};
+    removeCertTimeoutsRef.current = {};
+    setRemovingSkillId(null);
+    setRemovingWorkExperienceId(null);
+    setRemovingProjectId(null);
+    setRemovingCertificateId(null);
+  }, []);
+
   useEffect(() => {
     if (!data) {
       previousProfileIdRef.current = null;
+      prevSourceSkillsRef.current = [];
       return;
     }
 
     if (previousProfileIdRef.current !== data.id) {
       // Clear any pending removal timeouts from the previous profile
-      Object.values(removeSkillTimeoutsRef.current).forEach((t) => {
-        clearTimeout(t);
-      });
-      Object.values(removeWorkTimeoutsRef.current).forEach((t) => {
-        clearTimeout(t);
-      });
-      Object.values(removeProjectTimeoutsRef.current).forEach((t) => {
-        clearTimeout(t);
-      });
-      Object.values(removeCertTimeoutsRef.current).forEach((t) => {
-        clearTimeout(t);
-      });
-      removeSkillTimeoutsRef.current = {};
-      removeWorkTimeoutsRef.current = {};
-      removeProjectTimeoutsRef.current = {};
-      removeCertTimeoutsRef.current = {};
-      setRemovingSkillId(null);
-      setRemovingWorkExperienceId(null);
-      setRemovingProjectId(null);
-      setRemovingCertificateId(null);
+      teardownPendingRemovals();
       previousProfileIdRef.current = data.id;
+      prevSourceSkillsRef.current = [];
       preferredLocationsDirtyRef.current = false;
       setFormData(handleForm());
     }
-  }, [data, handleForm]);
+  }, [data, handleForm, teardownPendingRemovals]);
 
   useEffect(() => {
     if (!data) return;
 
+    const currentSourceSkills = skills
+      .map((s) => normalizeSkill(s))
+      .filter(Boolean);
+    const previousSourceSkillsSet = new Set(prevSourceSkillsRef.current);
+    const addedSkills = skills.filter((s) => {
+      const normalized = normalizeSkill(s);
+      return normalized && !previousSourceSkillsSet.has(normalized);
+    });
+
     setFormData((prev) => {
       const existingLower = new Set(
-        prev.primarySkills.map((s) => s.toLowerCase().trim()),
+        prev.primarySkills.map((s) => normalizeSkill(s)),
       );
-      const newSkills = skills.filter(
-        (s) => !existingLower.has(s.toLowerCase().trim()),
+      const newSkills = addedSkills.filter(
+        (s) => !existingLower.has(normalizeSkill(s)),
       );
 
       if (newSkills.length === 0) return prev;
@@ -655,28 +673,15 @@ const CandidateProfileUpdate = ({
         primarySkills: [...prev.primarySkills, ...newSkills],
       };
     });
+
+    prevSourceSkillsRef.current = currentSourceSkills;
   }, [data, skills]);
 
   useEffect(() => {
     return () => {
-      Object.values(removeSkillTimeoutsRef.current).forEach((timer) => {
-        clearTimeout(timer);
-      });
-      Object.values(removeWorkTimeoutsRef.current).forEach((timer) => {
-        clearTimeout(timer);
-      });
-      Object.values(removeProjectTimeoutsRef.current).forEach((timer) => {
-        clearTimeout(timer);
-      });
-      Object.values(removeCertTimeoutsRef.current).forEach((timer) => {
-        clearTimeout(timer);
-      });
-      removeSkillTimeoutsRef.current = {};
-      removeWorkTimeoutsRef.current = {};
-      removeProjectTimeoutsRef.current = {};
-      removeCertTimeoutsRef.current = {};
+      teardownPendingRemovals();
     };
-  }, []);
+  }, [teardownPendingRemovals]);
 
   const candidateTypeOptions = [
     "Full-Time Job Seeker",
@@ -1327,27 +1332,35 @@ const CandidateProfileUpdate = ({
 
     // Validate work experiences
     formData.workExperiences.forEach((exp, index) => {
+      const companyName = exp.companyName.trim();
+      const role = exp.role.trim();
+      const employmentType = exp.employmentType.trim();
+      const startDate = exp.startDate.trim();
+      const endDate = (exp.endDate ?? "").trim();
+      const location = exp.location.trim();
+      const hasDescription = Array.isArray(exp.description)
+        ? exp.description.some((part) => part.trim() !== "")
+        : String(exp.description ?? "").trim() !== "";
+
       const hasAnyWorkValue =
-        exp.companyName.trim() !== "" ||
-        exp.role.trim() !== "" ||
-        exp.employmentType.trim() !== "" ||
-        exp.startDate.trim() !== "" ||
-        (exp.endDate ?? "").trim() !== "" ||
-        exp.location.trim() !== "" ||
-        (Array.isArray(exp.description)
-          ? exp.description.some((part) => part.trim() !== "")
-          : String(exp.description ?? "").trim() !== "");
+        companyName !== "" ||
+        role !== "" ||
+        employmentType !== "" ||
+        startDate !== "" ||
+        endDate !== "" ||
+        location !== "" ||
+        hasDescription;
 
       if (hasAnyWorkValue) {
-        if (!exp.companyName)
+        if (!companyName)
           errors[`workExp_${index}_company`] = "Company name is required";
-        if (!exp.role) errors[`workExp_${index}_role`] = "Role is required";
-        if (!exp.startDate)
+        if (!role) errors[`workExp_${index}_role`] = "Role is required";
+        if (!startDate)
           errors[`workExp_${index}_startDate`] = "Start date is required";
         else {
           const dateError = VALIDATION.date.validate(
-            exp.startDate,
-            exp.endDate,
+            startDate,
+            endDate || null,
             "work experience",
           );
           if (dateError) errors[`workExp_${index}_dates`] = dateError;
@@ -1357,24 +1370,29 @@ const CandidateProfileUpdate = ({
 
     // Validate projects
     formData.projects.forEach((project, index) => {
+      const title = project.title.trim();
+      const description = project.description.trim();
+      const projectUrl = project.projectUrl.trim();
+      const hasTechStack = Array.isArray(project.techStack)
+        ? project.techStack.some((part) => part.trim() !== "")
+        : String(project.techStack ?? "").trim() !== "";
+
       const hasAnyProjectValue =
-        project.title.trim() !== "" ||
-        project.description.trim() !== "" ||
-        project.projectUrl.trim() !== "" ||
-        (Array.isArray(project.techStack)
-          ? project.techStack.some((part) => part.trim() !== "")
-          : String(project.techStack ?? "").trim() !== "") ||
+        title !== "" ||
+        description !== "" ||
+        projectUrl !== "" ||
+        hasTechStack ||
         project.isFeatured;
 
       if (hasAnyProjectValue) {
-        if (!project.title)
+        if (!title)
           errors[`project_${index}_title`] = "Project title is required";
-        if (!project.description)
+        if (!description)
           errors[`project_${index}_description`] =
             "Project description is required";
 
-        if (project.projectUrl) {
-          const urlError = VALIDATION.url.validate(project.projectUrl);
+        if (projectUrl) {
+          const urlError = VALIDATION.url.validate(projectUrl);
           if (urlError) errors[`project_${index}_url`] = urlError;
         }
       }
@@ -1382,31 +1400,37 @@ const CandidateProfileUpdate = ({
 
     // Validate certifications
     formData.certifications.forEach((cert, index) => {
+      const name = cert.name.trim();
+      const issuedBy = cert.issuedBy.trim();
+      const issueDate = cert.issueDate.trim();
+      const expiryDate = (cert.expiryDate ?? "").trim();
+      const credentialUrl = cert.credentialUrl.trim();
+
       const hasAnyCertValue =
-        cert.name.trim() !== "" ||
-        cert.issuedBy.trim() !== "" ||
-        cert.issueDate.trim() !== "" ||
-        (cert.expiryDate ?? "").trim() !== "" ||
-        cert.credentialUrl.trim() !== "";
+        name !== "" ||
+        issuedBy !== "" ||
+        issueDate !== "" ||
+        expiryDate !== "" ||
+        credentialUrl !== "";
 
       if (hasAnyCertValue) {
-        if (!cert.name)
+        if (!name)
           errors[`cert_${index}_name`] = "Certification name is required";
-        if (!cert.issuedBy)
+        if (!issuedBy)
           errors[`cert_${index}_issuer`] = "Issuer is required";
-        if (!cert.issueDate)
+        if (!issueDate)
           errors[`cert_${index}_issueDate`] = "Issue date is required";
         else {
           const dateError = VALIDATION.certificationDate.validate(
-            cert.issueDate,
-            cert.expiryDate ?? null,
+            issueDate,
+            expiryDate || null,
           );
           if (dateError) {
             errors[`cert_${index}_${dateError.field}`] = dateError.message;
           }
         }
-        if (cert.credentialUrl) {
-          const urlError = VALIDATION.url.validate(cert.credentialUrl);
+        if (credentialUrl) {
+          const urlError = VALIDATION.url.validate(credentialUrl);
           if (urlError) errors[`cert_${index}_url`] = urlError;
         }
       }
@@ -1433,7 +1457,7 @@ const CandidateProfileUpdate = ({
 
     const cleanDate = (date: string | null | undefined) => {
       if (!date || date.trim() === "") return null;
-      return date;
+      return date.trim();
     };
 
     const payload = {
@@ -1464,16 +1488,24 @@ const CandidateProfileUpdate = ({
           ? null
           : Number(formData.expectedSalaryMax),
       certifications: formData.certifications
-        .filter((cert) => cert.name && cert.issuedBy && cert.issueDate) // Only include completed certifications
+        .filter(
+          (cert) =>
+            cert.name.trim() &&
+            cert.issuedBy.trim() &&
+            cert.issueDate.trim(),
+        ) // Only include completed certifications
         .map(({ localId, ...cert }) => ({
           ...cert,
           name: cert.name.trim(),
           issuedBy: cert.issuedBy.trim(),
+          issueDate: cert.issueDate.trim(),
           credentialUrl: cert.credentialUrl.trim(),
           expiryDate: cleanDate(cert.expiryDate),
         })),
       projects: formData.projects
-        .filter((project) => project.title && project.description) // Only include completed projects
+        .filter(
+          (project) => project.title.trim() && project.description.trim(),
+        ) // Only include completed projects
         .map(({ localId, ...project }) => ({
           ...project,
           title: project.title.trim(),
@@ -1487,11 +1519,16 @@ const CandidateProfileUpdate = ({
                 .filter(Boolean),
         })),
       workExperiences: formData.workExperiences
-        .filter((exp) => exp.companyName && exp.role && exp.startDate) // Only include completed experiences
+        .filter(
+          (exp) =>
+            exp.companyName.trim() && exp.role.trim() && exp.startDate.trim(),
+        ) // Only include completed experiences
         .map(({ localId, ...exp }) => ({
           ...exp,
           companyName: exp.companyName.trim(),
           role: exp.role.trim(),
+          startDate: exp.startDate.trim(),
+          employmentType: exp.employmentType.trim(),
           location: exp.location.trim(),
           endDate: cleanDate(exp.endDate),
           description: Array.isArray(exp.description)
@@ -1536,10 +1573,16 @@ const CandidateProfileUpdate = ({
     const isValidFile =
       hasAllowedMime || (file.type === "" && hasAllowedExtension);
     if (!isValidFile) {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       toast.error("Please upload a valid image file (JPEG, PNG, or WebP).");
       return;
     }
     if (file.size > MAX_SIZE) {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       toast.error("Image must be 2 MB or smaller.");
       return;
     }
@@ -2652,26 +2695,7 @@ const CandidateProfileUpdate = ({
         <button
           onClick={() => {
             // Clear any pending removal timeouts
-            Object.values(removeSkillTimeoutsRef.current).forEach((t) => {
-              clearTimeout(t);
-            });
-            Object.values(removeWorkTimeoutsRef.current).forEach((t) => {
-              clearTimeout(t);
-            });
-            Object.values(removeProjectTimeoutsRef.current).forEach((t) => {
-              clearTimeout(t);
-            });
-            Object.values(removeCertTimeoutsRef.current).forEach((t) => {
-              clearTimeout(t);
-            });
-            removeSkillTimeoutsRef.current = {};
-            removeWorkTimeoutsRef.current = {};
-            removeProjectTimeoutsRef.current = {};
-            removeCertTimeoutsRef.current = {};
-            setRemovingSkillId(null);
-            setRemovingWorkExperienceId(null);
-            setRemovingProjectId(null);
-            setRemovingCertificateId(null);
+            teardownPendingRemovals();
             setFormData(handleForm());
             setFieldErrors({}); // Clear errors on cancel
             setLocationInput("");

@@ -53,8 +53,7 @@ export const useFetchRefreshToken = () => {
   const handleLogout = useCallback(async () => {
     try {
       const refreshToken = refreshTokenRef.current;
-      const accessToken = accessTokenRef.current;
-      if (refreshToken && accessToken && !isTokenExpired(accessToken)) {
+      if (refreshToken) {
         await logout(refreshToken).unwrap();
       }
     } catch (error) {
