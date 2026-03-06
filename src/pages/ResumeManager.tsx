@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Upload,
   Eye,
@@ -200,9 +206,10 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
 
       if (event.key !== "Tab" || !modalContentRef.current) return;
 
-      const focusableElements = modalContentRef.current.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
-      );
+      const focusableElements =
+        modalContentRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+        );
       if (focusableElements.length === 0) return;
 
       const first = focusableElements[0];
@@ -273,7 +280,9 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
     const hasAllowedMime = allowedTypes.includes(file.type);
 
     // Separate validation checks for better error messages
-    if (!hasAllowedMime && !hasAllowedExtension) {
+    const isValidFile =
+      hasAllowedMime || (file.type === "" && hasAllowedExtension);
+    if (!isValidFile) {
       toast.error("Please upload a PDF or DOCX file.");
       input.value = "";
       return;
@@ -393,8 +402,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                           </p>
                           <p className="text-xs md:text-sm text-slate-500 mt-1 dark:text-slate-400">
                             {(resume.fileSize / (1024 * 1024)).toFixed(1)} MB •
-                            Uploaded{" "}
-                            {getUploadedAtLabel(resume.uploadedAt)}
+                            Uploaded {getUploadedAtLabel(resume.uploadedAt)}
                           </p>
                         </div>
                       </div>

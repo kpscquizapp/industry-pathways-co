@@ -414,18 +414,18 @@ const CandidateProfileUpdate = ({
   const resumeData = useSelector((state: RootState) => state.resumeSkills.data);
   const preferredLocationsDirtyRef = useRef(false);
   const previousProfileIdRef = useRef<string | null>(null);
-  const removeSkillTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-  const removeWorkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-  const removeProjectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-  const removeCertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const removeSkillTimeoutsRef = useRef<
+    Record<string, ReturnType<typeof setTimeout>>
+  >({});
+  const removeWorkTimeoutsRef = useRef<
+    Record<string, ReturnType<typeof setTimeout>>
+  >({});
+  const removeProjectTimeoutsRef = useRef<
+    Record<string, ReturnType<typeof setTimeout>>
+  >({});
+  const removeCertTimeoutsRef = useRef<
+    Record<string, ReturnType<typeof setTimeout>>
+  >({});
 
   useEffect(() => {
     preferredLocationsDirtyRef.current = false;
@@ -638,14 +638,22 @@ const CandidateProfileUpdate = ({
 
   useEffect(() => {
     return () => {
-      if (removeSkillTimeoutRef.current)
-        clearTimeout(removeSkillTimeoutRef.current);
-      if (removeWorkTimeoutRef.current)
-        clearTimeout(removeWorkTimeoutRef.current);
-      if (removeProjectTimeoutRef.current)
-        clearTimeout(removeProjectTimeoutRef.current);
-      if (removeCertTimeoutRef.current)
-        clearTimeout(removeCertTimeoutRef.current);
+      Object.values(removeSkillTimeoutsRef.current).forEach((timer) =>
+        clearTimeout(timer),
+      );
+      Object.values(removeWorkTimeoutsRef.current).forEach((timer) =>
+        clearTimeout(timer),
+      );
+      Object.values(removeProjectTimeoutsRef.current).forEach((timer) =>
+        clearTimeout(timer),
+      );
+      Object.values(removeCertTimeoutsRef.current).forEach((timer) =>
+        clearTimeout(timer),
+      );
+      removeSkillTimeoutsRef.current = {};
+      removeWorkTimeoutsRef.current = {};
+      removeProjectTimeoutsRef.current = {};
+      removeCertTimeoutsRef.current = {};
     };
   }, []);
 
@@ -846,12 +854,13 @@ const CandidateProfileUpdate = ({
     ) {
       // Not persisted yet — animate local removal with spinner for a short moment
       const localName = skillToRemove;
+      const timerKey = localName.toLowerCase();
 
       setRemovingSkillId(localName);
-      if (removeSkillTimeoutRef.current) {
-        clearTimeout(removeSkillTimeoutRef.current);
+      if (removeSkillTimeoutsRef.current[timerKey]) {
+        clearTimeout(removeSkillTimeoutsRef.current[timerKey]);
       }
-      removeSkillTimeoutRef.current = setTimeout(() => {
+      removeSkillTimeoutsRef.current[timerKey] = setTimeout(() => {
         setFormData((prev) => ({
           ...prev,
           primarySkills: prev.primarySkills.filter(
@@ -859,7 +868,7 @@ const CandidateProfileUpdate = ({
           ),
         }));
         setRemovingSkillId(null);
-        removeSkillTimeoutRef.current = null;
+        delete removeSkillTimeoutsRef.current[timerKey];
       }, 180);
       return;
     }
@@ -962,10 +971,10 @@ const CandidateProfileUpdate = ({
       }
 
       setRemovingWorkExperienceId(localKey);
-      if (removeWorkTimeoutRef.current) {
-        clearTimeout(removeWorkTimeoutRef.current);
+      if (removeWorkTimeoutsRef.current[localKey]) {
+        clearTimeout(removeWorkTimeoutsRef.current[localKey]);
       }
-      removeWorkTimeoutRef.current = setTimeout(() => {
+      removeWorkTimeoutsRef.current[localKey] = setTimeout(() => {
         setFormData((prev) => ({
           ...prev,
           workExperiences: prev.workExperiences.filter(
@@ -973,7 +982,7 @@ const CandidateProfileUpdate = ({
           ),
         }));
         setRemovingWorkExperienceId(null);
-        removeWorkTimeoutRef.current = null;
+        delete removeWorkTimeoutsRef.current[localKey];
       }, 180);
       return;
     }
@@ -1066,10 +1075,10 @@ const CandidateProfileUpdate = ({
       }
 
       setRemovingProjectId(localKey);
-      if (removeProjectTimeoutRef.current) {
-        clearTimeout(removeProjectTimeoutRef.current);
+      if (removeProjectTimeoutsRef.current[localKey]) {
+        clearTimeout(removeProjectTimeoutsRef.current[localKey]);
       }
-      removeProjectTimeoutRef.current = setTimeout(() => {
+      removeProjectTimeoutsRef.current[localKey] = setTimeout(() => {
         setFormData((prev) => ({
           ...prev,
           projects: prev.projects.filter(
@@ -1077,7 +1086,7 @@ const CandidateProfileUpdate = ({
           ),
         }));
         setRemovingProjectId(null);
-        removeProjectTimeoutRef.current = null;
+        delete removeProjectTimeoutsRef.current[localKey];
       }, 180);
       return;
     }
@@ -1176,10 +1185,10 @@ const CandidateProfileUpdate = ({
       }
 
       setRemovingCertificateId(localKey);
-      if (removeCertTimeoutRef.current) {
-        clearTimeout(removeCertTimeoutRef.current);
+      if (removeCertTimeoutsRef.current[localKey]) {
+        clearTimeout(removeCertTimeoutsRef.current[localKey]);
       }
-      removeCertTimeoutRef.current = setTimeout(() => {
+      removeCertTimeoutsRef.current[localKey] = setTimeout(() => {
         setFormData((prev) => ({
           ...prev,
           certifications: prev.certifications.filter(
@@ -1187,7 +1196,7 @@ const CandidateProfileUpdate = ({
           ),
         }));
         setRemovingCertificateId(null);
-        removeCertTimeoutRef.current = null;
+        delete removeCertTimeoutsRef.current[localKey];
       }, 180);
       return;
     }
