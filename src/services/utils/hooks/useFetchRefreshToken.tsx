@@ -35,7 +35,6 @@ export const useFetchRefreshToken = () => {
 
   // Stable refs to avoid effect re-runs
   const refreshTokenRef = useRef(userDetails?.refreshToken);
-  const accessTokenRef = useRef(userDetails?.token);
   const isRefreshingRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const doRefreshRef = useRef<(() => Promise<void>) | null>(null);
@@ -45,10 +44,6 @@ export const useFetchRefreshToken = () => {
   useEffect(() => {
     refreshTokenRef.current = userDetails?.refreshToken;
   }, [userDetails?.refreshToken]);
-
-  useEffect(() => {
-    accessTokenRef.current = userDetails?.token;
-  }, [userDetails?.token]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -123,7 +118,6 @@ export const useFetchRefreshToken = () => {
         await handleLogout();
       }
     } catch (error: any) {
-      console.error("Refresh failed:", error);
       const status = error?.status;
       const isAuthError = status === 401 || status === 403;
       const isServerError = typeof status === "number" && status >= 500;
@@ -132,6 +126,13 @@ export const useFetchRefreshToken = () => {
         status === "TIMEOUT_ERROR" ||
         status === "PARSING_ERROR";
 
+      const willRetry =
+        (isTransientError || isServerError) &&
+        refreshTokenRef.current &&
+        retryCountRef.current < MAX_TRANSIENT_RETRIES;
+      if (!willRetry) {
+        console.error("Refresh failed:", error);
+      }
       if (isMountedRef.current && isAuthError) {
         await handleLogout();
       } else if (
