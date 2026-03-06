@@ -627,44 +627,52 @@ const EmployerPostJob = () => {
     if (currentStep < totalSteps) {
       stepAdvanceInFlightRef.current = true;
       try {
-      if (currentStep === 1) {
-        try {
-          const result = await extractSkills({
-            title: formData.title,
-            content: formData.description,
-          }).unwrap();
-          const extracted = result?.data?.technicalSkills ?? [];
-          if (extracted.length > 0) {
-            setSkills((prev) => {
-              const merged = [...prev];
-              const lowerSet = new Set(merged.map((s) => s.toLowerCase()));
-              extracted.forEach((s: string) => {
-                if (!lowerSet.has(s.toLowerCase())) {
-                  merged.push(s);
-                  lowerSet.add(s.toLowerCase());
-                }
+        if (currentStep === 1) {
+          try {
+            const result = await extractSkills({
+              title: formData.title,
+              content: formData.description,
+            }).unwrap();
+            const extracted = result?.data?.technicalSkills ?? [];
+            if (extracted.length > 0) {
+              let newCount = 0;
+              setSkills((prev) => {
+                const merged = [...prev];
+                const lowerSet = new Set(merged.map((s) => s.toLowerCase()));
+                extracted.forEach((s: string) => {
+                  if (!lowerSet.has(s.toLowerCase())) {
+                    merged.push(s);
+                    lowerSet.add(s.toLowerCase());
+                    newCount++;
+                  }
+                });
+                return merged;
               });
-              return merged;
-            });
-            toast.success(
-              `${extracted.length} skill${extracted.length > 1 ? "s" : ""} extracted from description`,
-            );
-          }
-        } catch (err: unknown) {
-          const isFetchError = (e: unknown): e is FetchBaseQueryError =>
-            typeof e === "object" && e !== null && "status" in e;
+              if (newCount > 0) {
+                toast.success(
+                  `${newCount} new skill${newCount > 1 ? "s" : ""} extracted from description`,
+                );
+              } else {
+                toast.info("All extracted skills already present");
+              }
+            }
+          } catch (err: unknown) {
+            const isFetchError = (e: unknown): e is FetchBaseQueryError =>
+              typeof e === "object" && e !== null && "status" in e;
 
-          if (isFetchError(err) && err.status === 404) {
-            toast.warning(
-              "Skill extraction endpoint not available. Add skills manually.",
-            );
-          } else {
-            toast.warning("Could not auto-extract skills. Add them manually.");
+            if (isFetchError(err) && err.status === 404) {
+              toast.warning(
+                "Skill extraction endpoint not available. Add skills manually.",
+              );
+            } else {
+              toast.warning(
+                "Could not auto-extract skills. Add them manually.",
+              );
+            }
           }
         }
-      }
-      setCurrentStep((prev) => prev + 1);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+        setCurrentStep((prev) => prev + 1);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } finally {
         stepAdvanceInFlightRef.current = false;
       }

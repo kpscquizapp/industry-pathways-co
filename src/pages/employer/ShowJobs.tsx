@@ -25,6 +25,7 @@ import {
   useGetEmployerAllJobsQuery,
   useDeleteJobMutation,
 } from "@/app/queries/jobApi";
+import type { Job } from "@/app/queries/aiShortlistApi";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import JobDetailsModal from "./JobDetailsModal";
 import { toast } from "sonner";
@@ -34,7 +35,7 @@ const ACTIVE_STATUSES = new Set(["published", "active"]);
 const ShowJobs = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"active" | "draft">("active");
   const [deleteJob] = useDeleteJobMutation();
@@ -53,7 +54,7 @@ const ShowJobs = () => {
 
   // Backend response shape from GET /employers/jobs:
   // { success: boolean, message: string, data: Job[], pagination: { total, page, limit } }
-  let jobs: any[] = [];
+  let jobs: Job[] = [];
   let totalPages = 1;
 
   if (jobsData) {
@@ -74,9 +75,9 @@ const ShowJobs = () => {
 
   const filteredJobs = useMemo(() => {
     if (activeTab === "draft") {
-      return jobs.filter((job: any) => job.status === "draft");
+      return jobs.filter((job) => job.status === "draft");
     }
-    return jobs.filter((job: any) =>
+    return jobs.filter((job) =>
       ACTIVE_STATUSES.has(String(job.status ?? "").toLowerCase()),
     );
   }, [jobs, activeTab]);
@@ -104,7 +105,7 @@ const ShowJobs = () => {
     }
   };
 
-  const handleViewJob = (job: any) => {
+  const handleViewJob = (job: Job) => {
     setSelectedJob(job);
     setIsModalOpen(true);
   };
@@ -224,20 +225,15 @@ const ShowJobs = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredJobs.map((job: any, index: number) => (
+                {filteredJobs.map((job, index) => (
                   <TableRow key={job.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium text-muted-foreground">
                       {(currentPage - 1) * queryParams.limit + index + 1}
                     </TableCell>
                     <TableCell>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm truncate max-w-[200px]">
-                          {job.title}
-                        </p>
-                        {/* <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                          {job.companyName || job.category || "General"}
-                        </p> */}
-                      </div>
+                      <p className="font-semibold text-sm truncate max-w-[200px]">
+                        {job.title}
+                      </p>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-sm">
                       {job.category || "N/A"}
