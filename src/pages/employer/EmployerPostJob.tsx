@@ -1,5 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { Plus, X, Shield, Save, Send, Sparkles, Trash2 } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Plus,
+  X,
+  Shield,
+  Save,
+  Send,
+  Sparkles,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,12 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Progress } from "@/components/ui/progress";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,8 +43,88 @@ import {
   useGetJobsByIdQuery,
   useUpdateJobMutation,
   useDeleteJobMutation,
+  useSaveJobAsDraftMutation,
 } from "@/app/queries/jobApi";
 import { skipToken } from "@reduxjs/toolkit/query/react";
+import { useExtractSkillsMutation } from "@/app/queries/atsApi";
+import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
+
+const INITIAL_FORM_DATA = {
+  // Basic Information
+  title: "",
+  description: "",
+  category: "",
+  role: "",
+  status: "draft",
+
+  // Location
+  location: "",
+  city: "",
+  state: "",
+  country: "",
+  multipleLocationsAllowed: false,
+
+  // Employment Details
+  employmentType: "",
+  workMode: "",
+
+  // Experience
+  minExperience: "",
+  maxExperience: "",
+  experienceLevel: "",
+  fresherAllowed: false,
+
+  // Compensation
+  salaryMin: "",
+  salaryMax: "",
+  salaryType: "not-disclosed",
+  currency: "USD",
+  expectedBudgetMin: "",
+  expectedBudgetMax: "",
+
+  // Duration & Timing
+  duration: "",
+  durationUnit: "",
+  startDate: "",
+  expiresAt: "",
+
+  // Payment
+  paymentType: "",
+
+  // Openings & Visibility
+  openings: "",
+  jobVisibility: "public",
+  urgency: "normal",
+  openToBenchResources: false,
+
+  // Certifications & Education
+  certifications: "",
+  educationQualification: "",
+  languagesKnown: "",
+
+  // Perks & Benefits
+  healthInsurance: false,
+  esops: false,
+  performanceBonus: false,
+  remoteAllowance: false,
+
+  // AI & Screening
+  enableAiMatching: true,
+  autoScreenCandidates: false,
+  enableSkillAssessment: true,
+  scheduleAIInterview: false,
+  testType: "",
+  difficultyLevel: "",
+  timeLimit: "",
+  autoRejectBelowScore: "",
+  interviewType: "",
+  autoAdvanceScore: "",
+
+  // Compliance
+  equalOpportunityEmployer: true,
+  dataPrivacyPolicies: true,
+  termsAndConditions: false,
+};
 
 const EmployerPostJob = () => {
   const navigate = useNavigate();
@@ -51,6 +137,10 @@ const EmployerPostJob = () => {
   const [createJob, { isLoading: createJobLoading }] = useCreateJobMutation();
   const [updateJob, { isLoading: updateJobLoading }] = useUpdateJobMutation();
   const [deleteJob, { isLoading: deleteJobLoading }] = useDeleteJobMutation();
+  const [saveJobAsDraft, { isLoading: saveJobAsDraftLoading }] =
+    useSaveJobAsDraftMutation();
+  const [extractSkills, { isLoading: isExtractingSkills }] =
+    useExtractSkillsMutation();
 
   const { data: jobDetailsData, isLoading: jobDetailsLoading } =
     useGetJobsByIdQuery(isEditing ? { id: jobId } : skipToken);
@@ -60,83 +150,11 @@ const EmployerPostJob = () => {
   const [postingAction, setPostingAction] = useState<
     "post" | "postAndShow" | null
   >(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const stepAdvanceInFlightRef = useRef(false);
+  const totalSteps = 4;
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    // Basic Information
-    title: "",
-    description: "",
-    category: "",
-    role: "",
-    status: "draft",
-
-    // Location
-    location: "",
-    city: "",
-    state: "",
-    country: "",
-    multipleLocationsAllowed: false,
-
-    // Employment Details
-    employmentType: "",
-    workMode: "",
-
-    // Experience
-    minExperience: "",
-    maxExperience: "",
-    experienceLevel: "",
-    fresherAllowed: false,
-
-    // Compensation
-    salaryMin: "",
-    salaryMax: "",
-    salaryType: "not-disclosed",
-    currency: "USD",
-    expectedBudgetMin: "",
-    expectedBudgetMax: "",
-
-    // Duration & Timing
-    duration: "",
-    durationUnit: "",
-    startDate: "",
-    expiresAt: "",
-
-    // Payment
-    paymentType: "",
-
-    // Openings & Visibility
-    openings: "",
-    jobVisibility: "public",
-    urgency: "normal",
-    openToBenchResources: false,
-
-    // Certifications & Education
-    certifications: "",
-    educationQualification: "",
-    languagesKnown: "",
-
-    // Perks & Benefits
-    healthInsurance: false,
-    esops: false,
-    performanceBonus: false,
-    remoteAllowance: false,
-
-    // AI & Screening
-    enableAiMatching: true,
-    autoScreenCandidates: false,
-    enableSkillAssessment: true,
-    scheduleAIInterview: false,
-    testType: "",
-    difficultyLevel: "",
-    timeLimit: "",
-    autoRejectBelowScore: "",
-    interviewType: "",
-    autoAdvanceScore: "",
-
-    // Compliance
-    equalOpportunityEmployer: true,
-    dataPrivacyPolicies: true,
-    termsAndConditions: false,
-  });
+  const [formData, setFormData] = useState({ ...INITIAL_FORM_DATA });
 
   useEffect(() => {
     if (isEditing && jobDetailsData?.data?.[0]) {
@@ -223,12 +241,20 @@ const EmployerPostJob = () => {
         termsAndConditions: job.termsAndConditions || false,
       });
 
-      if (job.skills && Array.isArray(job.skills)) {
-        setSkills(job.skills.map((s: any) => s.name || s));
-      }
+      const normalizedSkills = Array.isArray(job.skills)
+        ? job.skills
+            .map((s: { name?: string } | string) =>
+              typeof s === "string" ? s : (s.name ?? ""),
+            )
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
+      setSkills(normalizedSkills);
     } else if (!isEditing) {
-      // Clear skills when switching back to create mode
+      // Reset form when switching back to create mode
+      setFormData({ ...INITIAL_FORM_DATA });
       setSkills([]);
+      setCurrentStep(1);
     }
   }, [isEditing, jobDetailsData]);
 
@@ -274,6 +300,42 @@ const EmployerPostJob = () => {
     return items.length > 0 ? items : undefined;
   };
 
+  const experienceLevelToRange = (
+    level: string,
+  ): { minExperience: number; maxExperience: number | undefined } | null => {
+    switch (level?.toLowerCase()) {
+      case "junior":
+        return { minExperience: 0, maxExperience: 2 };
+      case "mid":
+      case "mid-level":
+        return { minExperience: 3, maxExperience: 5 };
+      case "mid-senior":
+        return { minExperience: 6, maxExperience: 9 };
+      case "senior":
+        return { minExperience: 10, maxExperience: undefined };
+      case "lead":
+      case "principal":
+        return { minExperience: 15, maxExperience: undefined };
+      default:
+        return null;
+    }
+  };
+
+  const mapExperienceLevelToYears = (
+    experienceLevel: string,
+    minExp: string | number | undefined,
+    maxExp: string | number | undefined,
+  ) => {
+    // If an experience level is selected, prefer its mapped range
+    const mapped = experienceLevelToRange(experienceLevel);
+    if (mapped) return mapped;
+
+    // Fallback to explicit min/max when no level is set
+    const minExperience = parseOptionalNumber(minExp ?? "");
+    const maxExperience = parseOptionalNumber(maxExp ?? "");
+    return { minExperience, maxExperience };
+  };
+
   const buildCreateJobPayload = (enableAiMatching: boolean) => {
     const salaryMin = parseOptionalNumber(formData.salaryMin);
     const salaryMax = parseOptionalNumber(formData.salaryMax);
@@ -291,8 +353,11 @@ const EmployerPostJob = () => {
         : salaryMax;
 
     const numberOfOpenings = parsePositiveNumber(formData.openings);
-    const minExperience = parsePositiveNumber(formData.minExperience);
-    const maxExperience = parsePositiveNumber(formData.maxExperience);
+    const { minExperience, maxExperience } = mapExperienceLevelToYears(
+      formData.experienceLevel,
+      formData.minExperience,
+      formData.maxExperience,
+    );
     const expectedBudgetMin = parsePositiveNumber(formData.expectedBudgetMin);
     const expectedBudgetMax = parsePositiveNumber(formData.expectedBudgetMax);
 
@@ -317,9 +382,9 @@ const EmployerPostJob = () => {
       workMode: formData.workMode || undefined,
 
       // Experience
+      experienceLevel: formData.experienceLevel || undefined,
       minExperience: minExperience,
       maxExperience: maxExperience,
-      experienceLevel: formData.experienceLevel || undefined,
       fresherAllowed: formData.fresherAllowed,
 
       // Compensation
@@ -395,9 +460,67 @@ const EmployerPostJob = () => {
     setSkills(skills.filter((skill) => skill !== skillToRemove));
   };
 
-  const handleSaveDraft = () => {
-    // TODO: integrate with a draft-save API endpoint.
-    toast.info("Draft saving is not yet available.");
+  const getErrorMessage = (error: unknown, fallback: string): string => {
+    if (typeof error === "string" && error.trim()) {
+      return error;
+    }
+
+    // Handle RTK Query FetchBaseQueryError cases first
+    if (isFetchBaseQueryError(error)) {
+      if (typeof error.status === "string") {
+        switch (error.status) {
+          case "FETCH_ERROR":
+            return "Network error. Please check your connection and try again.";
+          case "TIMEOUT_ERROR":
+            return "Request timed out. Please try again in a moment.";
+          case "PARSING_ERROR":
+            return "Unexpected server response. Please try again later.";
+        }
+      }
+
+      // Extract message from error.data for HTTP status errors
+      if (typeof error.data === "string" && error.data.trim()) {
+        return error.data;
+      }
+      if (
+        typeof error.data === "object" &&
+        error.data !== null &&
+        "message" in error.data
+      ) {
+        const msg = (error.data as { message?: unknown }).message;
+        if (typeof msg === "string" && msg.trim()) {
+          return msg;
+        }
+      }
+    }
+
+    // Fallback: generic object with .message
+    if (error && typeof error === "object" && "message" in error) {
+      const message = (error as { message?: unknown }).message;
+      if (typeof message === "string" && message.trim()) {
+        return message;
+      }
+    }
+
+    return fallback;
+  };
+
+  const handleSaveDraft = async () => {
+    try {
+      const payload = buildCreateJobPayload(false);
+
+      if (!payload.title?.trim() || !payload.description?.trim()) {
+        toast.error("Job title and description are required.");
+        return;
+      }
+
+      await saveJobAsDraft(payload).unwrap();
+      toast.success("Job saved as draft successfully!");
+      // Navigate to jobs list to prevent duplicate drafts
+      navigate("/hire-talent/jobs");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to save draft"));
+    }
   };
 
   const getCreatedJobId = (
@@ -419,8 +542,15 @@ const EmployerPostJob = () => {
 
       let response;
       if (isEditing && jobId) {
-        // Update existing job
-        response = await updateJob({ id: jobId, data: payload }).unwrap();
+        // Update existing job — promote drafts to published on submit
+        const job = jobDetailsData?.data?.[0];
+        const currentStatus = job?.status ?? formData.status;
+        const nextStatus =
+          currentStatus === "draft" ? "published" : currentStatus;
+        response = await updateJob({
+          id: jobId,
+          data: { ...payload, status: nextStatus },
+        }).unwrap();
         toast.success("Job updated successfully!");
         navigate("/hire-talent/dashboard");
       } else {
@@ -449,12 +579,11 @@ const EmployerPostJob = () => {
         navigate(redirectUrl, jobState ? { state: jobState } : undefined);
       }
     } catch (error: unknown) {
-      const message =
-        error && typeof error === "object" && "data" in error
-          ? (error as { data?: { message?: string } }).data?.message
-          : undefined;
       toast.error(
-        message || (isEditing ? "Failed to update job" : "Failed to post job"),
+        getErrorMessage(
+          error,
+          isEditing ? "Failed to update job" : "Failed to post job",
+        ),
       );
     }
   };
@@ -476,11 +605,7 @@ const EmployerPostJob = () => {
       toast.success("Job deleted successfully!");
       navigate("/hire-talent/jobs");
     } catch (error: unknown) {
-      const message =
-        error && typeof error === "object" && "data" in error
-          ? (error as { data?: { message?: string } }).data?.message
-          : undefined;
-      toast.error(message || "Failed to delete job");
+      toast.error(getErrorMessage(error, "Failed to delete job"));
     }
   };
 
@@ -501,6 +626,103 @@ const EmployerPostJob = () => {
       setPostingAction(null);
     }
   };
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
+
+  const validateStep = (step: number): boolean => {
+    const errors: Record<string, boolean> = {};
+
+    if (step === 1) {
+      if (!formData.title.trim()) errors.title = true;
+      if (!formData.description.trim()) errors.description = true;
+    }
+
+    if (step === 2) {
+      if (skills.length === 0) errors.skills = true;
+    }
+
+    if (step === 3) {
+      if (!formData.workMode) errors.workMode = true;
+    }
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error("Please fill in all required fields before continuing.");
+      return false;
+    }
+    return true;
+  };
+
+  const nextStep = async () => {
+    if (stepAdvanceInFlightRef.current) return;
+    if (!validateStep(currentStep)) return;
+    if (currentStep < totalSteps) {
+      stepAdvanceInFlightRef.current = true;
+      try {
+        if (currentStep === 1) {
+          try {
+            const result = await extractSkills({
+              title: formData.title,
+              content: formData.description,
+            }).unwrap();
+            const extracted = result?.data?.technicalSkills ?? [];
+            if (extracted.length > 0) {
+              let newCount = 0;
+              setSkills((prev) => {
+                const merged = [...prev];
+                const lowerSet = new Set(merged.map((s) => s.toLowerCase()));
+                extracted.forEach((s: string) => {
+                  if (!lowerSet.has(s.toLowerCase())) {
+                    merged.push(s);
+                    lowerSet.add(s.toLowerCase());
+                    newCount++;
+                  }
+                });
+                return merged;
+              });
+              if (newCount > 0) {
+                toast.success(
+                  `${newCount} new skill${newCount > 1 ? "s" : ""} extracted from description`,
+                );
+              } else {
+                toast.info("All extracted skills already present");
+              }
+            }
+          } catch (err: unknown) {
+            if (isFetchBaseQueryError(err) && err.status === 404) {
+              toast.warning(
+                "Skill extraction endpoint not available. Add skills manually.",
+              );
+            } else {
+              toast.warning(
+                "Could not auto-extract skills. Add them manually.",
+              );
+            }
+          }
+        }
+        setCurrentStep((prev) => prev + 1);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } finally {
+        stepAdvanceInFlightRef.current = false;
+      }
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setFieldErrors({});
+      setCurrentStep((prev) => prev - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const stepTitles = [
+    "Basic Information",
+    "Skills & Experience",
+    "Location & Terms",
+    "Budget & Duration",
+  ];
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -532,548 +754,735 @@ const EmployerPostJob = () => {
           isEditing && jobDetailsLoading ? "pointer-events-none opacity-50" : ""
         }`}
       >
-        <Accordion
-          type="multiple"
-          defaultValue={["basic", "skills", "location", "budget"]}
-          className="space-y-4"
-        >
-          {/* Basic Information */}
-          <AccordionItem
-            value="basic"
-            className="border border-border rounded-xl bg-card overflow-hidden"
-          >
-            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <span className="text-primary font-semibold text-sm">1</span>
-                </div>
-                <span className="font-semibold text-foreground">
-                  Basic Information
-                </span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-6 pb-6 pt-2">
-              <div className="space-y-4">
-                <div>
-                  <Label
-                    htmlFor="title"
-                    className="text-sm font-medium text-foreground"
+        {/* Step Indicator */}
+        <div className="mb-8">
+          <div className="flex justify-between mb-4">
+            {stepTitles.map((title, index) => {
+              const stepNumber = index + 1;
+              const isActive = stepNumber === currentStep;
+              const isCompleted = stepNumber < currentStep;
+              const lineColor =
+                index < currentStep
+                  ? "hsl(var(--primary))"
+                  : "hsl(var(--border))";
+
+              return (
+                <div
+                  key={stepNumber}
+                  className="flex flex-col items-center flex-1 relative"
+                >
+                  {/* Left-half connector (connects from previous step's center to this step's circle) */}
+                  {index !== 0 && (
+                    <div
+                      className="absolute top-4 left-0 right-1/2 h-0.5 -translate-y-1/2"
+                      style={{ background: lineColor }}
+                    />
+                  )}
+                  {/* Right-half connector (connects from this step's circle outward to the next step) */}
+                  {index !== stepTitles.length - 1 && (
+                    <div
+                      className="absolute top-4 left-1/2 right-0 h-0.5 -translate-y-1/2"
+                      style={{
+                        background:
+                          index < currentStep - 1
+                            ? "hsl(var(--primary))"
+                            : "hsl(var(--border))",
+                      }}
+                    />
+                  )}
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-2 transition-colors ${
+                      isActive
+                        ? "bg-primary border-primary text-primary-foreground"
+                        : isCompleted
+                          ? "bg-primary border-primary text-primary-foreground"
+                          : "bg-background border-border text-muted-foreground"
+                    }`}
                   >
-                    Job Title
-                  </Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    placeholder="e.g., Senior React Native Developer (Contract)"
-                    className="mt-1.5"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="description" className="text-sm font-medium">
-                    Job Description
-                  </Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    placeholder="Describe the role, responsibilities, and requirements..."
-                    rows={5}
-                    className="mt-1.5 resize-none"
-                  />
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium">Job Category</Label>
-                    <Select
-                      value={formData.category}
-                      onValueChange={(v) =>
-                        setFormData({ ...formData, category: v })
-                      }
-                    >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="engineering">Engineering</SelectItem>
-                        <SelectItem value="design">Design</SelectItem>
-                        <SelectItem value="product">Product</SelectItem>
-                        <SelectItem value="data">Data Science</SelectItem>
-                        <SelectItem value="devops">DevOps</SelectItem>
-                        <SelectItem value="qa">Quality Assurance</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {isCompleted ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <span className="text-sm font-semibold">
+                        {stepNumber}
+                      </span>
+                    )}
                   </div>
-
-                  <div>
-                    <Label className="text-sm font-medium">
-                      Employment Type
-                    </Label>
-                    <Select
-                      value={formData.employmentType}
-                      onValueChange={(v) =>
-                        setFormData({ ...formData, employmentType: v })
-                      }
-                    >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder="Select employment type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="full-time">Full-time</SelectItem>
-                        <SelectItem value="part-time">Part-time</SelectItem>
-                        <SelectItem value="contract">Contract</SelectItem>
-                        <SelectItem value="internship">Internship</SelectItem>
-                        <SelectItem value="freelance">Freelance</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <span
+                    className={`text-xs mt-2 font-medium hidden sm:block ${
+                      isActive ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    {title}
+                  </span>
                 </div>
+              );
+            })}
+          </div>
+          <Progress value={(currentStep / totalSteps) * 100} className="h-1" />
+        </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
+        <div className="space-y-6">
+          {/* Step 1: Basic Information */}
+          {currentStep === 1 && (
+            <Card className="border border-border rounded-xl bg-card overflow-hidden">
+              <CardContent className="px-6 py-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span className="text-primary font-semibold text-sm">
+                      1
+                    </span>
+                  </div>
+                  <h2 className="font-semibold text-xl text-foreground">
+                    Basic Information
+                  </h2>
+                </div>
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="openings" className="text-sm font-medium">
-                      Number of Openings
+                    <Label
+                      htmlFor="title"
+                      className={`text-sm font-medium ${fieldErrors.title ? "text-destructive" : "text-foreground"}`}
+                    >
+                      Job Title <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                      id="openings"
-                      type="number"
-                      placeholder="Enter number of openings"
-                      min="1"
-                      max="999"
-                      value={formData.openings}
+                      id="title"
+                      value={formData.title}
                       onChange={(e) => {
-                        const value = e.target.value;
-                        setFormData({ ...formData, openings: value });
+                        setFormData({ ...formData, title: e.target.value });
+                        if (fieldErrors.title)
+                          setFieldErrors((p) => ({ ...p, title: false }));
                       }}
-                      className="mt-1.5"
+                      placeholder="e.g., Senior React Native Developer (Contract)"
+                      className={`mt-1.5 ${fieldErrors.title ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
-                  </div>
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* Skills & Experience */}
-          <AccordionItem
-            value="skills"
-            className="border border-border rounded-xl bg-card overflow-hidden"
-          >
-            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <span className="text-primary font-semibold text-sm">2</span>
-                </div>
-                <span className="font-semibold text-foreground">
-                  Skills & Experience
-                </span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-6 pb-6 pt-2">
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium text-foreground">
-                    Required Skills
-                  </Label>
-                  <div className="flex gap-2 mt-1.5">
-                    <Input
-                      value={newSkill}
-                      onChange={(e) => setNewSkill(e.target.value)}
-                      placeholder="Add a skill..."
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addSkill();
-                        }
-                      }}
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      onClick={addSkill}
-                      className="bg-primary hover:bg-primary/90"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {skills.map((skill) => (
-                      <Badge
-                        key={skill}
-                        variant="secondary"
-                        className="px-3 py-1.5 text-sm flex items-center gap-1.5"
-                      >
-                        {skill}
-                        <button
-                          onClick={() => removeSkill(skill)}
-                          className="hover:text-destructive transition-colors"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium">
-                      Experience Level
-                    </Label>
-                    <Select
-                      value={formData.experienceLevel}
-                      onValueChange={(v) =>
-                        setFormData({ ...formData, experienceLevel: v })
-                      }
-                    >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder="Select experience level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="junior">
-                          Junior (0-2 Years)
-                        </SelectItem>
-                        <SelectItem value="mid">
-                          Mid Level (3-5 Years)
-                        </SelectItem>
-                        <SelectItem value="mid-senior">
-                          Mid Senior (6-9 Years)
-                        </SelectItem>
-                        <SelectItem value="senior">
-                          Senior (10+ Years)
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {fieldErrors.title && (
+                      <p className="text-xs text-destructive mt-1">
+                        Job title is required.
+                      </p>
+                    )}
                   </div>
 
                   <div>
                     <Label
-                      htmlFor="certifications"
-                      className="text-sm font-medium"
+                      htmlFor="description"
+                      className={`text-sm font-medium ${fieldErrors.description ? "text-destructive" : ""}`}
                     >
-                      Certifications
+                      Job Description{" "}
+                      <span className="text-destructive">*</span>
                     </Label>
-                    <Input
-                      id="certifications"
-                      value={formData.certifications}
-                      onChange={(e) =>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => {
                         setFormData({
                           ...formData,
-                          certifications: e.target.value,
-                        })
-                      }
-                      placeholder="e.g., AWS Certified, PMP, CISSP"
-                      className="mt-1.5"
+                          description: e.target.value,
+                        });
+                        if (fieldErrors.description)
+                          setFieldErrors((p) => ({ ...p, description: false }));
+                      }}
+                      placeholder="Describe the role, responsibilities, and requirements..."
+                      rows={8}
+                      className={`mt-1.5 resize-none ${fieldErrors.description ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
-                  </div>
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* Location & Terms */}
-          <AccordionItem
-            value="location"
-            className="border border-border rounded-xl bg-card overflow-hidden"
-          >
-            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <span className="text-primary font-semibold text-sm">3</span>
-                </div>
-                <span className="font-semibold text-foreground">
-                  Location & Terms
-                </span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-6 pb-6 pt-2">
-              <div className="space-y-4">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-foreground">
-                      Work Mode
-                    </Label>
-                    <Select
-                      value={formData.workMode}
-                      onValueChange={(v) =>
-                        setFormData({ ...formData, workMode: v })
-                      }
-                    >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder="Select work mode" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="remote">Remote</SelectItem>
-                        <SelectItem value="onsite">On-site</SelectItem>
-                        <SelectItem value="hybrid">Hybrid</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {fieldErrors.description && (
+                      <p className="text-xs text-destructive mt-1">
+                        Job description is required.
+                      </p>
+                    )}
                   </div>
 
-                  <div>
-                    <Label htmlFor="location" className="text-sm font-medium">
-                      Location
-                    </Label>
-                    <div className="relative mt-1.5">
-                      <Input
-                        id="location"
-                        value={formData.location}
-                        onChange={(e) =>
-                          setFormData({ ...formData, location: e.target.value })
-                        }
-                        placeholder="City, Country"
-                        className="pr-10"
-                      />
-                      <Shield className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-muted/50 border border-border">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        checked={formData.openToBenchResources}
-                        onCheckedChange={(value) =>
-                          setFormData({
-                            ...formData,
-                            openToBenchResources: value,
-                          })
-                        }
-                        className="data-[state=checked]:bg-green-500"
-                      />
-                      <div>
-                        <p className="font-medium text-sm">
-                          Open to Bench Resources
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Allow agencies and companies to propose their bench
-                          employees
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* Budget & Duration */}
-          <AccordionItem
-            value="budget"
-            className="border border-border rounded-xl bg-card overflow-hidden"
-          >
-            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <span className="text-primary font-semibold text-sm">4</span>
-                </div>
-                <span className="font-semibold text-foreground">
-                  Budget & Duration
-                </span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-6 pb-6 pt-2">
-              <div className="space-y-4">
-                <div className="grid sm:grid-cols-3 gap-4">
-                  <div className="sm:col-span-2">
-                    <Label
-                      htmlFor="duration"
-                      className="text-sm font-medium text-foreground"
-                    >
-                      Duration
-                    </Label>
-                    <div className="flex gap-2 mt-1.5">
-                      <Input
-                        id="duration"
-                        type="number"
-                        placeholder="Enter duration"
-                        min="1"
-                        value={formData.duration}
-                        onChange={(e) =>
-                          setFormData({ ...formData, duration: e.target.value })
-                        }
-                        className="flex-1"
-                      />
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium">
+                        Job Category
+                      </Label>
                       <Select
-                        value={formData.durationUnit}
+                        value={formData.category}
                         onValueChange={(v) =>
-                          setFormData({ ...formData, durationUnit: v })
+                          setFormData({ ...formData, category: v })
                         }
                       >
-                        <SelectTrigger className="w-32">
-                          <SelectValue placeholder="Unit" />
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="week">Week</SelectItem>
-                          <SelectItem value="month">Month</SelectItem>
-                          <SelectItem value="year">Year</SelectItem>
+                          <SelectItem value="engineering">
+                            Engineering
+                          </SelectItem>
+                          <SelectItem value="design">Design</SelectItem>
+                          <SelectItem value="product">Product</SelectItem>
+                          <SelectItem value="data">Data Science</SelectItem>
+                          <SelectItem value="devops">DevOps</SelectItem>
+                          <SelectItem value="qa">Quality Assurance</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium">
+                        Employment Type
+                      </Label>
+                      <Select
+                        value={formData.employmentType}
+                        onValueChange={(v) =>
+                          setFormData({ ...formData, employmentType: v })
+                        }
+                      >
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="Select employment type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="full-time">Full-time</SelectItem>
+                          <SelectItem value="part-time">Part-time</SelectItem>
+                          <SelectItem value="contract">Contract</SelectItem>
+                          <SelectItem value="internship">Internship</SelectItem>
+                          <SelectItem value="freelance">Freelance</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="startDate" className="text-sm font-medium">
-                      Start Date
-                    </Label>
-                    <div className="relative mt-1.5">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="openings" className="text-sm font-medium">
+                        Number of Openings
+                      </Label>
                       <Input
-                        id="startDate"
-                        type="date"
-                        value={formData.startDate}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            startDate: e.target.value,
-                          })
-                        }
+                        id="openings"
+                        type="number"
+                        placeholder="Enter number of openings"
+                        min="1"
+                        max="999"
+                        value={formData.openings}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setFormData({ ...formData, openings: value });
+                        }}
+                        className="mt-1.5"
                       />
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          )}
 
-                <div className="grid sm:grid-cols-4 gap-4">
+          {/* Step 2: Skills & Experience */}
+          {currentStep === 2 && (
+            <Card className="border border-border rounded-xl bg-card overflow-hidden">
+              <CardContent className="px-6 py-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span className="text-primary font-semibold text-sm">
+                      2
+                    </span>
+                  </div>
+                  <h2 className="font-semibold text-xl text-foreground">
+                    Skills & Experience
+                  </h2>
+                </div>
+                <div className="space-y-4">
                   <div>
-                    <Label className="text-sm font-medium">Payment Type</Label>
-                    <Select
-                      value={formData.paymentType}
-                      onValueChange={(v) =>
-                        setFormData({ ...formData, paymentType: v })
-                      }
+                    <Label
+                      className={`text-sm font-medium ${fieldErrors.skills ? "text-destructive" : "text-foreground"}`}
                     >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder="Select payment type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="hourly">Hourly Rate</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="fixed">Fixed Price</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label className="text-sm font-medium">Currency</Label>
-                    <Select
-                      value={formData.currency}
-                      onValueChange={(v) =>
-                        setFormData({ ...formData, currency: v })
-                      }
+                      Required Skills{" "}
+                      <span className="text-destructive">*</span>
+                    </Label>
+                    <div
+                      className={`flex gap-2 mt-1.5 rounded-md ${fieldErrors.skills ? "ring-1 ring-destructive" : ""}`}
                     >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder="Select currency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="USD">USD</SelectItem>
-                        <SelectItem value="EUR">EUR</SelectItem>
-                        <SelectItem value="GBP">GBP</SelectItem>
-                        <SelectItem value="INR">INR</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <Input
+                        value={newSkill}
+                        onChange={(e) => {
+                          setNewSkill(e.target.value);
+                          if (fieldErrors.skills)
+                            setFieldErrors((p) => ({ ...p, skills: false }));
+                        }}
+                        placeholder="Add a skill..."
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addSkill();
+                            if (fieldErrors.skills)
+                              setFieldErrors((p) => ({ ...p, skills: false }));
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          addSkill();
+                          if (fieldErrors.skills)
+                            setFieldErrors((p) => ({ ...p, skills: false }));
+                        }}
+                        className="bg-primary hover:bg-primary/90"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {skills.map((skill) => (
+                        <Badge
+                          key={skill}
+                          variant="secondary"
+                          className="px-3 py-1.5 text-sm flex items-center gap-1.5"
+                        >
+                          {skill}
+                          <button
+                            type="button"
+                            aria-label={`Remove skill ${skill}`}
+                            onClick={() => removeSkill(skill)}
+                            className="hover:text-destructive transition-colors"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                    {fieldErrors.skills && (
+                      <p className="text-xs text-destructive mt-1">
+                        Please add at least one skill.
+                      </p>
+                    )}
                   </div>
 
-                  <div>
-                    <Label htmlFor="budgetMin" className="text-sm font-medium">
-                      Min Budget
-                      {formData.currency ? ` (${formData.currency})` : ""}
-                    </Label>
-                    <Input
-                      id="budgetMin"
-                      type="number"
-                      min="0"
-                      value={formData.salaryMin}
-                      onChange={(e) =>
-                        setFormData({ ...formData, salaryMin: e.target.value })
-                      }
-                      placeholder="e.g., 1500"
-                      className="mt-1.5"
-                    />
-                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium">
+                        Experience Level
+                      </Label>
+                      <Select
+                        value={formData.experienceLevel}
+                        onValueChange={(v) => {
+                          const range = experienceLevelToRange(v);
+                          setFormData({
+                            ...formData,
+                            experienceLevel: v,
+                            minExperience: range
+                              ? String(range.minExperience)
+                              : "",
+                            maxExperience:
+                              range?.maxExperience != null
+                                ? String(range.maxExperience)
+                                : "",
+                          });
+                        }}
+                      >
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="Select experience level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="junior">
+                            Junior (0-2 Years)
+                          </SelectItem>
+                          <SelectItem value="mid">
+                            Mid Level (3-5 Years)
+                          </SelectItem>
+                          <SelectItem value="mid-senior">
+                            Mid Senior (6-9 Years)
+                          </SelectItem>
+                          <SelectItem value="senior">
+                            Senior (10+ Years)
+                          </SelectItem>
+                          <SelectItem value="lead">Lead (15+ Years)</SelectItem>
+                          <SelectItem value="principal">
+                            Principal (15+ Years)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div>
-                    <Label htmlFor="budgetMax" className="text-sm font-medium">
-                      Max Budget
-                      {formData.currency ? ` (${formData.currency})` : ""}
-                    </Label>
-                    <Input
-                      id="budgetMax"
-                      type="number"
-                      min="0"
-                      value={formData.salaryMax}
-                      onChange={(e) =>
-                        setFormData({ ...formData, salaryMax: e.target.value })
-                      }
-                      placeholder="e.g., 2500"
-                      className="mt-1.5"
-                    />
+                    <div>
+                      <Label
+                        htmlFor="certifications"
+                        className="text-sm font-medium"
+                      >
+                        Certifications
+                      </Label>
+                      <Input
+                        id="certifications"
+                        value={formData.certifications}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            certifications: e.target.value,
+                          })
+                        }
+                        placeholder="e.g., AWS Certified, PMP, CISSP"
+                        className="mt-1.5"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 3: Location & Terms */}
+          {currentStep === 3 && (
+            <Card className="border border-border rounded-xl bg-card overflow-hidden">
+              <CardContent className="px-6 py-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span className="text-primary font-semibold text-sm">
+                      3
+                    </span>
+                  </div>
+                  <h2 className="font-semibold text-xl text-foreground">
+                    Location & Terms
+                  </h2>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label
+                        className={`text-sm font-medium ${fieldErrors.workMode ? "text-destructive" : "text-foreground"}`}
+                      >
+                        Work Mode <span className="text-destructive">*</span>
+                      </Label>
+                      <Select
+                        value={formData.workMode}
+                        onValueChange={(v) => {
+                          setFormData({ ...formData, workMode: v });
+                          if (fieldErrors.workMode)
+                            setFieldErrors((p) => ({ ...p, workMode: false }));
+                        }}
+                      >
+                        <SelectTrigger
+                          className={`mt-1.5 ${fieldErrors.workMode ? "border-destructive focus:ring-destructive" : ""}`}
+                        >
+                          <SelectValue placeholder="Select work mode" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="remote">Remote</SelectItem>
+                          <SelectItem value="onsite">On-site</SelectItem>
+                          <SelectItem value="hybrid">Hybrid</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {fieldErrors.workMode && (
+                        <p className="text-xs text-destructive mt-1">
+                          Work mode is required.
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="location" className="text-sm font-medium">
+                        Location
+                      </Label>
+                      <div className="relative mt-1.5">
+                        <Input
+                          id="location"
+                          value={formData.location}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              location: e.target.value,
+                            })
+                          }
+                          placeholder="City, Country"
+                          className="pr-10"
+                        />
+                        <Shield className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          checked={formData.openToBenchResources}
+                          onCheckedChange={(value) =>
+                            setFormData({
+                              ...formData,
+                              openToBenchResources: value,
+                            })
+                          }
+                          className="data-[state=checked]:bg-green-500"
+                        />
+                        <div>
+                          <p className="font-medium text-sm">
+                            Open to Bench Resources
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Allow agencies and companies to propose their bench
+                            employees
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 4: Budget & Duration */}
+          {currentStep === 4 && (
+            <Card className="border border-border rounded-xl bg-card overflow-hidden">
+              <CardContent className="px-6 py-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span className="text-primary font-semibold text-sm">
+                      4
+                    </span>
+                  </div>
+                  <h2 className="font-semibold text-xl text-foreground">
+                    Budget & Duration
+                  </h2>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    <div className="sm:col-span-2">
+                      <Label
+                        htmlFor="duration"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        Duration
+                      </Label>
+                      <div className="flex gap-2 mt-1.5">
+                        <Input
+                          id="duration"
+                          type="number"
+                          placeholder="Enter duration"
+                          min="1"
+                          value={formData.duration}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              duration: e.target.value,
+                            })
+                          }
+                          className="flex-1"
+                        />
+                        <Select
+                          value={formData.durationUnit}
+                          onValueChange={(v) =>
+                            setFormData({ ...formData, durationUnit: v })
+                          }
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue placeholder="Unit" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="week">Week</SelectItem>
+                            <SelectItem value="month">Month</SelectItem>
+                            <SelectItem value="year">Year</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="startDate"
+                        className="text-sm font-medium"
+                      >
+                        Start Date
+                      </Label>
+                      <div className="relative mt-1.5">
+                        <Input
+                          id="startDate"
+                          type="date"
+                          value={formData.startDate}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              startDate: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-4 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium">
+                        Payment Type
+                      </Label>
+                      <Select
+                        value={formData.paymentType}
+                        onValueChange={(v) =>
+                          setFormData({ ...formData, paymentType: v })
+                        }
+                      >
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="Select payment type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="hourly">Hourly Rate</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="fixed">Fixed Price</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium">Currency</Label>
+                      <Select
+                        value={formData.currency}
+                        onValueChange={(v) =>
+                          setFormData({ ...formData, currency: v })
+                        }
+                      >
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="USD">USD</SelectItem>
+                          <SelectItem value="EUR">EUR</SelectItem>
+                          <SelectItem value="GBP">GBP</SelectItem>
+                          <SelectItem value="INR">INR</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="budgetMin"
+                        className="text-sm font-medium"
+                      >
+                        Min Budget
+                        {formData.currency ? ` (${formData.currency})` : ""}
+                      </Label>
+                      <Input
+                        id="budgetMin"
+                        type="number"
+                        min="0"
+                        value={formData.salaryMin}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            salaryMin: e.target.value,
+                          })
+                        }
+                        placeholder="e.g., 1500"
+                        className="mt-1.5"
+                      />
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="budgetMax"
+                        className="text-sm font-medium"
+                      >
+                        Max Budget
+                        {formData.currency ? ` (${formData.currency})` : ""}
+                      </Label>
+                      <Input
+                        id="budgetMax"
+                        type="number"
+                        min="0"
+                        value={formData.salaryMax}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            salaryMax: e.target.value,
+                          })
+                        }
+                        placeholder="e.g., 2500"
+                        className="mt-1.5"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap gap-3 justify-end pt-4 border-t border-border">
-        {isEditing && (
-          <Button
-            variant="outline"
-            onClick={handleDeleteJob}
-            className="rounded-xl text-destructive hover:text-destructive"
-            disabled={deleteJobLoading}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            {deleteJobLoading ? "Deleting..." : "Delete Job"}
-          </Button>
-        )}
-        {!isEditing && (
-          <Button
-            variant="outline"
-            onClick={handleSaveDraft}
-            className="rounded-xl"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            Save Draft
-          </Button>
-        )}
-        <Button
-          onClick={handlePostJob}
-          className="rounded-xl bg-primary hover:bg-primary/90"
-          disabled={
-            updateJobLoading ||
-            createJobLoading ||
-            (isEditing && jobDetailsLoading)
-          }
-        >
-          <Send className="h-4 w-4 mr-2" />
-          {isEditing
-            ? updateJobLoading
-              ? "Updating..."
-              : "Update Job"
-            : createJobLoading && postingAction === "post"
-              ? "Posting..."
-              : "Post Job"}
-        </Button>
-        {!isEditing && (
-          <Button
-            onClick={handlePostAndShowProfiles}
-            className="rounded-xl bg-gradient-to-r from-primary to-pink-500 hover:opacity-90"
-            disabled={createJobLoading}
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            {createJobLoading && postingAction === "postAndShow"
-              ? "Posting..."
-              : "Post & Show Relevant Profiles"}
-          </Button>
-        )}
+      <div className="flex flex-wrap gap-3 justify-between pt-6 border-t border-border">
+        <div className="flex gap-3">
+          {currentStep > 1 && (
+            <Button
+              variant="outline"
+              onClick={prevStep}
+              className="rounded-xl border-primary text-primary hover:bg-primary/5"
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          )}
+          {isEditing && (
+            <Button
+              variant="ghost"
+              onClick={handleDeleteJob}
+              className="rounded-xl text-destructive hover:text-destructive hover:bg-destructive/5"
+              disabled={deleteJobLoading}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Job
+            </Button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          {!isEditing && (
+            <Button
+              variant="outline"
+              onClick={handleSaveDraft}
+              className="rounded-xl"
+              disabled={saveJobAsDraftLoading}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {saveJobAsDraftLoading ? "Saving..." : "Save Draft"}
+            </Button>
+          )}
+
+          {currentStep < totalSteps ? (
+            <Button
+              onClick={nextStep}
+              className="rounded-xl bg-primary hover:bg-primary/90 px-8"
+              disabled={isExtractingSkills}
+            >
+              {isExtractingSkills && currentStep === 1
+                ? "Extracting Skills..."
+                : "Next"}
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          ) : (
+            <>
+              <Button
+                onClick={handlePostJob}
+                className="rounded-xl bg-primary hover:bg-primary/90"
+                disabled={
+                  updateJobLoading ||
+                  createJobLoading ||
+                  (isEditing && jobDetailsLoading)
+                }
+              >
+                <Send className="h-4 w-4 mr-2" />
+                {isEditing
+                  ? updateJobLoading
+                    ? "Updating..."
+                    : "Update Job"
+                  : createJobLoading && postingAction === "post"
+                    ? "Posting..."
+                    : "Post Job"}
+              </Button>
+              {!isEditing && (
+                <Button
+                  onClick={handlePostAndShowProfiles}
+                  className="rounded-xl bg-gradient-to-r from-primary to-pink-500 hover:opacity-90 shadow-md transition-all active:scale-[0.98]"
+                  disabled={createJobLoading}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {createJobLoading && postingAction === "postAndShow"
+                    ? "Posting..."
+                    : "Post & Show Relevant Profiles"}
+                </Button>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Delete Confirmation Dialog */}
