@@ -1,4 +1,4 @@
-import { lazy, Suspense, useId } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,6 +22,7 @@ import ResumeManager from "../ResumeManager";
 import BarLoader from "@/components/loader/BarLoader";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { skipToken } from "@reduxjs/toolkit/query";
+import { RootState } from "@/app/store";
 
 const getSafeProjectUrl = (value?: string) => {
   if (typeof value !== "string") return undefined;
@@ -34,18 +35,63 @@ const isCurrentWorkExperience = (endDate?: string | null) => {
   return endDate.trim().length === 0;
 };
 
+const getDateSortValue = (date?: string | null) => {
+  if (typeof date !== "string" || date.trim().length === 0) {
+    return Number.NEGATIVE_INFINITY;
+  }
+  const timestamp = new Date(date).getTime();
+  return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp;
+};
+
 const ContractorProfile = () => {
-  const { token } = useSelector((state: any) => state.user);
+  const { token } = useSelector((state: RootState) => state.user);
   const {
     data: response,
     isLoading: isLoadingProfile,
     isError,
+    isUninitialized,
   } = useGetProfileQuery(undefined, {
     skip: !token,
   });
 
   const data = response?.data;
   const profile = data?.candidateProfile;
+
+  const workItems = Array.isArray(profile?.workExperiences)
+    ? profile.workExperiences.filter(
+        (item) => item != null && typeof item === "object",
+      )
+    : [];
+  const projectItems = Array.isArray(profile?.projects)
+    ? profile.projects.filter(
+        (item) => item != null && typeof item === "object",
+      )
+    : [];
+  const certificationItems = Array.isArray(profile?.certifications)
+    ? profile.certifications.filter(
+        (item) => item != null && typeof item === "object",
+      )
+    : [];
+
+  const sortedWorkItems = useMemo(
+    () =>
+      [...workItems].sort((a, b) => {
+        const aIsCurrent = isCurrentWorkExperience(a.endDate);
+        const bIsCurrent = isCurrentWorkExperience(b.endDate);
+        if (aIsCurrent !== bIsCurrent) {
+          return aIsCurrent ? -1 : 1;
+        }
+
+        const aStart = getDateSortValue(a.startDate);
+        const bStart = getDateSortValue(b.startDate);
+        if (aStart !== bStart) {
+          return bStart - aStart;
+        }
+
+        return (b.startDate ?? "").localeCompare(a.startDate ?? "");
+      }),
+    [workItems],
+  );
 
   const hasAvatar = !!data?.avatar;
 
@@ -54,11 +100,15 @@ const ContractorProfile = () => {
       hasAvatar ? (data?.id ?? skipToken) : skipToken,
     );
 
-  const candidateId = useId();
-
   return (
     <div className="min-h-screen flex flex-col dark:bg-slate-900">
-      {isLoadingProfile ? (
+      {!token ? (
+        <div className="w-full h-screen flex items-center justify-center">
+          <div className="text-gray-600 dark:text-slate-400">
+            Please log in to view your profile
+          </div>
+        </div>
+      ) : isUninitialized || isLoadingProfile ? (
         <BarLoader />
       ) : isError ? (
         <div className="w-full h-screen flex items-center justify-center">
@@ -72,7 +122,7 @@ const ContractorProfile = () => {
               <div className="lg:col-span-3 space-y-4">
                 {/* Profile Card */}
                 <Card
-                  id={candidateId}
+                  id={profile?.id}
                   className="dark:bg-slate-800 dark:border-slate-700 w-full"
                 >
                   <CardContent className="p-4 sm:p-6 text-center">
@@ -85,7 +135,7 @@ const ContractorProfile = () => {
                         <>
                           <AvatarImage
                             className="object-cover"
-                            src={profileImage ?? ""}
+                            src={profileImage || undefined}
                           />
                           <AvatarFallback>
                             <Camera className="w-8 h-8 lg:w-12 lg:h-12 text-gray-400" />
@@ -168,7 +218,7 @@ const ContractorProfile = () => {
 
                 {/* Skills Card */}
                 <Card
-                  id={`AiMatchedProfile-${candidateId}-skillsCard`}
+                  id={`AiMatchedProfile-${profile?.id}-skillsCard`}
                   className="dark:bg-slate-800 dark:border-slate-700 w-full"
                 >
                   <CardContent className="p-4 sm:p-6">
@@ -176,7 +226,7 @@ const ContractorProfile = () => {
                       Skills & Tech
                     </h3>
                     <div
-                      id={`AiMatchedProfile-${candidateId}-skills`}
+                      id={`AiMatchedProfile-${profile?.id}-skills`}
                       className="flex flex-wrap gap-2"
                     >
                       {profile?.primarySkills?.length ? (
@@ -212,11 +262,11 @@ const ContractorProfile = () => {
                       Certifications
                     </h3>
                     <div className="space-y-3">
-                      {profile?.certifications?.length ? (
-                        profile.certifications.map(
+                      {certificationItems.length ? (
+                        certificationItems.map(
                           ({ name, issueDate }, cIndex) => (
                             <div
-                              id={`AiMatchedProfile-${candidateId}-cert-${cIndex}`}
+                              id={`AiMatchedProfile-${profile?.id}-cert-${cIndex}`}
                               className="flex items-start gap-2 sm:gap-3"
                               key={`${name}-${cIndex}`}
                             >
@@ -299,79 +349,63 @@ const ContractorProfile = () => {
                         <h3 className="text-base sm:text-lg font-bold mb-4 dark:text-slate-100">
                           Work Experience
                         </h3>
-                        {(profile?.workExperiences?.length ?? 0) > 0 ? (
+                        {workItems.length > 0 ? (
                           <div className="space-y-6">
-                            {[...(profile?.workExperiences ?? [])]
-                              .sort((a, b) => {
-                                const aIsCurrent = isCurrentWorkExperience(
-                                  a.endDate,
-                                );
-                                const bIsCurrent = isCurrentWorkExperience(
-                                  b.endDate,
-                                );
-                                if (aIsCurrent !== bIsCurrent) {
-                                  return aIsCurrent ? -1 : 1;
-                                }
-                                // Secondary sort: most recent startDate first
-                                return (b.startDate ?? "").localeCompare(
-                                  a.startDate ?? "",
-                                );
-                              })
-                              .map((entry, index) => {
-                                const {
-                                  id,
-                                  role,
-                                  companyName,
-                                  startDate,
-                                  endDate,
-                                  location,
-                                  description,
-                                } = entry;
-                                const entryId = `${candidateId}-work-${id ?? index}`;
-                                const isCurrentRole =
-                                  isCurrentWorkExperience(endDate);
-                                return (
+                            {sortedWorkItems.map((entry, index) => {
+                              const {
+                                id,
+                                role,
+                                companyName,
+                                startDate,
+                                endDate,
+                                location,
+                                description,
+                              } = entry;
+                              const entryId = `${profile?.id}-work-${id ?? index}`;
+                              const isCurrentRole =
+                                isCurrentWorkExperience(endDate);
+                              return (
+                                <div
+                                  key={entryId}
+                                  id={entryId}
+                                  className="flex gap-3 sm:gap-4"
+                                >
                                   <div
-                                    key={entryId}
-                                    id={entryId}
-                                    className="flex gap-3 sm:gap-4"
-                                  >
-                                    <div
-                                      className={`w-1 ${isCurrentRole ? "bg-green-600 dark:bg-green-500" : "bg-gray-300 dark:bg-slate-600"} rounded-full flex-shrink-0`}
-                                    ></div>
-                                    <div className="flex-1 min-w-0">
-                                      <h4 className="font-bold text-sm sm:text-base dark:text-slate-100 break-words">
-                                        {role}
-                                      </h4>
-                                      <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mb-1 font-semibold break-words">
-                                        {companyName}
-                                      </p>
-                                      <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-2 break-words">
-                                        {startDate} -{" "}
-                                        {isCurrentRole ? "Present" : endDate} •{" "}
-                                        {location}
-                                      </p>
-                                      <div className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 space-y-1">
-                                        {(Array.isArray(description)
+                                    className={`w-1 ${isCurrentRole ? "bg-green-600 dark:bg-green-500" : "bg-gray-300 dark:bg-slate-600"} rounded-full flex-shrink-0`}
+                                  ></div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-sm sm:text-base dark:text-slate-100 break-words">
+                                      {role}
+                                    </h4>
+                                    <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mb-1 font-semibold break-words">
+                                      {companyName}
+                                    </p>
+                                    <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-2 break-words">
+                                      {startDate} -{" "}
+                                      {isCurrentRole ? "Present" : endDate} •{" "}
+                                      {location}
+                                    </p>
+                                    <div className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 space-y-1">
+                                      {(Array.isArray(description)
+                                        ? description
+                                        : description
                                           ? description
-                                          : description
-                                            ? description
-                                                .split(/\r?\n/)
-                                                .filter(Boolean)
-                                            : []
-                                        ).map((bullet, bIndex) => (
-                                          <p
-                                            key={`${entryId}-bullet-${bIndex}`}
-                                            className="break-words"
-                                          >
-                                            {bullet}
-                                          </p>
-                                        ))}
-                                      </div>
+                                              .split(/\r?\n/)
+                                              .filter(Boolean)
+                                          : []
+                                      ).map((bullet, bIndex) => (
+                                        <p
+                                          key={`${entryId}-bullet-${bIndex}`}
+                                          className="break-words"
+                                        >
+                                          {bullet}
+                                        </p>
+                                      ))}
                                     </div>
                                   </div>
-                                );
-                              })}
+                                </div>
+                              );
+                            })}
                           </div>
                         ) : (
                           <p className="text-sm sm:text-base text-gray-700 dark:text-slate-300">
@@ -397,8 +431,8 @@ const ContractorProfile = () => {
                           </Button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                          {profile?.projects?.length ? (
-                            profile.projects.map(
+                          {projectItems.length ? (
+                            projectItems.map(
                               (
                                 { title, techStack, projectUrl, description },
                                 pIndex,
@@ -407,7 +441,7 @@ const ContractorProfile = () => {
                                   getSafeProjectUrl(projectUrl);
                                 return (
                                   <Card
-                                    id={`AiMatchedProfile-${candidateId}-project-${pIndex}`}
+                                    id={`AiMatchedProfile-${profile?.id}-project-${pIndex}`}
                                     className="border dark:border-slate-700 dark:bg-slate-800 w-full"
                                     key={`${title}-${pIndex}`}
                                   >
