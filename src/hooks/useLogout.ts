@@ -5,6 +5,8 @@ import { RootState } from "@/app/store";
 import { removeUser } from "@/app/slices/userAuth";
 import { employerApi } from "@/app/queries/employerApi";
 import { profileApi } from "@/app/queries/profileApi";
+import { isTokenExpired } from "@/lib/helpers";
+import { isExpectedLogoutError } from "@/lib/authErrorUtils";
 
 const useLogout = () => {
   const user = useSelector((state: any) => state.user.userDetails);
@@ -21,7 +23,9 @@ const useLogout = () => {
         await logout(refreshToken).unwrap();
       }
     } catch (error) {
-      console.error("Backend logout failed", error);
+      if (!isExpectedLogoutError(error)) {
+        console.error("Backend logout failed", error);
+      }
     } finally {
       navigate("/");
       // Let components unmount before clearing state
