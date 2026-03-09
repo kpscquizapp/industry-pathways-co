@@ -97,24 +97,22 @@ const ShowJobs = () => {
   let jobs: Job[] = [];
   let totalPages = 1;
 
-  if (jobsData) {
-    if (jobsData.data && Array.isArray(jobsData.data)) {
-      jobs = jobsData.data;
-    } else if (Array.isArray(jobsData)) {
+  if (paginationSource) {
+    if (paginationSource.data && Array.isArray(paginationSource.data)) {
+      jobs = paginationSource.data;
+    } else if (Array.isArray(paginationSource)) {
       // Fallback: raw array response (unlikely but defensive)
-      jobs = jobsData;
+      jobs = paginationSource;
     }
 
-    if (paginationSource) {
-      const serverTotalPages = paginationSource.pagination?.totalPages;
-      if (typeof serverTotalPages === "number" && serverTotalPages >= 1) {
-        totalPages = serverTotalPages;
-      } else {
-        const total = paginationSource.pagination?.total ?? 0;
-        const appliedLimit =
-          paginationSource.pagination?.limit ?? queryParams.limit;
-        totalPages = total > 0 ? Math.ceil(total / appliedLimit) : 1;
-      }
+    const serverTotalPages = paginationSource.pagination?.totalPages;
+    if (typeof serverTotalPages === "number" && serverTotalPages >= 1) {
+      totalPages = serverTotalPages;
+    } else {
+      const total = paginationSource.pagination?.total ?? 0;
+      const appliedLimit =
+        paginationSource.pagination?.limit ?? queryParams.limit;
+      totalPages = total > 0 ? Math.ceil(total / appliedLimit) : 1;
     }
   }
 
@@ -133,16 +131,17 @@ const ShowJobs = () => {
   }, [jobs, activeTab]);
 
   // Use server-reported total (already filtered by status) for accurate counts.
-  const totalForCurrentTab = jobsData?.pagination?.total ?? filteredJobs.length;
+  const totalForCurrentTab =
+    paginationSource?.pagination?.total ?? filteredJobs.length;
 
   // Clamp currentPage so it never exceeds totalPages after data changes.
   useEffect(() => {
-    if (isFetching && !jobsData) return;
+    if (isFetching && !paginationSource) return;
     const maxPage = Math.max(1, totalPages);
     if (currentPage > maxPage) {
       setCurrentPage(maxPage);
     }
-  }, [currentPage, totalPages, isFetching, jobsData]);
+  }, [currentPage, totalPages, isFetching, paginationSource]);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
