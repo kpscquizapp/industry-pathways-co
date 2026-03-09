@@ -76,7 +76,6 @@ export const loginApi = createApi({
       string
     >({
       query: (refreshToken) => ({
-        headers: getAuthHeaders(),
         method: "POST",
         url: `auth/refresh`,
         // Backend accepts both field names for compatibility
