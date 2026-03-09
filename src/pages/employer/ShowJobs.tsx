@@ -24,31 +24,34 @@ import {
 import {
   useGetEmployerAllJobsQuery,
   useDeleteJobMutation,
+  EMPLOYER_JOB_STATUS,
 } from "@/app/queries/jobApi";
 import type { Job } from "@/app/queries/aiShortlistApi";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import JobDetailsModal from "./JobDetailsModal";
 import { toast } from "sonner";
 
-const ACTIVE_STATUSES = new Set(["published", "active"]);
+const ACTIVE_STATUSES: ReadonlySet<string> = new Set([
+  EMPLOYER_JOB_STATUS.PUBLISHED,
+]);
 
 const getStatusBadgeProps = (
   rawStatus: string | undefined,
 ): { label: string; className: string } => {
   const status = (rawStatus ?? "").toLowerCase().trim();
-  if (status === "published" || status === "active") {
+  if (status === EMPLOYER_JOB_STATUS.PUBLISHED) {
     return {
       label: "Active",
       className: "bg-green-500 hover:bg-green-600 text-white",
     };
   }
-  if (status === "draft") {
+  if (status === EMPLOYER_JOB_STATUS.DRAFT) {
     return {
       label: "Draft",
       className: "bg-yellow-100 hover:bg-yellow-200 text-yellow-800",
     };
   }
-  if (status === "closed") {
+  if (status === EMPLOYER_JOB_STATUS.CLOSED) {
     return {
       label: "Closed",
       className: "bg-gray-400 hover:bg-gray-500 text-white",
@@ -73,7 +76,10 @@ const ShowJobs = () => {
   const queryParams = {
     page: currentPage,
     limit: 10,
-    status: activeTab === "active" ? "published" : activeTab,
+    status:
+      activeTab === "active"
+        ? EMPLOYER_JOB_STATUS.PUBLISHED
+        : EMPLOYER_JOB_STATUS.DRAFT,
   };
 
   const {
@@ -110,7 +116,7 @@ const ShowJobs = () => {
         totalPages = total > 0 ? Math.ceil(total / appliedLimit) : 1;
       }
     }
-  } // <-- missing brace added here
+  }
 
   // Server already filters by status via queryParams.status; keep a defensive
   // client-side filter in case a stale cache page mixes statuses.
@@ -121,7 +127,7 @@ const ShowJobs = () => {
         .toLowerCase()
         .trim();
       return activeTab === "draft"
-        ? status === "draft"
+        ? status === EMPLOYER_JOB_STATUS.DRAFT
         : ACTIVE_STATUSES.has(status);
     });
   }, [jobs, activeTab]);

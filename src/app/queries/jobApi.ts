@@ -2,6 +2,12 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { config } from "../../services/service";
 import { getAuthHeaders } from "../../lib/helpers";
 
+export const EMPLOYER_JOB_STATUS = {
+  DRAFT: "draft",
+  PUBLISHED: "published",
+  CLOSED: "closed",
+} as const;
+
 export const jobApi = createApi({
   reducerPath: "jobApi",
   baseQuery: fetchBaseQuery({
@@ -92,7 +98,7 @@ export const jobApi = createApi({
   }),
 });
 
-export const { 
+export const {
   useCreateJobMutation,
   useGetJobsQuery,
   useGetJobsByIdQuery,
