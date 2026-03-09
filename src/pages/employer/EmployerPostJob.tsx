@@ -196,7 +196,7 @@ const EmployerPostJob = () => {
 
         // Duration & Timing
         duration: job.duration?.toString() || "",
-        durationUnit: job.durationUnit || "",
+        durationUnit: normalizeDurationUnit(job.durationUnit || ""),
         startDate: job.startDate || "",
         expiresAt: job.expiresAt || "",
 
@@ -274,6 +274,19 @@ const EmployerPostJob = () => {
     }
     const numValue = typeof value === "number" ? value : Number(value);
     return Number.isFinite(numValue) && numValue > 0 ? numValue : undefined;
+  };
+
+  const normalizeDurationUnit = (unit: string): string => {
+    switch (unit) {
+      case "weeks":
+        return "week";
+      case "months":
+        return "month";
+      case "years":
+        return "year";
+      default:
+        return unit;
+    }
   };
 
   const mapDurationUnit = (unit: string) => {
@@ -668,19 +681,18 @@ const EmployerPostJob = () => {
             }).unwrap();
             const extracted = result?.data?.technicalSkills ?? [];
             if (extracted.length > 0) {
+              const currentSkills = skills;
+              const merged = [...currentSkills];
+              const lowerSet = new Set(merged.map((s) => s.toLowerCase()));
               let newCount = 0;
-              setSkills((prev) => {
-                const merged = [...prev];
-                const lowerSet = new Set(merged.map((s) => s.toLowerCase()));
-                extracted.forEach((s: string) => {
-                  if (!lowerSet.has(s.toLowerCase())) {
-                    merged.push(s);
-                    lowerSet.add(s.toLowerCase());
-                    newCount++;
-                  }
-                });
-                return merged;
+              extracted.forEach((s: string) => {
+                if (!lowerSet.has(s.toLowerCase())) {
+                  merged.push(s);
+                  lowerSet.add(s.toLowerCase());
+                  newCount++;
+                }
               });
+              setSkills(merged);
               if (newCount > 0) {
                 toast.success(
                   `${newCount} new skill${newCount > 1 ? "s" : ""} extracted from description`,

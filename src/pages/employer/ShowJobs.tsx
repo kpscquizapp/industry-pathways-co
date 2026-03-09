@@ -77,11 +77,14 @@ const ShowJobs = () => {
   };
 
   const {
+    data: latestJobsData,
     currentData: jobsData,
     isLoading,
     isFetching,
     error,
   } = useGetEmployerAllJobsQuery(queryParams);
+
+  const paginationSource = jobsData ?? latestJobsData;
 
   // Backend response shape from GET /employers/jobs:
   // { success: boolean, message: string, data: Job[], pagination: { total, page, limit } }
@@ -96,15 +99,18 @@ const ShowJobs = () => {
       jobs = jobsData;
     }
 
-    const serverTotalPages = jobsData.pagination?.totalPages;
-    if (typeof serverTotalPages === "number" && serverTotalPages >= 1) {
-      totalPages = serverTotalPages;
-    } else {
-      const total = jobsData.pagination?.total ?? 0;
-      const appliedLimit = jobsData.pagination?.limit ?? queryParams.limit;
-      totalPages = total > 0 ? Math.ceil(total / appliedLimit) : 1;
+    if (paginationSource) {
+      const serverTotalPages = paginationSource.pagination?.totalPages;
+      if (typeof serverTotalPages === "number" && serverTotalPages >= 1) {
+        totalPages = serverTotalPages;
+      } else {
+        const total = paginationSource.pagination?.total ?? 0;
+        const appliedLimit =
+          paginationSource.pagination?.limit ?? queryParams.limit;
+        totalPages = total > 0 ? Math.ceil(total / appliedLimit) : 1;
+      }
     }
-  }
+  } // <-- missing brace added here
 
   // Server already filters by status via queryParams.status; keep a defensive
   // client-side filter in case a stale cache page mixes statuses.
@@ -125,11 +131,12 @@ const ShowJobs = () => {
 
   // Clamp currentPage so it never exceeds totalPages after data changes.
   useEffect(() => {
+    if (isFetching && !jobsData) return;
     const maxPage = Math.max(1, totalPages);
     if (currentPage > maxPage) {
       setCurrentPage(maxPage);
     }
-  }, [totalPages, currentPage]);
+  }, [currentPage, totalPages, isFetching, jobsData]);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -149,7 +156,9 @@ const ShowJobs = () => {
   };
 
   const handleEditJob = (jobId: string | number) => {
-    navigate(`/hire-talent/post-job?jobId=${encodeURIComponent(String(jobId))}`);
+    navigate(
+      `/hire-talent/post-job?jobId=${encodeURIComponent(String(jobId))}`,
+    );
   };
 
   const handleViewProfiles = (jobId: string | number) => {
