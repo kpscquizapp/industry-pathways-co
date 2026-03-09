@@ -28,9 +28,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import CandidateProfileModal, {
-  CandidateProfile,
-} from "@/components/employer/candidates/CandidateProfileModal";
+import type { CandidateProfile } from "@/types/candidates";
 import {
   useGetEmployerJobsQuery,
   useGetJobMatchesQuery,
@@ -232,8 +230,9 @@ const EmployerAIShortlists = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const jobIdParam = searchParams.get("jobId");
-  const candidateIdParam = searchParams.get("candidateId");
-  const [selectedJob, setSelectedJob] = useState(jobIdParam || "all");
+  const [selectedJob, setSelectedJob] = useState(
+    jobIdParam && jobIdParam !== "all" ? jobIdParam : "",
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [shortlistedIds, setShortlistedIds] = useState<EntityId[]>([]);
@@ -241,10 +240,6 @@ const EmployerAIShortlists = () => {
   const [loadedEmployerJobs, setLoadedEmployerJobs] = useState<Job[]>([]);
   const [jobMatchesPage, setJobMatchesPage] = useState(1);
   const [loadedMatches, setLoadedMatches] = useState<Match[]>([]);
-  const parsedCandidateId: EntityId | null =
-    candidateIdParam === null || candidateIdParam.trim().length === 0
-      ? null
-      : candidateIdParam;
   const { data: employerJobsResponse, isLoading: jobsLoading } =
     useGetEmployerJobsQuery({
       page: employerJobsPage,
@@ -252,7 +247,7 @@ const EmployerAIShortlists = () => {
     });
 
   const employerJobs = loadedEmployerJobs;
-  const isAllJobsSelected = selectedJob === "all";
+  const isAllJobsSelected = !selectedJob;
   const selectedJobId = !isAllJobsSelected ? String(selectedJob) : null;
   const shouldFetchMatches = selectedJobId !== null;
   const jobMatchesQueryId = selectedJobId ?? "";
@@ -280,15 +275,19 @@ const EmployerAIShortlists = () => {
   // On component mount, ensure we load the correct job if it's in URL params
   useEffect(() => {
     const initialJobId = searchParams.get("jobId");
-    if (initialJobId && initialJobId !== "all" && selectedJob === "all") {
+    if (initialJobId && initialJobId !== "all" && !selectedJob) {
       setSelectedJob(initialJobId);
     }
+    // Intentionally mount-only: selectedJob is read only as a guard to avoid
+    // overwriting user selections on re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only on mount
 
   // Sync selectedJob with URL search params on mount and navigation
   useEffect(() => {
     const currentJobIdParam = searchParams.get("jobId");
-    const jobIdFromUrl = currentJobIdParam || "all";
+    const jobIdFromUrl =
+      currentJobIdParam && currentJobIdParam !== "all" ? currentJobIdParam : "";
     if (selectedJob !== jobIdFromUrl) {
       setSelectedJob(jobIdFromUrl);
     }
@@ -306,11 +305,14 @@ const EmployerAIShortlists = () => {
       return;
     }
 
-    setLoadedEmployerJobs((previousJobs) =>
-      employerJobsPage === 1
-        ? nextJobs
-        : mergeUniqueById(previousJobs, nextJobs),
-    );
+    setLoadedEmployerJobs((previousJobs) => {
+      const publishedJobs = nextJobs.filter(
+        (job: Job) => job.status === "published" || job.status === "active",
+      );
+      return employerJobsPage === 1
+        ? publishedJobs
+        : mergeUniqueById(previousJobs, publishedJobs);
+    });
   }, [
     employerJobsPage,
     employerJobsResponse?.data,
@@ -493,32 +495,18 @@ const EmployerAIShortlists = () => {
     };
   }, [jobRelevantCandidates, normalizedSearchTerm]);
 
-  const selectedCandidate = useMemo(() => {
-    if (parsedCandidateId === null) {
-      return null;
-    }
-
-    const candidateIdKey = getEntityIdKey(parsedCandidateId);
-    return (
-      jobRelevantCandidates.find(
-        (item) => getEntityIdKey(item.id) === candidateIdKey,
-      ) ?? null
-    );
-  }, [jobRelevantCandidates, parsedCandidateId]);
-  const showProfileModal = selectedCandidate !== null;
-
   // Real-time search as user types
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
   };
 
   const handleSelectedJobChange = (value: string) => {
-    setSelectedJob(value);
+    setSelectedJob(value === "all" ? "" : value);
     setLoadedMatches([]);
     setJobMatchesPage(1);
     // Update URL search params so jobId persists across navigation
     const nextParams = new URLSearchParams(searchParams);
-    if (value === "all") {
+    if (!value) {
       nextParams.delete("jobId");
     } else {
       nextParams.set("jobId", value);
@@ -544,9 +532,7 @@ const EmployerAIShortlists = () => {
   };
 
   const handleViewProfile = (candidate: CandidateProfile) => {
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.set("candidateId", String(candidate.id));
-    setSearchParams(nextParams);
+    navigate(`/hire-talent/candidate/${candidate.id}`);
   };
 
   // Helper function to highlight matching text in candidate name
@@ -573,12 +559,6 @@ const EmployerAIShortlists = () => {
     );
   };
 
-  const closeProfileModal = () => {
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.delete("candidateId");
-    setSearchParams(nextParams);
-  };
-
   const handleShortlist = (candidate: CandidateProfile) => {
     const shortlistedCandidateKey = getEntityIdKey(candidate.id);
     const hasAlreadyShortlisted = shortlistedIds.some(
@@ -600,18 +580,10 @@ const EmployerAIShortlists = () => {
         toast.error(`Failed to shortlist ${candidate.name}. Please try again.`);
       });
     }
-    closeProfileModal();
-  };
-
-  const handleScheduleInterview = (candidate: CandidateProfile) => {
-    toast.success(`Interview scheduled with ${candidate.name}!`);
-    closeProfileModal();
-    navigate("/hire-talent/ai-interviews");
   };
 
   const handleSkillTest = (candidate: CandidateProfile) => {
     toast.success(`Skill test scheduled for ${candidate.name}!`);
-    closeProfileModal();
     navigate("/hire-talent/skill-tests");
   };
 
@@ -639,14 +611,14 @@ const EmployerAIShortlists = () => {
                 </p>
               </div>
             </div>
-            <Button
+            {/* <Button
               className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground"
               onClick={handleRefreshMatches}
               disabled={!shouldFetchMatches || matchesLoading}
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh Matches
-            </Button>
+            </Button> */}
           </div>
         </CardContent>
       </Card>
@@ -667,10 +639,9 @@ const EmployerAIShortlists = () => {
 
         <Select value={selectedJob} onValueChange={handleSelectedJobChange}>
           <SelectTrigger className="w-[200px] rounded-xl">
-            <SelectValue placeholder="Filter by job" />
+            <SelectValue placeholder="Select a job" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Jobs</SelectItem>
             {jobsLoading && (
               <SelectItem value="__loading__" disabled>
                 Loading jobs...
@@ -689,7 +660,7 @@ const EmployerAIShortlists = () => {
           </SelectContent>
         </Select>
 
-        <Button
+        {/* <Button
           variant="outline"
           className="rounded-xl"
           onClick={handleLoadMoreJobs}
@@ -697,9 +668,9 @@ const EmployerAIShortlists = () => {
         >
           <ChevronDown className="h-4 w-4 mr-2" />
           {hasMoreEmployerJobs ? "Load More Jobs" : "All Jobs Loaded"}
-        </Button>
+        </Button> */}
 
-        <Button variant="outline" className="rounded-xl">
+        {/* <Button variant="outline" className="rounded-xl">
           <Filter className="h-4 w-4 mr-2" />
           More Filters
         </Button>
@@ -707,7 +678,7 @@ const EmployerAIShortlists = () => {
         <Button variant="outline" className="rounded-xl">
           <Download className="h-4 w-4 mr-2" />
           Export CSV
-        </Button>
+        </Button> */}
       </div>
 
       {/* Stages Tabs */}
@@ -972,16 +943,6 @@ const EmployerAIShortlists = () => {
           </div>
         </TabsContent>
       </Tabs>
-
-      {/* Candidate Profile Modal */}
-      <CandidateProfileModal
-        candidate={selectedCandidate}
-        open={showProfileModal}
-        onClose={closeProfileModal}
-        onScheduleInterview={handleScheduleInterview}
-        onShortlist={handleShortlist}
-        onSkillTest={handleSkillTest}
-      />
     </div>
   );
 };

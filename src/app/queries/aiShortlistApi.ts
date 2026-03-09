@@ -11,7 +11,7 @@ export interface Pagination {
 }
 
 export interface JobSkill {
-  name?: string;
+  name: string;
   [key: string]: unknown;
 }
 
@@ -19,8 +19,16 @@ export type EntityId = number | string;
 
 export interface Job {
   id: EntityId;
-  title?: string;
-  skills?: string | Array<string | JobSkill>;
+  title: string;
+  status?: string;
+  category?: string;
+  description?: string;
+  companyName?: string;
+  employmentType?: string;
+  location?: string;
+  numberOfOpenings?: number;
+  createdAt?: string;
+  skills?: Array<string | JobSkill>;
   [key: string]: unknown;
 }
 

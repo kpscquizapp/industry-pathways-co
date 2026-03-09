@@ -11,6 +11,86 @@ interface UpdateEmployerProfile {
   description?: string;
 }
 
+export interface CandidateWorkExperience {
+  id: number;
+  companyName: string;
+  role: string;
+  startDate: string;
+  endDate?: string | null;
+  isCurrent?: boolean;
+  description?: string;
+}
+
+export interface CandidateProject {
+  id: number;
+  name: string;
+  description?: string;
+  technologies?: string[];
+  url?: string;
+}
+
+export interface CandidateCertification {
+  id: number;
+  name: string;
+  issuer: string;
+  year?: string;
+}
+
+export interface CandidateResume {
+  id: number;
+  candidateProfileId: number;
+  filePath: string;
+  originalName: string;
+  fileSize?: number;
+  mimeType?: string;
+  isDefault?: boolean;
+}
+
+export interface EmployerCandidateProfileDto {
+  id: number;
+  userId: number;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  mobileNumber?: string;
+  location?: string;
+  city?: string;
+  country?: string;
+  candidateType?: string;
+  primaryJobRole?: string;
+  bio?: string;
+  headline?: string;
+  resourceType?: string;
+  availability?: string;
+  availableIn?: string;
+  yearsExperience?: number;
+  /** @deprecated Legacy alias — prefer yearsExperience */
+  experience?: number | string;
+  primarySkills?: string[];
+  secondarySkills?: string[];
+  preferredWorkType?: string | string[];
+  preferredJobLocations?: string[];
+  hourlyRateMin?: number;
+  hourlyRateMax?: number;
+  expectedSalaryMin?: number;
+  expectedSalaryMax?: number;
+  englishProficiency?: string;
+  enableAiMatching?: boolean;
+  workExperiences: CandidateWorkExperience[];
+  /** @deprecated Legacy alias — prefer workExperiences */
+  workExperience?: CandidateWorkExperience[];
+  projects: CandidateProject[];
+  certifications: CandidateCertification[];
+  resumes: CandidateResume[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CandidateByIdResponse {
+  success: boolean;
+  data: EmployerCandidateProfileDto;
+}
+
 export const employerApi = createApi({
   reducerPath: "employerApi",
   baseQuery: fetchBaseQuery({
@@ -76,6 +156,27 @@ export const employerApi = createApi({
       }),
       providesTags: ["EmployerProfile"],
     }),
+    getCandidateById: builder.query<CandidateByIdResponse, string | number>({
+      query: (id) => ({
+        method: "GET",
+        url: `employers/candidates/${id}`,
+      }),
+    }),
+    viewCandidateResume: builder.query<
+      string,
+      { candidateId: string | number; resumeId: number }
+    >({
+      query: ({ candidateId, resumeId }) => ({
+        method: "GET",
+        url: `employers/candidates/${candidateId}/resume/${resumeId}?view=inline`,
+        responseHandler: async (response: Response) => {
+          if (!response.ok) throw new Error("Failed to fetch resume");
+          return response.blob();
+        },
+      }),
+      transformResponse: (blob: Blob) => URL.createObjectURL(blob),
+      keepUnusedDataFor: 0,
+    }),
   }),
 });
 
@@ -85,4 +186,6 @@ export const {
   useGetEmployerProfileImageQuery,
   useRemoveProfileImageMutation,
   useGetEmployerProfileQuery,
+  useGetCandidateByIdQuery,
+  useLazyViewCandidateResumeQuery,
 } = employerApi;

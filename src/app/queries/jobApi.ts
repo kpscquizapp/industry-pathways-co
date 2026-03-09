@@ -2,6 +2,12 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { config } from "../../services/service";
 import { getAuthHeaders } from "../../lib/helpers";
 
+export const EMPLOYER_JOB_STATUS = {
+  DRAFT: "draft",
+  PUBLISHED: "published",
+  CLOSED: "closed",
+} as const;
+
 export const jobApi = createApi({
   reducerPath: "jobApi",
   baseQuery: fetchBaseQuery({
@@ -80,6 +86,15 @@ export const jobApi = createApi({
       }),
       invalidatesTags: ["Jobs", "DashboardJobs"],
     }),
+    saveJobAsDraft: builder.mutation({
+      query: (data) => ({
+        headers: getAuthHeaders(),
+        method: "POST",
+        body: data,
+        url: "jobs/draft",
+      }),
+      invalidatesTags: ["Jobs", "DashboardJobs"],
+    }),
   }),
 });
 
@@ -92,4 +107,5 @@ export const {
   useGetEmployerAllJobsQuery,
   useUpdateJobMutation,
   useDeleteJobMutation,
+  useSaveJobAsDraftMutation,
 } = jobApi;
