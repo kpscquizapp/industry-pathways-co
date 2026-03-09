@@ -91,6 +91,7 @@ const ShowJobs = () => {
   } = useGetEmployerAllJobsQuery(queryParams);
 
   const paginationSource = jobsData ?? latestJobsData;
+  const isTransitionLoading = isFetching && !jobsData;
 
   // Backend response shape from GET /employers/jobs:
   // { success: boolean, message: string, data: Job[], pagination: { total, page, limit } }
@@ -132,7 +133,8 @@ const ShowJobs = () => {
 
   // Use server-reported total (already filtered by status) for accurate counts.
   const totalForCurrentTab =
-    paginationSource?.pagination?.total ?? filteredJobs.length;
+    jobsData?.pagination?.total ??
+    (isTransitionLoading ? undefined : filteredJobs.length);
 
   // Clamp currentPage so it never exceeds totalPages after data changes.
   useEffect(() => {
@@ -192,7 +194,7 @@ const ShowJobs = () => {
     }
   };
 
-  if (error) {
+  if (error && !jobsData) {
     return (
       <div className="space-y-6">
         <div>
@@ -218,9 +220,15 @@ const ShowJobs = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">All Jobs</h1>
           <p className="text-muted-foreground mt-2">
-            Page {currentPage} of {totalPages} • {totalForCurrentTab}{" "}
-            {activeTab === "draft" ? "draft" : "active"} job
-            {totalForCurrentTab !== 1 ? "s" : ""}
+            {isTransitionLoading ? (
+              <>Loading {activeTab === "draft" ? "draft" : "active"} jobs…</>
+            ) : (
+              <>
+                Page {currentPage} of {totalPages} • {totalForCurrentTab}{" "}
+                {activeTab === "draft" ? "draft" : "active"} job
+                {totalForCurrentTab !== 1 ? "s" : ""}
+              </>
+            )}
           </p>
         </div>
       </div>
