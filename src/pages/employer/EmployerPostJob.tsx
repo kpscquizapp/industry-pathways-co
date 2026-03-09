@@ -302,7 +302,7 @@ const EmployerPostJob = () => {
 
   const experienceLevelToRange = (
     level: string,
-  ): { minExperience: number; maxExperience: number | undefined } | null => {
+  ): { minExperience: number; maxExperience: number | null } | null => {
     switch (level?.toLowerCase()) {
       case "junior":
         return { minExperience: 0, maxExperience: 2 };
@@ -312,10 +312,10 @@ const EmployerPostJob = () => {
       case "mid-senior":
         return { minExperience: 6, maxExperience: 9 };
       case "senior":
-        return { minExperience: 10, maxExperience: undefined };
+        return { minExperience: 10, maxExperience: null };
       case "lead":
       case "principal":
-        return { minExperience: 15, maxExperience: undefined };
+        return { minExperience: 15, maxExperience: null };
       default:
         return null;
     }
@@ -542,7 +542,7 @@ const EmployerPostJob = () => {
 
       let response;
       if (isEditing && jobId) {
-        // Update existing job — promote drafts to published on submit
+        // Update existing job — preserve current status unless a separate publish action is triggered
         const job = jobDetailsData?.data?.[0];
         const currentStatus = job?.status ?? formData.status;
         const nextStatus =
@@ -1066,7 +1066,8 @@ const EmployerPostJob = () => {
                               ? String(range.minExperience)
                               : "",
                             maxExperience:
-                              range?.maxExperience != null
+                              range?.maxExperience !== null &&
+                              range?.maxExperience !== undefined
                                 ? String(range.maxExperience)
                                 : "",
                           });

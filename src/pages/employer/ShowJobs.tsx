@@ -149,7 +149,7 @@ const ShowJobs = () => {
   };
 
   const handleEditJob = (jobId: string | number) => {
-    navigate(`/hire-talent/post-job?jobId=${jobId}`);
+    navigate(`/hire-talent/post-job?jobId=${encodeURIComponent(String(jobId))}`);
   };
 
   const handleViewProfiles = (jobId: string | number) => {
