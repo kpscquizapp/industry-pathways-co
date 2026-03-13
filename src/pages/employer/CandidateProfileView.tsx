@@ -72,6 +72,16 @@ const formatFileSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+const formatCurrency = (amount: number, currency = "USD") => {
+  const safeCurrency = /^[A-Z]{3}$/.test(currency) ? currency : "USD";
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: safeCurrency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
 const CandidateProfileView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -261,6 +271,10 @@ const CandidateProfileView = () => {
       if (isBench && id) {
         // For bench resources, fetch blob from the API endpoint
         const { data, error } = await viewBenchResume(id);
+        if (latestRequestIdRef.current !== resume.id) {
+          revokePreviewUrl(data as string);
+          return;
+        }
         if (error || !data) throw new Error("Failed to fetch resume");
         resumeUrl = data;
       } else {
@@ -446,9 +460,7 @@ const CandidateProfileView = () => {
                         const rateMin = profile?.hourlyRateMin;
                         const rateMax = profile?.hourlyRateMax;
                         const rateSingle = (profile as any)?.hourlyRate;
-                        const currency = (profile as any)?.currency ?? "$";
-                        const symbol =
-                          currency === "USD" ? "$" : currency + " ";
+                        const currency = (profile as any)?.currency ?? "USD";
                         if (rateMin != null && rateMax != null) {
                           return (
                             <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
@@ -457,9 +469,8 @@ const CandidateProfileView = () => {
                                 <span className="truncate">Hourly Rate</span>
                               </span>
                               <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
-                                {symbol}
-                                {rateMin} - {symbol}
-                                {rateMax}/hr
+                                {formatCurrency(rateMin, currency)} -{" "}
+                                {formatCurrency(rateMax, currency)}/hr
                               </span>
                             </div>
                           );
@@ -472,8 +483,7 @@ const CandidateProfileView = () => {
                                 <span className="truncate">Hourly Rate</span>
                               </span>
                               <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
-                                {symbol}
-                                {rateSingle}/hr
+                                {formatCurrency(rateSingle, currency)}/hr
                               </span>
                             </div>
                           );
@@ -816,9 +826,14 @@ const CandidateProfileView = () => {
                               {profile?.availableIn ||
                                 profile?.availability ||
                                 ((profile as any)?.availableFrom
-                                  ? new Date(
-                                      (profile as any).availableFrom,
-                                    ).toLocaleDateString()
+                                  ? (() => {
+                                      const d = new Date(
+                                        (profile as any).availableFrom,
+                                      );
+                                      return Number.isNaN(d.getTime())
+                                        ? "—"
+                                        : d.toLocaleDateString();
+                                    })()
                                   : "—")}
                             </p>
                           </div>
@@ -914,155 +929,154 @@ const CandidateProfileView = () => {
 
                     {/* Work Experience */}
                     <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
-                        <CardContent className="p-4 sm:p-6">
-                          <h3 className="text-base sm:text-lg font-bold mb-4 dark:text-slate-100">
-                            Work Experience
-                          </h3>
-                          {((
-                            profile?.workExperiences ?? profile?.workExperience
-                          )?.length ?? 0) > 0 ? (
-                            <div className="space-y-6">
-                              {(
-                                profile?.workExperiences ??
-                                profile?.workExperience
-                              )?.map((entry: any, index: number) => {
-                                const {
-                                  role,
-                                  companyName,
-                                  startDate,
-                                  endDate,
-                                  location,
-                                  description,
-                                } = entry;
-                                const entryId = `${candidateId}-work-${index}`;
-                                return (
+                      <CardContent className="p-4 sm:p-6">
+                        <h3 className="text-base sm:text-lg font-bold mb-4 dark:text-slate-100">
+                          Work Experience
+                        </h3>
+                        {((profile?.workExperiences ?? profile?.workExperience)
+                          ?.length ?? 0) > 0 ? (
+                          <div className="space-y-6">
+                            {(
+                              profile?.workExperiences ??
+                              profile?.workExperience
+                            )?.map((entry: any, index: number) => {
+                              const {
+                                role,
+                                companyName,
+                                startDate,
+                                endDate,
+                                location,
+                                description,
+                              } = entry;
+                              const entryId = `${candidateId}-work-${index}`;
+                              return (
+                                <div
+                                  key={entryId}
+                                  id={entryId}
+                                  className="flex gap-3 sm:gap-4"
+                                >
                                   <div
-                                    key={entryId}
-                                    id={entryId}
-                                    className="flex gap-3 sm:gap-4"
-                                  >
-                                    <div
-                                      className={`w-1 ${index === 0 ? "bg-green-600 dark:bg-green-600" : "bg-gray-300 dark:bg-slate-600"} rounded-full flex-shrink-0`}
-                                    ></div>
-                                    <div className="flex-1 min-w-0">
-                                      <h4 className="font-bold text-sm sm:text-base dark:text-slate-100 break-words">
-                                        {role}
-                                      </h4>
-                                      <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mb-1 font-semibold break-words">
-                                        {companyName}
-                                      </p>
-                                      <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-2 break-words">
-                                        {startDate} - {endDate ?? "Present"} •{" "}
-                                        {location}
-                                      </p>
-                                      <div className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 space-y-1">
-                                        {(Array.isArray(description)
+                                    className={`w-1 ${index === 0 ? "bg-green-600 dark:bg-green-600" : "bg-gray-300 dark:bg-slate-600"} rounded-full flex-shrink-0`}
+                                  ></div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-sm sm:text-base dark:text-slate-100 break-words">
+                                      {role}
+                                    </h4>
+                                    <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mb-1 font-semibold break-words">
+                                      {companyName}
+                                    </p>
+                                    <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-2 break-words">
+                                      {startDate} - {endDate ?? "Present"} •{" "}
+                                      {location}
+                                    </p>
+                                    <div className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 space-y-1">
+                                      {(Array.isArray(description)
+                                        ? description
+                                        : description
                                           ? description
-                                          : description
-                                            ? description
-                                                .split(/\r?\n/)
-                                                .filter(Boolean)
-                                            : []
-                                        ).map(
-                                          (bullet: string, bIndex: number) => (
-                                            <p
-                                              key={`${entryId}-bullet-${bIndex}`}
-                                              className="break-words"
-                                            >
-                                              {bullet}
-                                            </p>
-                                          ),
-                                        )}
-                                      </div>
+                                              .split(/\r?\n/)
+                                              .filter(Boolean)
+                                          : []
+                                      ).map(
+                                        (bullet: string, bIndex: number) => (
+                                          <p
+                                            key={`${entryId}-bullet-${bIndex}`}
+                                            className="break-words"
+                                          >
+                                            {bullet}
+                                          </p>
+                                        ),
+                                      )}
                                     </div>
                                   </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <p className="text-sm sm:text-base text-gray-700 dark:text-slate-300">
-                              No work experience
-                            </p>
-                          )}
-                        </CardContent>
-                      </Card>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-sm sm:text-base text-gray-700 dark:text-slate-300">
+                            No work experience
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
 
                     {/* Featured Projects */}
                     <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
-                        <CardContent className="p-4 sm:p-6">
-                          <div className="flex items-center justify-between mb-4 gap-2">
-                            <h3 className="text-base sm:text-lg font-bold dark:text-slate-100">
-                              Featured Projects
-                            </h3>
-                            <Button
-                              variant="link"
-                              disabled
-                              className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm p-0 whitespace-nowrap"
-                            >
-                              View Portfolio
-                            </Button>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                            {profile?.projects?.length ? (
-                              profile.projects.map(
-                                (project: any, pIndex: number) => {
-                                  const safeProjectUrl = getSafeProjectUrl(
-                                    project.url ?? project.projectUrl,
-                                  );
-                                  return (
-                                    <Card
-                                      id={`CandidateProfile-${candidateId}-project-${pIndex}`}
-                                      className="border dark:border-slate-700 dark:bg-slate-800 w-full"
-                                      key={`${project.name || project.title}-${pIndex}`}
-                                    >
-                                      <CardContent className="p-4 sm:p-6">
-                                        <div className="w-full h-24 sm:h-32 bg-gray-100 dark:bg-slate-700/50 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                                          <div className="w-10 h-14 sm:w-12 sm:h-16 border-2 border-gray-300 dark:border-slate-500 rounded flex items-center justify-center text-2xl dark:text-slate-300">
-                                            {safeProjectUrl ? "🌐" : "📂"}
-                                          </div>
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4 gap-2">
+                          <h3 className="text-base sm:text-lg font-bold dark:text-slate-100">
+                            Featured Projects
+                          </h3>
+                          <Button
+                            variant="link"
+                            disabled
+                            className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm p-0 whitespace-nowrap"
+                          >
+                            View Portfolio
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                          {profile?.projects?.length ? (
+                            profile.projects.map(
+                              (project: any, pIndex: number) => {
+                                const safeProjectUrl = getSafeProjectUrl(
+                                  project.url ?? project.projectUrl,
+                                );
+                                return (
+                                  <Card
+                                    id={`CandidateProfile-${candidateId}-project-${pIndex}`}
+                                    className="border dark:border-slate-700 dark:bg-slate-800 w-full"
+                                    key={`${project.name || project.title}-${pIndex}`}
+                                  >
+                                    <CardContent className="p-4 sm:p-6">
+                                      <div className="w-full h-24 sm:h-32 bg-gray-100 dark:bg-slate-700/50 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                                        <div className="w-10 h-14 sm:w-12 sm:h-16 border-2 border-gray-300 dark:border-slate-500 rounded flex items-center justify-center text-2xl dark:text-slate-300">
+                                          {safeProjectUrl ? "🌐" : "📂"}
                                         </div>
-                                        <div className="flex items-center justify-between">
-                                          <h4 className="font-bold mb-1 sm:mb-2 text-sm sm:text-base dark:text-slate-100 break-words">
-                                            {project.name || project.title}
-                                          </h4>
-                                          {safeProjectUrl && (
-                                            <a
-                                              href={safeProjectUrl}
-                                              rel="noopener noreferrer"
-                                              target="_blank"
-                                              className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words mb-1 font-semibold hover:underline"
-                                            >
-                                              Link
-                                            </a>
-                                          )}
-                                        </div>
-                                        <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
-                                          {Array.isArray(
-                                            project.technologies ??
-                                              project.techStack,
-                                          )
-                                            ? (
-                                                project.technologies ??
-                                                project.techStack
-                                              ).join(", ")
-                                            : (project.technologies ??
-                                              project.techStack)}
-                                        </p>
-                                        <p className="mt-3 text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
-                                          {project.description}
-                                        </p>
-                                      </CardContent>
-                                    </Card>
-                                  );
-                                },
-                              )
-                            ) : (
-                              <p className="text-sm text-gray-500 dark:text-slate-400 col-span-2">
-                                No projects yet
-                              </p>
-                            )}
-                          </div>
-                        </CardContent>
+                                      </div>
+                                      <div className="flex items-center justify-between">
+                                        <h4 className="font-bold mb-1 sm:mb-2 text-sm sm:text-base dark:text-slate-100 break-words">
+                                          {project.name || project.title}
+                                        </h4>
+                                        {safeProjectUrl && (
+                                          <a
+                                            href={safeProjectUrl}
+                                            rel="noopener noreferrer"
+                                            target="_blank"
+                                            className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words mb-1 font-semibold hover:underline"
+                                          >
+                                            Link
+                                          </a>
+                                        )}
+                                      </div>
+                                      <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
+                                        {Array.isArray(
+                                          project.technologies ??
+                                            project.techStack,
+                                        )
+                                          ? (
+                                              project.technologies ??
+                                              project.techStack
+                                            ).join(", ")
+                                          : (project.technologies ??
+                                            project.techStack)}
+                                      </p>
+                                      <p className="mt-3 text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
+                                        {project.description}
+                                      </p>
+                                    </CardContent>
+                                  </Card>
+                                );
+                              },
+                            )
+                          ) : (
+                            <p className="text-sm text-gray-500 dark:text-slate-400 col-span-2">
+                              No projects yet
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
                     </Card>
                   </TabsContent>
 
