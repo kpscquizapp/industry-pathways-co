@@ -82,6 +82,125 @@ const formatCurrency = (amount: number, currency = "USD") => {
   }).format(amount);
 };
 
+const normalizeBenchCandidate = (c: any) => {
+  const fullName = c.name || c.resourceName || "";
+  const nameParts = fullName.trim().split(/\s+/);
+  const firstName = nameParts[0] || "";
+  const lastName = nameParts.slice(1).join(" ");
+
+  // Resolve skills from either shape (array or comma-string)
+  const rawSkillsArr = Array.isArray(c.skills)
+    ? c.skills
+    : Array.isArray(c.technicalSkills)
+      ? c.technicalSkills
+      : null;
+  const skillsArr: string[] =
+    rawSkillsArr ??
+    (typeof c.skills === "string" && c.skills
+      ? c.skills
+          .split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+      : typeof c.technicalSkills === "string" && c.technicalSkills
+        ? c.technicalSkills
+            .split(",")
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : []);
+
+  const hourlyMin =
+    c.hourlyRate != null && typeof c.hourlyRate === "object"
+      ? c.hourlyRate.min
+      : typeof c.hourlyRate === "number"
+        ? c.hourlyRate
+        : (c.expectedSalary?.min ?? null);
+  const hourlyMax =
+    c.hourlyRate != null && typeof c.hourlyRate === "object"
+      ? c.hourlyRate.max
+      : typeof c.hourlyRate === "number"
+        ? c.hourlyRate
+        : (c.expectedSalary?.max ?? null);
+
+  const yearsExp =
+    c.experienceYears != null
+      ? Number(c.experienceYears)
+      : c.experience != null
+        ? Number(c.experience)
+        : null;
+
+  const certs = Array.isArray(c.certifications)
+    ? c.certifications.map((cert: any) =>
+        typeof cert === "string" ? { name: cert } : cert,
+      )
+    : [];
+
+  const deploymentPref: string[] = Array.isArray(c.deploymentPreference)
+    ? c.deploymentPreference
+    : typeof c.deploymentPreference === "string" && c.deploymentPreference
+      ? c.deploymentPreference
+          .split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+      : [];
+
+  return {
+    id: c.id,
+    userId: c.userId ?? null,
+    firstName,
+    lastName,
+    email: c.email ?? null,
+    mobileNumber: c.mobileNumber ?? null,
+    primaryJobRole: c.role ?? c.currentRole ?? null,
+    bio: c.about ?? c.professionalSummary ?? null,
+    headline: c.role ?? c.currentRole ?? null,
+    candidateType: "bench",
+    resourceType: "bench",
+    location: c.location ?? null,
+    city: c.city ?? null,
+    country: c.country ?? null,
+    hourlyRateMin: hourlyMin,
+    hourlyRateMax: hourlyMax,
+    expectedSalaryMin: null,
+    expectedSalaryMax: null,
+    yearsExperience: yearsExp,
+    experience: yearsExp,
+    primarySkills: skillsArr.map((name: string) => ({ name })),
+    secondarySkills: [],
+    preferredWorkType: deploymentPref,
+    preferredJobLocations: [],
+    certifications: certs,
+    workExperiences: Array.isArray(c.workExperience) ? c.workExperience : [],
+    workExperience: Array.isArray(c.workExperience) ? c.workExperience : [],
+    projects: Array.isArray(c.projects) ? c.projects : [],
+    resumes: Array.isArray(c.resumes) ? c.resumes : [],
+    availability: c.availability ?? null,
+    availableIn: c.availableIn ?? null,
+    englishProficiency: c.englishLevel ?? c.englishProficiency ?? null,
+    enableAiMatching: null,
+    createdAt: c.createdAt ?? null,
+    updatedAt: c.updatedAt ?? null,
+    isActive: c.isActive ?? true,
+    employerProfileId: c.employerProfileId,
+    resourceName: c.resourceName || fullName,
+    currentRole: c.currentRole || c.role,
+    designation: c.designation,
+    totalExperience: c.totalExperience,
+    employeeId: c.employeeId,
+    refCode: c.refCode,
+    technicalSkills: skillsArr,
+    professionalSummary: c.professionalSummary ?? c.about ?? null,
+    currency: c.currency,
+    availableFrom: c.availableFrom,
+    minimumContractDuration: c.minimumContractDuration,
+    deploymentPreference: deploymentPref,
+    category: c.category,
+    requireNonSolicitation: c.requireNonSolicitation,
+    availableForDeployment: c.availableForDeployment,
+    resumePath: c.resumePath,
+    resumeOriginalName: c.resumeOriginalName,
+  };
+};
+
 const CandidateProfileView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -92,112 +211,13 @@ const CandidateProfileView = () => {
 
   const isBench = searchParams.get("source") === "bench";
 
-  const benchProfile = useMemo(() => {
-    if (!isBench || !state?.benchCandidate) return null;
-    const c = state.benchCandidate;
-    // Support both mapped AI-match shape (name/role) and raw bench API shape (resourceName/currentRole)
-    const fullName = c.name || c.resourceName || "";
-    const nameParts = fullName.trim().split(/\s+/);
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.slice(1).join(" ");
-
-    const skillsArr: string[] = Array.isArray(c.skills)
-      ? c.skills
-      : Array.isArray(c.technicalSkills)
-        ? c.technicalSkills
-        : typeof c.skills === "string"
-          ? c.skills
-              .split(",")
-              .map((s: string) => s.trim())
-              .filter(Boolean)
-          : [];
-
-    const hourlyMin =
-      c.hourlyRate != null && typeof c.hourlyRate === "object"
-        ? c.hourlyRate.min
-        : typeof c.hourlyRate === "number"
-          ? c.hourlyRate
-          : (c.expectedSalary?.min ?? null);
-    const hourlyMax =
-      c.hourlyRate != null && typeof c.hourlyRate === "object"
-        ? c.hourlyRate.max
-        : typeof c.hourlyRate === "number"
-          ? c.hourlyRate
-          : (c.expectedSalary?.max ?? null);
-
-    const yearsExp =
-      c.experienceYears != null
-        ? c.experienceYears
-        : typeof c.experience === "number"
-          ? c.experience
-          : null;
-
-    const certs = Array.isArray(c.certifications)
-      ? c.certifications.map((cert: any) =>
-          typeof cert === "string" ? { name: cert } : cert,
-        )
-      : [];
-
-    return {
-      id: c.id,
-      userId: null,
-      firstName,
-      lastName,
-      email: c.email ?? null,
-      mobileNumber: null,
-      primaryJobRole: c.role ?? c.currentRole ?? null,
-      bio: c.about ?? c.professionalSummary ?? null,
-      headline: c.role ?? c.currentRole ?? null,
-      candidateType: "bench",
-      resourceType: "bench",
-      location: c.location ?? null,
-      city: null,
-      country: null,
-      hourlyRateMin: hourlyMin,
-      hourlyRateMax: hourlyMax,
-      expectedSalaryMin: null,
-      expectedSalaryMax: null,
-      yearsExperience: yearsExp,
-      experience: yearsExp,
-      primarySkills: skillsArr.map((name: string) => ({ name })),
-      secondarySkills: [],
-      preferredWorkType: [],
-      preferredJobLocations: [],
-      certifications: certs,
-      workExperiences: Array.isArray(c.workExperience) ? c.workExperience : [],
-      workExperience: Array.isArray(c.workExperience) ? c.workExperience : [],
-      projects: Array.isArray(c.projects) ? c.projects : [],
-      resumes: [],
-      availability: null,
-      availableIn: null,
-      englishProficiency: c.englishLevel ?? null,
-      enableAiMatching: null,
-      createdAt: null,
-      updatedAt: null,
-      // Bench-specific fields — support both AI-match shape and raw bench API shape
-      isActive: c.isActive ?? true,
-      employerProfileId: c.employerProfileId,
-      resourceName: c.resourceName || fullName,
-      currentRole: c.currentRole || c.role,
-      designation: c.designation,
-      totalExperience: c.totalExperience,
-      employeeId: c.employeeId,
-      refCode: c.refCode,
-      technicalSkills: Array.isArray(c.technicalSkills)
-        ? c.technicalSkills
-        : skillsArr,
-      professionalSummary: c.professionalSummary ?? c.about ?? null,
-      currency: c.currency,
-      availableFrom: c.availableFrom,
-      minimumContractDuration: c.minimumContractDuration,
-      deploymentPreference: c.deploymentPreference,
-      category: c.category,
-      requireNonSolicitation: c.requireNonSolicitation,
-      availableForDeployment: c.availableForDeployment,
-      resumePath: c.resumePath,
-      resumeOriginalName: c.resumeOriginalName,
-    };
-  }, [isBench, state?.benchCandidate]);
+  const benchProfile = useMemo(
+    () =>
+      isBench && state?.benchCandidate
+        ? normalizeBenchCandidate(state.benchCandidate)
+        : null,
+    [isBench, state?.benchCandidate],
+  );
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
@@ -219,7 +239,13 @@ const CandidateProfileView = () => {
     isError: isBenchError,
   } = useGetBenchResourceByIdQuery(isBench && id ? id : skipToken);
 
-  const profile = benchResponse?.data ?? benchProfile ?? response?.data;
+  const normalizedBenchData = useMemo(
+    () =>
+      benchResponse?.data ? normalizeBenchCandidate(benchResponse.data) : null,
+    [benchResponse],
+  );
+
+  const profile = normalizedBenchData ?? benchProfile ?? response?.data;
 
   const hasAvatar = !!profile?.userId;
 
@@ -354,7 +380,7 @@ const CandidateProfileView = () => {
 
   return (
     <div className="min-h-screen flex flex-col dark:bg-slate-900">
-      {loading ? (
+      {loading && !profile ? (
         <BarLoader />
       ) : hasError ? (
         <div className="w-full h-screen flex items-center justify-center">
@@ -367,6 +393,13 @@ const CandidateProfileView = () => {
       ) : (
         <div className="w-full dark:bg-slate-900">
           <div className="max-w-7xl mx-auto">
+            {/* Inline refresh indicator while bench API re-fetches */}
+            {isBench && isLoadingBenchProfile && (
+              <div className="flex items-center gap-2 mb-3 text-xs text-gray-500 dark:text-slate-400">
+                <LoaderCircle className="w-3 h-3 animate-spin" />
+                Refreshing profile…
+              </div>
+            )}
             {/* Back Button */}
             <div className="mb-4">
               <Button
@@ -906,7 +939,9 @@ const CandidateProfileView = () => {
                                 </p>
                                 <p className="text-sm font-medium dark:text-slate-200">
                                   {(() => {
-                                    const d = new Date((profile as any).availableFrom);
+                                    const d = new Date(
+                                      (profile as any).availableFrom,
+                                    );
                                     return Number.isNaN(d.getTime())
                                       ? "—"
                                       : d.toLocaleDateString();
