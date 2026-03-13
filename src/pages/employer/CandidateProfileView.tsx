@@ -905,9 +905,12 @@ const CandidateProfileView = () => {
                                   Available From
                                 </p>
                                 <p className="text-sm font-medium dark:text-slate-200">
-                                  {new Date(
-                                    (profile as any).availableFrom,
-                                  ).toLocaleDateString()}
+                                  {(() => {
+                                    const d = new Date((profile as any).availableFrom);
+                                    return Number.isNaN(d.getTime())
+                                      ? "—"
+                                      : d.toLocaleDateString();
+                                  })()}
                                 </p>
                               </div>
                             )}
