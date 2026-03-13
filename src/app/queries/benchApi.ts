@@ -57,6 +57,18 @@ export const benchApi = createApi({
       }),
       invalidatesTags: ["BenchResources"],
     }),
+    viewBenchResume: builder.query<string, number | string>({
+      query: (id) => ({
+        method: "GET",
+        url: `employers/bench-resources/${id}/resume`,
+        responseHandler: async (response: Response) => {
+          if (!response.ok) throw new Error("Failed to fetch resume");
+          return response.blob();
+        },
+      }),
+      transformResponse: (blob: Blob) => URL.createObjectURL(blob),
+      keepUnusedDataFor: 0,
+    }),
     downloadBenchResume: builder.mutation<void, number>({
       queryFn: async (id, _queryApi, _extraOptions, baseQuery) => {
         const result = await baseQuery({
@@ -91,4 +103,5 @@ export const {
   useUpdateBenchResourceMutation,
   useDeleteBenchResourceMutation,
   useGetBenchResourceByIdQuery,
+  useLazyViewBenchResumeQuery,
 } = benchApi;

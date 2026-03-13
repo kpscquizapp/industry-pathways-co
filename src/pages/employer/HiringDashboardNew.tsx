@@ -570,7 +570,16 @@ const HiringDashboardNew = () => {
                         variant="outline"
                         className="w-full rounded-lg"
                         onClick={() => {
-                          navigate(`/hire-talent/candidate/${candidate.id}`);
+                          if (candidate.source === "bench") {
+                            navigate(
+                              `/hire-talent/candidate/${candidate.id}?source=bench`,
+                              { state: { benchCandidate: candidate } },
+                            );
+                          } else {
+                            navigate(
+                              `/hire-talent/candidate/${candidate.id}`,
+                            );
+                          }
                         }}
                       >
                         View Profile

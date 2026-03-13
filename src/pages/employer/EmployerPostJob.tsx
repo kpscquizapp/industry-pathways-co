@@ -1484,7 +1484,7 @@ const EmployerPostJob = () => {
               {!isEditing && (
                 <Button
                   onClick={handlePostAndShowProfiles}
-                  className="rounded-xl bg-gradient-to-r from-primary to-pink-500 hover:opacity-90 shadow-md transition-all active:scale-[0.98]"
+                  className="rounded-xl hover:bg-primary/90 shadow-md transition-all active:scale-[0.98]"
                   disabled={createJobLoading}
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
