@@ -223,10 +223,13 @@ const CandidateProfileView = () => {
 
   const defaultResume = useMemo(() => {
     if (isBench && (profile as any)?.resumePath) {
+      const originalName = (profile as any).resumeOriginalName || "Resume";
       return {
         id: (profile as any).id,
-        originalName: (profile as any).resumeOriginalName || "Resume.pdf",
-        mimeType: "application/pdf",
+        originalName,
+        mimeType: originalName.toLowerCase().endsWith(".pdf")
+          ? "application/pdf"
+          : undefined,
         fileSize: undefined,
         uploadedAt: undefined,
         isDefault: true,
@@ -910,8 +913,7 @@ const CandidateProfileView = () => {
                     )}
 
                     {/* Work Experience */}
-                    {!isBench && (
-                      <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
+                    <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
                         <CardContent className="p-4 sm:p-6">
                           <h3 className="text-base sm:text-lg font-bold mb-4 dark:text-slate-100">
                             Work Experience
@@ -984,11 +986,9 @@ const CandidateProfileView = () => {
                           )}
                         </CardContent>
                       </Card>
-                    )}
 
                     {/* Featured Projects */}
-                    {!isBench && (
-                      <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
+                    <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
                         <CardContent className="p-4 sm:p-6">
                           <div className="flex items-center justify-between mb-4 gap-2">
                             <h3 className="text-base sm:text-lg font-bold dark:text-slate-100">
@@ -1063,8 +1063,7 @@ const CandidateProfileView = () => {
                             )}
                           </div>
                         </CardContent>
-                      </Card>
-                    )}
+                    </Card>
                   </TabsContent>
 
                   {/* Resume Tab */}
