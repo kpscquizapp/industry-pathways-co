@@ -91,11 +91,13 @@ const normalizeBenchCandidate = (c: any) => {
   const lastName = nameParts.slice(1).join(" ");
 
   // Resolve skills from either shape (array or comma-string)
-  const rawSkillsArr = Array.isArray(c.skills)
-    ? c.skills
-    : Array.isArray(c.technicalSkills)
-      ? c.technicalSkills
-      : null;
+  // Treat empty arrays as absent so comma-string values can be used as fallback
+  const rawSkillsArr =
+    Array.isArray(c.skills) && c.skills.length > 0
+      ? c.skills
+      : Array.isArray(c.technicalSkills) && c.technicalSkills.length > 0
+        ? c.technicalSkills
+        : null;
   const skillsArr: string[] =
     rawSkillsArr ??
     (typeof c.skills === "string" && c.skills
@@ -606,7 +608,9 @@ const CandidateProfileView = () => {
                             if (exp == null) return "None";
                             return typeof exp === "number"
                               ? `${exp} Years`
-                              : String(exp);
+                              : String(exp).toLowerCase().includes("year")
+                                ? String(exp)
+                                : `${exp} Years`;
                           })()}
                         </span>
                       </div>
@@ -813,16 +817,14 @@ const CandidateProfileView = () => {
                               {profile?.email || "—"}
                             </p>
                           </div>
-                          {!isBench && (
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">
-                                Mobile
-                              </p>
-                              <p className="text-sm font-medium dark:text-slate-200">
-                                {profile?.mobileNumber || "—"}
-                              </p>
-                            </div>
-                          )}
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">
+                              Mobile
+                            </p>
+                            <p className="text-sm font-medium dark:text-slate-200">
+                              {profile?.mobileNumber || "—"}
+                            </p>
+                          </div>
                           {!isBench && (
                             <div>
                               <p className="text-xs text-muted-foreground mb-1">
