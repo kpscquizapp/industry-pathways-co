@@ -75,6 +75,7 @@ const formatFileSize = (bytes: number) => {
 };
 
 const formatCurrency = (amount: number, currency = "USD") => {
+  if (!Number.isFinite(amount)) return "—";
   const upper = currency?.toUpperCase?.() ?? "";
   const safeCurrency = /^[A-Z]{3}$/.test(upper) ? upper : "USD";
   return new Intl.NumberFormat(undefined, {
@@ -984,7 +985,7 @@ const CandidateProfileView = () => {
                                 </p>
                               </div>
                             )}
-                            {benchData.minimumContractDuration && (
+                            {benchData.minimumContractDuration != null && (
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Min Contract Duration
