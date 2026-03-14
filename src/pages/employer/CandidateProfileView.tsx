@@ -36,6 +36,7 @@ import {
 import {
   useGetCandidateByIdQuery,
   useLazyViewCandidateResumeQuery,
+  type EmployerCandidateProfileDto,
 } from "@/app/queries/employerApi";
 import { useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
 import {
@@ -73,7 +74,8 @@ const formatFileSize = (bytes: number) => {
 };
 
 const formatCurrency = (amount: number, currency = "USD") => {
-  const safeCurrency = /^[A-Z]{3}$/.test(currency) ? currency : "USD";
+  const upper = currency?.toUpperCase?.() ?? "";
+  const safeCurrency = /^[A-Z]{3}$/.test(upper) ? upper : "USD";
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: safeCurrency,
@@ -166,8 +168,8 @@ const normalizeBenchCandidate = (c: any) => {
     primaryJobRole: c.role ?? c.currentRole ?? null,
     bio: c.about ?? c.professionalSummary ?? null,
     headline: c.role ?? c.currentRole ?? null,
-    candidateType: "bench",
-    resourceType: "bench",
+    candidateType: "bench" as const,
+    resourceType: "bench" as const,
     location: c.location ?? null,
     city: c.city ?? null,
     country: c.country ?? null,
@@ -214,6 +216,13 @@ const normalizeBenchCandidate = (c: any) => {
   };
 };
 
+type BenchProfile = ReturnType<typeof normalizeBenchCandidate>;
+type CandidateProfile = EmployerCandidateProfileDto;
+type ProfileData = BenchProfile | CandidateProfile;
+
+const isBenchProfile = (p: ProfileData): p is BenchProfile =>
+  p.candidateType === "bench";
+
 const CandidateProfileView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -258,7 +267,8 @@ const CandidateProfileView = () => {
     [benchResponse],
   );
 
-  const profile = normalizedBenchData ?? benchProfile ?? response?.data;
+  const profile: ProfileData | undefined =
+    normalizedBenchData ?? benchProfile ?? response?.data;
 
   const hasAvatar = !!profile?.userId;
 
@@ -271,10 +281,10 @@ const CandidateProfileView = () => {
   const [viewBenchResume] = useLazyViewBenchResumeQuery();
 
   const defaultResume = useMemo(() => {
-    if (isBench && (profile as any)?.resumePath) {
-      const originalName = (profile as any).resumeOriginalName || "Resume";
+    if (isBench && profile && isBenchProfile(profile) && profile.resumePath) {
+      const originalName = profile.resumeOriginalName || "Resume";
       return {
-        id: (profile as any).id,
+        id: profile.id as number,
         originalName,
         mimeType: originalName.toLowerCase().endsWith(".pdf")
           ? "application/pdf"
@@ -390,6 +400,7 @@ const CandidateProfileView = () => {
 
   const loading = isBench ? isLoadingBenchProfile : isLoadingProfile;
   const hasError = isBench ? isBenchError && !profile : isError;
+  const benchData = profile && isBenchProfile(profile) ? profile : null;
 
   return (
     <div className="min-h-screen flex flex-col dark:bg-slate-900">
@@ -455,12 +466,12 @@ const CandidateProfileView = () => {
                     <h2 className="text-base sm:text-lg lg:text-xl font-bold mb-1 dark:text-slate-100 break-words">
                       {profile?.firstName
                         ? `${profile.firstName} ${profile.lastName ?? ""}`.trim()
-                        : (profile as any)?.resourceName || "—"}
+                        : benchData?.resourceName || "—"}
                     </h2>
                     <p className="text-gray-600 dark:text-slate-400 text-xs sm:text-sm mb-1 font-semibold break-words">
                       {profile?.headline ??
                         profile?.primaryJobRole ??
-                        (profile as any)?.currentRole ??
+                        benchData?.currentRole ??
                         "—"}
                     </p>
                     {profile?.email && (
@@ -505,8 +516,7 @@ const CandidateProfileView = () => {
                       {(() => {
                         const rawMin = profile?.hourlyRateMin;
                         const rawMax = profile?.hourlyRateMax;
-                        const rawSingle = (profile as any)?.hourlyRate;
-                        const currency = (profile as any)?.currency ?? "USD";
+                        const currency = benchData?.currency ?? "USD";
                         const rateMin =
                           rawMin != null && Number.isFinite(Number(rawMin))
                             ? Number(rawMin)
@@ -514,11 +524,6 @@ const CandidateProfileView = () => {
                         const rateMax =
                           rawMax != null && Number.isFinite(Number(rawMax))
                             ? Number(rawMax)
-                            : null;
-                        const rateSingle =
-                          rawSingle != null &&
-                          Number.isFinite(Number(rawSingle))
-                            ? Number(rawSingle)
                             : null;
                         // Show a range only when both ends are finite and distinct
                         if (
@@ -539,8 +544,8 @@ const CandidateProfileView = () => {
                             </div>
                           );
                         }
-                        // Single value: prefer normalised min/max, fall back to raw hourlyRate
-                        const single = rateMin ?? rateMax ?? rateSingle;
+                        // Single value: prefer normalised min/max
+                        const single = rateMin ?? rateMax;
                         if (single != null) {
                           return (
                             <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
@@ -597,7 +602,7 @@ const CandidateProfileView = () => {
                             const exp =
                               profile?.yearsExperience ??
                               profile?.experience ??
-                              (profile as any)?.totalExperience;
+                              benchData?.totalExperience;
                             if (exp == null) return "None";
                             return typeof exp === "number"
                               ? `${exp} Years`
@@ -634,11 +639,9 @@ const CandidateProfileView = () => {
                       {(() => {
                         const rawSkills: any[] = profile?.primarySkills?.length
                           ? profile.primarySkills
-                          : Array.isArray((profile as any)?.technicalSkills)
-                            ? (profile as any).technicalSkills.map(
-                                (s: string) => ({ name: s }),
-                              )
-                            : [];
+                          : (benchData?.technicalSkills?.map((s: string) => ({
+                              name: s,
+                            })) ?? []);
                         return rawSkills.length ? (
                           rawSkills.map((skill: any, index: number) => {
                             const name =
@@ -788,7 +791,7 @@ const CandidateProfileView = () => {
                           style={{ lineHeight: "1.8" }}
                         >
                           {isBench
-                            ? (profile as any)?.professionalSummary ||
+                            ? benchData?.professionalSummary ||
                               "No summary provided"
                             : (profile?.bio ?? "No bio")}
                         </p>
@@ -855,13 +858,9 @@ const CandidateProfileView = () => {
                               Work mode
                             </p>
                             <p className="text-sm font-medium dark:text-slate-200 capitalize">
-                              {Array.isArray(
-                                (profile as any)?.deploymentPreference,
-                              ) &&
-                              (profile as any).deploymentPreference.length > 0
-                                ? (profile as any).deploymentPreference.join(
-                                    ", ",
-                                  )
+                              {benchData?.deploymentPreference &&
+                              benchData.deploymentPreference.length > 0
+                                ? benchData.deploymentPreference.join(", ")
                                 : Array.isArray(profile?.preferredWorkType) &&
                                     profile.preferredWorkType.length > 0
                                   ? profile.preferredWorkType
@@ -891,10 +890,10 @@ const CandidateProfileView = () => {
                             <p className="text-sm font-medium dark:text-slate-200 capitalize">
                               {profile?.availableIn ||
                                 profile?.availability ||
-                                ((profile as any)?.availableFrom
+                                (benchData?.availableFrom
                                   ? (() => {
                                       const d = new Date(
-                                        (profile as any).availableFrom,
+                                        benchData.availableFrom,
                                       );
                                       return Number.isNaN(d.getTime())
                                         ? "—"
@@ -908,73 +907,71 @@ const CandidateProfileView = () => {
                     </Card>
 
                     {/* Resource Details - Bench only */}
-                    {isBench && profile && (
+                    {isBench && benchData && (
                       <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
                         <CardContent className="p-4 sm:p-6">
                           <h3 className="text-base sm:text-lg font-bold mb-4 dark:text-slate-100">
                             Resource Details
                           </h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {(profile as any).employeeId && (
+                            {benchData.employeeId && (
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Employee ID
                                 </p>
                                 <p className="text-sm font-medium dark:text-slate-200">
-                                  {(profile as any).employeeId}
+                                  {benchData.employeeId}
                                 </p>
                               </div>
                             )}
-                            {(profile as any).refCode && (
+                            {benchData.refCode && (
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Ref Code
                                 </p>
                                 <p className="text-sm font-medium dark:text-slate-200">
-                                  {(profile as any).refCode}
+                                  {benchData.refCode}
                                 </p>
                               </div>
                             )}
-                            {(profile as any).designation && (
+                            {benchData.designation && (
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Designation
                                 </p>
                                 <p className="text-sm font-medium dark:text-slate-200">
-                                  {(profile as any).designation}
+                                  {benchData.designation}
                                 </p>
                               </div>
                             )}
-                            {(profile as any).category && (
+                            {benchData.category && (
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Category
                                 </p>
                                 <p className="text-sm font-medium dark:text-slate-200 capitalize">
-                                  {(profile as any).category}
+                                  {benchData.category}
                                 </p>
                               </div>
                             )}
-                            {(profile as any).currency && (
+                            {benchData.currency && (
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Currency
                                 </p>
                                 <p className="text-sm font-medium dark:text-slate-200">
-                                  {(profile as any).currency}
+                                  {benchData.currency}
                                 </p>
                               </div>
                             )}
-                            {(profile as any).availableFrom && (
+                            {benchData.availableFrom && (
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Available From
                                 </p>
                                 <p className="text-sm font-medium dark:text-slate-200">
                                   {(() => {
-                                    const d = new Date(
-                                      (profile as any).availableFrom,
-                                    );
+                                    const d = new Date(benchData.availableFrom);
                                     return Number.isNaN(d.getTime())
                                       ? "—"
                                       : d.toLocaleDateString();
@@ -982,14 +979,13 @@ const CandidateProfileView = () => {
                                 </p>
                               </div>
                             )}
-                            {(profile as any).minimumContractDuration && (
+                            {benchData.minimumContractDuration && (
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Min Contract Duration
                                 </p>
                                 <p className="text-sm font-medium dark:text-slate-200">
-                                  {(profile as any).minimumContractDuration}{" "}
-                                  months
+                                  {benchData.minimumContractDuration} months
                                 </p>
                               </div>
                             )}
