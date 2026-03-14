@@ -25,6 +25,7 @@ import {
   X,
   LoaderCircle,
   Star,
+  AlertTriangle,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -75,7 +76,8 @@ const formatFileSize = (bytes: number) => {
 };
 
 const formatCurrency = (amount: number, currency = "USD") => {
-  if (!Number.isFinite(amount)) return "—";
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return "—";
   const upper = currency?.toUpperCase?.() ?? "";
   const safeCurrency = /^[A-Z]{3}$/.test(upper) ? upper : "USD";
   return new Intl.NumberFormat(undefined, {
@@ -83,7 +85,7 @@ const formatCurrency = (amount: number, currency = "USD") => {
     currency: safeCurrency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(n);
 };
 
 const normalizeBenchCandidate = (c: BenchResourceRawDto) => {
@@ -179,8 +181,16 @@ const normalizeBenchCandidate = (c: BenchResourceRawDto) => {
     country: c.country ?? null,
     hourlyRateMin: hourlyMin,
     hourlyRateMax: hourlyMax,
-    expectedSalaryMin: null,
-    expectedSalaryMax: null,
+    expectedSalaryMin:
+      c.expectedSalaryMin != null &&
+      Number.isFinite(Number(c.expectedSalaryMin))
+        ? Number(c.expectedSalaryMin)
+        : null,
+    expectedSalaryMax:
+      c.expectedSalaryMax != null &&
+      Number.isFinite(Number(c.expectedSalaryMax))
+        ? Number(c.expectedSalaryMax)
+        : null,
     yearsExperience: yearsExp,
     experience: yearsExp,
     primarySkills: skillsArr.map((name: string) => ({ name })),
@@ -430,6 +440,13 @@ const CandidateProfileView = () => {
                 Refreshing profile…
               </div>
             )}
+            {/* Stale-data warning: background refresh failed but cached data is available */}
+            {isBench && isBenchError && benchData && !isLoadingBenchProfile && (
+              <div className="flex items-center gap-2 mb-3 text-xs text-amber-600 dark:text-amber-400">
+                <AlertTriangle className="w-3 h-3 shrink-0" />
+                Could not refresh profile — showing cached data.
+              </div>
+            )}
             {/* Back Button */}
             <div className="mb-4">
               <Button
@@ -577,10 +594,10 @@ const CandidateProfileView = () => {
                           <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
                             {profile.expectedSalaryMin != null &&
                             profile.expectedSalaryMax != null
-                              ? `$${profile.expectedSalaryMin} - $${profile.expectedSalaryMax}`
+                              ? `${formatCurrency(profile.expectedSalaryMin)} - ${formatCurrency(profile.expectedSalaryMax)}`
                               : profile.expectedSalaryMin != null
-                                ? `From $${profile.expectedSalaryMin}`
-                                : `Up to $${profile.expectedSalaryMax}`}
+                                ? `From ${formatCurrency(profile.expectedSalaryMin)}`
+                                : `Up to ${formatCurrency(profile.expectedSalaryMax)}`}
                           </span>
                         </div>
                       )}

@@ -21,7 +21,11 @@ export interface BenchResourceRawDto {
   experience?: number | string;
   totalExperience?: string;
   hourlyRate?: number | { min: number; max: number };
+  hourlyRateMin?: number | string;
+  hourlyRateMax?: number | string;
   expectedSalary?: { min?: number; max?: number };
+  expectedSalaryMin?: number | string;
+  expectedSalaryMax?: number | string;
   currency?: string;
   certifications?: Array<
     | string
