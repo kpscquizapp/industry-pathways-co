@@ -108,23 +108,36 @@ const normalizeBenchCandidate = (c: any) => {
             .filter(Boolean)
         : []);
 
-  const hourlyMin =
+  const rawHourlyMin =
     c.hourlyRate != null && typeof c.hourlyRate === "object"
       ? c.hourlyRate.min
       : typeof c.hourlyRate === "number"
         ? c.hourlyRate
         : (c.expectedSalary?.min ?? null);
-  const hourlyMax =
+  const rawHourlyMax =
     c.hourlyRate != null && typeof c.hourlyRate === "object"
       ? c.hourlyRate.max
       : typeof c.hourlyRate === "number"
         ? c.hourlyRate
         : (c.expectedSalary?.max ?? null);
+  const hourlyMin =
+    rawHourlyMin != null && Number.isFinite(Number(rawHourlyMin))
+      ? Number(rawHourlyMin)
+      : null;
+  const _rawHourlyMax =
+    rawHourlyMax != null && Number.isFinite(Number(rawHourlyMax))
+      ? Number(rawHourlyMax)
+      : null;
+  // Collapse equal min/max into a single value to avoid "$X - $X/hr"
+  const hourlyMax =
+    _rawHourlyMax !== null && hourlyMin !== null && _rawHourlyMax === hourlyMin
+      ? null
+      : _rawHourlyMax;
 
   const yearsExp =
-    c.experienceYears != null
+    c.experienceYears != null && Number.isFinite(Number(c.experienceYears))
       ? Number(c.experienceYears)
-      : c.experience != null
+      : c.experience != null && Number.isFinite(Number(c.experience))
         ? Number(c.experience)
         : null;
 
@@ -490,11 +503,29 @@ const CandidateProfileView = () => {
                     <div className="border-t-2 border-t-gray-200 dark:border-t-slate-700 mt-6 sm:mt-8" />
                     <div className="p-0 my-6 sm:my-8 space-y-3">
                       {(() => {
-                        const rateMin = profile?.hourlyRateMin;
-                        const rateMax = profile?.hourlyRateMax;
-                        const rateSingle = (profile as any)?.hourlyRate;
+                        const rawMin = profile?.hourlyRateMin;
+                        const rawMax = profile?.hourlyRateMax;
+                        const rawSingle = (profile as any)?.hourlyRate;
                         const currency = (profile as any)?.currency ?? "USD";
-                        if (rateMin != null && rateMax != null) {
+                        const rateMin =
+                          rawMin != null && Number.isFinite(Number(rawMin))
+                            ? Number(rawMin)
+                            : null;
+                        const rateMax =
+                          rawMax != null && Number.isFinite(Number(rawMax))
+                            ? Number(rawMax)
+                            : null;
+                        const rateSingle =
+                          rawSingle != null &&
+                          Number.isFinite(Number(rawSingle))
+                            ? Number(rawSingle)
+                            : null;
+                        // Show a range only when both ends are finite and distinct
+                        if (
+                          rateMin != null &&
+                          rateMax != null &&
+                          rateMin !== rateMax
+                        ) {
                           return (
                             <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
                               <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
@@ -508,7 +539,9 @@ const CandidateProfileView = () => {
                             </div>
                           );
                         }
-                        if (rateSingle != null) {
+                        // Single value: prefer normalised min/max, fall back to raw hourlyRate
+                        const single = rateMin ?? rateMax ?? rateSingle;
+                        if (single != null) {
                           return (
                             <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
                               <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
@@ -516,7 +549,7 @@ const CandidateProfileView = () => {
                                 <span className="truncate">Hourly Rate</span>
                               </span>
                               <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
-                                {formatCurrency(rateSingle, currency)}/hr
+                                {formatCurrency(single, currency)}/hr
                               </span>
                             </div>
                           );
