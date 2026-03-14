@@ -2,6 +2,90 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { config } from "../../services/service";
 import { getAuthHeaders } from "../../lib/helpers";
 
+/** Raw shape returned by GET /employers/bench-resources/:id */
+export interface BenchResourceRawDto {
+  id: number;
+  employerProfileId?: number;
+  resourceName?: string;
+  name?: string;
+  currentRole?: string;
+  role?: string;
+  about?: string;
+  professionalSummary?: string;
+  location?: string;
+  city?: string;
+  country?: string;
+  skills?: string | string[];
+  technicalSkills?: string | string[];
+  experienceYears?: number | string;
+  experience?: number | string;
+  totalExperience?: string;
+  hourlyRate?: number | { min: number; max: number };
+  expectedSalary?: { min?: number; max?: number };
+  currency?: string;
+  certifications?: Array<
+    | string
+    | {
+        name?: string;
+        title?: string;
+        issuer?: string;
+        year?: string;
+        issueDate?: string;
+      }
+  >;
+  workExperience?: Array<{
+    role?: string;
+    companyName?: string;
+    startDate?: string;
+    endDate?: string;
+    location?: string;
+    description?: string | string[];
+  }>;
+  projects?: Array<{
+    name?: string;
+    title?: string;
+    description?: string;
+    technologies?: string[];
+    techStack?: string[];
+    url?: string;
+    projectUrl?: string;
+  }>;
+  resumes?: Array<{
+    id: number;
+    originalName: string;
+    mimeType?: string;
+    fileSize?: number;
+    uploadedAt?: string;
+    isDefault?: boolean;
+  }>;
+  resumePath?: string;
+  resumeOriginalName?: string;
+  deploymentPreference?: string | string[];
+  availableFrom?: string;
+  availability?: string;
+  availableIn?: string;
+  minimumContractDuration?: number;
+  category?: string;
+  designation?: string;
+  employeeId?: string;
+  refCode?: string;
+  englishLevel?: string;
+  englishProficiency?: string;
+  email?: string;
+  mobileNumber?: string;
+  userId?: number;
+  isActive?: boolean;
+  requireNonSolicitation?: boolean;
+  availableForDeployment?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BenchResourceResponse {
+  success: boolean;
+  data: BenchResourceRawDto;
+}
+
 export const benchApi = createApi({
   reducerPath: "benchApi",
   baseQuery: fetchBaseQuery({
@@ -39,13 +123,15 @@ export const benchApi = createApi({
       }),
       invalidatesTags: ["BenchResources"],
     }),
-    getBenchResourceById: builder.query<any, number | string>({
-      query: (id) => ({
-        url: `employers/bench-resources/${id}`,
-        method: "GET",
-      }),
-      providesTags: ["BenchResources"],
-    }),
+    getBenchResourceById: builder.query<BenchResourceResponse, number | string>(
+      {
+        query: (id) => ({
+          url: `employers/bench-resources/${id}`,
+          method: "GET",
+        }),
+        providesTags: ["BenchResources"],
+      },
+    ),
     updateBenchResource: builder.mutation<
       any,
       { id: number; formData: FormData }

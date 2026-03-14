@@ -42,6 +42,7 @@ import { useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
 import {
   useGetBenchResourceByIdQuery,
   useLazyViewBenchResumeQuery,
+  type BenchResourceRawDto,
 } from "@/app/queries/benchApi";
 import BarLoader from "@/components/loader/BarLoader";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
@@ -84,7 +85,7 @@ const formatCurrency = (amount: number, currency = "USD") => {
   }).format(amount);
 };
 
-const normalizeBenchCandidate = (c: any) => {
+const normalizeBenchCandidate = (c: BenchResourceRawDto) => {
   const fullName = c.name || c.resourceName || "";
   const nameParts = fullName.trim().split(/\s+/);
   const firstName = nameParts[0] || "";
@@ -229,7 +230,9 @@ const CandidateProfileView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { state } = useLocation() as { state: { benchCandidate?: any } | null };
+  const { state } = useLocation() as {
+    state: { benchCandidate?: BenchResourceRawDto } | null;
+  };
   const candidateId = useId();
   const isMobile = useIsMobile();
 
