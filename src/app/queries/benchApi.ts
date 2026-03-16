@@ -2,6 +2,94 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { config } from "../../services/service";
 import { getAuthHeaders } from "../../lib/helpers";
 
+/** Raw shape returned by GET /employers/bench-resources/:id */
+export interface BenchResourceRawDto {
+  id: number;
+  employerProfileId?: number;
+  resourceName?: string;
+  name?: string;
+  currentRole?: string;
+  role?: string;
+  about?: string;
+  professionalSummary?: string;
+  location?: string;
+  city?: string;
+  country?: string;
+  skills?: string | string[];
+  technicalSkills?: string | string[];
+  experienceYears?: number | string;
+  experience?: number | string;
+  totalExperience?: string;
+  hourlyRate?: number | { min: number; max: number };
+  hourlyRateMin?: number | string;
+  hourlyRateMax?: number | string;
+  expectedSalary?: { min?: number; max?: number };
+  expectedSalaryMin?: number | string;
+  expectedSalaryMax?: number | string;
+  currency?: string;
+  certifications?: Array<
+    | string
+    | {
+        name?: string;
+        title?: string;
+        issuer?: string;
+        year?: string;
+        issueDate?: string;
+      }
+  >;
+  workExperience?: Array<{
+    role?: string;
+    companyName?: string;
+    startDate?: string;
+    endDate?: string;
+    location?: string;
+    description?: string | string[];
+  }>;
+  projects?: Array<{
+    name?: string;
+    title?: string;
+    description?: string;
+    technologies?: string[];
+    techStack?: string[];
+    url?: string;
+    projectUrl?: string;
+  }>;
+  resumes?: Array<{
+    id: number;
+    originalName: string;
+    mimeType?: string;
+    fileSize?: number;
+    uploadedAt?: string;
+    isDefault?: boolean;
+  }>;
+  resumePath?: string;
+  resumeOriginalName?: string;
+  deploymentPreference?: string | string[];
+  availableFrom?: string;
+  availability?: string;
+  availableIn?: string;
+  minimumContractDuration?: number;
+  category?: string;
+  designation?: string;
+  employeeId?: string;
+  refCode?: string;
+  englishLevel?: string;
+  englishProficiency?: string;
+  email?: string;
+  mobileNumber?: string;
+  userId?: number;
+  isActive?: boolean;
+  requireNonSolicitation?: boolean;
+  availableForDeployment?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BenchResourceResponse {
+  success: boolean;
+  data: BenchResourceRawDto;
+}
+
 export const benchApi = createApi({
   reducerPath: "benchApi",
   baseQuery: fetchBaseQuery({
@@ -39,13 +127,15 @@ export const benchApi = createApi({
       }),
       invalidatesTags: ["BenchResources"],
     }),
-    getBenchResourceById: builder.query<any, number | string>({
-      query: (id) => ({
-        url: `employers/bench-resources/${id}`,
-        method: "GET",
-      }),
-      providesTags: ["BenchResources"],
-    }),
+    getBenchResourceById: builder.query<BenchResourceResponse, number | string>(
+      {
+        query: (id) => ({
+          url: `employers/bench-resources/${id}`,
+          method: "GET",
+        }),
+        providesTags: ["BenchResources"],
+      },
+    ),
     updateBenchResource: builder.mutation<
       any,
       { id: number; formData: FormData }
@@ -56,6 +146,18 @@ export const benchApi = createApi({
         body: formData,
       }),
       invalidatesTags: ["BenchResources"],
+    }),
+    viewBenchResume: builder.query<string, number | string>({
+      query: (id) => ({
+        method: "GET",
+        url: `employers/bench-resources/${id}/resume`,
+        responseHandler: async (response: Response) => {
+          if (!response.ok) throw new Error("Failed to fetch resume");
+          return response.blob();
+        },
+      }),
+      transformResponse: (blob: Blob) => URL.createObjectURL(blob),
+      keepUnusedDataFor: 0,
     }),
     downloadBenchResume: builder.mutation<void, number>({
       queryFn: async (id, _queryApi, _extraOptions, baseQuery) => {
@@ -91,4 +193,5 @@ export const {
   useUpdateBenchResourceMutation,
   useDeleteBenchResourceMutation,
   useGetBenchResourceByIdQuery,
+  useLazyViewBenchResumeQuery,
 } = benchApi;

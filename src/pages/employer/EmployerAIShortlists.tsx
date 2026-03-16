@@ -532,7 +532,13 @@ const EmployerAIShortlists = () => {
   };
 
   const handleViewProfile = (candidate: CandidateProfile) => {
-    navigate(`/hire-talent/candidate/${candidate.id}`);
+    if (candidate.type === "bench") {
+      navigate(`/hire-talent/candidate/${candidate.id}?source=bench`, {
+        state: { benchCandidate: candidate },
+      });
+    } else {
+      navigate(`/hire-talent/candidate/${candidate.id}`);
+    }
   };
 
   // Helper function to highlight matching text in candidate name

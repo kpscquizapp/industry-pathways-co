@@ -25,14 +25,26 @@ import {
   X,
   LoaderCircle,
   Star,
+  AlertTriangle,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useParams, useNavigate } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  useSearchParams,
+  useLocation,
+} from "react-router-dom";
 import {
   useGetCandidateByIdQuery,
   useLazyViewCandidateResumeQuery,
+  type EmployerCandidateProfileDto,
 } from "@/app/queries/employerApi";
 import { useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
+import {
+  useGetBenchResourceByIdQuery,
+  useLazyViewBenchResumeQuery,
+  type BenchResourceRawDto,
+} from "@/app/queries/benchApi";
 import BarLoader from "@/components/loader/BarLoader";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { skipToken } from "@reduxjs/toolkit/query";
@@ -63,11 +75,187 @@ const formatFileSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+const formatCurrency = (amount: number, currency = "USD") => {
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return "—";
+  const upper = currency?.toUpperCase?.() ?? "";
+  const safeCurrency = /^[A-Z]{3}$/.test(upper) ? upper : "USD";
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: safeCurrency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(n);
+};
+
+const normalizeBenchCandidate = (c: BenchResourceRawDto) => {
+  const fullName = c.name || c.resourceName || "";
+  const nameParts = fullName.trim().split(/\s+/);
+  const firstName = nameParts[0] || "";
+  const lastName = nameParts.slice(1).join(" ");
+
+  // Resolve skills from either shape (array or comma-string)
+  // Treat empty arrays as absent so comma-string values can be used as fallback
+  const rawSkillsArr =
+    Array.isArray(c.skills) && c.skills.length > 0
+      ? c.skills
+      : Array.isArray(c.technicalSkills) && c.technicalSkills.length > 0
+        ? c.technicalSkills
+        : null;
+  const skillsArr: string[] =
+    rawSkillsArr ??
+    (typeof c.skills === "string" && c.skills
+      ? c.skills
+          .split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+      : typeof c.technicalSkills === "string" && c.technicalSkills
+        ? c.technicalSkills
+            .split(",")
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : []);
+
+  const rawHourlyMin =
+    c.hourlyRate != null && typeof c.hourlyRate === "object"
+      ? c.hourlyRate.min
+      : typeof c.hourlyRate === "number"
+        ? c.hourlyRate
+        : (c.expectedSalary?.min ?? null);
+  const rawHourlyMax =
+    c.hourlyRate != null && typeof c.hourlyRate === "object"
+      ? c.hourlyRate.max
+      : typeof c.hourlyRate === "number"
+        ? c.hourlyRate
+        : (c.expectedSalary?.max ?? null);
+  const hourlyMin =
+    rawHourlyMin != null && Number.isFinite(Number(rawHourlyMin))
+      ? Number(rawHourlyMin)
+      : null;
+  const _rawHourlyMax =
+    rawHourlyMax != null && Number.isFinite(Number(rawHourlyMax))
+      ? Number(rawHourlyMax)
+      : null;
+  // Collapse equal min/max into a single value to avoid "$X - $X/hr"
+  const hourlyMax =
+    _rawHourlyMax !== null && hourlyMin !== null && _rawHourlyMax === hourlyMin
+      ? null
+      : _rawHourlyMax;
+
+  const yearsExp =
+    c.experienceYears != null && Number.isFinite(Number(c.experienceYears))
+      ? Number(c.experienceYears)
+      : c.experience != null && Number.isFinite(Number(c.experience))
+        ? Number(c.experience)
+        : null;
+
+  const certs = Array.isArray(c.certifications)
+    ? c.certifications.map((cert: any) =>
+        typeof cert === "string" ? { name: cert } : cert,
+      )
+    : [];
+
+  const deploymentPref: string[] = Array.isArray(c.deploymentPreference)
+    ? c.deploymentPreference
+    : typeof c.deploymentPreference === "string" && c.deploymentPreference
+      ? c.deploymentPreference
+          .split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+      : [];
+
+  return {
+    id: c.id,
+    userId: c.userId ?? null,
+    firstName,
+    lastName,
+    email: c.email ?? null,
+    mobileNumber: c.mobileNumber ?? null,
+    primaryJobRole: c.role ?? c.currentRole ?? null,
+    bio: c.about ?? c.professionalSummary ?? null,
+    headline: c.role ?? c.currentRole ?? null,
+    candidateType: "bench" as const,
+    resourceType: "bench" as const,
+    location: c.location ?? null,
+    city: c.city ?? null,
+    country: c.country ?? null,
+    hourlyRateMin: hourlyMin,
+    hourlyRateMax: hourlyMax,
+    expectedSalaryMin:
+      c.expectedSalaryMin != null &&
+      Number.isFinite(Number(c.expectedSalaryMin))
+        ? Number(c.expectedSalaryMin)
+        : null,
+    expectedSalaryMax:
+      c.expectedSalaryMax != null &&
+      Number.isFinite(Number(c.expectedSalaryMax))
+        ? Number(c.expectedSalaryMax)
+        : null,
+    yearsExperience: yearsExp,
+    experience: yearsExp,
+    primarySkills: skillsArr.map((name: string) => ({ name })),
+    secondarySkills: [],
+    preferredWorkType: deploymentPref,
+    preferredJobLocations: [],
+    certifications: certs,
+    workExperiences: Array.isArray(c.workExperience) ? c.workExperience : [],
+    workExperience: Array.isArray(c.workExperience) ? c.workExperience : [],
+    projects: Array.isArray(c.projects) ? c.projects : [],
+    resumes: Array.isArray(c.resumes) ? c.resumes : [],
+    availability: c.availability ?? null,
+    availableIn: c.availableIn ?? null,
+    englishProficiency: c.englishLevel ?? c.englishProficiency ?? null,
+    enableAiMatching: null,
+    createdAt: c.createdAt ?? null,
+    updatedAt: c.updatedAt ?? null,
+    isActive: c.isActive ?? true,
+    employerProfileId: c.employerProfileId,
+    resourceName: c.resourceName || fullName,
+    currentRole: c.currentRole || c.role,
+    designation: c.designation,
+    totalExperience: c.totalExperience,
+    employeeId: c.employeeId,
+    refCode: c.refCode,
+    technicalSkills: skillsArr,
+    professionalSummary: c.professionalSummary ?? c.about ?? null,
+    currency: c.currency,
+    availableFrom: c.availableFrom,
+    minimumContractDuration: c.minimumContractDuration,
+    deploymentPreference: deploymentPref,
+    category: c.category,
+    requireNonSolicitation: c.requireNonSolicitation,
+    availableForDeployment: c.availableForDeployment,
+    resumePath: c.resumePath,
+    resumeOriginalName: c.resumeOriginalName,
+  };
+};
+
+type BenchProfile = ReturnType<typeof normalizeBenchCandidate>;
+type CandidateProfile = EmployerCandidateProfileDto;
+type ProfileData = BenchProfile | CandidateProfile;
+
+const isBenchProfile = (p: ProfileData): p is BenchProfile =>
+  p.candidateType === "bench";
+
 const CandidateProfileView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { state } = useLocation() as {
+    state: { benchCandidate?: BenchResourceRawDto } | null;
+  };
   const candidateId = useId();
   const isMobile = useIsMobile();
+
+  const isBench = searchParams.get("source") === "bench";
+
+  const benchProfile = useMemo(
+    () =>
+      isBench && state?.benchCandidate
+        ? normalizeBenchCandidate(state.benchCandidate)
+        : null,
+    [isBench, state?.benchCandidate],
+  );
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
@@ -80,9 +268,23 @@ const CandidateProfileView = () => {
     data: response,
     isLoading: isLoadingProfile,
     isError,
-  } = useGetCandidateByIdQuery(id ?? skipToken);
+  } = useGetCandidateByIdQuery(!isBench && id ? id : skipToken);
 
-  const profile = response?.data;
+  // Always fetch full bench resource data from API; use state data only while loading
+  const {
+    data: benchResponse,
+    isLoading: isLoadingBenchProfile,
+    isError: isBenchError,
+  } = useGetBenchResourceByIdQuery(isBench && id ? id : skipToken);
+
+  const normalizedBenchData = useMemo(
+    () =>
+      benchResponse?.data ? normalizeBenchCandidate(benchResponse.data) : null,
+    [benchResponse],
+  );
+
+  const profile: ProfileData | undefined =
+    normalizedBenchData ?? benchProfile ?? response?.data;
 
   const hasAvatar = !!profile?.userId;
 
@@ -92,11 +294,25 @@ const CandidateProfileView = () => {
     );
 
   const [viewCandidateResume] = useLazyViewCandidateResumeQuery();
+  const [viewBenchResume] = useLazyViewBenchResumeQuery();
 
   const defaultResume = useMemo(() => {
+    if (isBench && profile && isBenchProfile(profile) && profile.resumePath) {
+      const originalName = profile.resumeOriginalName || "Resume";
+      return {
+        id: profile.id as number,
+        originalName,
+        mimeType: originalName.toLowerCase().endsWith(".pdf")
+          ? "application/pdf"
+          : undefined,
+        fileSize: undefined,
+        uploadedAt: undefined,
+        isDefault: true,
+      } as Resume;
+    }
     const resumes: Resume[] = profile?.resumes ?? [];
     return resumes.find((r) => r.isDefault) ?? resumes[0] ?? null;
-  }, [profile?.resumes]);
+  }, [profile, isBench]);
 
   const revokePreviewUrl = (url?: string | null) => {
     if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
@@ -115,32 +331,47 @@ const CandidateProfileView = () => {
     setLoadingViewId(resume.id);
     latestRequestIdRef.current = resume.id;
     try {
-      const { data, error } = await viewCandidateResume({
-        candidateId: id,
-        resumeId: resume.id,
-      });
+      let resumeUrl: string;
 
-      if (latestRequestIdRef.current !== resume.id) {
-        revokePreviewUrl(data as string);
-        return;
-      }
+      if (isBench && id) {
+        // For bench resources, fetch blob from the API endpoint
+        const { data, error } = await viewBenchResume(id);
+        if (latestRequestIdRef.current !== resume.id) {
+          revokePreviewUrl(data as string);
+          return;
+        }
+        if (error || !data) throw new Error("Failed to fetch resume");
+        resumeUrl = data;
+      } else {
+        // For regular candidates, fetch from resume endpoint
+        const { data, error } = await viewCandidateResume({
+          candidateId: id,
+          resumeId: resume.id,
+        });
 
-      if (error || !data) {
-        throw new Error("Failed to fetch resume");
+        if (latestRequestIdRef.current !== resume.id) {
+          revokePreviewUrl(data as string);
+          return;
+        }
+
+        if (error || !data) {
+          throw new Error("Failed to fetch resume");
+        }
+        resumeUrl = data;
       }
 
       const isPdf = isPdfFile(resume);
 
       if (isMobile && isPdf) {
-        window.open(data, "_blank", "noopener,noreferrer");
-        window.setTimeout(() => revokePreviewUrl(data), 60_000);
+        window.open(resumeUrl, "_blank", "noopener,noreferrer");
+        window.setTimeout(() => revokePreviewUrl(resumeUrl), 60_000);
         return;
       }
 
       setSelectedResume(resume);
       setIsModalOpen(true);
       revokePreviewUrl(previewUrl);
-      setPreviewUrl(data);
+      setPreviewUrl(resumeUrl);
     } catch (err) {
       console.error("Error loading resume:", err);
       toast.error("Failed to open resume");
@@ -183,11 +414,15 @@ const CandidateProfileView = () => {
     return () => revokePreviewUrl(previewUrl);
   }, [previewUrl]);
 
+  const loading = isBench ? isLoadingBenchProfile : isLoadingProfile;
+  const hasError = isBench ? isBenchError && !profile : isError;
+  const benchData = profile && isBenchProfile(profile) ? profile : null;
+
   return (
     <div className="min-h-screen flex flex-col dark:bg-slate-900">
-      {isLoadingProfile ? (
+      {loading && !profile ? (
         <BarLoader />
-      ) : isError ? (
+      ) : hasError ? (
         <div className="w-full h-screen flex items-center justify-center">
           <div className="text-red-600">Error loading candidate profile</div>
         </div>
@@ -198,6 +433,20 @@ const CandidateProfileView = () => {
       ) : (
         <div className="w-full dark:bg-slate-900">
           <div className="max-w-7xl mx-auto">
+            {/* Inline refresh indicator while bench API re-fetches */}
+            {isBench && isLoadingBenchProfile && (
+              <div className="flex items-center gap-2 mb-3 text-xs text-gray-500 dark:text-slate-400">
+                <LoaderCircle className="w-3 h-3 animate-spin" />
+                Refreshing profile…
+              </div>
+            )}
+            {/* Stale-data warning: background refresh failed but cached data is available */}
+            {isBench && isBenchError && benchData && !isLoadingBenchProfile && (
+              <div className="flex items-center gap-2 mb-3 text-xs text-amber-600 dark:text-amber-400">
+                <AlertTriangle className="w-3 h-3 shrink-0" />
+                Could not refresh profile — showing cached data.
+              </div>
+            )}
             {/* Back Button */}
             <div className="mb-4">
               <Button
@@ -238,10 +487,15 @@ const CandidateProfileView = () => {
                       )}
                     </Avatar>
                     <h2 className="text-base sm:text-lg lg:text-xl font-bold mb-1 dark:text-slate-100 break-words">
-                      {profile?.firstName} {profile?.lastName}
+                      {profile?.firstName
+                        ? `${profile.firstName} ${profile.lastName ?? ""}`.trim()
+                        : benchData?.resourceName || "—"}
                     </h2>
                     <p className="text-gray-600 dark:text-slate-400 text-xs sm:text-sm mb-1 font-semibold break-words">
-                      {profile?.headline ?? profile?.primaryJobRole ?? "—"}
+                      {profile?.headline ??
+                        profile?.primaryJobRole ??
+                        benchData?.currentRole ??
+                        "—"}
                     </p>
                     {profile?.email && (
                       <p className="text-gray-500 dark:text-slate-400 text-xs mb-1 break-words flex items-center justify-center gap-1">
@@ -257,7 +511,8 @@ const CandidateProfileView = () => {
                     )}
                     <div className="flex flex-wrap gap-2 justify-center mb-4">
                       <Badge className="bg-green-100 text-green-700 hover:bg-green-100 font-bold text-xs">
-                        {profile?.candidateType === "bench" ||
+                        {isBench ||
+                        profile?.candidateType === "bench" ||
                         profile?.resourceType === "bench"
                           ? "BENCH RESOURCE"
                           : "CONTRACT RESOURCE"}
@@ -281,20 +536,54 @@ const CandidateProfileView = () => {
                     {/* Details Card */}
                     <div className="border-t-2 border-t-gray-200 dark:border-t-slate-700 mt-6 sm:mt-8" />
                     <div className="p-0 my-6 sm:my-8 space-y-3">
-                      {profile?.hourlyRateMin != null &&
-                        profile?.hourlyRateMax != null && (
-                          <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
-                            <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
-                              <DollarSign className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate">Hourly Rate</span>
-                            </span>
-                            <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
-                              ${profile.hourlyRateMin} - $
-                              {profile.hourlyRateMax}
-                              /hr
-                            </span>
-                          </div>
-                        )}
+                      {(() => {
+                        const rawMin = profile?.hourlyRateMin;
+                        const rawMax = profile?.hourlyRateMax;
+                        const currency = benchData?.currency ?? "USD";
+                        const rateMin =
+                          rawMin != null && Number.isFinite(Number(rawMin))
+                            ? Number(rawMin)
+                            : null;
+                        const rateMax =
+                          rawMax != null && Number.isFinite(Number(rawMax))
+                            ? Number(rawMax)
+                            : null;
+                        // Show a range only when both ends are finite and distinct
+                        if (
+                          rateMin != null &&
+                          rateMax != null &&
+                          rateMin !== rateMax
+                        ) {
+                          return (
+                            <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
+                              <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
+                                <DollarSign className="w-4 h-4 flex-shrink-0" />
+                                <span className="truncate">Hourly Rate</span>
+                              </span>
+                              <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
+                                {formatCurrency(rateMin, currency)} -{" "}
+                                {formatCurrency(rateMax, currency)}/hr
+                              </span>
+                            </div>
+                          );
+                        }
+                        // Single value: prefer normalised min/max
+                        const single = rateMin ?? rateMax;
+                        if (single != null) {
+                          return (
+                            <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
+                              <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
+                                <DollarSign className="w-4 h-4 flex-shrink-0" />
+                                <span className="truncate">Hourly Rate</span>
+                              </span>
+                              <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
+                                {formatCurrency(single, currency)}/hr
+                              </span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                       {(profile?.expectedSalaryMin != null ||
                         profile?.expectedSalaryMax != null) && (
                         <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
@@ -305,24 +594,14 @@ const CandidateProfileView = () => {
                           <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
                             {profile.expectedSalaryMin != null &&
                             profile.expectedSalaryMax != null
-                              ? `$${profile.expectedSalaryMin} - $${profile.expectedSalaryMax}`
+                              ? `${formatCurrency(profile.expectedSalaryMin)} - ${formatCurrency(profile.expectedSalaryMax)}`
                               : profile.expectedSalaryMin != null
-                                ? `From $${profile.expectedSalaryMin}`
-                                : `Up to $${profile.expectedSalaryMax}`}
+                                ? `From ${formatCurrency(profile.expectedSalaryMin)}`
+                                : `Up to ${formatCurrency(profile.expectedSalaryMax)}`}
                           </span>
                         </div>
                       )}
-                      <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
-                        <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
-                          <Clock className="w-4 h-4 flex-shrink-0" />
-                          <span className="truncate">Availability</span>
-                        </span>
-                        <span className="font-semibold text-green-600 whitespace-nowrap text-right capitalize">
-                          {profile?.availableIn ||
-                            profile?.availability ||
-                            "None"}
-                        </span>
-                      </div>
+
                       <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
                         <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
                           <MapPin className="w-4 h-4 flex-shrink-0" />
@@ -344,11 +623,15 @@ const CandidateProfileView = () => {
                         <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
                           {(() => {
                             const exp =
-                              profile?.yearsExperience ?? profile?.experience;
+                              profile?.yearsExperience ??
+                              profile?.experience ??
+                              benchData?.totalExperience;
                             if (exp == null) return "None";
                             return typeof exp === "number"
                               ? `${exp} Years`
-                              : String(exp);
+                              : String(exp).toLowerCase().includes("year")
+                                ? String(exp)
+                                : `${exp} Years`;
                           })()}
                         </span>
                       </div>
@@ -378,9 +661,14 @@ const CandidateProfileView = () => {
                       id={`CandidateProfile-${candidateId}-skills`}
                       className="flex flex-wrap gap-2"
                     >
-                      {profile?.primarySkills?.length ? (
-                        profile.primarySkills.map(
-                          (skill: any, index: number) => {
+                      {(() => {
+                        const rawSkills: any[] = profile?.primarySkills?.length
+                          ? profile.primarySkills
+                          : (benchData?.technicalSkills?.map((s: string) => ({
+                              name: s,
+                            })) ?? []);
+                        return rawSkills.length ? (
+                          rawSkills.map((skill: any, index: number) => {
                             const name =
                               typeof skill === "string" ? skill : skill.name;
                             const skillId =
@@ -395,13 +683,13 @@ const CandidateProfileView = () => {
                                 {name}
                               </Badge>
                             );
-                          },
-                        )
-                      ) : (
-                        <span className="text-xs text-gray-500 dark:text-slate-400">
-                          No skills listed
-                        </span>
-                      )}
+                          })
+                        ) : (
+                          <span className="text-xs text-gray-500 dark:text-slate-400">
+                            No skills listed
+                          </span>
+                        );
+                      })()}
                     </div>
                     {profile?.secondarySkills?.length > 0 && (
                       <>
@@ -440,32 +728,46 @@ const CandidateProfileView = () => {
                     <div className="space-y-3">
                       {profile?.certifications?.length ? (
                         profile.certifications.map(
-                          (cert: any, cIndex: number) => (
-                            <div
-                              id={`CandidateProfile-${candidateId}-cert-${cIndex}`}
-                              className="flex items-start gap-2 sm:gap-3"
-                              key={`${cert.name}-${cIndex}`}
-                            >
-                              <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center flex-shrink-0 dark:bg-blue-900/40">
-                                <span role="img" aria-label="diploma">
-                                  🎓
-                                </span>
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="font-semibold text-xs sm:text-sm dark:text-slate-200 break-words">
-                                  {cert.name || cert.title}
-                                </p>
-                                {cert.issuer && (
-                                  <p className="text-xs text-gray-500 dark:text-slate-400">
-                                    {cert.issuer}
+                          (cert: any, cIndex: number) => {
+                            const certName =
+                              typeof cert === "string"
+                                ? cert
+                                : cert.name || cert.title;
+                            const certIssuer =
+                              typeof cert === "string" ? null : cert.issuer;
+                            const certDate =
+                              typeof cert === "string"
+                                ? null
+                                : cert.year || cert.issueDate;
+                            return (
+                              <div
+                                id={`CandidateProfile-${candidateId}-cert-${cIndex}`}
+                                className="flex items-start gap-2 sm:gap-3"
+                                key={`${certName}-${cIndex}`}
+                              >
+                                <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center flex-shrink-0 dark:bg-blue-900/40">
+                                  <span role="img" aria-label="diploma">
+                                    🎓
+                                  </span>
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-semibold text-xs sm:text-sm dark:text-slate-200 break-words">
+                                    {certName}
                                   </p>
-                                )}
-                                <p className="text-xs text-gray-500 dark:text-slate-400">
-                                  {cert.year || cert.issueDate}
-                                </p>
+                                  {certIssuer && (
+                                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                                      {certIssuer}
+                                    </p>
+                                  )}
+                                  {certDate && (
+                                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                                      {certDate}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          ),
+                            );
+                          },
                         )
                       ) : (
                         <div className="flex items-center gap-2 sm:gap-3">
@@ -503,17 +805,20 @@ const CandidateProfileView = () => {
                   </TabsList>
 
                   <TabsContent value="overview" className="space-y-4">
-                    {/* About Candidate */}
+                    {/* About Candidate / Professional Summary */}
                     <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
                       <CardContent className="p-4 sm:p-6">
                         <h3 className="text-base sm:text-lg font-bold mb-3 dark:text-slate-100">
-                          About Candidate
+                          {isBench ? "Professional Summary" : "About Candidate"}
                         </h3>
                         <p
                           className="text-sm sm:text-base text-gray-700 dark:text-slate-300 mb-3 break-words"
                           style={{ lineHeight: "1.8" }}
                         >
-                          {profile?.bio ?? "No bio"}
+                          {isBench
+                            ? benchData?.professionalSummary ||
+                              "No summary provided"
+                            : (profile?.bio ?? "No bio")}
                         </p>
                       </CardContent>
                     </Card>
@@ -541,66 +846,176 @@ const CandidateProfileView = () => {
                               {profile?.mobileNumber || "—"}
                             </p>
                           </div>
+                          {!isBench && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">
+                                City
+                              </p>
+                              <p className="text-sm font-medium dark:text-slate-200">
+                                {profile?.city || "—"}
+                              </p>
+                            </div>
+                          )}
+                          {!isBench && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">
+                                Country
+                              </p>
+                              <p className="text-sm font-medium dark:text-slate-200">
+                                {profile?.country || "—"}
+                              </p>
+                            </div>
+                          )}
+                          {!isBench && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">
+                                Candidate Type
+                              </p>
+                              <p className="text-sm font-medium dark:text-slate-200 capitalize">
+                                {profile?.candidateType || "—"}
+                              </p>
+                            </div>
+                          )}
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">
-                              City
-                            </p>
-                            <p className="text-sm font-medium dark:text-slate-200">
-                              {profile?.city || "—"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Country
-                            </p>
-                            <p className="text-sm font-medium dark:text-slate-200">
-                              {profile?.country || "—"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Candidate Type
+                              Work mode
                             </p>
                             <p className="text-sm font-medium dark:text-slate-200 capitalize">
-                              {profile?.candidateType || "—"}
+                              {benchData?.deploymentPreference &&
+                              benchData.deploymentPreference.length > 0
+                                ? benchData.deploymentPreference.join(", ")
+                                : Array.isArray(profile?.preferredWorkType) &&
+                                    profile.preferredWorkType.length > 0
+                                  ? profile.preferredWorkType
+                                      .filter((w: string) => w)
+                                      .join(", ")
+                                  : "—"}
                             </p>
                           </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Preferred Work Type
-                            </p>
-                            <p className="text-sm font-medium dark:text-slate-200 capitalize">
-                              {Array.isArray(profile?.preferredWorkType)
-                                ? profile.preferredWorkType
-                                    .filter((w: string) => w)
-                                    .join(", ")
-                                : profile?.preferredWorkType || "—"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Preferred Job Locations
-                            </p>
-                            <p className="text-sm font-medium dark:text-slate-200">
-                              {Array.isArray(profile?.preferredJobLocations) &&
-                              profile.preferredJobLocations.length > 0
-                                ? profile.preferredJobLocations.join(", ")
-                                : "—"}
-                            </p>
-                          </div>
+                          {!isBench && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">
+                                Preferred Job Locations
+                              </p>
+                              <p className="text-sm font-medium dark:text-slate-200">
+                                {Array.isArray(
+                                  profile?.preferredJobLocations,
+                                ) && profile.preferredJobLocations.length > 0
+                                  ? profile.preferredJobLocations.join(", ")
+                                  : "—"}
+                              </p>
+                            </div>
+                          )}
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">
                               Available To Join
                             </p>
-                            <p className="text-sm font-medium text-green-600 capitalize">
+                            <p className="text-sm font-medium dark:text-slate-200 capitalize">
                               {profile?.availableIn ||
                                 profile?.availability ||
-                                "—"}
+                                (benchData?.availableFrom
+                                  ? (() => {
+                                      const d = new Date(
+                                        benchData.availableFrom,
+                                      );
+                                      return Number.isNaN(d.getTime())
+                                        ? "—"
+                                        : d.toLocaleDateString();
+                                    })()
+                                  : "—")}
                             </p>
                           </div>
                         </div>
                       </CardContent>
                     </Card>
+
+                    {/* Resource Details - Bench only */}
+                    {isBench && benchData && (
+                      <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
+                        <CardContent className="p-4 sm:p-6">
+                          <h3 className="text-base sm:text-lg font-bold mb-4 dark:text-slate-100">
+                            Resource Details
+                          </h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {benchData.employeeId && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Employee ID
+                                </p>
+                                <p className="text-sm font-medium dark:text-slate-200">
+                                  {benchData.employeeId}
+                                </p>
+                              </div>
+                            )}
+                            {benchData.refCode && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Ref Code
+                                </p>
+                                <p className="text-sm font-medium dark:text-slate-200">
+                                  {benchData.refCode}
+                                </p>
+                              </div>
+                            )}
+                            {benchData.designation && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Designation
+                                </p>
+                                <p className="text-sm font-medium dark:text-slate-200">
+                                  {benchData.designation}
+                                </p>
+                              </div>
+                            )}
+                            {benchData.category && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Category
+                                </p>
+                                <p className="text-sm font-medium dark:text-slate-200 capitalize">
+                                  {benchData.category}
+                                </p>
+                              </div>
+                            )}
+                            {benchData.currency && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Currency
+                                </p>
+                                <p className="text-sm font-medium dark:text-slate-200">
+                                  {benchData.currency}
+                                </p>
+                              </div>
+                            )}
+                            {benchData.availableFrom && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Available From
+                                </p>
+                                <p className="text-sm font-medium dark:text-slate-200">
+                                  {(() => {
+                                    const d = new Date(benchData.availableFrom);
+                                    return Number.isNaN(d.getTime())
+                                      ? "—"
+                                      : d.toLocaleDateString();
+                                  })()}
+                                </p>
+                              </div>
+                            )}
+                            {benchData.minimumContractDuration != null && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Min Contract Duration
+                                </p>
+                                <p className="text-sm font-medium dark:text-slate-200">
+                                  {benchData.minimumContractDuration} months
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
 
                     {/* Work Experience */}
                     <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
