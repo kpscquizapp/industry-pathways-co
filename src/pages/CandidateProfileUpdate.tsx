@@ -1356,9 +1356,6 @@ const CandidateProfileUpdate = ({
       if (!description)
         errors[`project_${index}_description`] =
           "Project description is required";
-      if (!project.isFeatured)
-        errors[`project_${index}_featured`] =
-          "Please mark this project as Featured";
 
       if (projectUrl) {
         const urlError = VALIDATION.url.validate(projectUrl);
@@ -2459,10 +2456,9 @@ const CandidateProfileUpdate = ({
                 className="min-h-0 min-w-0 w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white accent-primary dark:accent-white"
               />
               <span className="text-sm text-gray-700 dark:text-white">
-                Featured Project <span className="text-destructive">*</span>
+                Featured Project
               </span>
             </Label>
-            <ErrorMessage error={fieldErrors[`project_${index}_featured`]} />
           </div>
         ))}
 
