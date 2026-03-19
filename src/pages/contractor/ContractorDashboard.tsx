@@ -104,16 +104,9 @@ const ContractorDashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold mb-2">
-              Welcome, {userDetails?.firstName ?? "there"}! 👋
+              Welcome, {userDetails?.firstName?.trim() || "there"}! 👋
             </h2>
           </div>
-          {/* <Button
-            variant="secondary"
-            className="bg-white text-primary hover:bg-white/90"
-            asChild
-          >
-            <Link to="/contractor/profile">Complete </Link>
-          </Button> */}
         </div>
       </div>
 
@@ -212,7 +205,6 @@ const ContractorDashboard = () => {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6"></div>
     </div>
   );
 };

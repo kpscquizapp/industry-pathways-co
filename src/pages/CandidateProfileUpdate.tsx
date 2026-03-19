@@ -37,6 +37,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { skipToken } from "@reduxjs/toolkit/query";
+import { currencySymbols, getCurrencySymbol } from "@/lib/currency";
 
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -130,6 +131,7 @@ interface CandidateProfileUpdateProps {
       hourlyRateMax?: number | string;
       expectedSalaryMin?: number | string;
       expectedSalaryMax?: number | string;
+      currency?: string;
       workExperiences?: Array<{
         id: number | null;
         localId?: string;
@@ -711,14 +713,6 @@ const CandidateProfileUpdate = ({
     "Contract",
     "Freelance",
   ];
-
-  const currencySymbols: Record<string, string> = {
-    "USD - US Dollar": "$",
-    "EUR - Euro": "€",
-    "GBP - British Pound": "£",
-    "INR - Indian Rupee": "₹",
-    "AED - UAE Dirham": "د.إ",
-  };
 
   const handleInputChange = (e: ChangeEvent<FormElement>) => {
     const { name, value } = e.target;
@@ -1477,6 +1471,7 @@ const CandidateProfileUpdate = ({
       firstName: formData.firstName.trim(),
       lastName: formData.lastName.trim(),
       email: formData.email.toLowerCase().trim(),
+      currency: formData.currency || null,
       mobileNumber: formData.mobileNumber.replace(/[\s\-()]/g, ""),
       location: formData.location.trim(),
       country: formData.country?.trim() || null,
@@ -2058,7 +2053,7 @@ const CandidateProfileUpdate = ({
               </Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
-                  {currencySymbols[formData.currency] ?? "$"}
+                  {getCurrencySymbol(formData.currency)}
                 </span>
                 <Input
                   type="number"
@@ -2083,7 +2078,7 @@ const CandidateProfileUpdate = ({
               </Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
-                  {currencySymbols[formData.currency] ?? "$"}
+                  {getCurrencySymbol(formData.currency)}
                 </span>
                 <Input
                   type="number"
@@ -2110,7 +2105,7 @@ const CandidateProfileUpdate = ({
               </Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
-                  {currencySymbols[formData.currency] ?? "$"}
+                  {getCurrencySymbol(formData.currency)}
                 </span>
                 <Input
                   type="number"
@@ -2135,7 +2130,7 @@ const CandidateProfileUpdate = ({
               </Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
-                  {currencySymbols[formData.currency] ?? "$"}
+                  {getCurrencySymbol(formData.currency)}
                 </span>
                 <Input
                   type="number"

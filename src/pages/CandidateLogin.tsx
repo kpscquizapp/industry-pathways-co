@@ -137,7 +137,7 @@ const CandidateLogin = () => {
         navigate("/contractor/profile");
       } else {
         toast.success(
-          `Welcome ${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
+          `Welcome${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
         );
         navigate("/contractor/dashboard");
       }

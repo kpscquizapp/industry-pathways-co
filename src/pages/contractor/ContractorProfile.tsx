@@ -11,6 +11,7 @@ import {
   Briefcase,
   Camera,
 } from "lucide-react";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSelector } from "react-redux";
 import {
@@ -169,17 +170,7 @@ const ContractorProfile = () => {
                             </span>
                             <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
                               {(() => {
-                                const currencySymbols: Record<string, string> =
-                                  {
-                                    "USD - US Dollar": "$",
-                                    "EUR - Euro": "€",
-                                    "GBP - British Pound": "£",
-                                    "INR - Indian Rupee": "₹",
-                                    "AED - UAE Dirham": "د.إ",
-                                  };
-                                const sym =
-                                  currencySymbols[(profile as any).currency] ??
-                                  "$";
+                                const sym = getCurrencySymbol(profile.currency);
                                 return `${sym}${profile.hourlyRateMin} - ${sym}${profile.hourlyRateMax}/hr`;
                               })()}
                             </span>
