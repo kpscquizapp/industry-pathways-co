@@ -261,12 +261,12 @@ const CandidateLogin = () => {
             <div className="relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 to-emerald-500/10 rounded-[36px] blur-xl opacity-50 dark:opacity-20" />
 
-              <div className="relative bg-white dark:bg-[#0a0a0a] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-white/[0.05] p-8 md:p-10">
+              <div className="relative bg-white dark:bg-[#0a0a0a] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-white/[0.05] px-6 py-8 md:p-10">
                 <div className="mb-10 text-center lg:text-left">
-                  <h3 className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
+                  <h3 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
                     Sign In
                   </h3>
-                  <p className="text-slate-500 dark:text-slate-400 font-medium">
+                  <p className="text-slate-500 dark:text-slate-400 font-medium text-[13px] sm:text-[16px]">
                     Enter your contractor credentials below.
                   </p>
                 </div>
@@ -334,7 +334,7 @@ const CandidateLogin = () => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors z-10"
+                        className="absolute right-0 sm:right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors z-10"
                         aria-label={
                           showPassword ? "Hide password" : "Show password"
                         }

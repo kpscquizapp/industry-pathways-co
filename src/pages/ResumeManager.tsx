@@ -309,6 +309,11 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
 
         dispatch(setExtractedSkills(result?.data?.technicalSkills || []));
         toast.success("Resume uploaded and skills extracted!");
+        setTimeout(() => {
+          toast.info(
+            "Remember to click 'Update Profile' to update extracted skills.",
+          );
+        }, 500);
       } catch (extractError) {
         console.error("Error extracting resume skills:", extractError);
         toast.warning(
@@ -327,10 +332,10 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
 
   return (
     <>
-      <div className="h-screen">
-        <div className="max-w-4xl mx-auto sm:p-[2rem]">
+      <div>
+        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-6 items-start">
           {/* Upload Area */}
-          <div className="relative border-2 border-dashed border-slate-300 rounded-lg p-8 md:p-12 mb-6 bg-white transition-all duration-200 dark:bg-slate-800">
+          <div className="relative border-2 border-dashed border-slate-300 rounded-lg p-8 md:p-12 bg-white transition-all duration-200 dark:bg-slate-800 h-full">
             <div className="flex flex-col items-center text-center">
               <div className="rounded-full p-4 mb-4">
                 <Upload className="w-6 h-6 md:w-8 md:h-8 text-slate-600 dark:text-slate-300" />
@@ -369,7 +374,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
           </div>
 
           {/* Resume List */}
-          <div className="rounded-lg py-4 md:py-6 shadow-sm text-left dark:bg-slate-800 h-[350px] overflow-auto">
+          <div className="rounded-lg py-4 md:py-6 shadow-sm text-left dark:bg-slate-800 h-[350px] overflow-auto dark:bg-slate-800">
             <h2 className="text-lg md:text-xl font-semibold text-slate-800 mb-4 dark:text-white">
               Your Resumes ({resumes.length})
             </h2>

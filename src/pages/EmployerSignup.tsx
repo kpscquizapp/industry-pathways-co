@@ -24,7 +24,10 @@ import {
   Check,
   ChevronLeft,
 } from "lucide-react";
-import { useRegisterEmployerMutation } from "@/app/queries/loginApi";
+import {
+  useCheckExistingEmailMutation,
+  useRegisterEmployerMutation,
+} from "@/app/queries/loginApi";
 import { toast } from "sonner";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import RegistrationStepIndicator from "@/components/auth/RegistrationStepIndicator";
@@ -67,6 +70,7 @@ const EmployerSignup = () => {
   >({});
 
   const [registerEmployer] = useRegisterEmployerMutation();
+  const [checkExistingEmail] = useCheckExistingEmailMutation();
   const navigate = useNavigate();
 
   const handleInputChange = (
@@ -133,7 +137,7 @@ const EmployerSignup = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const validateStep = (): boolean => {
+  const validateStep = async (): Promise<boolean> => {
     const errors: Record<string, string> = {};
 
     if (currentStep === 1) {
@@ -154,6 +158,20 @@ const EmployerSignup = () => {
       // Validate email
       const emailError = VALIDATION.email.validate(formData.email);
       if (emailError) errors.email = emailError;
+      // Check email availability only when format is valid
+      if (!emailError && formData.email) {
+        try {
+          await checkExistingEmail({ email: formData.email }).unwrap();
+        } catch (error) {
+          if (isFetchBaseQueryError(error) && error.status === 409) {
+            errors.email =
+              "Email already registered, please use a different email.";
+          } else {
+            errors.email =
+              "Could not verify email right now. Please try again.";
+          }
+        }
+      }
 
       // Validate password
       const passwordError = VALIDATION.password.validate(formData.password);
@@ -196,8 +214,8 @@ const EmployerSignup = () => {
     return true;
   };
 
-  const nextStep = () => {
-    if (validateStep()) {
+  const nextStep = async () => {
+    if (await validateStep()) {
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     }
   };
@@ -211,11 +229,11 @@ const EmployerSignup = () => {
     e.preventDefault();
 
     if (currentStep < totalSteps) {
-      nextStep();
+      await nextStep();
       return;
     }
 
-    if (!validateStep()) return;
+    if (!(await validateStep())) return;
 
     setIsLoading(true);
 

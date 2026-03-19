@@ -147,7 +147,7 @@ const ContractorProfile = () => {
                       {data?.firstName} {data?.lastName}
                     </h2>
                     <p className="text-gray-600 dark:text-slate-400 text-xs sm:text-sm mb-3 font-semibold break-words">
-                      {profile?.headline ?? data?.title ?? "—"}
+                      {profile?.primaryJobRole ?? data?.title ?? "—"}
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center mb-4">
                       <Badge className="bg-green-100 text-green-700 hover:bg-green-100 font-bold text-xs">
@@ -313,17 +313,17 @@ const ContractorProfile = () => {
                     >
                       Overview
                     </TabsTrigger>
-                    <TabsTrigger
+                    {/* <TabsTrigger
                       value="resume"
                       className="text-xs sm:text-sm dark:data-[state=active]:bg-slate-900 dark:data-[state=active]:text-slate-100"
                     >
                       Resume
-                    </TabsTrigger>
+                    </TabsTrigger> */}
                     <TabsTrigger
                       value="edit-profile"
                       className="text-xs sm:text-sm whitespace-nowrap dark:data-[state=active]:bg-slate-900 dark:data-[state=active]:text-slate-100"
                     >
-                      Edit Profile
+                      Update Profile
                     </TabsTrigger>
                   </TabsList>
 
@@ -493,11 +493,11 @@ const ContractorProfile = () => {
                   <TabsContent value="resume" className="space-y-4">
                     <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
                       <CardContent className="p-6 text-center text-gray-500 dark:text-slate-400">
-                        <ResumeManager
+                        {/* <ResumeManager
                           resumes={
                             profile && profile.resumes ? profile.resumes : []
                           }
-                        />
+                        /> */}
                       </CardContent>
                     </Card>
                   </TabsContent>

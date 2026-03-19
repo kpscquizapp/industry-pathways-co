@@ -21,7 +21,10 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useRegisterHrMutation } from "@/app/queries/loginApi";
+import {
+  useCheckExistingEmailMutation,
+  useRegisterHrMutation,
+} from "@/app/queries/loginApi";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import RegistrationStepIndicator from "@/components/auth/RegistrationStepIndicator";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
@@ -31,6 +34,7 @@ import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 const BenchRegistration = () => {
   const navigate = useNavigate();
   const [registerHr, { isLoading }] = useRegisterHrMutation();
+  const [checkExistingEmail] = useCheckExistingEmailMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -120,7 +124,7 @@ const BenchRegistration = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const validateStep = (): boolean => {
+  const validateStep = async (): Promise<boolean> => {
     const errors: Record<string, string> = {};
 
     if (currentStep === 1) {
@@ -141,6 +145,19 @@ const BenchRegistration = () => {
       // Validate email
       const emailError = VALIDATION.email.validate(formData.email);
       if (emailError) errors.email = emailError;
+      // Check email availability only when format is valid
+      if (!emailError && formData.email) {
+        try {
+          await checkExistingEmail({ email: formData.email }).unwrap();
+        } catch (error) {
+          if (isFetchBaseQueryError(error) && error.status === 409) {
+            errors.email = "Email already registered, please use a different email.";
+          } else {
+            errors.email =
+              "Could not verify email right now. Please try again.";
+          }
+        }
+      }
 
       // Validate password
       const passwordError = VALIDATION.password.validate(formData.password);
@@ -184,8 +201,8 @@ const BenchRegistration = () => {
     return true;
   };
 
-  const nextStep = () => {
-    if (validateStep()) {
+  const nextStep = async () => {
+    if (await validateStep()) {
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     }
   };
@@ -199,11 +216,11 @@ const BenchRegistration = () => {
     e.preventDefault();
 
     if (currentStep < totalSteps) {
-      nextStep();
+      await nextStep();
       return;
     }
 
-    if (!validateStep()) return;
+    if (!(await validateStep())) return;
 
     const submitData = new FormData();
 
