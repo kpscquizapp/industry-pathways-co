@@ -743,7 +743,7 @@ const EmployerSignup = () => {
                         <div className="flex items-center gap-2">
                           <span>
                             {currentStep === totalSteps
-                              ? "Register Organization"
+                              ? "Signup"
                               : "Next Step"}
                           </span>
                           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
