@@ -108,7 +108,7 @@ const ContractorDashboard = () => {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Interview Invitations */}
-        <Card>
+        {/* <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Video className="w-5 h-5 text-primary" />
@@ -121,10 +121,10 @@ const ContractorDashboard = () => {
               View All <ChevronRight className="w-4 h-4" />
             </Link>
           </CardHeader>
-        </Card>
+        </Card> */}
 
         {/* Skill Test Invitations */}
-        <Card>
+        {/* <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <FileCheck className="w-5 h-5 text-primary" />
@@ -137,7 +137,7 @@ const ContractorDashboard = () => {
               View All <ChevronRight className="w-4 h-4" />
             </Link>
           </CardHeader>
-        </Card>
+        </Card> */}
       </div>
 
     </div>
