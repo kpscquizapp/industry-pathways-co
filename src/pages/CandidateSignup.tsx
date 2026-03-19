@@ -318,13 +318,6 @@ const CandidateSignup = () => {
       const skillsError = VALIDATION.skills.validate(primarySkills);
       if (skillsError) errors.primarySkills = skillsError;
     } else if (currentStep === 3) {
-      // Validate salary
-      const salaryError = VALIDATION.salary.validate(
-        formData.expectedSalaryMin,
-        formData.expectedSalaryMax,
-      );
-      if (salaryError) errors.expectedSalary = salaryError;
-
       // Validate work type
       if (preferredWorkType.length === 0) {
         errors.preferredWorkType =
@@ -883,58 +876,6 @@ const CandidateSignup = () => {
                   {/* STEP 3: Career Preferences */}
                   {currentStep === 3 && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                      <div className="grid md:grid-cols-2 gap-5">
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Min. Expected Salary ($){" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <div className="relative group">
-                            <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                            <Input
-                              name="expectedSalaryMin"
-                              type="number"
-                              placeholder="e.g. 80000"
-                              min="0"
-                              max="10000000"
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.expectedSalary
-                                  ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
-                                  : ""
-                              }`}
-                              value={formData.expectedSalaryMin ?? ""}
-                              onChange={handleInputChange}
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Max. Expected Salary ($){" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <div className="relative group">
-                            <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                            <Input
-                              name="expectedSalaryMax"
-                              type="number"
-                              placeholder="e.g. 120000"
-                              min="0"
-                              max="10000000"
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.expectedSalary
-                                  ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
-                                  : ""
-                              }`}
-                              value={formData.expectedSalaryMax ?? ""}
-                              onChange={handleInputChange}
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <ErrorMessage error={fieldErrors.expectedSalary} />
-
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
                           Availability to Join{" "}
