@@ -34,6 +34,7 @@ import {
   useUpdateBenchResourceMutation,
 } from "@/app/queries/benchApi";
 import { skipToken } from "@reduxjs/toolkit/query";
+import { currencySymbols, getCurrencySymbol } from "@/lib/currency";
 
 const PostBenchResource = () => {
   const navigate = useNavigate();
@@ -178,13 +179,6 @@ const PostBenchResource = () => {
       e.preventDefault();
       addSkill();
     }
-  };
-
-  const currencySymbols: Record<string, string> = {
-    "USD - US Dollar": "$",
-    "EUR - Euro": "€",
-    "GBP - British Pound": "£",
-    "INR - Indian Rupee": "₹",
   };
 
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -676,7 +670,7 @@ const PostBenchResource = () => {
                     </Label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
-                        {currencySymbols[formData.currency] ?? "$"}
+                        {getCurrencySymbol(formData.currency)}
                       </span>
                       <Input
                         type="number"
@@ -711,12 +705,7 @@ const PostBenchResource = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {[
-                          "USD - US Dollar",
-                          "EUR - Euro",
-                          "GBP - British Pound",
-                          "INR - Indian Rupee",
-                        ].map((curr) => (
+                        {Object.keys(currencySymbols).map((curr) => (
                           <SelectItem key={curr} value={curr}>
                             {curr}
                           </SelectItem>
