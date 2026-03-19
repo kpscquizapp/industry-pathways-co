@@ -7,75 +7,10 @@ import {
   FileCheck,
   Video,
   ChevronRight,
-  Clock,
   Eye,
-  Calendar,
-  Building2,
-  CheckCircle2,
-  AlertCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import BarLoader from "@/components/loader/BarLoader";
-
-const interviewInvitations = [
-  {
-    id: 1,
-    company: "TechCorp",
-    role: "Senior React Developer",
-    scheduledDate: "2024-02-10",
-    status: "pending",
-  },
-  {
-    id: 2,
-    company: "InnovateLab",
-    role: "Full Stack Engineer",
-    scheduledDate: "2024-02-12",
-    status: "confirmed",
-  },
-];
-
-const skillTestInvitations = [
-  {
-    id: 1,
-    company: "DataFlow",
-    role: "Frontend Specialist",
-    testName: "React Advanced",
-    deadline: "2024-02-08",
-    duration: "45 min",
-  },
-  {
-    id: 2,
-    company: "CloudSys",
-    role: "UI Developer",
-    testName: "JavaScript Fundamentals",
-    deadline: "2024-02-15",
-    duration: "30 min",
-  },
-];
-
-const profileViews = [
-  {
-    id: 1,
-    company: "TechCorp",
-    viewedAt: "2 hours ago",
-    recruiterName: "Sarah Johnson",
-  },
-  {
-    id: 2,
-    company: "InnovateLab",
-    viewedAt: "5 hours ago",
-    recruiterName: "Mike Chen",
-  },
-  {
-    id: 3,
-    company: "DataFlow",
-    viewedAt: "1 day ago",
-    recruiterName: "Emily Davis",
-  },
-];
 
 const ContractorDashboard = () => {
   const { userDetails } = useSelector((state: RootState) => state.user);

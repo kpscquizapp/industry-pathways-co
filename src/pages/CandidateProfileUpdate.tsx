@@ -602,8 +602,10 @@ const CandidateProfileUpdate = ({
       expectedSalaryMax: toNumberOrEmpty(
         data?.candidateProfile.expectedSalaryMax,
       ),
-      currency:
-        (data?.candidateProfile as { currency?: string })?.currency || "",
+      currency: (() => {
+        const raw = (data?.candidateProfile as { currency?: string })?.currency;
+        return raw && currencySymbols[raw] ? raw : "";
+      })(),
       workExperiences: workExperiences || [],
       projects: projects || [],
       certifications: certification || [],
@@ -1471,7 +1473,7 @@ const CandidateProfileUpdate = ({
       firstName: formData.firstName.trim(),
       lastName: formData.lastName.trim(),
       email: formData.email.toLowerCase().trim(),
-      currency: formData.currency || null,
+      currency: formData.currency || "",
       mobileNumber: formData.mobileNumber.replace(/[\s\-()]/g, ""),
       location: formData.location.trim(),
       country: formData.country?.trim() || null,
