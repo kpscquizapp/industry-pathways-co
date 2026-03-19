@@ -95,7 +95,6 @@ interface FormDataState {
   availableToJoin: string;
   englishProficiency: string;
   preferredJobLocations: string[];
-  // preferredWorkType: string[];
   expectedSalaryMin: number | string;
   expectedSalaryMax: number | string;
   hourlyRateMin: number | string;
@@ -125,7 +124,6 @@ interface CandidateProfileUpdateProps {
       availableToJoin?: string;
       englishProficiency?: string;
       preferredJobLocations?: string[];
-      // preferredWorkType?: string[];
       hourlyRateMin?: number | string;
       hourlyRateMax?: number | string;
       expectedSalaryMin?: number | string;
@@ -573,7 +571,6 @@ const CandidateProfileUpdate = ({
         availableToJoin: "",
         englishProficiency: "",
         preferredJobLocations: [],
-        // preferredWorkType: [],
         hourlyRateMin: "",
         hourlyRateMax: "",
         expectedSalaryMin: "",
@@ -598,7 +595,6 @@ const CandidateProfileUpdate = ({
       availableToJoin: data?.candidateProfile.availableToJoin || "",
       englishProficiency: data?.candidateProfile.englishProficiency ?? "",
       preferredJobLocations: data?.candidateProfile.preferredJobLocations ?? [],
-      // preferredWorkType: data?.candidateProfile.preferredWorkType ?? [],
       hourlyRateMin: toNumberOrEmpty(data?.candidateProfile.hourlyRateMin),
       hourlyRateMax: toNumberOrEmpty(data?.candidateProfile.hourlyRateMax),
       expectedSalaryMin: toNumberOrEmpty(
@@ -703,7 +699,6 @@ const CandidateProfileUpdate = ({
     "30 Days",
     "60 Days+",
   ];
-  // const preferredWorkTypeOptions = ["remote", "hybrid", "onsite"];
   const englishProficiencyOptions = [
     "Basic",
     "Professional",
@@ -762,20 +757,6 @@ const CandidateProfileUpdate = ({
 
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
-  // const handleWorkTypeChange = (workType: string) => {
-  //   setFormData((prev) => {
-  //     const currentTypes = prev.preferredWorkType || [];
-  //     const isSelected = currentTypes.includes(workType);
-
-  //     return {
-  //       ...prev,
-  //       preferredWorkType: isSelected
-  //         ? currentTypes.filter((type) => type !== workType)
-  //         : [...currentTypes, workType],
-  //     };
-  //   });
-  // };
 
   const addLocation = () => {
     const name = locationInput.trim();
@@ -1450,7 +1431,6 @@ const CandidateProfileUpdate = ({
       primaryJobRole: formData.primaryJobRole.trim(),
       bio: formData.bio.trim(),
       primarySkills: formData.primarySkills,
-      // preferredWorkType: formData.preferredWorkType,
       preferredJobLocations: formData.preferredJobLocations,
       hourlyRateMin:
         formData.hourlyRateMin === "" ? null : Number(formData.hourlyRateMin),
@@ -2677,8 +2657,8 @@ const CandidateProfileUpdate = ({
         <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-red-600 dark:text-red-400 text-sm font-medium flex items-center gap-2">
             <AlertCircle className="w-4 h-4" />
-            Failed to update profile. Please try again or contact support if the
-            issue persists.
+            Failed to update profile. Please check required fields and try
+            again...
           </p>
         </div>
       )}

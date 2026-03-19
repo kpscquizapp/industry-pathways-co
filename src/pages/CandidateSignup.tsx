@@ -145,7 +145,8 @@ const VALIDATION = {
 const CandidateSignup = () => {
   const navigate = useNavigate();
   const [createCandidate, { isLoading }] = useCreateCandidateMutation();
-  const [checkExistingEmail] = useCheckExistingEmailMutation();
+  const [checkExistingEmail, { isLoading: isCheckingEmail }] =
+    useCheckExistingEmailMutation();
 
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -295,7 +296,8 @@ const CandidateSignup = () => {
           await checkExistingEmail({ email: formData.email }).unwrap();
         } catch (error) {
           if (isFetchBaseQueryError(error) && error.status === 409) {
-            errors.email = "Email already registered, please use a different email.";
+            errors.email =
+              "Email already registered, please use a different email.";
           } else {
             errors.email =
               "Could not verify email right now. Please try again.";
@@ -659,6 +661,12 @@ const CandidateSignup = () => {
                             required
                           />
                         </div>
+                        {isCheckingEmail && (
+                          <div className="text-sm text-slate-500 flex items-center gap-2">
+                            <SpinnerLoader />{" "}
+                            <span>Checking availability...</span>
+                          </div>
+                        )}
                         <ErrorMessage error={fieldErrors.email} />
                       </div>
 

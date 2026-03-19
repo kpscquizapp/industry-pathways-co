@@ -70,7 +70,8 @@ const EmployerSignup = () => {
   >({});
 
   const [registerEmployer] = useRegisterEmployerMutation();
-  const [checkExistingEmail] = useCheckExistingEmailMutation();
+  const [checkExistingEmail, { isLoading: isCheckingEmail }] =
+    useCheckExistingEmailMutation();
   const navigate = useNavigate();
 
   const handleInputChange = (
@@ -512,6 +513,12 @@ const EmployerSignup = () => {
                             required
                           />
                         </div>
+                        {isCheckingEmail && (
+                          <div className="text-sm text-slate-500 flex items-center gap-2">
+                            <SpinnerLoader />{" "}
+                            <span>Checking availability...</span>
+                          </div>
+                        )}
                         <ErrorMessage error={fieldErrors.email} />
                       </div>
 

@@ -374,7 +374,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
           </div>
 
           {/* Resume List */}
-          <div className="rounded-lg py-4 md:py-6 shadow-sm text-left dark:bg-slate-800 h-[350px] overflow-auto dark:bg-slate-800">
+          <div className="rounded-lg py-4 md:py-6 shadow-sm text-left dark:bg-slate-800 h-[350px] overflow-auto">
             <h2 className="text-lg md:text-xl font-semibold text-slate-800 mb-4 dark:text-white">
               Your Resumes ({resumes.length})
             </h2>

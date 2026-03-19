@@ -34,7 +34,8 @@ import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 const BenchRegistration = () => {
   const navigate = useNavigate();
   const [registerHr, { isLoading }] = useRegisterHrMutation();
-  const [checkExistingEmail] = useCheckExistingEmailMutation();
+  const [checkExistingEmail, { isLoading: isCheckingEmail }] =
+    useCheckExistingEmailMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -151,7 +152,8 @@ const BenchRegistration = () => {
           await checkExistingEmail({ email: formData.email }).unwrap();
         } catch (error) {
           if (isFetchBaseQueryError(error) && error.status === 409) {
-            errors.email = "Email already registered, please use a different email.";
+            errors.email =
+              "Email already registered, please use a different email.";
           } else {
             errors.email =
               "Could not verify email right now. Please try again.";
@@ -470,6 +472,12 @@ const BenchRegistration = () => {
                             required
                           />
                         </div>
+                        {isCheckingEmail && (
+                          <div className="text-sm text-slate-500 flex items-center gap-2">
+                            <SpinnerLoader />{" "}
+                            <span>Checking availability...</span>
+                          </div>
+                        )}
                         <ErrorMessage error={fieldErrors.email} />
                       </div>
 
