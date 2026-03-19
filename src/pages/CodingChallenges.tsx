@@ -199,7 +199,7 @@ const CodingChallenge: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="border-b border-border px-4 py-3 flex items-center justify-between bg-card flex-shrink-0">
+      <header className="border-b border-border px-4 py-4 flex items-center justify-between bg-card flex-shrink-0">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -217,55 +217,33 @@ const CodingChallenge: React.FC = () => {
             Back
           </Button>
           <div className="h-6 w-px bg-border" />
-          <h1 className="text-lg font-semibold">
-            {activeView === "challenge" ? "Coding Challenge" : "Live Code Interview"}
-          </h1>
+          <h1 className="text-lg font-semibold">Coding Challenge</h1>
           <div className="h-6 w-px bg-border" />
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant={activeView === "challenge" ? "default" : "outline"}
-              onClick={() => setActiveView("challenge")}
-            >
-              Challenge
-            </Button>
-            <Button
-              size="sm"
-              variant={activeView === "interview" ? "default" : "outline"}
-              onClick={() => setActiveView("interview")}
-            >
-              Interview
-            </Button>
-          </div>
         </div>
 
-        {activeView === "challenge" ? (
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={handleRunCode}
-              disabled={isRunning}
-              className="gap-2"
-            >
-              <Play className="h-4 w-4" />
-              Run Code
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={isRunning}
-              className="gap-2 bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Send className="h-4 w-4" />
-              Submit
-            </Button>
-          </div>
-        ) : null}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={handleRunCode}
+            disabled={isRunning}
+            className="gap-2"
+          >
+            <Play className="h-4 w-4" />
+            Run Code
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={isRunning}
+            className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Send className="h-4 w-4" />
+            Submit
+          </Button>
+        </div>
       </header>
 
       <div className="flex-1 overflow-hidden">
-        <div
-          className={`${activeView === "challenge" ? "block" : "hidden"} h-full`}
-        >
+        <div className={`h-full`}>
           <ResizablePanelGroup direction="horizontal" className="h-full">
             {/* Left Panel - Problem Description */}
             <ResizablePanel defaultSize={35} minSize={25}>
@@ -301,12 +279,6 @@ const CodingChallenge: React.FC = () => {
               </ResizablePanelGroup>
             </ResizablePanel>
           </ResizablePanelGroup>
-        </div>
-
-        <div
-          className={`${activeView === "interview" ? "block" : "hidden"} h-full overflow-auto`}
-        >
-          <CodeInterview />
         </div>
       </div>
     </div>
