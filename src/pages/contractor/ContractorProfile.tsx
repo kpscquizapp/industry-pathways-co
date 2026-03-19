@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
   Clock,
-  DollarSign,
+  Banknote,
   Globe,
   MapPin,
   Briefcase,
@@ -164,13 +164,24 @@ const ContractorProfile = () => {
                         profile?.hourlyRateMax != null && (
                           <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
                             <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
-                              <DollarSign className="w-4 h-4 flex-shrink-0" />
+                              <Banknote className="w-4 h-4 flex-shrink-0" />
                               <span className="truncate">Hourly Rate</span>
                             </span>
                             <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
-                              ${profile.hourlyRateMin} - $
-                              {profile.hourlyRateMax}
-                              /hr
+                              {(() => {
+                                const currencySymbols: Record<string, string> =
+                                  {
+                                    "USD - US Dollar": "$",
+                                    "EUR - Euro": "€",
+                                    "GBP - British Pound": "£",
+                                    "INR - Indian Rupee": "₹",
+                                    "AED - UAE Dirham": "د.إ",
+                                  };
+                                const sym =
+                                  currencySymbols[(profile as any).currency] ??
+                                  "$";
+                                return `${sym}${profile.hourlyRateMin} - ${sym}${profile.hourlyRateMax}/hr`;
+                              })()}
                             </span>
                           </div>
                         )}
