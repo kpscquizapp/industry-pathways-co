@@ -17,6 +17,7 @@ import {
   TestCase,
 } from "@/types/coding";
 import { toast } from "sonner";
+import CodeInterview from "./CodeInterview";
 
 // Sample problem data
 const sampleProblem: CodingProblem = {
@@ -103,6 +104,9 @@ public:
 const CodingChallenge: React.FC = () => {
   const navigate = useNavigate();
   const { challengeId } = useParams();
+  const [activeView, setActiveView] = useState<"challenge" | "interview">(
+    "challenge",
+  );
   const [problem] = useState<CodingProblem>(sampleProblem);
   const [language, setLanguage] = useState<SupportedLanguage>(
     SupportedLanguage.JAVASCRIPT,
@@ -194,8 +198,7 @@ const CodingChallenge: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      {/* Header */}
+    <div className="min-h-screen flex flex-col bg-background">
       <header className="border-b border-border px-4 py-3 flex items-center justify-between bg-card flex-shrink-0">
         <div className="flex items-center gap-4">
           <Button
@@ -214,67 +217,97 @@ const CodingChallenge: React.FC = () => {
             Back
           </Button>
           <div className="h-6 w-px bg-border" />
-          <h1 className="text-lg font-semibold">Coding Challenge</h1>
+          <h1 className="text-lg font-semibold">
+            {activeView === "challenge" ? "Coding Challenge" : "Live Code Interview"}
+          </h1>
+          <div className="h-6 w-px bg-border" />
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={activeView === "challenge" ? "default" : "outline"}
+              onClick={() => setActiveView("challenge")}
+            >
+              Challenge
+            </Button>
+            <Button
+              size="sm"
+              variant={activeView === "interview" ? "default" : "outline"}
+              onClick={() => setActiveView("interview")}
+            >
+              Interview
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={handleRunCode}
-            disabled={isRunning}
-            className="gap-2"
-          >
-            <Play className="h-4 w-4" />
-            Run Code
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isRunning}
-            className="gap-2 bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Send className="h-4 w-4" />
-            Submit
-          </Button>
-        </div>
+        {activeView === "challenge" ? (
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleRunCode}
+              disabled={isRunning}
+              className="gap-2"
+            >
+              <Play className="h-4 w-4" />
+              Run Code
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isRunning}
+              className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Send className="h-4 w-4" />
+              Submit
+            </Button>
+          </div>
+        ) : null}
       </header>
 
-      {/* Main Content */}
       <div className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal">
-          {/* Left Panel - Problem Description */}
-          <ResizablePanel defaultSize={35} minSize={25}>
-            <ProblemPanel problem={problem} />
-          </ResizablePanel>
+        <div
+          className={`${activeView === "challenge" ? "block" : "hidden"} h-full`}
+        >
+          <ResizablePanelGroup direction="horizontal" className="h-full">
+            {/* Left Panel - Problem Description */}
+            <ResizablePanel defaultSize={35} minSize={25}>
+              <ProblemPanel problem={problem} />
+            </ResizablePanel>
 
-          <ResizableHandle withHandle />
+            <ResizableHandle withHandle />
 
-          {/* Right Panel - Editor and Console */}
-          <ResizablePanel defaultSize={65} minSize={40}>
-            <ResizablePanelGroup direction="vertical">
-              {/* Editor */}
-              <ResizablePanel defaultSize={60} minSize={30}>
-                <EditorPanel
-                  language={language}
-                  onLanguageChange={handleLanguageChange}
-                  code={code}
-                  onCodeChange={handleCodeChange}
-                  starterCode={problem.starterCode}
-                />
-              </ResizablePanel>
+            {/* Right Panel - Editor and Console */}
+            <ResizablePanel defaultSize={65} minSize={40}>
+              <ResizablePanelGroup direction="vertical">
+                {/* Editor */}
+                <ResizablePanel defaultSize={60} minSize={30}>
+                  <EditorPanel
+                    language={language}
+                    onLanguageChange={handleLanguageChange}
+                    code={code}
+                    onCodeChange={handleCodeChange}
+                    starterCode={problem.starterCode}
+                  />
+                </ResizablePanel>
 
-              <ResizableHandle withHandle />
+                <ResizableHandle withHandle />
 
-              {/* Console Output */}
-              <ResizablePanel defaultSize={40} minSize={20}>
-                <ConsoleOutput
-                  testCases={testCases}
-                  isRunning={isRunning}
-                  error={error}
-                />
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+                {/* Console Output */}
+                <ResizablePanel defaultSize={40} minSize={20}>
+                  <ConsoleOutput
+                    testCases={testCases}
+                    isRunning={isRunning}
+                    error={error}
+                  />
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
+
+        <div
+          className={`${activeView === "interview" ? "block" : "hidden"} h-full overflow-auto`}
+        >
+          <CodeInterview />
+        </div>
       </div>
     </div>
   );
