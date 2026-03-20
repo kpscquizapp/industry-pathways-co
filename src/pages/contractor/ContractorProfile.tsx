@@ -95,7 +95,7 @@ const ContractorProfile = () => {
 
   const hasAvatar = !!data?.avatar;
 
-  const { data: profileImage, isLoading: isLoadingImage } =
+  const { currentData: profileImage, isLoading: isLoadingImage } =
     useGetCandidateProfileImageQuery(
       hasAvatar ? (data?.id ?? skipToken) : skipToken,
     );

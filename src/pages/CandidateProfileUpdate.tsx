@@ -394,7 +394,7 @@ const CandidateProfileUpdate = ({
   const hasAvatar = !!data?.avatar;
 
   const {
-    data: profileImage,
+    currentData: profileImage,
     isLoading: isProfileImageLoading,
     refetch: refetchCandidateProfileImage,
   } = useGetCandidateProfileImageQuery(hasAvatar ? data.id : skipToken);
@@ -1957,7 +1957,7 @@ const CandidateProfileUpdate = ({
               )}
             </div>
           </div>
-          
+
           <div className="pb-2">
             <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
               Currency
