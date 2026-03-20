@@ -37,7 +37,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { skipToken } from "@reduxjs/toolkit/query";
-import ResumeManager from "./ResumeManager";
+import ResumeManager, { type Resume } from "./ResumeManager";
 
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -157,14 +157,7 @@ interface CandidateProfileUpdateProps {
         expiryDate?: string;
         credentialUrl: string;
       }>;
-      resumes?: Array<{
-        id: number;
-        originalName: string;
-        mimeType: string;
-        fileSize: number;
-        uploadedAt: string;
-        isDefault?: boolean;
-      }>;
+      resumes?: Resume[];
     };
   };
 }
@@ -421,7 +414,6 @@ const CandidateProfileUpdate = ({
   const resumeData = useSelector((state: RootState) => state.resumeSkills.data);
   const preferredLocationsDirtyRef = useRef(false);
   const previousProfileIdRef = useRef<string | null>(null);
-  const prevSourceSkillsRef = useRef<string[]>([]);
   const removeSkillTimeoutsRef = useRef<
     Record<string, ReturnType<typeof setTimeout>>
   >({});
@@ -637,7 +629,6 @@ const CandidateProfileUpdate = ({
   useEffect(() => {
     if (!data) {
       previousProfileIdRef.current = null;
-      prevSourceSkillsRef.current = [];
       return;
     }
 
@@ -645,7 +636,6 @@ const CandidateProfileUpdate = ({
       // Clear any pending removal timeouts from the previous profile
       teardownPendingRemovals();
       previousProfileIdRef.current = data.id;
-      prevSourceSkillsRef.current = [];
       preferredLocationsDirtyRef.current = false;
       setFormData(handleForm());
     }
@@ -654,32 +644,27 @@ const CandidateProfileUpdate = ({
   useEffect(() => {
     if (!data) return;
 
-    const currentSourceSkills = skills
-      .map((s) => normalizeSkill(s))
-      .filter(Boolean);
-    const previousSourceSkillsSet = new Set(prevSourceSkillsRef.current);
-    const addedSkills = skills.filter((s) => {
-      const normalized = normalizeSkill(s);
-      return normalized && !previousSourceSkillsSet.has(normalized);
-    });
-
+    // Compute the authoritative primary skills list from parsed resumes and profile
+    // This is idempotent - it replaces formData.primarySkills with the computed set
+    // rather than appending, so deleted/removed skills are properly cleaned up
     setFormData((prev) => {
-      const existingLower = new Set(
-        prev.primarySkills.map((s) => normalizeSkill(s)),
-      );
-      const newSkills = addedSkills.filter(
-        (s) => !existingLower.has(normalizeSkill(s)),
-      );
+      const normalizedSkills = skills
+        .map((s) => normalizeSkill(s))
+        .filter(Boolean);
+      const normalizedPrev = prev.primarySkills.map((s) => normalizeSkill(s));
 
-      if (newSkills.length === 0) return prev;
+      // Check if skills have actually changed (for performance optimization)
+      const skillsChanged =
+        normalizedSkills.length !== normalizedPrev.length ||
+        !normalizedSkills.every((s) => normalizedPrev.includes(s));
+
+      if (!skillsChanged) return prev;
 
       return {
         ...prev,
-        primarySkills: [...prev.primarySkills, ...newSkills],
+        primarySkills: skills,
       };
     });
-
-    prevSourceSkillsRef.current = currentSourceSkills;
   }, [data, skills]);
 
   useEffect(() => {

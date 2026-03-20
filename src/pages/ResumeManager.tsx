@@ -28,7 +28,7 @@ import { useExtractResumeMutation } from "@/app/queries/atsApi";
 import { useDispatch } from "react-redux";
 import { setExtractedSkills } from "@/app/slices/extractResumeSkills";
 
-type Resume = {
+export type Resume = {
   id: number;
   originalName: string;
   mimeType: string;

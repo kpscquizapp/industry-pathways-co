@@ -295,7 +295,11 @@ const CandidateSignup = () => {
         try {
           await checkExistingEmail({ email: formData.email }).unwrap();
         } catch (error) {
-          if (isFetchBaseQueryError(error) && error.status === 409) {
+          if (
+            isFetchBaseQueryError(error) &&
+            "status" in error &&
+            error.status === 409
+          ) {
             errors.email =
               "Email already registered, please use a different email.";
           } else {
@@ -1118,7 +1122,7 @@ const CandidateSignup = () => {
                     <Button
                       type="submit"
                       className="flex-[2] h-14 text-lg font-bold rounded-2xl bg-primary dark:bg-primary text-white hover:opacity-90 shadow-2xl shadow-primary/20 transition-all active:scale-[0.98] group"
-                      disabled={isLoading}
+                      disabled={isLoading || isCheckingEmail}
                     >
                       {isLoading ? (
                         <div className="flex items-center gap-3">
