@@ -64,13 +64,13 @@ const getMenuItems = (role: DashboardRole) => {
           href: "/contractor/dashboard",
         },
         { icon: User, label: "Profile", href: "/contractor/profile" },
-        { icon: FileCheck, label: "Skill Tests", href: "/contractor/tests" },
-        {
-          icon: Video,
-          label: "AI Interviews",
-          href: "/contractor/interviews",
-          isAI: true,
-        },
+        // { icon: FileCheck, label: "Skill Tests", href: "/contractor/tests" },
+        // {
+        //   icon: Video,
+        //   label: "AI Interviews",
+        //   href: "/contractor/interviews",
+        //   isAI: true,
+        // },
         { icon: Settings, label: "Settings", href: "/contractor/settings" },
       ];
     case "bench":
