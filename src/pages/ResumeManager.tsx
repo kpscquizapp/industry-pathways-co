@@ -500,6 +500,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
+          style={{ marginBlock: "0px" }}
         >
           {/* Modal Content */}
           <div
