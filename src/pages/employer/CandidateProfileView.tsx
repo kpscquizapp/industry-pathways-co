@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Clock,
   DollarSign,
+  Banknote,
   Globe,
   MapPin,
   Briefcase,
@@ -119,13 +120,15 @@ const normalizeBenchCandidate = (c: BenchResourceRawDto) => {
   const rawHourlyMin =
     c.hourlyRate != null && typeof c.hourlyRate === "object"
       ? c.hourlyRate.min
-      : typeof c.hourlyRate === "number"
+      : c.hourlyRate != null &&
+          (typeof c.hourlyRate === "number" || typeof c.hourlyRate === "string")
         ? c.hourlyRate
         : (c.expectedSalary?.min ?? null);
   const rawHourlyMax =
     c.hourlyRate != null && typeof c.hourlyRate === "object"
       ? c.hourlyRate.max
-      : typeof c.hourlyRate === "number"
+      : c.hourlyRate != null &&
+          (typeof c.hourlyRate === "number" || typeof c.hourlyRate === "string")
         ? c.hourlyRate
         : (c.expectedSalary?.max ?? null);
   const hourlyMin =
@@ -218,7 +221,9 @@ const normalizeBenchCandidate = (c: BenchResourceRawDto) => {
     refCode: c.refCode,
     technicalSkills: skillsArr,
     professionalSummary: c.professionalSummary ?? c.about ?? null,
-    currency: c.currency,
+    currency: c.currency
+      ? (c.currency.match(/^[A-Z]{3}/)?.[0] ?? c.currency)
+      : undefined,
     availableFrom: c.availableFrom,
     minimumContractDuration: c.minimumContractDuration,
     deploymentPreference: deploymentPref,
@@ -557,7 +562,7 @@ const CandidateProfileView = () => {
                           return (
                             <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
                               <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
-                                <DollarSign className="w-4 h-4 flex-shrink-0" />
+                                <Banknote className="w-4 h-4 flex-shrink-0" />
                                 <span className="truncate">Hourly Rate</span>
                               </span>
                               <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
@@ -573,7 +578,7 @@ const CandidateProfileView = () => {
                           return (
                             <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
                               <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
-                                <DollarSign className="w-4 h-4 flex-shrink-0" />
+                                <Banknote className="w-4 h-4 flex-shrink-0" />
                                 <span className="truncate">Hourly Rate</span>
                               </span>
                               <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">

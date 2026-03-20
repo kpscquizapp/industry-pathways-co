@@ -38,6 +38,7 @@ import { RootState } from "@/app/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { skipToken } from "@reduxjs/toolkit/query";
 import ResumeManager, { type Resume } from "./ResumeManager";
+import { currencySymbols, getCurrencySymbol } from "@/lib/currency";
 
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -99,6 +100,7 @@ interface FormDataState {
   expectedSalaryMax: number | string;
   hourlyRateMin: number | string;
   hourlyRateMax: number | string;
+  currency: string;
   workExperiences: WorkExperienceForm[];
   projects: ProjectForm[];
   certifications: CertificationForm[];
@@ -128,6 +130,7 @@ interface CandidateProfileUpdateProps {
       hourlyRateMax?: number | string;
       expectedSalaryMin?: number | string;
       expectedSalaryMax?: number | string;
+      currency?: string;
       workExperiences?: Array<{
         id: number | null;
         localId?: string;
@@ -567,6 +570,7 @@ const CandidateProfileUpdate = ({
         hourlyRateMax: "",
         expectedSalaryMin: "",
         expectedSalaryMax: "",
+        currency: "",
         workExperiences: [],
         projects: [],
         certifications: [],
@@ -595,6 +599,10 @@ const CandidateProfileUpdate = ({
       expectedSalaryMax: toNumberOrEmpty(
         data?.candidateProfile.expectedSalaryMax,
       ),
+      currency: (() => {
+        const raw = (data?.candidateProfile as { currency?: string })?.currency;
+        return raw && currencySymbols[raw] ? raw : "";
+      })(),
       workExperiences: workExperiences || [],
       projects: projects || [],
       certifications: certification || [],
@@ -1406,6 +1414,7 @@ const CandidateProfileUpdate = ({
       firstName: formData.firstName.trim(),
       lastName: formData.lastName.trim(),
       email: formData.email.toLowerCase().trim(),
+      currency: formData.currency || "",
       mobileNumber: formData.mobileNumber.replace(/[\s\-()]/g, ""),
       location: formData.location.trim(),
       country: formData.country?.trim() || null,
@@ -1949,25 +1958,50 @@ const CandidateProfileUpdate = ({
             </div>
           </div>
 
+          <div className="pb-2">
+            <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              Currency
+            </Label>
+            <select
+              name="currency"
+              value={formData.currency}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+            >
+              <option value="" disabled>
+                Select currency
+              </option>
+              {Object.keys(currencySymbols).map((curr) => (
+                <option key={curr} value={curr}>
+                  {curr}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
                 Expected Salary (Min){" "}
                 <span className="text-destructive">*</span>
               </Label>
-              <Input
-                type="number"
-                name="expectedSalaryMin"
-                value={formData.expectedSalaryMin}
-                onChange={handleInputChange}
-                min="0"
-                placeholder="Enter your expected salary (min)"
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors.expectedSalaryMin
-                    ? "border-red-500 dark:border-red-500"
-                    : ""
-                }`}
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
+                  {getCurrencySymbol(formData.currency)}
+                </span>
+                <Input
+                  type="number"
+                  name="expectedSalaryMin"
+                  value={formData.expectedSalaryMin}
+                  onChange={handleInputChange}
+                  min="0"
+                  placeholder="Enter your expected salary (min)"
+                  className={`w-full pl-7 pr-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                    fieldErrors.expectedSalaryMin
+                      ? "border-red-500 dark:border-red-500"
+                      : ""
+                  }`}
+                />
+              </div>
               <ErrorMessage error={fieldErrors.expectedSalaryMin} />
             </div>
             <div>
@@ -1975,19 +2009,24 @@ const CandidateProfileUpdate = ({
                 Expected Salary (Max){" "}
                 <span className="text-destructive">*</span>
               </Label>
-              <Input
-                type="number"
-                name="expectedSalaryMax"
-                value={formData.expectedSalaryMax}
-                onChange={handleInputChange}
-                min="0"
-                placeholder="Enter your expected salary (max)"
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors.expectedSalaryMax
-                    ? "border-red-500 dark:border-red-500"
-                    : ""
-                }`}
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
+                  {getCurrencySymbol(formData.currency)}
+                </span>
+                <Input
+                  type="number"
+                  name="expectedSalaryMax"
+                  value={formData.expectedSalaryMax}
+                  onChange={handleInputChange}
+                  min="0"
+                  placeholder="Enter your expected salary (max)"
+                  className={`w-full pl-7 pr-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                    fieldErrors.expectedSalaryMax
+                      ? "border-red-500 dark:border-red-500"
+                      : ""
+                  }`}
+                />
+              </div>
               <ErrorMessage error={fieldErrors.expectedSalaryMax} />
             </div>
           </div>
@@ -1997,40 +2036,50 @@ const CandidateProfileUpdate = ({
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
                 Hourly Rate (Min)
               </Label>
-              <Input
-                type="number"
-                name="hourlyRateMin"
-                value={formData.hourlyRateMin}
-                onChange={handleInputChange}
-                placeholder="Enter your hourly rate (min)"
-                min="0"
-                max="10000"
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors.hourlyRate
-                    ? "border-red-500 dark:border-red-500"
-                    : ""
-                }`}
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
+                  {getCurrencySymbol(formData.currency)}
+                </span>
+                <Input
+                  type="number"
+                  name="hourlyRateMin"
+                  value={formData.hourlyRateMin}
+                  onChange={handleInputChange}
+                  placeholder="Enter your hourly rate (min)"
+                  min="0"
+                  max="10000"
+                  className={`w-full pl-7 pr-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                    fieldErrors.hourlyRate
+                      ? "border-red-500 dark:border-red-500"
+                      : ""
+                  }`}
+                />
+              </div>
             </div>
 
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
                 Hourly Rate (Max)
               </Label>
-              <Input
-                type="number"
-                name="hourlyRateMax"
-                value={formData.hourlyRateMax}
-                onChange={handleInputChange}
-                min="0"
-                max="10000"
-                placeholder="Enter your hourly rate (max)"
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors.hourlyRate
-                    ? "border-red-500 dark:border-red-500"
-                    : ""
-                }`}
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
+                  {getCurrencySymbol(formData.currency)}
+                </span>
+                <Input
+                  type="number"
+                  name="hourlyRateMax"
+                  value={formData.hourlyRateMax}
+                  onChange={handleInputChange}
+                  min="0"
+                  max="10000"
+                  placeholder="Enter your hourly rate (max)"
+                  className={`w-full pl-7 pr-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
+                    fieldErrors.hourlyRate
+                      ? "border-red-500 dark:border-red-500"
+                      : ""
+                  }`}
+                />
+              </div>
             </div>
           </div>
           <ErrorMessage error={fieldErrors.hourlyRate} />

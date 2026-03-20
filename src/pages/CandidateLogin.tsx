@@ -137,7 +137,7 @@ const CandidateLogin = () => {
         navigate("/contractor/profile");
       } else {
         toast.success(
-          `Welcome back${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
+          `Welcome${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
         );
         navigate("/contractor/dashboard");
       }
@@ -202,7 +202,7 @@ const CandidateLogin = () => {
             </div>
 
             <h1 className="text-5xl xl:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
-              Welcome Back,
+              Welcome,
               <br />
               <span className="bg-gradient-to-r from-primary via-emerald-400 to-green-400 bg-clip-text text-transparent">
                 Contractor
