@@ -42,31 +42,31 @@ const LandingFooter = () => {
           },
         ],
       },
-      forCompanies: {
-        title: "For Companies",
-        links: [
-          {
-            label: "Hire Talent",
-            href:
-              user?.role === "employer"
-                ? "/hire-talent/dashboard"
-                : "/hire-talent-signup",
-          },
-          {
-            label: "List Bench Resources",
-            href:
-              user?.role === "hr" ? "/bench-dashboard" : "/bench-registration",
-          },
-          {
-            label: "Post a Job",
-            href:
-              user?.role === "employer"
-                ? "/hire-talent/dashboard"
-                : "/hire-talent-signup",
-          },
-          { label: "Pricing", href: "#pricing" },
-        ],
-      },
+      // forCompanies: {
+      //   title: "For Companies",
+      //   links: [
+      //     {
+      //       label: "Hire Talent",
+      //       href:
+      //         user?.role === "employer"
+      //           ? "/hire-talent/dashboard"
+      //           : "/hire-talent-signup",
+      //     },
+      //     {
+      //       label: "List Bench Resources",
+      //       href:
+      //         user?.role === "hr" ? "/bench-dashboard" : "/bench-registration",
+      //     },
+      //     {
+      //       label: "Post a Job",
+      //       href:
+      //         user?.role === "employer"
+      //           ? "/hire-talent/dashboard"
+      //           : "/hire-talent-signup",
+      //     },
+      //     { label: "Pricing", href: "#pricing" },
+      //   ],
+      // },
       resources: {
         title: "Resources",
         links: [
@@ -92,7 +92,7 @@ const LandingFooter = () => {
   return (
     <footer className="bg-navy-900 text-white pt-20 pb-8">
       <div className="container">
-        <div className="grid lg:grid-cols-5 gap-12 mb-16">
+        <div className="grid lg:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
@@ -113,14 +113,13 @@ const LandingFooter = () => {
                 className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
               >
                 <Mail className="w-4 h-4" />
-                hello@hirion.com
+                amritha@quickrekruit.com
               </a>
               <a
                 href="tel:+1234567890"
                 className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
               >
-                <Phone className="w-4 h-4" />
-                +1 (234) 567-890
+                <Phone className="w-4 h-4" />+ 91 7736805150
               </a>
             </div>
           </div>
@@ -171,20 +170,6 @@ const LandingFooter = () => {
             >
               <Linkedin className="w-4 h-4 text-white/60" />
             </a>
-            <button
-              type="button"
-              aria-label="Twitter"
-              className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
-            >
-              <Twitter className="w-4 h-4 text-white/60" />
-            </button>
-            <button
-              type="button"
-              aria-label="Github"
-              className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
-            >
-              <Github className="w-4 h-4 text-white/60" />
-            </button>
           </div>
         </div>
       </div>

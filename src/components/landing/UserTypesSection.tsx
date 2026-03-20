@@ -40,39 +40,39 @@ const UserTypesSection = () => {
           ? "/contractor/dashboard"
           : "/contractor-signup",
     },
-    bench: {
-      title: "Companies with Bench Resources",
-      icon: Building2,
-      description:
-        "Monetize your idle talent and maximize resource utilization",
-      color: "from-primary to-green-400",
-      benefits: [
-        { icon: Users, text: "Upload multiple resumes at once" },
-        { icon: Target, text: "AI ranks bench talent per job match" },
-        { icon: TrendingUp, text: "Visibility to hiring companies" },
-        { icon: DollarSign, text: "Monetize idle resources" },
-      ],
-      cta: "List Bench Resources",
-      link: user?.role === "hr" ? "/bench-dashboard" : "/bench-registration",
-    },
-    hiring: {
-      title: "Hiring Companies",
-      icon: Briefcase,
-      description:
-        "Find and hire the best contract talent with AI-powered insights",
-      color: "from-purple-500 to-pink-500",
-      benefits: [
-        { icon: Target, text: "JD → AI resume shortlist instantly" },
-        { icon: Zap, text: "Automated skill tests for validation" },
-        { icon: TrendingUp, text: "AI interview insights & scoring" },
-        { icon: Clock, text: "Hire fast, pay per contract" },
-      ],
-      cta: "Start Hiring",
-      link:
-        user?.role === "employer"
-          ? "/hire-talent/dashboard"
-          : "/hire-talent-signup",
-    },
+    // bench: {
+    //   title: "Companies with Bench Resources",
+    //   icon: Building2,
+    //   description:
+    //     "Monetize your idle talent and maximize resource utilization",
+    //   color: "from-primary to-green-400",
+    //   benefits: [
+    //     { icon: Users, text: "Upload multiple resumes at once" },
+    //     { icon: Target, text: "AI ranks bench talent per job match" },
+    //     { icon: TrendingUp, text: "Visibility to hiring companies" },
+    //     { icon: DollarSign, text: "Monetize idle resources" },
+    //   ],
+    //   cta: "List Bench Resources",
+    //   link: user?.role === "hr" ? "/bench-dashboard" : "/bench-registration",
+    // },
+    // hiring: {
+    //   title: "Hiring Companies",
+    //   icon: Briefcase,
+    //   description:
+    //     "Find and hire the best contract talent with AI-powered insights",
+    //   color: "from-purple-500 to-pink-500",
+    //   benefits: [
+    //     { icon: Target, text: "JD → AI resume shortlist instantly" },
+    //     { icon: Zap, text: "Automated skill tests for validation" },
+    //     { icon: TrendingUp, text: "AI interview insights & scoring" },
+    //     { icon: Clock, text: "Hire fast, pay per contract" },
+    //   ],
+    //   cta: "Start Hiring",
+    //   link:
+    //     user?.role === "employer"
+    //       ? "/hire-talent/dashboard"
+    //       : "/hire-talent-signup",
+    // },
   };
 
   return (
@@ -89,7 +89,7 @@ const UserTypesSection = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-3 mb-12 bg-card border border-border rounded-xl p-1 h-auto">
+          {/* <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-3 mb-12 bg-card border border-border rounded-xl p-1 h-auto">
             {Object.entries(userTypes).map(([key, type]) => (
               <TabsTrigger
                 key={key}
@@ -106,7 +106,7 @@ const UserTypesSection = () => {
                 </span>
               </TabsTrigger>
             ))}
-          </TabsList>
+          </TabsList> */}
 
           {Object.entries(userTypes).map(([key, type]) => (
             <TabsContent key={key} value={key} className="mt-0">

@@ -48,12 +48,12 @@ const LandingHeader = () => {
 
   const handleRoleBasedNavigation = (role: string) => {
     switch (role) {
-      case "hr":
-        navigation("/bench-dashboard");
-        break;
-      case "employer":
-        navigation("/hire-talent/dashboard");
-        break;
+      // case "hr":
+      //   navigation("/bench-dashboard");
+      //   break;
+      // case "employer":
+      //   navigation("/hire-talent/dashboard");
+      //   break;
       case "candidate":
         navigation("/contractor/dashboard");
         break;
@@ -128,7 +128,7 @@ const LandingHeader = () => {
                     </div>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                {/* <DropdownMenuItem asChild>
                   <Link
                     to={
                       user?.role === "hr"
@@ -161,7 +161,7 @@ const LandingHeader = () => {
                       <p className="text-xs">Hire top talent</p>
                     </div>
                   </Link>
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -231,7 +231,7 @@ const LandingHeader = () => {
             >
               For Contractors
             </Link>
-            <Link
+            {/* <Link
               to={
                 user?.role === "hr" ? "/bench-dashboard" : "/bench-registration"
               }
@@ -250,7 +250,7 @@ const LandingHeader = () => {
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
               For Hiring Companies
-            </Link>
+            </Link> */}
 
             <div className="pt-4 border-t border-border space-y-2">
               {user && (

@@ -156,7 +156,7 @@ const App = () => {
                 <PageTransition>
                   <Routes>
                     <Route path="/" element={<Index />} />
-                    <Route
+                    {/* <Route
                       path="/hire-talent-login"
                       element={<EmployerLogin />}
                     />
@@ -168,7 +168,7 @@ const App = () => {
                       path="/bench-registration"
                       element={<BenchRegistration />}
                     />
-                    <Route path="/bench-login" element={<BenchLogin />} />
+                    <Route path="/bench-login" element={<BenchLogin />} /> */}
                     <Route
                       path="/contractor-login"
                       element={<CandidateLogin />}
@@ -221,22 +221,22 @@ const App = () => {
                     </Route>
 
                     {/* NEW: Employer (old bench) Dashboard Routes */}
-                    <Route
+                    {/* <Route
                       element={<ProtectedLayout allowedRoles={["employer"]} />}
                     >
                       <Route
                         path="/hire-talent"
                         element={<UnifiedDashboardLayout role="hire-talent" />}
                       >
-                        <Route index element={<HiringDashboardNew />} />
-                        {/* <Route index element={<BenchDashboard />} />
+                        <Route index element={<HiringDashboardNew />} /> */}
+                    {/* <Route index element={<BenchDashboard />} />
                         <Route path="dashboard" element={<BenchDashboard />} />
                         <Route path="talent" element={<BenchDashboard />} />
                         <Route path="matches" element={<BenchDashboard />} />
                         <Route path="analytics" element={<BenchDashboard />} />
                         <Route path="contracts" element={<BenchDashboard />} />
                         <Route path="billing" element={<BenchDashboard />} /> */}
-                        <Route
+                    {/* <Route
                           path="dashboard"
                           element={<HiringDashboardNew />}
                         />
@@ -264,10 +264,10 @@ const App = () => {
                         />
                         <Route path="settings" element={<EmployerSettings />} />
                       </Route>
-                    </Route>
+                    </Route> */}
 
                     {/* Legacy (Employer -Current using) HR Dashboard Routes */}
-                    <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
+                    {/* <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
                       <Route
                         path="/bench-dashboard"
                         element={<EmployerLayoutOld />}
@@ -321,7 +321,7 @@ const App = () => {
                         />
                         <Route path="settings" element={<EmployerSettings />} />
                       </Route>
-                    </Route>
+                    </Route> */}
 
                     {/* <Route
                       path="/profile-visibility"

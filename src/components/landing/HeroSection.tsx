@@ -50,7 +50,7 @@ const HeroSection = () => {
 
             {/* CTA Buttons - All similar style */}
             <div className="flex flex-wrap gap-4">
-              <Button
+              {/* <Button
                 asChild
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
@@ -65,7 +65,7 @@ const HeroSection = () => {
                   List Bench Resources
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
-              </Button>
+              </Button> */}
 
               <Button
                 asChild
@@ -80,7 +80,7 @@ const HeroSection = () => {
                 </Link>
               </Button>
 
-              <Button
+              {/* <Button
                 asChild
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
@@ -91,7 +91,7 @@ const HeroSection = () => {
                   <Building2 className="mr-2 h-5 w-5" />
                   Hire Talent
                 </Link>
-              </Button>
+              </Button> */}
             </div>
           </div>
 
