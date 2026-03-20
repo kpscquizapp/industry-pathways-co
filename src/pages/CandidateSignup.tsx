@@ -21,7 +21,10 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useCreateCandidateMutation } from "@/app/queries/loginApi";
+import {
+  useCheckExistingEmailMutation,
+  useCreateCandidateMutation,
+} from "@/app/queries/loginApi";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import RegistrationStepIndicator from "@/components/auth/RegistrationStepIndicator";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -142,6 +145,8 @@ const VALIDATION = {
 const CandidateSignup = () => {
   const navigate = useNavigate();
   const [createCandidate, { isLoading }] = useCreateCandidateMutation();
+  const [checkExistingEmail, { isLoading: isCheckingEmail }] =
+    useCheckExistingEmailMutation();
 
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -264,7 +269,7 @@ const CandidateSignup = () => {
     }
   };
 
-  const validateStep = (): boolean => {
+  const validateStep = async (): Promise<boolean> => {
     const errors: Record<string, string> = {};
 
     if (currentStep === 1) {
@@ -285,6 +290,24 @@ const CandidateSignup = () => {
       // Validate email
       const emailError = VALIDATION.email.validate(formData.email);
       if (emailError) errors.email = emailError;
+      // Check email availability only when format is valid
+      if (!emailError && formData.email) {
+        try {
+          await checkExistingEmail({ email: formData.email }).unwrap();
+        } catch (error) {
+          if (
+            isFetchBaseQueryError(error) &&
+            "status" in error &&
+            error.status === 409
+          ) {
+            errors.email =
+              "Email already registered, please use a different email.";
+          } else {
+            errors.email =
+              "Could not verify email right now. Please try again.";
+          }
+        }
+      }
 
       // Validate phone
       const phoneError = VALIDATION.phone.validate(formData.mobileNumber);
@@ -355,8 +378,8 @@ const CandidateSignup = () => {
     return true;
   };
 
-  const nextStep = () => {
-    if (validateStep()) {
+  const nextStep = async () => {
+    if (await validateStep()) {
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     }
   };
@@ -370,11 +393,11 @@ const CandidateSignup = () => {
     e.preventDefault();
 
     if (currentStep < totalSteps) {
-      nextStep();
+      await nextStep();
       return;
     }
 
-    if (!validateStep()) {
+    if (!(await validateStep())) {
       return;
     }
 
@@ -394,9 +417,7 @@ const CandidateSignup = () => {
 
     try {
       await createCandidate(payload).unwrap();
-      toast.success(
-        "Registration successful! Please check your email to verify your account.",
-      );
+      toast.success("Registration successful! Please login to continue.");
       navigate("/contractor-login");
     } catch (error: unknown) {
       // Handle specific error cases
@@ -539,7 +560,7 @@ const CandidateSignup = () => {
             <div className="relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 to-emerald-500/10 rounded-[36px] blur-xl opacity-50 dark:opacity-20" />
 
-              <div className="relative bg-white dark:bg-[#0a0a0a] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-white/[0.05] p-8 md:p-10">
+              <div className="relative bg-white dark:bg-[#0a0a0a] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-white/[0.05] px-6 py-8 md:p-10">
                 <div className="mb-10 text-center md:text-left">
                   <RegistrationStepIndicator
                     currentStep={currentStep}
@@ -547,14 +568,14 @@ const CandidateSignup = () => {
                     steps={steps}
                   />
 
-                  <h3 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
+                  <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
                     {currentStep === 1
                       ? "Contractor Signup"
                       : currentStep === 2
                         ? "Professional Profile"
                         : "Career Preferences"}
                   </h3>
-                  <p className="text-slate-500 dark:text-slate-400 font-medium">
+                  <p className="text-slate-500 dark:text-slate-400 font-medium text-[13px] sm:text-[16px]">
                     {currentStep === 1
                       ? "Start your journey as an elite contractor."
                       : currentStep === 2
@@ -637,6 +658,12 @@ const CandidateSignup = () => {
                             required
                           />
                         </div>
+                        {isCheckingEmail && (
+                          <div className="text-sm text-slate-500 flex items-center gap-2">
+                            <SpinnerLoader />{" "}
+                            <span>Checking availability...</span>
+                          </div>
+                        )}
                         <ErrorMessage error={fieldErrors.email} />
                       </div>
 
@@ -851,6 +878,7 @@ const CandidateSignup = () => {
                                 type="button"
                                 aria-label="remove skill"
                                 onClick={() => removeSkill(skill)}
+                                className="min-h-0 min-w-0"
                               >
                                 <X className="w-3 h-3 cursor-pointer group-hover:text-red-500 transition-colors" />
                               </button>
@@ -1035,7 +1063,7 @@ const CandidateSignup = () => {
                     <Button
                       type="submit"
                       className="flex-[2] h-14 text-lg font-bold rounded-2xl bg-primary dark:bg-primary text-white hover:opacity-90 shadow-2xl shadow-primary/20 transition-all active:scale-[0.98] group"
-                      disabled={isLoading}
+                      disabled={isLoading || isCheckingEmail}
                     >
                       {isLoading ? (
                         <div className="flex items-center gap-3">
@@ -1046,7 +1074,7 @@ const CandidateSignup = () => {
                         <div className="flex items-center gap-2">
                           <span>
                             {currentStep === totalSteps
-                              ? "Launch Your Career"
+                              ? "Signup"
                               : "Next Step"}
                           </span>
                           {currentStep < totalSteps ? (
@@ -1061,7 +1089,7 @@ const CandidateSignup = () => {
                 </form>
 
                 <div className="mt-10 text-center">
-                  <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
+                  <p className="text-[13px] sm:text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
                     Already an elite contractor?{" "}
                     <Link
                       to="/contractor-login"

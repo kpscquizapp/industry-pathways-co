@@ -71,6 +71,13 @@ export const loginApi = createApi({
         url: "auth/login-hr",
       }),
     }),
+    checkExistingEmail: builder.mutation({
+      query: (data) => ({
+        method: "POST",
+        body: data,
+        url: "auth/check-email",
+      }),
+    }),
     getRefreshToken: builder.mutation<
       { accessToken?: string; token?: string },
       string
@@ -119,6 +126,7 @@ export const {
   useCreateCandidateMutation,
   useLoginMutation,
   useGetRefreshTokenMutation,
+  useCheckExistingEmailMutation,
   useLogoutMutation,
   useLoginCandidateMutation,
   useLoginEmployerMutation,

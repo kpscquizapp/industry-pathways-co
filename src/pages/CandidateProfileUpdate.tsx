@@ -37,6 +37,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { skipToken } from "@reduxjs/toolkit/query";
+import ResumeManager, { type Resume } from "./ResumeManager";
 import { currencySymbols, getCurrencySymbol } from "@/lib/currency";
 
 // ==================== TYPES ====================
@@ -91,11 +92,10 @@ interface FormDataState {
   bio: string;
   yearsExperience: string | number;
   primarySkills: string[];
-  headline: string;
+  primaryJobRole: string;
   availableToJoin: string;
   englishProficiency: string;
   preferredJobLocations: string[];
-  preferredWorkType: string[];
   expectedSalaryMin: number | string;
   expectedSalaryMax: number | string;
   hourlyRateMin: number | string;
@@ -122,11 +122,10 @@ interface CandidateProfileUpdateProps {
       bio?: string;
       yearsExperience?: string | number;
       primarySkills?: Skill[];
-      headline?: string;
+      primaryJobRole?: string;
       availableToJoin?: string;
       englishProficiency?: string;
       preferredJobLocations?: string[];
-      preferredWorkType?: string[];
       hourlyRateMin?: number | string;
       hourlyRateMax?: number | string;
       expectedSalaryMin?: number | string;
@@ -161,6 +160,7 @@ interface CandidateProfileUpdateProps {
         expiryDate?: string;
         credentialUrl: string;
       }>;
+      resumes?: Resume[];
     };
   };
 }
@@ -209,11 +209,11 @@ const VALIDATION = {
       return null;
     },
   },
-  headline: {
+  primaryJobRole: {
     maxLength: 100,
-    validate: (headline: string) => {
-      if (headline && headline.length > 100)
-        return "Headline must be less than 100 characters";
+    validate: (primaryJobRole: string) => {
+      if (primaryJobRole && primaryJobRole.length > 100)
+        return "Primary Job Role must be less than 100 characters";
       return null;
     },
   },
@@ -394,7 +394,7 @@ const CandidateProfileUpdate = ({
   const hasAvatar = !!data?.avatar;
 
   const {
-    data: profileImage,
+    currentData: profileImage,
     isLoading: isProfileImageLoading,
     refetch: refetchCandidateProfileImage,
   } = useGetCandidateProfileImageQuery(hasAvatar ? data.id : skipToken);
@@ -417,7 +417,6 @@ const CandidateProfileUpdate = ({
   const resumeData = useSelector((state: RootState) => state.resumeSkills.data);
   const preferredLocationsDirtyRef = useRef(false);
   const previousProfileIdRef = useRef<string | null>(null);
-  const prevSourceSkillsRef = useRef<string[]>([]);
   const removeSkillTimeoutsRef = useRef<
     Record<string, ReturnType<typeof setTimeout>>
   >({});
@@ -563,11 +562,10 @@ const CandidateProfileUpdate = ({
         bio: "",
         yearsExperience: "",
         primarySkills: [],
-        headline: "",
+        primaryJobRole: "",
         availableToJoin: "",
         englishProficiency: "",
         preferredJobLocations: [],
-        preferredWorkType: [],
         hourlyRateMin: "",
         hourlyRateMax: "",
         expectedSalaryMin: "",
@@ -589,11 +587,10 @@ const CandidateProfileUpdate = ({
       bio: data?.candidateProfile.bio || "",
       yearsExperience: data?.candidateProfile.yearsExperience ?? "",
       primarySkills: skills || [],
-      headline: data?.candidateProfile.headline || "",
+      primaryJobRole: data?.candidateProfile.primaryJobRole || "",
       availableToJoin: data?.candidateProfile.availableToJoin || "",
       englishProficiency: data?.candidateProfile.englishProficiency ?? "",
       preferredJobLocations: data?.candidateProfile.preferredJobLocations ?? [],
-      preferredWorkType: data?.candidateProfile.preferredWorkType ?? [],
       hourlyRateMin: toNumberOrEmpty(data?.candidateProfile.hourlyRateMin),
       hourlyRateMax: toNumberOrEmpty(data?.candidateProfile.hourlyRateMax),
       expectedSalaryMin: toNumberOrEmpty(
@@ -640,7 +637,6 @@ const CandidateProfileUpdate = ({
   useEffect(() => {
     if (!data) {
       previousProfileIdRef.current = null;
-      prevSourceSkillsRef.current = [];
       return;
     }
 
@@ -648,7 +644,6 @@ const CandidateProfileUpdate = ({
       // Clear any pending removal timeouts from the previous profile
       teardownPendingRemovals();
       previousProfileIdRef.current = data.id;
-      prevSourceSkillsRef.current = [];
       preferredLocationsDirtyRef.current = false;
       setFormData(handleForm());
     }
@@ -657,32 +652,27 @@ const CandidateProfileUpdate = ({
   useEffect(() => {
     if (!data) return;
 
-    const currentSourceSkills = skills
-      .map((s) => normalizeSkill(s))
-      .filter(Boolean);
-    const previousSourceSkillsSet = new Set(prevSourceSkillsRef.current);
-    const addedSkills = skills.filter((s) => {
-      const normalized = normalizeSkill(s);
-      return normalized && !previousSourceSkillsSet.has(normalized);
-    });
-
+    // Compute the authoritative primary skills list from parsed resumes and profile
+    // This is idempotent - it replaces formData.primarySkills with the computed set
+    // rather than appending, so deleted/removed skills are properly cleaned up
     setFormData((prev) => {
-      const existingLower = new Set(
-        prev.primarySkills.map((s) => normalizeSkill(s)),
-      );
-      const newSkills = addedSkills.filter(
-        (s) => !existingLower.has(normalizeSkill(s)),
-      );
+      const normalizedSkills = skills
+        .map((s) => normalizeSkill(s))
+        .filter(Boolean);
+      const normalizedPrev = prev.primarySkills.map((s) => normalizeSkill(s));
 
-      if (newSkills.length === 0) return prev;
+      // Check if skills have actually changed (for performance optimization)
+      const skillsChanged =
+        normalizedSkills.length !== normalizedPrev.length ||
+        !normalizedSkills.every((s) => normalizedPrev.includes(s));
+
+      if (!skillsChanged) return prev;
 
       return {
         ...prev,
-        primarySkills: [...prev.primarySkills, ...newSkills],
+        primarySkills: skills,
       };
     });
-
-    prevSourceSkillsRef.current = currentSourceSkills;
   }, [data, skills]);
 
   useEffect(() => {
@@ -702,7 +692,6 @@ const CandidateProfileUpdate = ({
     "30 Days",
     "60 Days+",
   ];
-  const preferredWorkTypeOptions = ["remote", "hybrid", "onsite"];
   const englishProficiencyOptions = [
     "Basic",
     "Professional",
@@ -760,20 +749,6 @@ const CandidateProfileUpdate = ({
     }
 
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleWorkTypeChange = (workType: string) => {
-    setFormData((prev) => {
-      const currentTypes = prev.preferredWorkType || [];
-      const isSelected = currentTypes.includes(workType);
-
-      return {
-        ...prev,
-        preferredWorkType: isSelected
-          ? currentTypes.filter((type) => type !== workType)
-          : [...currentTypes, workType],
-      };
-    });
   };
 
   const addLocation = () => {
@@ -1065,6 +1040,7 @@ const CandidateProfileUpdate = ({
       title: "title",
       description: "description",
       projectUrl: "url",
+      isFeatured: "featured",
     };
     const errorKey = `project_${index}_${errorKeyMap[field] ?? field}`;
     if (fieldErrors[errorKey]) {
@@ -1287,8 +1263,10 @@ const CandidateProfileUpdate = ({
     const emailError = VALIDATION.email.validate(formData.email);
     if (emailError) errors.email = emailError;
 
-    const headlineError = VALIDATION.headline.validate(formData.headline);
-    if (headlineError) errors.headline = headlineError;
+    const primaryJobRoleError = VALIDATION.primaryJobRole.validate(
+      formData.primaryJobRole,
+    );
+    if (primaryJobRoleError) errors.primaryJobRole = primaryJobRoleError;
 
     const bioError = VALIDATION.bio.validate(formData.bio);
     if (bioError) errors.bio = bioError;
@@ -1338,75 +1316,47 @@ const CandidateProfileUpdate = ({
     const skillsError = VALIDATION.skill.validate(formData.primarySkills);
     if (skillsError) errors.primarySkills = skillsError;
 
-    // Validate work experiences
+    // Validate work experiences (if a card exists, required fields must be filled)
     formData.workExperiences.forEach((exp, index) => {
       const companyName = exp.companyName.trim();
       const role = exp.role.trim();
-      const employmentType = exp.employmentType.trim();
       const startDate = exp.startDate.trim();
       const endDate = (exp.endDate ?? "").trim();
-      const location = exp.location.trim();
-      const hasDescription = Array.isArray(exp.description)
-        ? exp.description.some((part) => part.trim() !== "")
-        : String(exp.description ?? "").trim() !== "";
 
-      const hasAnyWorkValue =
-        companyName !== "" ||
-        role !== "" ||
-        employmentType !== "" ||
-        startDate !== "" ||
-        endDate !== "" ||
-        location !== "" ||
-        hasDescription;
-
-      if (hasAnyWorkValue) {
-        if (!companyName)
-          errors[`workExp_${index}_company`] = "Company name is required";
-        if (!role) errors[`workExp_${index}_role`] = "Role is required";
-        if (!startDate)
-          errors[`workExp_${index}_startDate`] = "Start date is required";
-        else {
-          const dateError = VALIDATION.date.validate(
-            startDate,
-            endDate || null,
-            "work experience",
-          );
-          if (dateError) errors[`workExp_${index}_dates`] = dateError;
-        }
+      if (!companyName)
+        errors[`workExp_${index}_company`] = "Company name is required";
+      if (!role) errors[`workExp_${index}_role`] = "Role is required";
+      if (!startDate)
+        errors[`workExp_${index}_startDate`] = "Start date is required";
+      else {
+        const dateError = VALIDATION.date.validate(
+          startDate,
+          endDate || null,
+          "work experience",
+        );
+        if (dateError) errors[`workExp_${index}_dates`] = dateError;
       }
     });
 
-    // Validate projects
+    // Validate projects (every added project card requires title & description)
     formData.projects.forEach((project, index) => {
       const title = project.title.trim();
       const description = project.description.trim();
       const projectUrl = project.projectUrl.trim();
-      const hasTechStack = Array.isArray(project.techStack)
-        ? project.techStack.some((part) => part.trim() !== "")
-        : String(project.techStack ?? "").trim() !== "";
 
-      const hasAnyProjectValue =
-        title !== "" ||
-        description !== "" ||
-        projectUrl !== "" ||
-        hasTechStack ||
-        project.isFeatured;
+      if (!title)
+        errors[`project_${index}_title`] = "Project title is required";
+      if (!description)
+        errors[`project_${index}_description`] =
+          "Project description is required";
 
-      if (hasAnyProjectValue) {
-        if (!title)
-          errors[`project_${index}_title`] = "Project title is required";
-        if (!description)
-          errors[`project_${index}_description`] =
-            "Project description is required";
-
-        if (projectUrl) {
-          const urlError = VALIDATION.url.validate(projectUrl);
-          if (urlError) errors[`project_${index}_url`] = urlError;
-        }
+      if (projectUrl) {
+        const urlError = VALIDATION.url.validate(projectUrl);
+        if (urlError) errors[`project_${index}_url`] = urlError;
       }
     });
 
-    // Validate certifications
+    // Validate certifications (all added cards require these fields)
     formData.certifications.forEach((cert, index) => {
       const name = cert.name.trim();
       const issuedBy = cert.issuedBy.trim();
@@ -1414,32 +1364,23 @@ const CandidateProfileUpdate = ({
       const expiryDate = (cert.expiryDate ?? "").trim();
       const credentialUrl = cert.credentialUrl.trim();
 
-      const hasAnyCertValue =
-        name !== "" ||
-        issuedBy !== "" ||
-        issueDate !== "" ||
-        expiryDate !== "" ||
-        credentialUrl !== "";
-
-      if (hasAnyCertValue) {
-        if (!name)
-          errors[`cert_${index}_name`] = "Certification name is required";
-        if (!issuedBy) errors[`cert_${index}_issuer`] = "Issuer is required";
-        if (!issueDate)
-          errors[`cert_${index}_issueDate`] = "Issue date is required";
-        else {
-          const dateError = VALIDATION.certificationDate.validate(
-            issueDate,
-            expiryDate || null,
-          );
-          if (dateError) {
-            errors[`cert_${index}_${dateError.field}`] = dateError.message;
-          }
+      if (!name)
+        errors[`cert_${index}_name`] = "Certification name is required";
+      if (!issuedBy) errors[`cert_${index}_issuer`] = "Issuer is required";
+      if (!issueDate)
+        errors[`cert_${index}_issueDate`] = "Issue date is required";
+      else {
+        const dateError = VALIDATION.certificationDate.validate(
+          issueDate,
+          expiryDate || null,
+        );
+        if (dateError) {
+          errors[`cert_${index}_${dateError.field}`] = dateError.message;
         }
-        if (credentialUrl) {
-          const urlError = VALIDATION.url.validate(credentialUrl);
-          if (urlError) errors[`cert_${index}_url`] = urlError;
-        }
+      }
+      if (credentialUrl) {
+        const urlError = VALIDATION.url.validate(credentialUrl);
+        if (urlError) errors[`cert_${index}_url`] = urlError;
       }
     });
 
@@ -1478,10 +1419,9 @@ const CandidateProfileUpdate = ({
       location: formData.location.trim(),
       country: formData.country?.trim() || null,
       city: formData.city?.trim() || null,
-      headline: formData.headline.trim(),
+      primaryJobRole: formData.primaryJobRole.trim(),
       bio: formData.bio.trim(),
       primarySkills: formData.primarySkills,
-      preferredWorkType: formData.preferredWorkType,
       preferredJobLocations: formData.preferredJobLocations,
       hourlyRateMin:
         formData.hourlyRateMin === "" ? null : Number(formData.hourlyRateMin),
@@ -1702,6 +1642,19 @@ const CandidateProfileUpdate = ({
           </div>
         </div>
 
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-800 text-left dark:border-b-gray-600 dark:text-white">
+            Resume
+          </h2>
+          <ResumeManager
+            resumes={
+              data && data.candidateProfile.resumes
+                ? data.candidateProfile.resumes
+                : []
+            }
+          />
+        </div>
+
         {/* Basic Information */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold text-gray-800 border-b dark:border-b-gray-600 pb-6 text-left dark:text-white">
@@ -1720,6 +1673,7 @@ const CandidateProfileUpdate = ({
                 onChange={handleInputChange}
                 maxLength={50}
                 required
+                placeholder="Enter your first name"
                 className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
                   fieldErrors.firstName
                     ? "border-red-500 dark:border-red-500"
@@ -1740,6 +1694,7 @@ const CandidateProfileUpdate = ({
                 onChange={handleInputChange}
                 maxLength={50}
                 required
+                placeholder="Enter your last name"
                 className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
                   fieldErrors.lastName
                     ? "border-red-500 dark:border-red-500"
@@ -1762,6 +1717,7 @@ const CandidateProfileUpdate = ({
                 onChange={handleInputChange}
                 maxLength={254}
                 required
+                placeholder="Enter your email address"
                 className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
                   fieldErrors.email ? "border-red-500 dark:border-red-500" : ""
                 }`}
@@ -1771,22 +1727,22 @@ const CandidateProfileUpdate = ({
 
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Headline
+                Primary Job Role
               </Label>
               <Input
                 type="text"
-                name="headline"
-                value={formData.headline}
+                name="primaryJobRole"
+                value={formData.primaryJobRole}
                 onChange={handleInputChange}
                 maxLength={100}
                 placeholder="e.g., Senior Full Stack Developer"
                 className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors.headline
+                  fieldErrors.primaryJobRole
                     ? "border-red-500 dark:border-red-500"
                     : ""
                 }`}
               />
-              <ErrorMessage error={fieldErrors.headline} />
+              <ErrorMessage error={fieldErrors.primaryJobRole} />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left pb-2">
@@ -1835,7 +1791,7 @@ const CandidateProfileUpdate = ({
 
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Contractor Type
+                Contractor Type <span className="text-destructive">*</span>
               </Label>
               <select
                 name="candidateType"
@@ -2002,31 +1958,6 @@ const CandidateProfileUpdate = ({
             </div>
           </div>
 
-          <div className="pb-2">
-            <Label className="block text-sm font-medium text-gray-700 mb-2 dark:text-white">
-              Preferred Work Type
-            </Label>
-            <div className="flex flex-wrap gap-4">
-              {preferredWorkTypeOptions?.map((workType) => (
-                <label
-                  key={workType}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={
-                      formData.preferredWorkType?.includes(workType) || false
-                    }
-                    onChange={() => handleWorkTypeChange(workType)}
-                    className="w-4 h-4 min-h-0 min-w-0 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary dark:border-slate-500 dark:bg-slate-800"
-                  />
-                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
-                    {workType}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
           <div className="pb-2">
             <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
               Currency
@@ -2756,8 +2687,7 @@ const CandidateProfileUpdate = ({
         <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-red-600 dark:text-red-400 text-sm font-medium flex items-center gap-2">
             <AlertCircle className="w-4 h-4" />
-            Failed to update profile. Please try again or contact support if the
-            issue persists.
+            Failed to update profile. Please try again.
           </p>
         </div>
       )}
