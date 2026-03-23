@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { isTokenExpired } from "@/lib/helpers";
 import Cookies from "js-cookie";
 
 export type UserState = {
@@ -26,6 +27,12 @@ const cookieData = (() => {
     const raw = Cookies.get("userInfo");
     const parsed = raw ? JSON.parse(raw) : null;
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const token = (parsed as any).token ?? null;
+      //if token exists but is expired, remove cookie and treat as unauthenticated
+      if (token && isTokenExpired(token)) {
+        Cookies.remove("userInfo");
+        return null;
+      }
       return parsed as UserState;
     }
     return null;

@@ -18,11 +18,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAppSelector } from "@/app/hooks";
+import { isTokenExpired } from "@/lib/helpers";
 
 const LandingHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const user = useAppSelector((state) => state.user.userDetails);
+  const { userDetails: user, token } = useAppSelector((state) => state.user);
+  const isLoggedIn = !!user && !!token && !isTokenExpired(token);
   const navigation = useNavigate();
   const location = useLocation();
 
@@ -46,7 +48,13 @@ const LandingHeader = () => {
     ? "hover:bg-slate-900/10 dark:hover:bg-white/10"
     : "hover:bg-white/10";
 
-  const handleRoleBasedNavigation = (role: string) => {
+  const handleRoleBasedNavigation = (role?: string) => {
+    if (!isLoggedIn) {
+      // if not logged in, send them to home (or login/signup as desired)
+      navigation("/");
+      return;
+    }
+
     switch (role) {
       case "hr":
         navigation("/bench-dashboard");
@@ -114,8 +122,10 @@ const LandingHeader = () => {
                 <DropdownMenuItem asChild>
                   <Link
                     to={
-                      user?.role === "candidate"
-                        ? "/contractor/dashboard"
+                      isLoggedIn
+                        ? user?.role === "candidate"
+                          ? "/contractor/dashboard"
+                          : "/contractor-signup"
                         : "/contractor-signup"
                     }
                     className="flex items-center gap-3 p-3"
@@ -124,15 +134,17 @@ const LandingHeader = () => {
                     <User className="w-4 h-4" />
                     <div>
                       <p className="font-medium">For Contractors</p>
-                      <p className="text-xs">Find your next gig</p>
+                      <p className="text-xs">Find opportunities</p>
                     </div>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
                     to={
-                      user?.role === "hr"
-                        ? "/bench-dashboard"
+                      isLoggedIn
+                        ? user?.role === "hr"
+                          ? "/bench-dashboard"
+                          : "/bench-registration"
                         : "/bench-registration"
                     }
                     className="flex items-center gap-3 p-3"
@@ -148,8 +160,10 @@ const LandingHeader = () => {
                 <DropdownMenuItem asChild>
                   <Link
                     to={
-                      user?.role === "employer"
-                        ? "/hire-talent/dashboard"
+                      isLoggedIn
+                        ? user?.role === "employer"
+                          ? "/hire-talent/dashboard"
+                          : "/hire-talent-signup"
                         : "/hire-talent-signup"
                     }
                     className="flex items-center gap-3 p-3"
@@ -179,12 +193,12 @@ const LandingHeader = () => {
 
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-3">
-            {user && (
+            {isLoggedIn && (
               <Button
                 variant="default"
                 size="sm"
                 className="rounded-xl"
-                onClick={() => handleRoleBasedNavigation(user.role)}
+                onClick={() => handleRoleBasedNavigation(user?.role)}
               >
                 Dashboard
               </Button>
@@ -222,8 +236,10 @@ const LandingHeader = () => {
             </Link>
             <Link
               to={
-                user?.role === "candidate"
-                  ? "/contractor/dashboard"
+                isLoggedIn
+                  ? user?.role === "candidate"
+                    ? "/contractor/dashboard"
+                    : "/contractor-signup"
                   : "/contractor-signup"
               }
               onClick={() => setIsMobileMenuOpen(false)}
@@ -233,7 +249,11 @@ const LandingHeader = () => {
             </Link>
             <Link
               to={
-                user?.role === "hr" ? "/bench-dashboard" : "/bench-registration"
+                isLoggedIn
+                  ? user?.role === "hr"
+                    ? "/bench-dashboard"
+                    : "/bench-registration"
+                  : "/bench-registration"
               }
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
@@ -242,8 +262,10 @@ const LandingHeader = () => {
             </Link>
             <Link
               to={
-                user?.role === "employer"
-                  ? "/hire-talent/dashboard"
+                isLoggedIn
+                  ? user?.role === "employer"
+                    ? "/hire-talent/dashboard"
+                    : "/hire-talent-signup"
                   : "/hire-talent-signup"
               }
               onClick={() => setIsMobileMenuOpen(false)}

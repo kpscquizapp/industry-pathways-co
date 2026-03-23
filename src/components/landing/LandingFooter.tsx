@@ -109,18 +109,17 @@ const LandingFooter = () => {
             {/* Contact */}
             <div className="space-y-3">
               <a
-                href="mailto:hello@hirion.com"
+                href="mailto:amritha@quickrekruit.com"
                 className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
               >
                 <Mail className="w-4 h-4" />
-                hello@hirion.com
+                amritha@quickrekruit.com
               </a>
               <a
-                href="tel:+1234567890"
+                href="tel:+ 917736805150"
                 className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
               >
-                <Phone className="w-4 h-4" />
-                +1 (234) 567-890
+                <Phone className="w-4 h-4" />+ 91 7736805150
               </a>
             </div>
           </div>
