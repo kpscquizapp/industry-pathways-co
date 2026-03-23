@@ -1,11 +1,20 @@
 import { Link } from "react-router-dom";
 import { Sparkles, Mail, Phone, Linkedin, Twitter, Github } from "lucide-react";
-import { RootState } from "@/app/store";
-import { useSelector } from "react-redux";
 import { useMemo } from "react";
+import { useAppSelector } from "@/app/hooks";
+import { isTokenExpired } from "@/lib/helpers";
+import { get } from "http";
 
 const LandingFooter = () => {
-  const user = useSelector((state: RootState) => state.user.userDetails);
+  const { userDetails: user, token } = useAppSelector((state) => state.user);
+  const isLoggedIn = !!user && !!token && !isTokenExpired(token);
+
+  const getLandingTarget = (
+    role: string | undefined,
+    dashboardRole: "candidate" | "hr" | "employer",
+    dashboardPath: string,
+    signupPath: string,
+  ) => (isLoggedIn && role === dashboardRole ? dashboardPath : signupPath);
 
   const footerLinks = useMemo(
     () => ({
@@ -14,31 +23,39 @@ const LandingFooter = () => {
         links: [
           {
             label: "Join Marketplace",
-            href:
-              user?.role === "candidate"
-                ? "/contractor/dashboard"
-                : "/contractor-signup",
+            href: getLandingTarget(
+              user?.role,
+              "candidate",
+              "/contractor/dashboard",
+              "/contractor-signup",
+            ),
           },
           {
             label: "Skill Tests",
-            href:
-              user?.role === "candidate"
-                ? "/contractor/tests"
-                : "/contractor-signup",
+            href: getLandingTarget(
+              user?.role,
+              "candidate",
+              "/contractor/tests",
+              "/contractor-signup",
+            ),
           },
           {
             label: "AI Interviews",
-            href:
-              user?.role === "candidate"
-                ? "/contractor/interviews"
-                : "/contractor-signup",
+            href: getLandingTarget(
+              user?.role,
+              "candidate",
+              "/contractor/interviews",
+              "/contractor-signup",
+            ),
           },
           {
             label: "Profile",
-            href:
-              user?.role === "candidate"
-                ? "/contractor/profile"
-                : "/contractor-signup",
+            href: getLandingTarget(
+              user?.role,
+              "candidate",
+              "/contractor/profile",
+              "/contractor-signup",
+            ),
           },
         ],
       },
@@ -47,22 +64,30 @@ const LandingFooter = () => {
         links: [
           {
             label: "Hire Talent",
-            href:
-              user?.role === "employer"
-                ? "/hire-talent/dashboard"
-                : "/hire-talent-signup",
+            href: getLandingTarget(
+              user?.role,
+              "employer",
+              "/hire-talent/dashboard",
+              "/hire-talent-signup",
+            ),
           },
           {
             label: "List Bench Resources",
-            href:
-              user?.role === "hr" ? "/bench-dashboard" : "/bench-registration",
+            href: getLandingTarget(
+              user?.role,
+              "hr",
+              "/bench-dashboard",
+              "/bench-registration",
+            ),
           },
           {
             label: "Post a Job",
-            href:
-              user?.role === "employer"
-                ? "/hire-talent/dashboard"
-                : "/hire-talent-signup",
+            href: getLandingTarget(
+              user?.role,
+              "employer",
+              "/hire-talent/dashboard",
+              "/hire-talent-signup",
+            ),
           },
           { label: "Pricing", href: "#pricing" },
         ],
@@ -116,7 +141,7 @@ const LandingFooter = () => {
                 amritha@quickrekruit.com
               </a>
               <a
-                href="tel:+ 917736805150"
+                href="tel:+917736805150"
                 className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
               >
                 <Phone className="w-4 h-4" />+ 91 7736805150

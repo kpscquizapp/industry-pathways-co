@@ -22,22 +22,50 @@ export type SetUserPayload = {
   user: UserState["userDetails"];
 };
 
+// Cookie options must be defined before cookieData to avoid reference errors
+const cookieOptions = (): Cookies.CookieAttributes => ({
+  expires: 15,
+  secure:
+    typeof window !== "undefined" && window.location.protocol === "https:",
+  sameSite: "strict",
+});
+
 const cookieData = (() => {
   try {
     const raw = Cookies.get("userInfo");
     const parsed = raw ? JSON.parse(raw) : null;
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
       const token = (parsed as any).token ?? null;
-      //if token exists but is expired, remove cookie and treat as unauthenticated
+      //if token exists but is expired, remove token but keep refreshToken for silent renewal
       if (token && isTokenExpired(token)) {
-        Cookies.remove("userInfo");
+        (parsed as any).token = null;
+        Cookies.set("userInfo", JSON.stringify(parsed), cookieOptions());
         return null;
       }
       return parsed as UserState;
     }
     return null;
   } catch {
-    Cookies.remove("userInfo"); // evict the bad cookie
+    // If cookie is malformed, check if it has refreshToken we can recover
+    try {
+      const raw = Cookies.get("userInfo");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.refreshToken) {
+          // Preserve only refreshToken, clear the rest
+          const partialData = {
+            token: null,
+            refreshToken: parsed.refreshToken,
+            userDetails: null,
+          };
+          Cookies.set("userInfo", JSON.stringify(partialData), cookieOptions());
+        } else {
+          Cookies.remove("userInfo");
+        }
+      }
+    } catch {
+      Cookies.remove("userInfo"); // evict the bad cookie
+    }
     return null;
   }
 })();
@@ -47,13 +75,6 @@ const initialState: UserState = {
   refreshToken: cookieData?.refreshToken ?? null,
   userDetails: cookieData?.userDetails ?? null,
 };
-
-const cookieOptions = (): Cookies.CookieAttributes => ({
-  expires: 15,
-  secure:
-    typeof window !== "undefined" && window.location.protocol === "https:",
-  sameSite: "strict",
-});
 
 export const userAuth = createSlice({
   name: "userAuth",

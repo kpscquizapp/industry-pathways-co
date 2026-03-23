@@ -28,6 +28,13 @@ const LandingHeader = () => {
   const navigation = useNavigate();
   const location = useLocation();
 
+  const getLandingTarget = (
+    role: string | undefined,
+    dashboardRole: "candidate" | "hr" | "employer",
+    dashboardPath: string,
+    signupPath: string,
+  ) => (isLoggedIn && role === dashboardRole ? dashboardPath : signupPath);
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -121,13 +128,12 @@ const LandingHeader = () => {
               >
                 <DropdownMenuItem asChild>
                   <Link
-                    to={
-                      isLoggedIn
-                        ? user?.role === "candidate"
-                          ? "/contractor/dashboard"
-                          : "/contractor-signup"
-                        : "/contractor-signup"
-                    }
+                    to={getLandingTarget(
+                      user?.role,
+                      "candidate",
+                      "/contractor/dashboard",
+                      "/contractor-signup",
+                    )}
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -140,13 +146,12 @@ const LandingHeader = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
-                    to={
-                      isLoggedIn
-                        ? user?.role === "hr"
-                          ? "/bench-dashboard"
-                          : "/bench-registration"
-                        : "/bench-registration"
-                    }
+                    to={getLandingTarget(
+                      user?.role,
+                      "hr",
+                      "/bench-dashboard",
+                      "/bench-registration",
+                    )}
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -159,13 +164,12 @@ const LandingHeader = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
-                    to={
-                      isLoggedIn
-                        ? user?.role === "employer"
-                          ? "/hire-talent/dashboard"
-                          : "/hire-talent-signup"
-                        : "/hire-talent-signup"
-                    }
+                    to={getLandingTarget(
+                      user?.role,
+                      "employer",
+                      "/hire-talent/dashboard",
+                      "/hire-talent-signup",
+                    )}
                     className="flex items-center gap-3 p-3"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -235,39 +239,36 @@ const LandingHeader = () => {
               Home
             </Link>
             <Link
-              to={
-                isLoggedIn
-                  ? user?.role === "candidate"
-                    ? "/contractor/dashboard"
-                    : "/contractor-signup"
-                  : "/contractor-signup"
-              }
+              to={getLandingTarget(
+                user?.role,
+                "candidate",
+                "/contractor/dashboard",
+                "/contractor-signup",
+              )}
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
               For Contractors
             </Link>
             <Link
-              to={
-                isLoggedIn
-                  ? user?.role === "hr"
-                    ? "/bench-dashboard"
-                    : "/bench-registration"
-                  : "/bench-registration"
-              }
+              to={getLandingTarget(
+                user?.role,
+                "hr",
+                "/bench-dashboard",
+                "/bench-registration",
+              )}
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
               For Bench Resources
             </Link>
             <Link
-              to={
-                isLoggedIn
-                  ? user?.role === "employer"
-                    ? "/hire-talent/dashboard"
-                    : "/hire-talent-signup"
-                  : "/hire-talent-signup"
-              }
+              to={getLandingTarget(
+                user?.role,
+                "employer",
+                "/hire-talent/dashboard",
+                "/hire-talent-signup",
+              )}
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-foreground hover:bg-muted"
             >
@@ -275,12 +276,12 @@ const LandingHeader = () => {
             </Link>
 
             <div className="pt-4 border-t border-border space-y-2">
-              {user && (
+              {isLoggedIn && (
                 <Button
                   className="w-full rounded-xl"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    handleRoleBasedNavigation(user.role);
+                    handleRoleBasedNavigation(user?.role);
                   }}
                 >
                   Dashboard
