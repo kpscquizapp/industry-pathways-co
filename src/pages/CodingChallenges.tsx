@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Button } from "@/components/ui/button";
-import { Play, Send, ChevronLeft } from "lucide-react";
+import { Play, Send, ChevronLeft, Monitor } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import ProblemPanel from "@/components/coding/ProblemPanel";
 import EditorPanel from "@/components/coding/EditorPanel";
 import ConsoleOutput from "@/components/coding/ConsoleOutput";
+import WebcamFeed from "@/pages/WebcamFeed";
 import {
   CodingProblem,
   Difficulty,
@@ -17,6 +18,27 @@ import {
   TestCase,
 } from "@/types/coding";
 import { toast } from "sonner";
+import { useDebouncedCallback } from "@/hooks/useDebounce";
+
+async function detectMultipleMonitors(): Promise<boolean> {
+  // 1. Window Management API — most reliable (Chrome 100+)
+  if ("getScreenDetails" in window) {
+    try {
+      const details = await (window as any).getScreenDetails();
+      if (details.screens.length > 1) return true;
+    } catch {
+      toast.error("Failed to detect screens");
+    }
+  }
+
+  // 2. screen.isExtended — boolean flag (Chrome 100+, Safari 16+)
+  if ((window.screen as any).isExtended === true) return true;
+
+  // 3. availWidth wider than screen width — all browsers
+  if (window.screen.availWidth - window.screen.width > 8) return true;
+
+  return false;
+}
 
 // Sample problem data
 const sampleProblem: CodingProblem = {
@@ -113,6 +135,149 @@ const CodingChallenge: React.FC = () => {
   const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string>();
+
+  // Interview/Test state
+  const [isInterviewActive, setIsInterviewActive] = useState(false);
+  const [isMonitoringActive, setIsMonitoringActive] = useState(false);
+  const [totalViolations, setTotalViolations] = useState(0);
+  const [popupPosition, setPopupPosition] = useState({ x: 100, y: 100 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const popupRef = useRef<HTMLDivElement>(null);
+  const sessionId = useRef(
+    `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+  ).current;
+  const hasMountedRef = useRef(false);
+  const suppressViolationsUntilRef = useRef(0);
+  const devtoolsOpenRef = useRef(false);
+
+  const handleViolation = useCallback(
+    async (reason: string) => {
+      if (!isMonitoringActive) return;
+      if (Date.now() < suppressViolationsUntilRef.current) return;
+
+      try {
+        await fetch("/api/violations/log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId, reason }),
+        });
+        setTotalViolations((prev) => prev + 1);
+      } catch (error) {
+        toast.error("Failed to log violation");
+      }
+    },
+    [isMonitoringActive, sessionId],
+  );
+
+  const onResize = useDebouncedCallback(() => {
+    handleViolation("Window resized");
+  }, 1000);
+
+  const checkDevtools = useCallback(() => {
+    if (!isMonitoringActive) return;
+    if (document.visibilityState !== "visible") {
+      devtoolsOpenRef.current = false;
+      return;
+    }
+    if (
+      window.outerWidth === 0 ||
+      window.outerHeight === 0 ||
+      window.innerWidth === 0 ||
+      window.innerHeight === 0
+    ) {
+      devtoolsOpenRef.current = false;
+      return;
+    }
+    const threshold = 160;
+    const widthDiff = Math.abs(window.outerWidth - window.innerWidth);
+    const heightDiff = Math.abs(window.outerHeight - window.innerHeight);
+    const isOpen = widthDiff > threshold || heightDiff > threshold;
+
+    if (isOpen && !devtoolsOpenRef.current) {
+      devtoolsOpenRef.current = true;
+      handleViolation("Developer tools opened");
+    } else if (!isOpen) {
+      devtoolsOpenRef.current = false;
+    }
+  }, [handleViolation, isMonitoringActive]);
+
+  // Handle dragging
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        setPopupPosition({
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y,
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
+
+  // Violation monitoring
+  useEffect(() => {
+    const onVisibilityChange = (): void => {
+      if (document.visibilityState === "hidden") {
+        handleViolation("Tab Switched");
+      }
+    };
+    const onCopy = (event: ClipboardEvent): void => {
+      if (!isMonitoringActive) return;
+      event.preventDefault();
+      handleViolation("Copy attempt");
+    };
+    const onCut = (event: ClipboardEvent): void => {
+      if (!isMonitoringActive) return;
+      event.preventDefault();
+      handleViolation("Cut attempt");
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    document.addEventListener("copy", onCopy);
+    document.addEventListener("cut", onCut);
+    window.addEventListener("resize", onResize);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      document.removeEventListener("copy", onCopy);
+      document.removeEventListener("cut", onCut);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [handleViolation, isMonitoringActive, onResize]);
+
+  useEffect(() => {
+    if (!isMonitoringActive) {
+      devtoolsOpenRef.current = false;
+      return;
+    }
+
+    const intervalId = window.setInterval(checkDevtools, 1000);
+    checkDevtools();
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [checkDevtools, isMonitoringActive]);
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+  }, [isMonitoringActive, totalViolations]);
 
   // Update code when language changes
   useEffect(() => {
@@ -220,6 +385,35 @@ const CodingChallenge: React.FC = () => {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
+            onClick={async () => {
+              const hasMultipleMonitors = await detectMultipleMonitors();
+              if (hasMultipleMonitors) {
+                handleViolation("Multiple monitors detected");
+              }
+              setIsInterviewActive(true);
+              setIsMonitoringActive(true);
+              setTotalViolations(0);
+            }}
+            disabled={isInterviewActive}
+            className="gap-2"
+          >
+            <Monitor className="h-4 w-4" />
+            Start Test
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setIsInterviewActive(false);
+              setIsMonitoringActive(false);
+            }}
+            disabled={!isInterviewActive}
+            className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <Monitor className="h-4 w-4" />
+            End Test
+          </Button>
+          <Button
+            variant="outline"
             onClick={handleRunCode}
             disabled={isRunning}
             className="gap-2"
@@ -276,6 +470,35 @@ const CodingChallenge: React.FC = () => {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
+
+      {/* Draggable Test Popup */}
+      {isInterviewActive && (
+        <div
+          ref={popupRef}
+          className="fixed z-50 cursor-move select-none"
+          style={{
+            left: popupPosition.x,
+            top: popupPosition.y,
+            transform: isDragging ? "scale(1.02)" : "scale(1)",
+            transition: isDragging ? "none" : "transform 0.2s ease",
+          }}
+          onMouseDown={(e) => {
+            setIsDragging(true);
+            setDragOffset({
+              x: e.clientX - popupPosition.x,
+              y: e.clientY - popupPosition.y,
+            });
+          }}
+        >
+          <div className="relative rounded-lg shadow-lg max-w-sm">
+            <WebcamFeed
+              isInterviewActive={isInterviewActive}
+              totalViolations={totalViolations}
+              sessionId={sessionId}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

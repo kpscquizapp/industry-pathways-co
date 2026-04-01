@@ -1,11 +1,10 @@
 import { useEffect } from "react";
-import LandingHeader from "@/components/landing/LandingHeader";
-import HeroSection from "@/components/landing/HeroSection";
+import Navbar from "@/components/landing/Navbar";
+import Hero from "@/components/landing/Hero";
+import Logos from "@/components/landing/Logos";
 import HowItWorks from "@/components/landing/HowItWorks";
-import UserTypesSection from "@/components/landing/UserTypesSection";
-import AIDifferentiation from "@/components/landing/AIDifferentiation";
-import TrustMetrics from "@/components/landing/TrustMetrics";
-import LandingFooter from "@/components/landing/LandingFooter";
+import Roles from "@/components/landing/Roles";
+import Footer from "@/components/landing/Footer";
 
 const Index = () => {
   // Initialize fade-in animations on scroll
@@ -36,15 +35,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <LandingHeader />
+      <Navbar />
       <main>
-        <HeroSection />
+        <Hero />
+        <Logos />
         <HowItWorks />
-        <UserTypesSection />
-        <AIDifferentiation />
-        <TrustMetrics />
+        <Roles />
       </main>
-      <LandingFooter />
+      <Footer />
     </div>
   );
 };

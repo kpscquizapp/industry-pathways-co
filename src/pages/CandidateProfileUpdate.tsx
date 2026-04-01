@@ -15,9 +15,14 @@ import {
   FolderGit2,
   AlertCircle,
   Camera,
+  User,
+  FileText,
+  Code,
+  AlignLeft,
 } from "lucide-react";
 import {
   useGetCandidateProfileImageQuery,
+  useGetProfileQuery,
   useRemoveCertificateMutation,
   useRemoveProfileImageMutation,
   useRemoveProjectMutation,
@@ -374,11 +379,30 @@ const VALIDATION = {
   },
 };
 
+// ==================== UI HELPERS ====================
+const DashCard = ({ children, className = "", noPadding = false }: { children: React.ReactNode; className?: string; noPadding?: boolean }) => (
+  <div className={`bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300 ${noPadding ? "" : "p-6 sm:p-8"} ${className}`}>
+    {children}
+  </div>
+);
+
+const SectionTitle = ({ icon, title, action }: { icon?: React.ReactNode, title: string, action?: React.ReactNode }) => (
+  <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center gap-3 text-gray-900 dark:text-white">
+      {icon && <div className="text-gray-400 dark:text-gray-500">{icon}</div>}
+      <h3 className="text-xl font-bold">{title}</h3>
+    </div>
+    {action}
+  </div>
+);
+
 // ==================== COMPONENT ====================
-const CandidateProfileUpdate = ({
-  data,
-}: CandidateProfileUpdateProps): JSX.Element => {
+const CandidateProfileUpdate = (): JSX.Element => {
   // API calls
+  const { token, userDetails } = useSelector((state: RootState) => state.user);
+  const { data: response, isLoading: isLoadingProfile } = useGetProfileQuery(undefined, { skip: !token });
+  const data = response?.data;
+
   const [updateProfile, { isLoading: isUpdating, isError: updateError }] =
     useUpdateProfileMutation();
   const [removeSkill] = useRemoveSkillMutation();
@@ -440,8 +464,8 @@ const CandidateProfileUpdate = ({
     // Get resume skills (priority)
     const resumeSkills = Array.isArray(resumeData)
       ? resumeData.filter(
-          (s): s is string => typeof s === "string" && s.trim() !== "",
-        )
+        (s): s is string => typeof s === "string" && s.trim() !== "",
+      )
       : [];
 
     // Get profile skills
@@ -852,7 +876,7 @@ const CandidateProfileUpdate = ({
         typeof skill === "string"
           ? skill.toLowerCase() === skillToRemove.toLowerCase()
           : (skill as { name: string }).name.toLowerCase() ===
-            skillToRemove.toLowerCase(),
+          skillToRemove.toLowerCase(),
     );
 
     // Guard clause: skill not found (local, not persisted)
@@ -1458,9 +1482,9 @@ const CandidateProfileUpdate = ({
           techStack: Array.isArray(project.techStack)
             ? project.techStack
             : String(project.techStack ?? "")
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean),
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
         })),
       workExperiences: formData.workExperiences
         .filter(
@@ -1570,19 +1594,22 @@ const CandidateProfileUpdate = ({
           }
         },
       },
-      cancel: { label: "Cancel", onClick: () => {} },
+      cancel: { label: "Cancel", onClick: () => { } },
     });
   };
 
   return (
-    <div className="sm:p-8">
+    <div className="w-full mx-auto px-2">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold">Update Profile
+        </h2>
+        <p className="text-muted-foreground my-2">Keep your profile up to date to get the best matches.</p>
+      </div>
       <div className="space-y-8">
         {/* Profile Image Section */}
-        <div className="flex flex-col items-center sm:items-start gap-4 pb-6 border-b dark:border-b-gray-600">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white w-full text-left">
-            Profile Image
-          </h2>
-          <div className="flex flex-col sm:flex-row items-center gap-6 w-full">
+        <DashCard>
+          <SectionTitle icon={<Camera className="w-6 h-6" />} title="Profile Image" />
+          <div className="flex flex-col sm:flex-row items-center gap-6 w-full mt-2">
             <Avatar className="w-24 h-24 sm:w-32 sm:h-32 shadow-lg ring-4 ring-white/90 dark:ring-slate-700/90 relative">
               {isLoadingImage || isRemovingImage || isProfileImageLoading ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-full">
@@ -1598,12 +1625,12 @@ const CandidateProfileUpdate = ({
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex flex-col gap-3 w-full sm:w-auto">
+            <div className="flex flex-col gap-3 w-full sm:w-auto mt-4 sm:mt-0">
               <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
                 <Button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoadingImage || isRemovingImage}
-                  className="bg-primary hover:bg-primary/90 text-white px-6"
+                  className="bg-[#1a1a2e] hover:bg-[#1a1a2e]/90 text-white px-6 rounded-md"
                 >
                   {isLoadingImage ? (
                     <SpinnerLoader />
@@ -1617,7 +1644,7 @@ const CandidateProfileUpdate = ({
                     variant="outline"
                     onClick={handleRemoveImage}
                     disabled={isLoadingImage || isRemovingImage}
-                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/30 dark:hover:bg-red-900/20"
+                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/30 dark:hover:bg-red-900/20 rounded-md"
                   >
                     {isRemovingImage ? (
                       <SpinnerLoader />
@@ -1628,7 +1655,7 @@ const CandidateProfileUpdate = ({
                   </Button>
                 )}
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center sm:text-left">
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">
                 Allowed formats: JPG, PNG, WebP. Max size: 2MB.
               </p>
             </div>
@@ -1640,12 +1667,11 @@ const CandidateProfileUpdate = ({
               accept="image/jpeg,image/png,image/webp"
             />
           </div>
-        </div>
+        </DashCard>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800 text-left dark:border-b-gray-600 dark:text-white">
-            Resume
-          </h2>
+        {/* Resume Section */}
+        <DashCard>
+          <SectionTitle icon={<FileText className="w-6 h-6" />} title="Resume" />
           <ResumeManager
             resumes={
               data && data.candidateProfile.resumes
@@ -1653,20 +1679,17 @@ const CandidateProfileUpdate = ({
                 : []
             }
           />
-        </div>
+        </DashCard>
 
         {/* Basic Information */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800 border-b dark:border-b-gray-600 pb-6 text-left dark:text-white">
-            Basic Information
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left pb-2">
+        <DashCard>
+          <SectionTitle icon={<User className="w-5 h-5" />} title="Basic Information" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-left">
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                First Name <span className="text-destructive">*</span>
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
+                First Name <span className="text-rose-500">*</span>
               </Label>
-              <Input
+              <input
                 type="text"
                 name="firstName"
                 value={formData.firstName}
@@ -1674,20 +1697,19 @@ const CandidateProfileUpdate = ({
                 maxLength={50}
                 required
                 placeholder="Enter your first name"
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors.firstName
-                    ? "border-red-500 dark:border-red-500"
-                    : ""
-                }`}
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.firstName
+                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.firstName} />
             </div>
 
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Last Name <span className="text-destructive">*</span>
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
+                Last Name <span className="text-rose-500">*</span>
               </Label>
-              <Input
+              <input
                 type="text"
                 name="lastName"
                 value={formData.lastName}
@@ -1695,22 +1717,19 @@ const CandidateProfileUpdate = ({
                 maxLength={50}
                 required
                 placeholder="Enter your last name"
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors.lastName
-                    ? "border-red-500 dark:border-red-500"
-                    : ""
-                }`}
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.lastName
+                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.lastName} />
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left pb-2">
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Email <span className="text-destructive">*</span>
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
+                Email <span className="text-rose-500">*</span>
               </Label>
-              <Input
+              <input
                 type="email"
                 name="email"
                 value={formData.email}
@@ -1718,90 +1737,84 @@ const CandidateProfileUpdate = ({
                 maxLength={254}
                 required
                 placeholder="Enter your email address"
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors.email ? "border-red-500 dark:border-red-500" : ""
-                }`}
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.email
+                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.email} />
             </div>
 
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Primary Job Role
               </Label>
-              <Input
+              <input
                 type="text"
                 name="primaryJobRole"
                 value={formData.primaryJobRole}
                 onChange={handleInputChange}
                 maxLength={100}
                 placeholder="e.g., Senior Full Stack Developer"
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors.primaryJobRole
-                    ? "border-red-500 dark:border-red-500"
-                    : ""
-                }`}
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.primaryJobRole
+                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.primaryJobRole} />
             </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left pb-2">
-            <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Mobile Number <span className="text-destructive">*</span>
+
+            <div className="sm:col-span-2">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
+                Mobile Number <span className="text-rose-500">*</span>
               </Label>
-              <Input
+              <input
                 type="text"
                 name="mobileNumber"
                 value={formData.mobileNumber}
                 onChange={handleInputChange}
                 maxLength={20}
                 placeholder="Enter your mobile number"
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors.mobileNumber
-                    ? "border-red-500 dark:border-red-500"
-                    : ""
-                }`}
+                className={`w-full md:w-1/2 px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.mobileNumber
+                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.mobileNumber} />
             </div>
           </div>
-        </div>
+        </DashCard>
 
         {/* Professional Details */}
-        <div className="space-y-4 text-left">
-          <h2 className="text-xl font-semibold text-gray-800 border-b pb-6 text-left dark:border-b-gray-600 dark:text-white">
-            Professional Details
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
+        <DashCard>
+          <SectionTitle icon={<Briefcase className="w-5 h-5" />} title="Professional Details" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-left">
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Location
               </Label>
-              <Input
+              <input
                 type="text"
                 name="location"
                 value={formData.location}
                 onChange={handleInputChange}
-                placeholder="e.g., Remote, New York, London"
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                placeholder="e.g., New York, London"
+                className="w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl"
               />
             </div>
 
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-                Contractor Type <span className="text-destructive">*</span>
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
+                Contractor Type <span className="text-rose-500">*</span>
               </Label>
               <select
                 name="candidateType"
                 value={formData.candidateType}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border capitalize dark:border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 bg-white ${
-                  fieldErrors.candidateType
-                    ? "border-red-500 dark:border-red-500"
-                    : "border-gray-300 dark:border-slate-500"
-                }`}
+                className={`w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.candidateType
+                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl capitalize`}
               >
                 <option value="">Select contractor type</option>
                 {candidateTypeOptions.map((option) => (
@@ -1812,50 +1825,46 @@ const CandidateProfileUpdate = ({
               </select>
               <ErrorMessage error={fieldErrors.candidateType} />
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Country
               </Label>
-              <Input
+              <input
                 type="text"
                 name="country"
                 value={formData.country || ""}
                 onChange={handleInputChange}
                 placeholder="e.g., United States, India, UK"
                 maxLength={100}
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                className="w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl"
               />
             </div>
 
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 City
               </Label>
-              <Input
+              <input
                 type="text"
                 name="city"
                 value={formData.city || ""}
                 onChange={handleInputChange}
                 placeholder="e.g., New York, Mumbai, London"
                 maxLength={100}
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                className="w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl"
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Available To Join
               </Label>
               <select
                 name="availableToJoin"
                 value={formData.availableToJoin}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white capitalize"
+                className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl capitalize"
               >
                 <option value="">Select availability</option>
                 {availableToJoinOptions.map((option) => (
@@ -1867,14 +1876,14 @@ const CandidateProfileUpdate = ({
             </div>
 
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 English Proficiency
               </Label>
               <select
                 name="englishProficiency"
                 value={formData.englishProficiency}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white capitalize"
+                className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl capitalize"
               >
                 {englishProficiencyOptions.map((option) => (
                   <option key={option} value={option}>
@@ -1883,34 +1892,32 @@ const CandidateProfileUpdate = ({
                 ))}
               </select>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Years of Experience
               </Label>
-              <Input
+              <input
                 type="number"
                 name="yearsExperience"
                 value={formData.yearsExperience}
                 onChange={handleInputChange}
                 min="0"
                 max="70"
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors.yearsExperience
-                    ? "border-red-500 dark:border-red-500"
-                    : ""
-                }`}
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 outline-none ring-1 ring-inset ${fieldErrors.yearsExperience
+                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.yearsExperience} />
             </div>
+
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Preferred Job Locations
               </Label>
               <div className="flex gap-2">
-                <Input
+                <input
                   type="text"
                   value={locationInput}
                   onChange={(e) => setLocationInput(e.target.value)}
@@ -1920,15 +1927,15 @@ const CandidateProfileUpdate = ({
                       addLocation();
                     }
                   }}
-                  placeholder="e.g., New York, Mumbai, London"
+                  placeholder="e.g., New York"
                   maxLength={100}
-                  className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                  className="w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl"
                 />
                 <Button
                   type="button"
                   onClick={addLocation}
                   variant="outline"
-                  className="shrink-0"
+                  className="shrink-0 h-[44px] w-[44px] rounded-xl border-gray-200 bg-[#4DD9E8] text-white hover:bg-[#4DD9E8]/90"
                   aria-label="Add preferred job location"
                   title="Add preferred job location"
                 >
@@ -1936,111 +1943,107 @@ const CandidateProfileUpdate = ({
                 </Button>
               </div>
               {formData.preferredJobLocations.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
+                <div className="flex flex-wrap gap-2 mt-3">
                   {formData.preferredJobLocations.map((location, index) => (
-                    <span
+                    <div
                       key={`${location}-${index}`}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
                     >
                       {location}
                       <button
                         type="button"
                         onClick={() => removeLocation(index)}
-                        className="hover:text-red-500 transition-colors"
+                        className="hover:text-red-500 transition-colors bg-white/50 rounded-full p-0.5"
                         aria-label={`Remove ${location}`}
                       >
                         <X className="w-3 h-3" />
                       </button>
-                    </span>
+                    </div>
                   ))}
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="pb-2">
-            <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-              Currency
-            </Label>
-            <select
-              name="currency"
-              value={formData.currency}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
-            >
-              <option value="" disabled>
-                Select currency
-              </option>
-              {Object.keys(currencySymbols).map((curr) => (
-                <option key={curr} value={curr}>
-                  {curr}
+            <div className="sm:col-span-2">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
+                Currency
+              </Label>
+              <select
+                name="currency"
+                value={formData.currency}
+                onChange={handleInputChange}
+                className="w-full md:w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl"
+              >
+                <option value="" disabled>
+                  Select currency
                 </option>
-              ))}
-            </select>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
+                {Object.keys(currencySymbols).map((curr) => (
+                  <option key={curr} value={curr}>
+                    {curr}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Expected Salary (Min){" "}
-                <span className="text-destructive">*</span>
+                <span className="text-rose-500">*</span>
               </Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
                   {getCurrencySymbol(formData.currency)}
                 </span>
-                <Input
+                <input
                   type="number"
                   name="expectedSalaryMin"
                   value={formData.expectedSalaryMin}
                   onChange={handleInputChange}
                   min="0"
                   placeholder="Enter your expected salary (min)"
-                  className={`w-full pl-7 pr-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                    fieldErrors.expectedSalaryMin
-                      ? "border-red-500 dark:border-red-500"
-                      : ""
-                  }`}
+                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.expectedSalaryMin
+                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                    : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                    } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                 />
               </div>
               <ErrorMessage error={fieldErrors.expectedSalaryMin} />
             </div>
+
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Expected Salary (Max){" "}
-                <span className="text-destructive">*</span>
+                <span className="text-rose-500">*</span>
               </Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
                   {getCurrencySymbol(formData.currency)}
                 </span>
-                <Input
+                <input
                   type="number"
                   name="expectedSalaryMax"
                   value={formData.expectedSalaryMax}
                   onChange={handleInputChange}
                   min="0"
                   placeholder="Enter your expected salary (max)"
-                  className={`w-full pl-7 pr-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                    fieldErrors.expectedSalaryMax
-                      ? "border-red-500 dark:border-red-500"
-                      : ""
-                  }`}
+                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 outline-none ring-1 ring-inset ${fieldErrors.expectedSalaryMax
+                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                    : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                    } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                 />
               </div>
               <ErrorMessage error={fieldErrors.expectedSalaryMax} />
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Hourly Rate (Min)
               </Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
                   {getCurrencySymbol(formData.currency)}
                 </span>
-                <Input
+                <input
                   type="number"
                   name="hourlyRateMin"
                   value={formData.hourlyRateMin}
@@ -2048,24 +2051,23 @@ const CandidateProfileUpdate = ({
                   placeholder="Enter your hourly rate (min)"
                   min="0"
                   max="10000"
-                  className={`w-full pl-7 pr-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                    fieldErrors.hourlyRate
-                      ? "border-red-500 dark:border-red-500"
-                      : ""
-                  }`}
+                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.hourlyRate
+                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                    : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                    } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                 />
               </div>
             </div>
 
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
+              <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Hourly Rate (Max)
               </Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
                   {getCurrencySymbol(formData.currency)}
                 </span>
-                <Input
+                <input
                   type="number"
                   name="hourlyRateMax"
                   value={formData.hourlyRateMax}
@@ -2073,49 +2075,47 @@ const CandidateProfileUpdate = ({
                   min="0"
                   max="10000"
                   placeholder="Enter your hourly rate (max)"
-                  className={`w-full pl-7 pr-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                    fieldErrors.hourlyRate
-                      ? "border-red-500 dark:border-red-500"
-                      : ""
-                  }`}
+                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.hourlyRate
+                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                    : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                    } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                 />
               </div>
             </div>
+            {fieldErrors.hourlyRate && <div className="sm:col-span-2"><ErrorMessage error={fieldErrors.hourlyRate} /></div>}
           </div>
-          <ErrorMessage error={fieldErrors.hourlyRate} />
+        </DashCard>
 
+        {/* Short Bio */}
+        <DashCard>
+          <SectionTitle icon={<AlignLeft className="w-5 h-5" />} title="Short Bio" />
           <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
-              Short Bio
-            </Label>
-            <Textarea
+            <textarea
               name="bio"
               value={formData.bio}
               onChange={handleInputChange}
               maxLength={1000}
-              rows={4}
-              className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white leading-6 ${
-                fieldErrors.bio ? "border-red-500 dark:border-red-500" : ""
-              }`}
-              placeholder="Tell us about yourself..."
+              rows={5}
+              className={`w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.bio
+                ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl text-base leading-relaxed resize-y`}
+              placeholder="Tell us about yourself, your background, and what you're looking for..."
             />
-            <div className="flex justify-between items-center mt-1">
+            <div className="flex justify-between items-center mt-2.5">
               <ErrorMessage error={fieldErrors.bio} />
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+              <span className="text-xs font-medium text-gray-400">
                 {formData.bio.length} / 1000
               </span>
             </div>
           </div>
-        </div>
+        </DashCard>
 
-        {/* Skills */}
-        <div className="space-y-4 text-left">
-          <h2 className="text-xl font-semibold text-gray-800 border-b pb-6 text-left dark:border-b-gray-600 dark:text-white">
-            Skills & Tech <span className="text-destructive">*</span>
-          </h2>
 
+        <DashCard>
+          <SectionTitle icon={<Code className="w-5 h-5" />} title="Skills & Tech" />
           <div className="flex gap-2">
-            <Input
+            <input
               type="text"
               value={skillInput}
               onChange={(e) => setSkillInput(e.target.value)}
@@ -2124,23 +2124,22 @@ const CandidateProfileUpdate = ({
               }
               maxLength={50}
               placeholder="Add a skill (e.g., TypeScript)"
-              className={`flex-1 px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                fieldErrors.primarySkills
-                  ? "border-red-500 dark:border-red-500"
-                  : ""
-              }`}
+              className={`flex-1 px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.primarySkills
+                ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
             />
             <Button
               type="button"
               onClick={addSkill}
-              className="px-4 py-2 text-white rounded-md transition"
+              className="px-5 py-2.5 bg-[#4DD9E8] text-white rounded-xl hover:bg-[#4DD9E8]/90 transition shadow-sm"
             >
               <Plus className="w-5 h-5" />
             </Button>
           </div>
           <ErrorMessage error={fieldErrors.primarySkills} />
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5 mt-4">
             {formData.primarySkills.map((name, index) => {
               const skillObj = data?.candidateProfile?.primarySkills?.find(
                 (s) =>
@@ -2151,546 +2150,571 @@ const CandidateProfileUpdate = ({
               const skillId = skillObj?.id ?? null;
 
               return (
-                <span
+                <div
                   key={`${skillId ?? name.toLowerCase()}-${index}`}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#4DD9E8]/10 text-[#288e99] rounded-xl text-sm font-medium"
                 >
                   {name}
                   {(() => {
                     const isRemoving = removingSkillId === (skillId ?? name);
                     return isRemoving ? (
                       <div className="ml-2 flex items-center justify-center">
-                        <SpinnerLoader className="text-red-600" />
+                        <SpinnerLoader className="text-red-500 w-3 h-3" />
                       </div>
                     ) : (
                       <button
                         type="button"
                         onClick={() => removeSkills(name)}
-                        className="hover:text-teal-900 min-w-0 min-h-0"
+                        className="hover:text-red-500 transition-colors bg-white/50 dark:bg-black/20 rounded-full p-0.5"
                         aria-label={`Remove ${name}`}
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     );
                   })()}
-                </span>
+                </div>
               );
             })}
             {formData.primarySkills.length === 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+              <p className="text-sm text-gray-400 italic">
                 No skills added yet. Add at least one skill.
               </p>
             )}
           </div>
           {formData.primarySkills.length > 0 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs font-medium text-gray-400 mt-3">
               {formData.primarySkills.length} / 50 skills added
             </p>
           )}
-        </div>
-      </div>
+        </DashCard>
 
-      {/* Work Experience */}
-      <div className="space-y-4 text-left mt-8">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-800 border-b dark:border-b-gray-600 dark:text-white pb-2 flex-1">
-            Work Experience
-          </h2>
-          <Button
-            type="button"
-            onClick={addWorkExperience}
-            className="flex items-center gap-2 px-4 py-2  bg-primary text-white rounded-md hover:bg-primary/90 transition text-[10px] sm:text-sm min-h-0 min-w-0"
-          >
-            <Briefcase className="w-4 h-4" />
-            Add Experience
-          </Button>
-        </div>
-
-        {formData.workExperiences.map((exp, index) => (
-          <div
-            key={exp.localId ?? exp.id ?? index}
-            className="p-4 border dark:border-2 border-gray-200 rounded-lg space-y-3 bg-gray-50 dark:bg-slate-800 dark:border-slate-700"
-          >
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium text-gray-700 dark:text-white">
-                Experience #{index + 1}
-              </h3>
-              {(() => {
-                const localKey = exp?.localId ?? `local-we-${index}`;
-                const isRemoving =
-                  exp.id != null
-                    ? removingWorkExperienceId === exp.id
-                    : removingWorkExperienceId === localKey;
-                return isRemoving ? (
-                  <div className="flex items-center justify-center">
-                    <SpinnerLoader className="text-red-600" />
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => removeWorkExperiences(exp.id, index)}
-                    className="text-red-600 hover:text-red-800"
-                    aria-label="Remove work experience"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                );
-              })()}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <Input
-                  type="text"
-                  placeholder="Company Name *"
-                  value={exp.companyName}
-                  onChange={(e) =>
-                    updateWorkExperience(index, "companyName", e.target.value)
-                  }
-                  className={`px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                    fieldErrors[`workExp_${index}_company`]
-                      ? "border-red-500"
-                      : ""
-                  }`}
-                />
-                <ErrorMessage error={fieldErrors[`workExp_${index}_company`]} />
-              </div>
-              <div>
-                <Input
-                  type="text"
-                  placeholder="Role/Title *"
-                  value={exp.role}
-                  onChange={(e) =>
-                    updateWorkExperience(index, "role", e.target.value)
-                  }
-                  className={`px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                    fieldErrors[`workExp_${index}_role`] ? "border-red-500" : ""
-                  }`}
-                />
-                <ErrorMessage error={fieldErrors[`workExp_${index}_role`]} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <select
-                value={exp.employmentType}
-                onChange={(e) =>
-                  updateWorkExperience(index, "employmentType", e.target.value)
-                }
-                className="px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+        {/* Work Experience */}
+        <DashCard>
+          <SectionTitle
+            icon={<Briefcase className="w-5 h-5" />}
+            title="Work Experience"
+            action={
+              <Button
+                type="button"
+                onClick={addWorkExperience}
+                className="flex items-center gap-2 px-4 py-2 bg-[#4DD9E8]/10 text-[#288e99] hover:bg-[#4DD9E8]/20 hover:text-[#288e99] rounded-xl transition text-[10px] sm:text-sm shadow-none"
               >
-                <option value="">Employment Type</option>
-                {employmentTypeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-              <Input
-                type="text"
-                placeholder="Location"
-                value={exp.location}
-                onChange={(e) =>
-                  updateWorkExperience(index, "location", e.target.value)
-                }
-                className="px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
-              />
-            </div>
+                <Plus className="w-4 h-4" />
+                Add Experience
+              </Button>
+            }
+          />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <Label className="block text-xs text-gray-600 mb-1 dark:text-white">
-                  Start Date *
-                </Label>
-                <input
-                  type="date"
-                  value={exp.startDate}
-                  onChange={(e) =>
-                    updateWorkExperience(index, "startDate", e.target.value)
+          <div className="space-y-4">
+            {formData.workExperiences.map((exp, index) => (
+              <div
+                key={exp.localId ?? exp.id ?? index}
+                className="p-5 border border-gray-100 dark:border-slate-700/50 rounded-xl space-y-4 bg-gray-50/50 dark:bg-slate-800/50 transition-all hover:border-gray-200 dark:hover:border-slate-600"
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Experience #{index + 1}
+                  </h3>
+                  {(() => {
+                    const localKey = exp?.localId ?? `local-we-${index}`;
+                    const isRemoving =
+                      exp.id != null
+                        ? removingWorkExperienceId === exp.id
+                        : removingWorkExperienceId === localKey;
+                    return isRemoving ? (
+                      <div className="flex items-center justify-center p-2">
+                        <SpinnerLoader className="text-red-500 w-4 h-4" />
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => removeWorkExperiences(exp.id, index)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                        aria-label="Remove work experience"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    );
+                  })()}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Company Name *"
+                      value={exp.companyName}
+                      onChange={(e) =>
+                        updateWorkExperience(index, "companyName", e.target.value)
+                      }
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`workExp_${index}_company`]
+                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                        } focus:ring-2 focus:ring-inset rounded-xl`}
+                    />
+                    <ErrorMessage error={fieldErrors[`workExp_${index}_company`]} />
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Role/Title *"
+                      value={exp.role}
+                      onChange={(e) =>
+                        updateWorkExperience(index, "role", e.target.value)
+                      }
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`workExp_${index}_role`]
+                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                        } focus:ring-2 focus:ring-inset rounded-xl`}
+                    />
+                    <ErrorMessage error={fieldErrors[`workExp_${index}_role`]} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <select
+                    value={exp.employmentType}
+                    onChange={(e) =>
+                      updateWorkExperience(index, "employmentType", e.target.value)
+                    }
+                    className="px-4 py-3 bg-white dark:bg-slate-900 border-0 w-full  ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:ring-slate-700 rounded-xl"
+                  >
+                    <option value="">Employment Type</option>
+                    {employmentTypeOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Location"
+                    value={exp.location}
+                    onChange={(e) =>
+                      updateWorkExperience(index, "location", e.target.value)
+                    }
+                    className="px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:ring-slate-700 rounded-xl"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="block text-xs font-medium text-gray-500 mb-1.5 dark:text-gray-400">
+                      Start Date *
+                    </Label>
+                    <input
+                      type="date"
+                      value={exp.startDate}
+                      onChange={(e) =>
+                        updateWorkExperience(index, "startDate", e.target.value)
+                      }
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`workExp_${index}_startDate`]
+                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                        } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
+                    />
+                    <ErrorMessage
+                      error={fieldErrors[`workExp_${index}_startDate`]}
+                    />
+                  </div>
+                  <div>
+                    <Label className="block text-xs font-medium text-gray-500 mb-1.5 dark:text-gray-400">
+                      End Date (Leave empty if current)
+                    </Label>
+                    <input
+                      type="date"
+                      value={exp.endDate ?? ""}
+                      onChange={(e) =>
+                        updateWorkExperience(
+                          index,
+                          "endDate",
+                          e.target.value === "" ? null : e.target.value,
+                        )
+                      }
+                      className="w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:ring-slate-700 rounded-xl text-gray-700 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <ErrorMessage error={fieldErrors[`workExp_${index}_dates`]} />
+
+                <textarea
+                  placeholder="Description of your role and achievements..."
+                  value={
+                    Array.isArray(exp.description)
+                      ? exp.description.join("\n")
+                      : exp.description
                   }
-                  className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                    fieldErrors[`workExp_${index}_startDate`]
-                      ? "border-red-500"
-                      : ""
-                  }`}
-                />
-                <ErrorMessage
-                  error={fieldErrors[`workExp_${index}_startDate`]}
+                  onChange={(e) =>
+                    updateWorkExperience(index, "description", e.target.value)
+                  }
+                  rows={3}
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:ring-slate-700 rounded-xl resize-y"
                 />
               </div>
-              <div>
-                <Label className="block text-xs text-gray-600 mb-1 dark:text-white">
-                  End Date (Leave empty if current)
-                </Label>
+            ))}
+
+            {formData.workExperiences.length === 0 && (
+              <p className="text-sm text-gray-400 italic text-center py-6 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-200 dark:border-slate-700">
+                No work experience added yet. Click "Add Experience" to get started.
+              </p>
+            )}
+          </div>
+        </DashCard>
+
+        {/* Projects */}
+        <DashCard>
+          <SectionTitle
+            icon={<FolderGit2 className="w-5 h-5" />}
+            title="Projects"
+            action={
+              <Button
+                type="button"
+                onClick={addProject}
+                className="flex items-center gap-2 px-4 py-2 bg-[#4DD9E8]/10 text-[#288e99] hover:bg-[#4DD9E8]/20 hover:text-[#288e99] rounded-xl transition text-[10px] sm:text-sm shadow-none"
+              >
+                <Plus className="w-4 h-4" />
+                Add Project
+              </Button>
+            }
+          />
+
+          <div className="space-y-4">
+            {formData.projects.map((project, index) => (
+              <div
+                key={project.localId ?? project.id ?? index}
+                className="p-5 border border-gray-100 dark:border-slate-700/50 rounded-xl space-y-4 bg-gray-50/50 dark:bg-slate-800/50 transition-all hover:border-gray-200 dark:hover:border-slate-600"
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Project #{index + 1}
+                  </h3>
+                  {(() => {
+                    const localKey = project?.localId ?? `local-project-${index}`;
+                    const isRemoving =
+                      project.id != null
+                        ? removingProjectId === project.id
+                        : removingProjectId === localKey;
+                    return isRemoving ? (
+                      <div className="flex items-center justify-center p-2">
+                        <SpinnerLoader className="text-red-500 w-4 h-4" />
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => removeProjects(project.id, index)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                        aria-label="Remove project"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    );
+                  })()}
+                </div>
+
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Project Title *"
+                    value={project.title}
+                    onChange={(e) => updateProject(index, "title", e.target.value)}
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`project_${index}_title`]
+                      ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                      : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                      } focus:ring-2 focus:ring-inset rounded-xl`}
+                  />
+                  <ErrorMessage error={fieldErrors[`project_${index}_title`]} />
+                </div>
+
+                <div>
+                  <textarea
+                    placeholder="Project Description *"
+                    value={project.description}
+                    onChange={(e) =>
+                      updateProject(index, "description", e.target.value)
+                    }
+                    rows={3}
+                    className={`w-full px-4 py-3 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`project_${index}_description`]
+                      ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                      : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                      } focus:ring-2 focus:ring-inset rounded-xl resize-y`}
+                  />
+                  <ErrorMessage
+                    error={fieldErrors[`project_${index}_description`]}
+                  />
+                </div>
+
                 <input
-                  type="date"
-                  value={exp.endDate ?? ""}
+                  type="text"
+                  placeholder="Tech Stack (comma separated, e.g., Node.js, PostgreSQL)"
+                  value={
+                    Array.isArray(project.techStack)
+                      ? project.techStack.join(", ")
+                      : (project.techStack ?? "")
+                  }
                   onChange={(e) =>
-                    updateWorkExperience(
+                    updateProject(index, "techStack", e.target.value)
+                  }
+                  onBlur={(e) =>
+                    updateProject(
                       index,
-                      "endDate",
-                      e.target.value === "" ? null : e.target.value,
+                      "techStack",
+                      e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
                     )
                   }
-                  className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:ring-slate-700 rounded-xl"
                 />
-              </div>
-            </div>
-            <ErrorMessage error={fieldErrors[`workExp_${index}_dates`]} />
 
-            <Textarea
-              placeholder="Description of your role and achievements..."
-              value={
-                Array.isArray(exp.description)
-                  ? exp.description.join("\n")
-                  : exp.description
-              }
-              onChange={(e) =>
-                updateWorkExperience(index, "description", e.target.value)
-              }
-              rows={3}
-              className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:border-slate-500 bg-white"
-            />
-          </div>
-        ))}
+                <div>
+                  <input
+                    type="url"
+                    placeholder="Project URL (e.g., https://github.com/username/project)"
+                    value={project.projectUrl}
+                    onChange={(e) =>
+                      updateProject(index, "projectUrl", e.target.value)
+                    }
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`project_${index}_url`]
+                      ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                      : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                      } focus:ring-2 focus:ring-inset rounded-xl`}
+                  />
+                  <ErrorMessage error={fieldErrors[`project_${index}_url`]} />
+                </div>
 
-        {formData.workExperiences.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center py-4">
-            No work experience added yet. Click "Add Experience" to get started.
-          </p>
-        )}
-      </div>
-
-      {/* Projects */}
-      <div className="space-y-4 text-left mt-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-800 border-b dark:border-gray-600 pb-2 flex-1 dark:text-white">
-            Projects
-          </h2>
-          <Button
-            type="button"
-            onClick={addProject}
-            className="flex items-center gap-2 px-4 py-2  bg-primary text-white rounded-md hover:bg-primary/90 transition text-[10px] sm:text-sm min-h-0 min-w-0"
-          >
-            <FolderGit2 className="w-4 h-4" />
-            Add Project
-          </Button>
-        </div>
-
-        {formData.projects.map((project, index) => (
-          <div
-            key={project.localId ?? project.id ?? index}
-            className="p-4 border dark:border-2 border-gray-200 rounded-lg space-y-3 bg-gray-50 dark:bg-slate-800 dark:border-slate-700"
-          >
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium text-gray-700 dark:text-white">
-                Project #{index + 1}
-              </h3>
-              {(() => {
-                const localKey = project?.localId ?? `local-project-${index}`;
-                const isRemoving =
-                  project.id != null
-                    ? removingProjectId === project.id
-                    : removingProjectId === localKey;
-                return isRemoving ? (
-                  <div className="flex items-center justify-center">
-                    <SpinnerLoader className="text-red-600" />
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => removeProjects(project.id, index)}
-                    className="text-red-600 hover:text-red-800"
-                    aria-label="Remove project"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                );
-              })()}
-            </div>
-
-            <div>
-              <Input
-                type="text"
-                placeholder="Project Title *"
-                value={project.title}
-                onChange={(e) => updateProject(index, "title", e.target.value)}
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors[`project_${index}_title`] ? "border-red-500" : ""
-                }`}
-              />
-              <ErrorMessage error={fieldErrors[`project_${index}_title`]} />
-            </div>
-
-            <div>
-              <Textarea
-                placeholder="Project Description *"
-                value={project.description}
-                onChange={(e) =>
-                  updateProject(index, "description", e.target.value)
-                }
-                rows={2}
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors[`project_${index}_description`]
-                    ? "border-red-500"
-                    : ""
-                }`}
-              />
-              <ErrorMessage
-                error={fieldErrors[`project_${index}_description`]}
-              />
-            </div>
-
-            <Input
-              type="text"
-              placeholder="Tech Stack (comma separated, e.g., Node.js, PostgreSQL)"
-              value={
-                Array.isArray(project.techStack)
-                  ? project.techStack.join(", ")
-                  : (project.techStack ?? "")
-              }
-              onChange={(e) =>
-                updateProject(index, "techStack", e.target.value)
-              }
-              onBlur={(e) =>
-                updateProject(
-                  index,
-                  "techStack",
-                  e.target.value
-                    .split(",")
-                    .map((s) => s.trim())
-                    .filter(Boolean),
-                )
-              }
-              className="w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white"
-            />
-
-            <div>
-              <Input
-                type="url"
-                placeholder="Project URL (e.g., https://github.com/username/project)"
-                value={project.projectUrl}
-                onChange={(e) =>
-                  updateProject(index, "projectUrl", e.target.value)
-                }
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors[`project_${index}_url`] ? "border-red-500" : ""
-                }`}
-              />
-              <ErrorMessage error={fieldErrors[`project_${index}_url`]} />
-            </div>
-
-            <Label className="flex items-center gap-2 dark:text-white">
-              <Input
-                type="checkbox"
-                checked={project.isFeatured}
-                onChange={(e) =>
-                  updateProject(index, "isFeatured", e.target.checked)
-                }
-                className="min-h-0 min-w-0 w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-800 dark:border-slate-500 bg-white accent-primary dark:accent-white"
-              />
-              <span className="text-sm text-gray-700 dark:text-white">
-                Featured Project
-              </span>
-            </Label>
-          </div>
-        ))}
-
-        {formData.projects.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center py-4">
-            No projects added yet. Click "Add Project" to showcase your work.
-          </p>
-        )}
-      </div>
-
-      {/* Certifications */}
-      <div className="space-y-4 text-left mt-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-800 border-b dark:border-gray-600 pb-2 flex-1 dark:text-white">
-            Certifications
-          </h2>
-          <Button
-            type="button"
-            onClick={addCertification}
-            className="flex items-center gap-2 px-4 py-2  bg-primary text-white rounded-md hover:bg-primary/90 transition text-[10px] sm:text-sm min-h-0 min-w-0"
-          >
-            <Award className="w-4 h-4" />
-            Add Certification
-          </Button>
-        </div>
-
-        {formData.certifications.map((cert, index) => (
-          <div
-            key={cert.localId ?? cert.id ?? index}
-            className="p-4 border dark:border-2 border-gray-200 rounded-lg space-y-3 bg-gray-50 dark:bg-slate-800 dark:border-slate-700"
-          >
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium text-gray-700 dark:text-white">
-                Certification #{index + 1}
-              </h3>
-              {(() => {
-                const localKey = cert?.localId ?? `local-cert-${index}`;
-                const isRemoving =
-                  cert.id != null
-                    ? removingCertificateId === cert.id
-                    : removingCertificateId === localKey;
-                return isRemoving ? (
-                  <div className="flex items-center justify-center">
-                    <SpinnerLoader className="text-red-600" />
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => removeCertification(cert.id, index)}
-                    className="text-red-600 hover:text-red-800"
-                    aria-label="Remove certification"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                );
-              })()}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <Input
-                  type="text"
-                  placeholder="Certification Name *"
-                  value={cert.name}
-                  onChange={(e) =>
-                    updateCertification(index, "name", e.target.value)
-                  }
-                  className={`px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                    fieldErrors[`cert_${index}_name`] ? "border-red-500" : ""
-                  }`}
-                />
-                <ErrorMessage error={fieldErrors[`cert_${index}_name`]} />
-              </div>
-              <div>
-                <Input
-                  type="text"
-                  placeholder="Issued By *"
-                  value={cert.issuedBy}
-                  onChange={(e) =>
-                    updateCertification(index, "issuedBy", e.target.value)
-                  }
-                  className={`px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                    fieldErrors[`cert_${index}_issuer`] ? "border-red-500" : ""
-                  }`}
-                />
-                <ErrorMessage error={fieldErrors[`cert_${index}_issuer`]} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <Label className="block text-xs text-gray-600 mb-1 dark:text-white">
-                  Issue Date *
+                <Label className="flex items-center gap-3 dark:text-gray-300 w-max cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={project.isFeatured}
+                    onChange={(e) =>
+                      updateProject(index, "isFeatured", e.target.checked)
+                    }
+                    className="min-h-0 min-w-0 w-5 h-5 rounded border-gray-300 text-primary focus:ring-[#4DD9E8] outline-none dark:border-slate-600 dark:bg-slate-800 accent-[#4DD9E8]"
+                  />
+                  <span className="text-sm font-medium">
+                    Featured Project <span className="text-destructive">*</span>
+                  </span>
                 </Label>
-                <input
-                  type="date"
-                  value={cert.issueDate}
-                  onChange={(e) =>
-                    updateCertification(index, "issueDate", e.target.value)
-                  }
-                  className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                    fieldErrors[`cert_${index}_issueDate`]
-                      ? "border-red-500"
-                      : ""
-                  }`}
-                />
-                <ErrorMessage error={fieldErrors[`cert_${index}_issueDate`]} />
               </div>
-              <div>
-                <Label className="block text-xs text-gray-600 mb-1 dark:text-white">
-                  Expiry Date (Optional)
-                </Label>
-                <input
-                  type="date"
-                  value={cert.expiryDate ?? ""}
-                  onChange={(e) =>
-                    updateCertification(
-                      index,
-                      "expiryDate",
-                      e.target.value || null,
-                    )
-                  }
-                  className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                    fieldErrors[`cert_${index}_expiryDate`]
-                      ? "border-red-500"
-                      : ""
-                  }`}
-                />
-                <ErrorMessage error={fieldErrors[`cert_${index}_expiryDate`]} />
-              </div>
-            </div>
+            ))}
 
-            <div>
-              <Input
-                type="url"
-                placeholder="Credential URL (e.g., https://coursera.org/verify/...)"
-                value={cert.credentialUrl}
-                onChange={(e) =>
-                  updateCertification(index, "credentialUrl", e.target.value)
-                }
-                className={`w-full px-3 py-2 border dark:border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-500 bg-white ${
-                  fieldErrors[`cert_${index}_url`] ? "border-red-500" : ""
-                }`}
-              />
-              <ErrorMessage error={fieldErrors[`cert_${index}_url`]} />
-            </div>
+            {formData.projects.length === 0 && (
+              <p className="text-sm text-gray-400 italic text-center py-6 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-200 dark:border-slate-700">
+                No projects added yet. Click "Add Project" to showcase your work.
+              </p>
+            )}
           </div>
-        ))}
+        </DashCard>
 
-        {formData.certifications.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center py-4">
-            No certifications added yet. Click "Add Certification" to highlight
-            your credentials.
-          </p>
+        {/* Certifications */}
+        <DashCard>
+          <SectionTitle
+            icon={<Award className="w-5 h-5" />}
+            title="Certifications"
+            action={
+              <Button
+                type="button"
+                onClick={addCertification}
+                className="flex items-center gap-2 px-4 py-2 bg-[#4DD9E8]/10 text-[#288e99] hover:bg-[#4DD9E8]/20 hover:text-[#288e99] rounded-xl transition text-[10px] sm:text-sm shadow-none"
+              >
+                <Plus className="w-4 h-4" />
+                Add Certification
+              </Button>
+            }
+          />
+
+          <div className="space-y-4">
+            {formData.certifications.map((cert, index) => (
+              <div
+                key={cert.localId ?? cert.id ?? index}
+                className="p-5 border border-gray-100 dark:border-slate-700/50 rounded-xl space-y-4 bg-gray-50/50 dark:bg-slate-800/50 transition-all hover:border-gray-200 dark:hover:border-slate-600"
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Certification #{index + 1}
+                  </h3>
+                  {(() => {
+                    const localKey = cert?.localId ?? `local-cert-${index}`;
+                    const isRemoving =
+                      cert.id != null
+                        ? removingCertificateId === cert.id
+                        : removingCertificateId === localKey;
+                    return isRemoving ? (
+                      <div className="flex items-center justify-center p-2">
+                        <SpinnerLoader className="text-red-500 w-4 h-4" />
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => removeCertification(cert.id, index)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                        aria-label="Remove certification"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    );
+                  })()}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Certification Name *"
+                      value={cert.name}
+                      onChange={(e) =>
+                        updateCertification(index, "name", e.target.value)
+                      }
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_name`]
+                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                        } focus:ring-2 focus:ring-inset rounded-xl`}
+                    />
+                    <ErrorMessage error={fieldErrors[`cert_${index}_name`]} />
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Issued By *"
+                      value={cert.issuedBy}
+                      onChange={(e) =>
+                        updateCertification(index, "issuedBy", e.target.value)
+                      }
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_issuer`]
+                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                        } focus:ring-2 focus:ring-inset rounded-xl`}
+                    />
+                    <ErrorMessage error={fieldErrors[`cert_${index}_issuer`]} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="block text-xs font-medium text-gray-500 mb-1.5 dark:text-gray-400">
+                      Issue Date *
+                    </Label>
+                    <input
+                      type="date"
+                      value={cert.issueDate}
+                      onChange={(e) =>
+                        updateCertification(index, "issueDate", e.target.value)
+                      }
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_issueDate`]
+                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                        } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
+                    />
+                    <ErrorMessage error={fieldErrors[`cert_${index}_issueDate`]} />
+                  </div>
+                  <div>
+                    <Label className="block text-xs font-medium text-gray-500 mb-1.5 dark:text-gray-400">
+                      Expiry Date (Optional)
+                    </Label>
+                    <input
+                      type="date"
+                      value={cert.expiryDate ?? ""}
+                      onChange={(e) =>
+                        updateCertification(
+                          index,
+                          "expiryDate",
+                          e.target.value || null,
+                        )
+                      }
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_expiryDate`]
+                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                        } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
+                    />
+                    <ErrorMessage error={fieldErrors[`cert_${index}_expiryDate`]} />
+                  </div>
+                </div>
+
+                <div>
+                  <input
+                    type="url"
+                    placeholder="Credential URL (e.g., https://coursera.org/verify/...)"
+                    value={cert.credentialUrl}
+                    onChange={(e) =>
+                      updateCertification(index, "credentialUrl", e.target.value)
+                    }
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_url`]
+                      ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                      : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                      } focus:ring-2 focus:ring-inset rounded-xl`}
+                  />
+                  <ErrorMessage error={fieldErrors[`cert_${index}_url`]} />
+                </div>
+              </div>
+            ))}
+
+            {formData.certifications.length === 0 && (
+              <p className="text-sm text-gray-400 italic text-center py-6 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-200 dark:border-slate-700">
+                No certifications added yet. Click "Add Certification" to highlight
+                your credentials.
+              </p>
+            )}
+          </div>
+        </DashCard>
+
+        {/* Submit Button */}
+        <div className="flex gap-4 pt-6 pb-8 border-t border-gray-100 dark:border-slate-800/50 mt-8">
+          <button
+            type="button"
+            style={{
+              background: "linear-gradient(135deg, #4DD9E8, #0ea5e9)",
+              boxShadow: "0 4px 20px rgba(77,217,232,0.35)",
+            }}
+            onClick={handleSubmit}
+            disabled={isUpdating}
+            className="flex-1 items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-white rounded-xl hover:opacity-90 transition-all font-semibold shadow-md shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed hidden sm:flex"
+          >
+            {isUpdating ? (
+              <div className="flex items-center justify-center gap-2">
+                <SpinnerLoader />
+                <span>Updating...</span>
+              </div>
+            ) : (
+              "Update Profile"
+            )}
+          </button>
+          {/* Mobile Submit */}
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isUpdating}
+            className="flex-1 items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-white rounded-xl hover:opacity-90 transition-all font-semibold shadow-md shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed sm:hidden"
+          >
+            {isUpdating ? <SpinnerLoader /> : "Update"}
+          </button>
+
+          <button
+            onClick={() => {
+              // Clear any pending removal timeouts
+              teardownPendingRemovals();
+              setFormData(handleForm());
+              setFieldErrors({}); // Clear errors on cancel
+              setLocationInput("");
+              preferredLocationsDirtyRef.current = false;
+              toast.info("Changes discarded");
+            }}
+            type="button"
+            className="px-6 py-3 bg-white dark:bg-slate-800 hover:bg-gray-50 hover:text-red-600 ring-1 ring-inset ring-gray-200 dark:ring-slate-700 rounded-xl transition-all font-medium text-gray-700 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-slate-800/80 shadow-sm"
+          >
+            Cancel
+          </button>
+        </div>
+
+        {updateError && (
+          <div className="mt-4 p-4 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-xl">
+            <p className="text-rose-600 dark:text-rose-400 text-sm font-medium flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <span>Failed to update profile. Please try again.</span>
+            </p>
+          </div>
         )}
       </div>
-
-      {/* Submit Button */}
-      <div className="flex gap-4 pt-4 ">
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={isUpdating}
-          className="flex-1 items-center gap-2 px-4 py-2  bg-primary text-white rounded-md hover:bg-primary/90 transition text-base disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isUpdating ? (
-            <div className="flex items-center justify-center gap-2">
-              <SpinnerLoader />
-              Updating...
-            </div>
-          ) : (
-            "Update Profile"
-          )}
-        </button>
-        <button
-          onClick={() => {
-            // Clear any pending removal timeouts
-            teardownPendingRemovals();
-            setFormData(handleForm());
-            setFieldErrors({}); // Clear errors on cancel
-            setLocationInput("");
-            preferredLocationsDirtyRef.current = false;
-            toast.info("Changes discarded");
-          }}
-          type="button"
-          className="px-6 py-3 border border-gray-300 rounded-md hover:bg-red-600 hover:text-white transition font-medium dark:border-gray-600"
-        >
-          Cancel
-        </button>
-      </div>
-      {updateError && (
-        <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-red-600 dark:text-red-400 text-sm font-medium flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
-            Failed to update profile. Please try again.
-          </p>
-        </div>
-      )}
     </div>
   );
 };

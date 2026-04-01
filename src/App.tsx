@@ -19,10 +19,10 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 // not considering this for now (lazy loading)
 import EmployerSignup from "./pages/EmployerSignup";
 import BenchRegistration from "./pages/BenchRegistration";
-import CandidateSignup from "./pages/CandidateSignup";
 import EmployerLogin from "./pages/EmployerLogin";
 import BenchLogin from "./pages/BenchLogin";
-import CandidateLogin from "./pages/CandidateLogin";
+import ContractorLogin from "./pages/ContractorLogin";
+import ContractorSignup from "./pages/ContractorSignup";
 
 // import ProfileVisibility from "./pages/ProfileVisibility";
 // import Register from "./pages/Register";
@@ -95,6 +95,11 @@ import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import Unauthorized from "./pages/Unauthorized";
 import { LazyRoute } from "./pages/LazyRoute";
 import ResetPassword from "./pages/ResetPassword";
+import PolicyPage from "./pages/PolicyPage";
+
+import Dash from "../public/quickrekruit-dashboard.jsx"
+import CandidateProfileUpdate from "./pages/CandidateProfileUpdate.js";
+
 const HiringDashboardNew = lazy(
   () => import("./pages/employer/HiringDashboardNew"),
 );
@@ -171,11 +176,17 @@ const App = () => {
                     <Route path="/bench-login" element={<BenchLogin />} />
                     <Route
                       path="/contractor-login"
-                      element={<CandidateLogin />}
+                      element={<ContractorLogin />}
                     />
+
+                    {/* NEW DASHBOARD */}
+                    <Route path="/dash" element={<Dash />} />
+                    {/* NEW DASHBOARD */}
+
+
                     <Route
                       path="/contractor-signup"
-                      element={<CandidateSignup />}
+                      element={<ContractorSignup />}
                     />
 
                     {/* Forgot password Route */}
@@ -207,6 +218,7 @@ const App = () => {
                           element={<ContractorDashboard />}
                         />
                         <Route path="profile" element={<ContractorProfile />} />
+                        <Route path="profile/update" element={<CandidateProfileUpdate />} />
                         {/* // TODO: replace with dedicated page components */}
                         <Route path="tests" element={<ContractorDashboard />} />
                         <Route
@@ -420,6 +432,9 @@ const App = () => {
                     </Route> */}
 
                     <Route path="/unauthorized" element={<Unauthorized />} />
+                    <Route path="/privacy" element={<PolicyPage />} />
+                    <Route path="/terms" element={<PolicyPage />} />
+                    <Route path="/security" element={<PolicyPage />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route
                       path="*"

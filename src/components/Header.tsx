@@ -10,7 +10,9 @@ import ProfileMenu from "./ProfileMenu";
 import { useSelector } from "react-redux";
 
 const Header = () => {
-  const user = useSelector((state: any) => state.user.userDetails);
+  const { userDetails: user, authInitialized } = useSelector(
+    (state: any) => state.user,
+  );
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -33,7 +35,7 @@ const Header = () => {
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         isScrolled
           ? "py-2 bg-navy-900/98 backdrop-blur-xl shadow-lg border-b border-white/5"
-          : "py-3 bg-navy-900"
+          : "py-3 bg-navy-900",
       )}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -56,7 +58,7 @@ const Header = () => {
 
           {/* User Profile */}
           <div className="hidden lg:flex">
-            {user && (
+            {authInitialized && user && (
               <ProfileMenu
                 btnClass="flex items-center gap-2 px-2 text-white"
                 avatarFallback="bg-primary rounded-full text-white"
@@ -67,7 +69,7 @@ const Header = () => {
           {/* Mobile Menu Button & Theme Toggle */}
           <div className="lg:hidden flex items-center gap-2">
             <ThemeToggle isDark />
-            {user && (
+            {authInitialized && user && (
               <ProfileMenu
                 btnClass="flex items-center gap-2 px-2 text-white"
                 avatarFallback="bg-primary rounded-full text-white"

@@ -14,11 +14,19 @@ export const ProtectedLayout = ({ allowedRoles }: ProtectedLayoutProps) => {
   const location = useLocation();
 
   // 3. Replace the Cookie logic with the Selector
-  const { userDetails: user, token } = useSelector(
-    (state: RootState) => state.user,
-  );
+  const {
+    userDetails: user,
+    token,
+    authInitialized,
+  } = useSelector((state: RootState) => state.user);
 
   const isExpired = isTokenExpired(token);
+
+  // Wait for auth initialization before making redirect decisions
+  // This prevents UI flicker when access token is expired but refresh succeeds
+  if (!authInitialized) {
+    return <BarLoader />;
+  }
 
   // 4. Check for both user and token for better security
   if (!user || !token || isExpired) {

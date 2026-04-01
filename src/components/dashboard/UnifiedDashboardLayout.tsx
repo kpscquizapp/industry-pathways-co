@@ -16,6 +16,8 @@ import {
   BarChart3,
   Plus,
   Briefcase,
+  LayoutGrid,
+  Code,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -47,6 +49,8 @@ import ProfileDialog from "../ProfileDialog";
 import { useGetEmployerProfileImageQuery } from "@/app/queries/employerApi";
 import { useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
 import { skipToken } from "@reduxjs/toolkit/query";
+import logo from "../../assets/White Option.png";
+import logoIcon from "../../assets/logo_icon.png";
 
 type DashboardRole = "contractor" | "bench" | "hire-talent";
 
@@ -59,12 +63,12 @@ const getMenuItems = (role: DashboardRole) => {
     case "contractor":
       return [
         {
-          icon: LayoutDashboard,
+          icon: LayoutGrid,
           label: "Dashboard",
           href: "/contractor/dashboard",
         },
-        { icon: User, label: "Profile", href: "/contractor/profile" },
-        // { icon: FileCheck, label: "Skill Tests", href: "/contractor/tests" },
+        { icon: User, label: "Profile", href: "/contractor/profile/update" },
+        { icon: Code, label: "Skill Tests", href: "/contractor/tests" },
         // {
         //   icon: Video,
         //   label: "AI Interviews",
@@ -75,7 +79,7 @@ const getMenuItems = (role: DashboardRole) => {
       ];
     case "bench":
       return [
-        { icon: LayoutDashboard, label: "Dashboard", href: "/bench/dashboard" },
+        { icon: LayoutGrid, label: "Dashboard", href: "/bench/dashboard" },
         { icon: PlusCircle, label: "Post Job", href: "/bench/post-job" },
         {
           icon: Users,
@@ -83,7 +87,7 @@ const getMenuItems = (role: DashboardRole) => {
           href: "/bench/ai-shortlists",
           isAI: true,
         },
-        { icon: BarChart3, label: "Skill Test", href: "/bench/skill-tests" },
+        { icon: Code, label: "Skill Test", href: "/bench/skill-tests" },
         {
           icon: Video,
           label: "AI Interviews",
@@ -97,7 +101,7 @@ const getMenuItems = (role: DashboardRole) => {
     case "hire-talent":
       return [
         {
-          icon: LayoutDashboard,
+          icon: LayoutGrid,
           label: "Dashboard",
           href: "/hire-talent/dashboard",
         },
@@ -110,7 +114,7 @@ const getMenuItems = (role: DashboardRole) => {
           isAI: true,
         },
         {
-          icon: ClipboardCheck,
+          icon: Code,
           label: "Skill Tests",
           href: "/hire-talent/skill-tests",
         },
@@ -167,7 +171,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
     if (user.role === "hr") {
       navigate("/bench-dashboard");
     } else if (user.role === "candidate") {
-      navigate("/contractor/profile");
+      navigate("/contractor/dashboard");
     } else if (user.role === "employer") {
       navigate("/hire-talent/dashboard");
     } else {
@@ -191,23 +195,32 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-border bg-background"
+      className="border-none text-slate-300"
+      style={{
+        "--sidebar-background": "221 50% 9%",
+        "--sidebar": "221 50% 9%"
+      } as React.CSSProperties}
     >
-      <SidebarHeader className="border-b border-border p-4">
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-            <Sparkles className="h-5 w-5 text-primary-foreground" />
-          </div>
+      <SidebarHeader className="p-6">
+        {
+          isCollapsed && (
+            <img src={logoIcon} alt="logo icon" className="w-12 h-auto" />
+          )
+        }
+        <Link to="/" className="flex items-center gap-3">
           {!isCollapsed && (
-            <span className="text-xl font-bold tracking-tight text-foreground">
-              HIRION
-            </span>
+            <img src={logo} alt="company logo" className="h-auto w-36" />
           )}
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="p-3">
-        <SidebarMenu>
+      <SidebarContent className="p-4 pt-2">
+        {!isCollapsed && (
+          <div className="px-3 mb-4 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+            Menu
+          </div>
+        )}
+        <SidebarMenu className="gap-1.5">
           {menuItems.map((item) => {
             const dashboardHref =
               role === "bench" ? "/bench/dashboard" : `/${role}/dashboard`;
@@ -224,19 +237,24 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
                   isActive={isActive}
                   tooltip={item.label}
                   className={cn(
-                    "w-full justify-start gap-3 px-3 py-2.5 rounded-xl transition-all",
+                    "w-full justify-start transition-all relative overflow-hidden group/menuBtn border border-transparent",
+                    !isCollapsed && "px-4 py-6 rounded-2xl",
+                    isCollapsed && "rounded-xl",
                     isActive
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                      ? "!bg-[#112433] !text-[#00e5ff]"
+                      : "!text-slate-400 hover:!bg-[rgba(0,229,255,0.05)] hover:!text-white",
                   )}
                 >
-                  <Link to={item.href}>
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <Link to={item.href} className="flex items-center w-full">
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-[#00e5ff] rounded-r-md z-10 shadow-[0_0_10px_rgba(0,229,255,0.4)]" />
+                    )}
+                    <item.icon className={cn("!w-[22px] !h-[22px] flex-shrink-0 z-10 transition-colors", isActive ? "" : "group-hover/menuBtn:text-[#00e5ff]")} />
                     {!isCollapsed && (
-                      <span className="font-medium">{item.label}</span>
+                      <span className="font-semibold text-[15px] ml-4 z-10 transition-colors">{item.label}</span>
                     )}
                     {item.isAI && !isCollapsed && (
-                      <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-primary/20 text-primary rounded-full font-semibold">
+                      <span className="ml-auto px-2 py-0.5 text-[10px] bg-[rgba(0,229,255,0.1)] text-[#00e5ff] rounded-full font-bold">
                         AI
                       </span>
                     )}
@@ -248,56 +266,66 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
         </SidebarMenu>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border p-3">
+      <SidebarFooter className="p-4 border-t border-white/5 pb-6">
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <button
               className={cn(
-                "flex items-center gap-3 w-full p-2 rounded-xl hover:bg-muted transition-colors",
-                isCollapsed && "justify-center",
+                "flex items-center w-full p-2.5 rounded-2xl hover:bg-white/5 transition-colors bg-[#111928] border border-transparent hover:border-white/10",
+                isCollapsed ? "justify-center" : "gap-3"
               )}
             >
-              <Avatar className="h-9 w-9 bg-slate-300 flex-shrink-0">
+              <Avatar className="h-10 w-10 bg-cyan-900/40 flex-shrink-0 rounded-xl">
                 {profileImage && (
                   <AvatarImage
-                    className="object-cover"
+                    className="object-cover rounded-xl"
                     src={profileImage}
                     alt={`${user?.firstName ?? "User"} profile image`}
                   />
                 )}
-                <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
+                <AvatarFallback className="bg-transparent text-[#00e5ff] text-base font-bold rounded-xl">
                   {user?.firstName?.charAt(0) ||
                     user?.email?.charAt(0) ||
                     role.charAt(0).toUpperCase()}
+                  {user?.lastName?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               {!isCollapsed && (
-                <div className="text-left flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {user?.firstName} {user?.lastName}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {getRoleBadge()}
-                  </p>
-                </div>
+                <>
+                  <div className="text-left flex-1 min-w-0 pr-1">
+                    <p className="text-[15px] font-semibold text-white truncate leading-tight">
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                    <p className="text-[13px] text-slate-400 truncate mt-0.5">
+                      {getRoleBadge()}
+                    </p>
+                  </div>
+                  <LogOut className="h-[22px] w-[22px] text-slate-500 flex-shrink-0 hover:text-slate-300" />
+                </>
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" className="w-56">
-            <DropdownMenuItem onClick={handleProfile}>
+          <DropdownMenuContent align="end" side="top" className="w-56 bg-[#0B1221] border-[#1c2e3d] text-slate-300 shadow-2xl shadow-black/50">
+            <DropdownMenuItem
+              onClick={handleProfile}
+              className="focus:bg-[#112433] focus:text-[#00e5ff] cursor-pointer transition-colors"
+            >
               <User className="h-4 w-4 mr-2" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to={`/${role}/settings`}>
+            <DropdownMenuItem
+              asChild
+              className="focus:bg-[#112433] focus:text-[#00e5ff] cursor-pointer transition-colors"
+            >
+              <Link to={`/${role}/settings`} className="w-full">
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-white/10" />
             <DropdownMenuItem
               onClick={handleLogout}
-              className="text-destructive"
+              className="text-red-400 focus:bg-red-500/10 focus:text-red-300 cursor-pointer transition-colors"
               disabled={isLoading}
             >
               <LogOut className="h-4 w-4 mr-2" />
@@ -326,13 +354,13 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
         <div className="flex-1 flex flex-col min-w-0">
           <header className="sticky top-0 z-40 h-16 bg-background border-b border-border flex items-center justify-between px-6">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+              <SidebarTrigger className="text-muted-foreground hover:bg-[#0b1221]/10" title="Toggle Sidebar" />
             </div>
 
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="relative">
+              <Button size="icon" className="relative bg-transparent hover:bg-[#0b1221]/10">
                 <Bell className="h-5 w-5 text-muted-foreground" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
+                {/* <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" /> */}
               </Button>
             </div>
           </header>

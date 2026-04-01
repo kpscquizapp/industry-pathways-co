@@ -303,8 +303,8 @@ const CandidateProfile = () => {
                                         ? description
                                         : description
                                           ? description
-                                              .split(/\r?\n/)
-                                              .filter(Boolean)
+                                            .split(/\r?\n/)
+                                            .filter(Boolean)
                                           : []
                                       ).map((bullet, bIndex) => (
                                         <p
@@ -396,7 +396,7 @@ const CandidateProfile = () => {
                     </Card>
                   </TabsContent>
 
-                  <TabsContent value="resume" className="space-y-4">
+                  {/* <TabsContent value="resume" className="space-y-4">
                     <Card className="dark:bg-slate-800 dark:border-slate-700 w-full">
                       <CardContent className="p-6 text-center text-gray-500 dark:text-slate-400">
                         <ResumeManager
@@ -420,7 +420,7 @@ const CandidateProfile = () => {
                         )}
                       </CardContent>
                     </Card>
-                  </TabsContent>
+                  </TabsContent> */}
                 </Tabs>
               </div>
             </div>
