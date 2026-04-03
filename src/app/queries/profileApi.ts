@@ -143,6 +143,20 @@ export const profileApi = createApi({
       }),
       invalidatesTags: ["Profile"],
     }),
+    changePassword: builder.mutation<void, any>({
+      query: (data) => ({
+        url: "users/change-password",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    deleteMyAccount: builder.mutation<void, any>({
+      query: (data) => ({
+        url: "users/me",
+        method: "DELETE",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -160,4 +174,6 @@ export const {
   useRemoveCertificateMutation,
   useRemoveProfileImageMutation,
   useUploadProfileImageMutation,
+  useChangePasswordMutation,
+  useDeleteMyAccountMutation,
 } = profileApi;

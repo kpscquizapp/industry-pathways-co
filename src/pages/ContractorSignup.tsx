@@ -1,5 +1,6 @@
 import {
   useState,
+  useEffect,
   useCallback,
   useMemo,
   useRef,
@@ -14,6 +15,8 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   useCheckExistingEmailMutation,
   useCreateCandidateMutation,
+  useSendVerificationOtpMutation,
+  useVerifyOtpMutation,
 } from "@/app/queries/loginApi";
 import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 import logo from "@/assets/White Option.png";
@@ -54,6 +57,7 @@ interface InputProps {
   error?: string;
   min?: number;
   max?: number;
+  maxLength?: number;
 }
 
 interface SelectProps {
@@ -1056,8 +1060,13 @@ export default function ContractorSignup(): JSX.Element {
   const [createContractor, { isLoading }] = useCreateCandidateMutation();
   const [checkExistingEmail, { isLoading: isCheckingEmail }] =
     useCheckExistingEmailMutation();
+  const [sendVerificationOtp, { isLoading: isSendingOtp }] = useSendVerificationOtpMutation();
+  const [verifyOtp, { isLoading: isVerifyingOtp }] = useVerifyOtpMutation();
 
   const [step, setStep] = useState(1);
+  const [otp, setOtp] = useState("");
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [dir, setDir] = useState(1);
   const [animKey, setAnimKey] = useState(0);
 
@@ -1070,6 +1079,38 @@ export default function ContractorSignup(): JSX.Element {
   const [showPw, setShowPw] = useState(false);
   const [showCpw, setShowCpw] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const handleSendOtp = useCallback(async () => {
+    try {
+      await sendVerificationOtp({ email: form.email }).unwrap();
+      toast.success("Verification code sent to your email.");
+      setResendCooldown(60);
+    } catch (err) {
+      toast.error("Failed to send verification code. Please try again.");
+    }
+  }, [form.email, sendVerificationOtp]);
+
+  const handleVerifyOtp = useCallback(async () => {
+    if (!otp || otp.length !== 6) {
+      toast.error("Please enter a valid 6-digit code.");
+      return;
+    }
+    try {
+      await verifyOtp({ email: form.email, otp }).unwrap();
+      setIsEmailVerified(true);
+      toast.success("Email verified successfully!");
+    } catch (err) {
+      toast.error("Invalid verification code. Please check and try again.");
+    }
+  }, [form.email, otp, verifyOtp]);
+
+  /* ── Timer for OTP resend cooldown ── */
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
 
   /* ── Updater helpers ── */
   const handleInput = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -1180,6 +1221,9 @@ export default function ContractorSignup(): JSX.Element {
       }
       const skillsErr = VALIDATION.skills.validate(primarySkills);
       if (skillsErr) errors.primarySkills = skillsErr;
+      if (!isEmailVerified) {
+        errors.otp = "Please verify your email to proceed";
+      }
     } else if (step === 3) {
       if (!form.availableToJoin)
         errors.availableToJoin = "Please select your availability";
@@ -1212,8 +1256,13 @@ export default function ContractorSignup(): JSX.Element {
   ]);
 
   const nextStep = useCallback(async () => {
-    if (await validateStep()) go(step + 1);
-  }, [validateStep, go, step]);
+    if (await validateStep()) {
+      if (step === 1 && !isEmailVerified) {
+        handleSendOtp();
+      }
+      go(step + 1);
+    }
+  }, [validateStep, go, step, isEmailVerified, handleSendOtp]);
 
   const prevStep = useCallback(() => {
     setFieldErrors({});
@@ -1869,9 +1918,104 @@ export default function ContractorSignup(): JSX.Element {
             </div>
           )}
 
-          {/* ── STEP 2: Profile ── */}
+        
           {step === 2 && (
             <div style={S.column(22)}>
+             
+              <div
+                style={{
+                  background: isEmailVerified ? "rgba(77,217,232,0.05)" : "#fff9f9",
+                  border: `1.5px solid ${isEmailVerified ? ACCENT : "#fee2e2"}`,
+                  borderRadius: 12,
+                  padding: 20,
+                  marginBottom: 10,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: "50%",
+                      background: isEmailVerified ? ACCENT : "#fee2e2",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: isEmailVerified ? "#fff" : "#ef4444"
+                    }}>
+                      {isEmailVerified ? "✓" : "!"}
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: TEXT_PRIMARY }}>Email Verification</p>
+                      <p style={{ fontSize: 12, color: TEXT_MUTED }}>{form.email}</p>
+                    </div>
+                  </div>
+                  {isEmailVerified && (
+                    <span style={{ fontSize: 12, fontWeight: 600, color: ACCENT_DARK }}>Verified</span>
+                  )}
+                </div>
+
+                {!isEmailVerified && (
+                  <div style={S.column(12)}>
+                    <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+                      <div style={{ flex: 1 }}>
+                        <Input
+                          label="Enter 6-digit Code"
+                          name="otp"
+                          placeholder="000000"
+                          value={otp}
+                          maxLength={6}
+                          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                          icon={LockIcon}
+                          error={fieldErrors.otp}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleVerifyOtp}
+                        disabled={isVerifyingOtp || otp.length !== 6}
+                        style={{
+                          height: 46,
+                          padding: "0 20px",
+                          borderRadius: 10,
+                          background: TEXT_PRIMARY,
+                          color: "#fff",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: (isVerifyingOtp || otp.length !== 6) ? "not-allowed" : "pointer",
+                          opacity: (isVerifyingOtp || otp.length !== 6) ? 0.7 : 1,
+                          border: "none",
+                          marginBottom: fieldErrors.otp ? 24 : 0
+                        }}
+                      >
+                        {isVerifyingOtp ? "Verifying..." : "Verify"}
+                      </button>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <p style={{ fontSize: 12, color: TEXT_MUTED }}>
+                        Didn't receive the code?
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleSendOtp}
+                        disabled={isSendingOtp || resendCooldown > 0}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: (isSendingOtp || resendCooldown > 0) ? TEXT_MUTED : ACCENT_DARK,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: (isSendingOtp || resendCooldown > 0) ? "not-allowed" : "pointer",
+                          textDecoration: "underline"
+                        }}
+                      >
+                        {isSendingOtp ? "Sending..." : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="contractor-step-grid">
                 {/* Contractor Type — dropdown */}
                 <Select
