@@ -60,7 +60,7 @@ export default function Footer() {
   return (
     <footer
       id="contact"
-      className="border-t border-gray-100 bg-gray-50/50 overflow-hidden scroll-mt-10 bg-[#121212]"
+      className="border-t border-gray-100 overflow-hidden scroll-mt-10 bg-[#121212]"
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
