@@ -42,7 +42,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { skipToken } from "@reduxjs/toolkit/query";
-import ResumeManager, { type Resume } from "./ResumeManager";
+import ResumeManager, { type Resume } from "../ResumeManager";
 import { currencySymbols, getCurrencySymbol } from "@/lib/currency";
 
 // ==================== TYPES ====================
@@ -381,18 +381,18 @@ const VALIDATION = {
 
 // ==================== UI HELPERS ====================
 const DashCard = ({ children, className = "", noPadding = false }: { children: React.ReactNode; className?: string; noPadding?: boolean }) => (
-  <div className={`bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300 ${noPadding ? "" : "p-6 sm:p-8"} ${className}`}>
+  <div className={`bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300 ${noPadding ? "" : "p-4 sm:p-6 md:p-8"} ${className}`}>
     {children}
   </div>
 );
 
 const SectionTitle = ({ icon, title, action }: { icon?: React.ReactNode, title: string, action?: React.ReactNode }) => (
-  <div className="flex items-center justify-between mb-6">
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 mb-6">
     <div className="flex items-center gap-3 text-gray-900 dark:text-white">
       {icon && <div className="text-gray-400 dark:text-gray-500">{icon}</div>}
-      <h3 className="text-xl font-bold">{title}</h3>
+      <h3 className="text-lg sm:text-xl font-bold">{title}</h3>
     </div>
-    {action}
+    {action && <div className="self-start sm:self-auto">{action}</div>}
   </div>
 );
 
@@ -1599,13 +1599,13 @@ const CandidateProfileUpdate = (): JSX.Element => {
   };
 
   return (
-    <div className="w-full mx-auto px-2">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold">Update Profile
+    <div className="w-full mx-auto sm:px-6 md:px-2 py-4 sm:py-4 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500">
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold">Update Profile
         </h2>
         <p className="text-muted-foreground my-2">Keep your profile up to date to get the best matches.</p>
       </div>
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         {/* Profile Image Section */}
         <DashCard>
           <SectionTitle icon={<Camera className="w-6 h-6" />} title="Profile Image" />
@@ -1947,13 +1947,13 @@ const CandidateProfileUpdate = (): JSX.Element => {
                   {formData.preferredJobLocations.map((location, index) => (
                     <div
                       key={`${location}-${index}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#4DD9E8]/10 text-[#288e99] rounded-full text-sm font-medium"
                     >
                       {location}
                       <button
                         type="button"
                         onClick={() => removeLocation(index)}
-                        className="hover:text-red-500 transition-colors bg-white/50 rounded-full p-0.5"
+                        className="hover:text-red-500 transition-colors bg-white/50 rounded-full p-0.5 min-w-0 min-h-0"
                         aria-label={`Remove ${location}`}
                       >
                         <X className="w-3 h-3" />
@@ -2165,7 +2165,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       <button
                         type="button"
                         onClick={() => removeSkills(name)}
-                        className="hover:text-red-500 transition-colors bg-white/50 dark:bg-black/20 rounded-full p-0.5"
+                        className="hover:text-red-500 transition-colors bg-white/50 dark:bg-black/20 rounded-full p-0.5 min-w-0 min-h-0"
                         aria-label={`Remove ${name}`}
                       >
                         <X className="w-3.5 h-3.5" />
@@ -2659,7 +2659,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
         </DashCard>
 
         {/* Submit Button */}
-        <div className="flex gap-4 pt-6 pb-8 border-t border-gray-100 dark:border-slate-800/50 mt-8">
+        <div className="flex flex-col sm:flex-row flex-col gap-3 sm:gap-4 pt-6 pb-8 border-t border-gray-100 dark:border-slate-800/50 mt-8">
           <button
             type="button"
             style={{
@@ -2668,7 +2668,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
             }}
             onClick={handleSubmit}
             disabled={isUpdating}
-            className="flex-1 items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-white rounded-xl hover:opacity-90 transition-all font-semibold shadow-md shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed hidden sm:flex"
+            className="w-full sm:flex-1 flex items-center justify-center gap-2 px-6 py-3 text-white rounded-xl hover:opacity-90 transition-all font-semibold shadow-md shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isUpdating ? (
               <div className="flex items-center justify-center gap-2">
@@ -2676,17 +2676,9 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 <span>Updating...</span>
               </div>
             ) : (
-              "Update Profile"
+              <span className="hidden sm:inline">Update Profile</span>
             )}
-          </button>
-          {/* Mobile Submit */}
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isUpdating}
-            className="flex-1 items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-white rounded-xl hover:opacity-90 transition-all font-semibold shadow-md shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed sm:hidden"
-          >
-            {isUpdating ? <SpinnerLoader /> : "Update"}
+            {!isUpdating && <span className="sm:hidden">Update</span>}
           </button>
 
           <button
@@ -2700,7 +2692,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
               toast.info("Changes discarded");
             }}
             type="button"
-            className="px-6 py-3 bg-white dark:bg-slate-800 hover:bg-gray-50 hover:text-red-600 ring-1 ring-inset ring-gray-200 dark:ring-slate-700 rounded-xl transition-all font-medium text-gray-700 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-slate-800/80 shadow-sm"
+            className="w-full sm:w-auto px-6 py-3 bg-white dark:bg-slate-800 hover:bg-gray-50 hover:text-red-600 ring-1 ring-inset ring-gray-200 dark:ring-slate-700 rounded-xl transition-all font-medium text-gray-700 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-slate-800/80 shadow-sm"
           >
             Cancel
           </button>

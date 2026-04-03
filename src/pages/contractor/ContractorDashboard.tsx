@@ -23,10 +23,10 @@ const GlassCard = ({ children, gradient, className = "" }: { children: React.Rea
 
 
 const KPI = [
-  { label: "Interview Invites", value: "3", icon: Video, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "+2", sub: "this week" },
-  { label: "Pending Tests", value: "1", icon: FileCheck, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "1", sub: "due soon" },
-  { label: "Profile Views", value: "47", icon: Eye, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "+12", sub: "this month" },
-  { label: "Skill Score", value: "82", icon: Star, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "Top", sub: "15%" },
+  { label: "Interview Invites", value: "-", icon: Video, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "-", sub: "this week" },
+  { label: "Pending Tests", value: "-", icon: FileCheck, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "-", sub: "due soon" },
+  { label: "Profile Views", value: "-", icon: Eye, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "-", sub: "this month" },
+  { label: "Skill Score", value: "-", icon: Star, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "-", sub: "-" },
 ];
 
 const ContractorDashboard = () => {
@@ -53,10 +53,10 @@ const ContractorDashboard = () => {
 
 
   return (
-    <div className="space-y-6 flex flex-col font-sans px-2">
+    <div className="py-4 sm:py-4 flex flex-col font-sans sm:px-2 animate-in fade-in slide-in-from-bottom-3 duration-500">
       <div>
-        <h2 className="text-2xl font-bold">Dashboard</h2>
-        <p className="text-muted-foreground my-2">Welcome back, {userDetails?.firstName}. Here's your activity overview.</p>
+        <h2 className="text-2xl md:text-3xl font-bold">Dashboard</h2>
+        <p className="text-muted-foreground mt-2 mb-8">Welcome back, {userDetails?.firstName}. Here's your activity overview.</p>
       </div>
       {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

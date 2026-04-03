@@ -43,7 +43,7 @@ const ForgotPassword = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setTouched({ email: true });
-    
+
     const errors: Record<string, string> = {};
     const trimmedEmail = forgotEmail.email.trim();
 
@@ -240,7 +240,7 @@ const ForgotPassword = () => {
           </div>
         </div>
 
-        <div className="relative z-10 grid grid-cols-3 gap-8 pb-4 mt-[44px] animate-fade-up [animation-delay:200ms]">
+        {/* <div className="relative z-10 grid grid-cols-3 gap-8 pb-4 mt-[44px] animate-fade-up [animation-delay:200ms]">
           {stats.map((stat) => (
             <div key={stat.label} className="space-y-1">
               <div className="text-3xl font-bold text-white">{stat.value}</div>
@@ -249,7 +249,7 @@ const ForgotPassword = () => {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
 
       {/* Right Panel - Premium Reset Section */}
@@ -285,11 +285,10 @@ const ForgotPassword = () => {
                   Email Address
                 </Label>
                 <div
-                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
-                    touched.email && fieldErrors.email
+                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${touched.email && fieldErrors.email
                       ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
                       : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                  }`}
+                    }`}
                 >
                   <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
                   <input

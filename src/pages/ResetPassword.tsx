@@ -52,7 +52,7 @@ const ResetPassword = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setTouched({ password: true });
-    
+
     const errors: Record<string, string> = {};
     const trimmedPassword = resetPassword.password.trim();
 
@@ -67,9 +67,9 @@ const ResetPassword = () => {
       toast.error(firstError);
       return;
     }
-    
+
     setFieldErrors({});
-    
+
     const updatedResetPassword = {
       ...resetPassword,
       password: trimmedPassword,
@@ -256,7 +256,7 @@ const ResetPassword = () => {
           </div>
         </div>
 
-        <div className="relative z-10 grid grid-cols-3 gap-8 pb-4 mt-[44px] animate-fade-up [animation-delay:200ms]">
+        {/* <div className="relative z-10 grid grid-cols-3 gap-8 pb-4 mt-[44px] animate-fade-up [animation-delay:200ms]">
           {stats.map((stat) => (
             <div key={stat.label} className="space-y-1">
               <div className="text-3xl font-bold text-white">{stat.value}</div>
@@ -265,7 +265,7 @@ const ResetPassword = () => {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
 
       {/* Right Panel - Premium Reset Section */}
@@ -301,11 +301,10 @@ const ResetPassword = () => {
                   New Password
                 </Label>
                 <div
-                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
-                    touched.password && fieldErrors.password
+                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${touched.password && fieldErrors.password
                       ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
                       : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                  }`}
+                    }`}
                 >
                   <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                   <input

@@ -74,26 +74,26 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="py-20 px-6 bg-white overflow-hidden scroll-mt-10"
+      className="py-24 px-6 bg-white overflow-hidden scroll-mt-10"
     >
       <span id="features" className="block h-0 scroll-mt-10" aria-hidden="true" />
-      <div className="max-w-[1200px] mx-auto">
+      <div className="max-w-[1240px] mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+        <div className="text-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-xs font-bold text-gray-400 uppercase tracking-[2.5px] mb-2.5"
+            className="inline-flex items-center px-4 py-1.5 rounded-full bg-black/5 border border-black/10 text-gray-600 text-xs font-bold uppercase tracking-[2.5px] mb-6"
           >
             AI POWERED
-          </motion.p>
+          </motion.div>
           <motion.h2
             initial={{ y: 20, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="font-heading font-bold text-gray-900 tracking-tight text-3xl md:text-4xl lg:text-[48px]"
+            className="font-heading font-bold text-gray-900 tracking-tight text-4xl md:text-5xl"
           >
             How It Works
           </motion.h2>
@@ -102,7 +102,7 @@ export default function HowItWorks() {
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-base text-gray-400 mt-3 mx-auto max-w-md leading-relaxed"
+            className="max-w-2xl mx-auto text-gray-500 text-lg md:text-xl leading-relaxed mt-4"
           >
             From job posting to deployment in three simple steps. Our AI handles
             the heavy lifting.

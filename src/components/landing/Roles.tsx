@@ -45,31 +45,31 @@ export default function Roles() {
   return (
     <section
       id="about"
-      className="py-20 pb-24 px-6 bg-white overflow-hidden scroll-mt-10"
+      className="py-24 px-6 bg-white overflow-hidden scroll-mt-10"
     >
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-[1200px] mx-auto"
+        className="max-w-[1240px] mx-auto"
       >
         {/* Header */}
-        <div className="text-center mb-10">
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+        <div className="text-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-xs font-bold text-cyan-dark uppercase tracking-[2.5px]"
+            className="inline-flex items-center px-4 py-1.5 rounded-full bg-black/5 border border-black/10 text-gray-600 text-xs font-bold uppercase tracking-[2.5px] mb-6"
           >
             PROCESS
-          </motion.p>
+          </motion.div>
           <motion.h2
             initial={{ y: 20, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="font-heading font-bold text-gray-900 mt-2.5 tracking-tight text-3xl md:text-4xl lg:text-[48px]"
+            className="font-heading font-bold text-gray-900 tracking-tight text-4xl md:text-5xl"
           >
             Built for Every Role in Contract Hiring
           </motion.h2>
@@ -78,10 +78,10 @@ export default function Roles() {
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-base text-gray-400 mt-3 mx-auto max-w-md leading-relaxed"
+            className="max-w-2xl mx-auto text-gray-500 text-lg md:text-xl leading-relaxed mt-4"
           >
             Whether you're a contractor, a company with
-            <br />
+            <br className="hidden sm:block" />
             bench resources, or hiring, we've got you covered.
           </motion.p>
         </div>

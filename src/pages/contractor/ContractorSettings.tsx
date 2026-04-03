@@ -1,19 +1,99 @@
-import React from "react";
-import { Bell, Shield, Eye } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
+import React, { useState, memo } from "react";
+import { Bell, Shield, Eye, Trash2, Lock, Mail, Smartphone, Globe } from "lucide-react";
 import { toast } from "sonner";
 import BarLoader from "@/components/loader/BarLoader";
+import { cn } from "@/lib/utils";
+
+/* ═══════════ DESIGN TOKENS ═══════════ */
+const C = {
+  accent: "#4DD9E8",
+  accentDark: "#0e8a96",
+  accentBg: "rgba(77,217,232,0.08)",
+  accentBorder: "rgba(77,217,232,0.18)",
+  text: "#1a1a2e",
+  textSec: "#555",
+  textMuted: "#999",
+  border: "#e8eaef",
+  bgInput: "#f8f9fb",
+  bgPage: "#f5f6f8",
+  bgCard: "#fff",
+  danger: "#ef4444",
+  dangerBg: "rgba(239,68,68,0.06)",
+  green: "#22c55e",
+  greenBg: "rgba(34,197,94,0.08)",
+  shadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)",
+  shadowLg: "0 8px 32px rgba(0,0,0,0.08)",
+};
+
+/* ═══════════ REUSABLE COMPONENTS ═══════════ */
+const Card = memo(({ children, className, hover, style }: { children: React.ReactNode; className?: string; hover?: boolean; style?: React.CSSProperties }) => {
+  const [hov, setHov] = useState(false);
+  return (
+    <div
+      onMouseEnter={hover ? () => setHov(true) : undefined}
+      onMouseLeave={hover ? () => setHov(false) : undefined}
+      className={cn(
+        "rounded-2xl border transition-all duration-300 overflow-hidden bg-white",
+        hov ? "shadow-2xl -translate-y-1" : "shadow-sm",
+        className
+      )}
+      style={{
+        borderColor: C.border,
+        ...style
+      }}
+    >
+      {children}
+    </div>
+  );
+});
+
+const SectionTitle = memo(({ icon: Icon, title, subtitle }: { icon: any; title: string; subtitle?: string }) => (
+  <div className="flex items-start gap-4 mb-6">
+    <div className="w-10 h-10 rounded-xl bg-[#4DD9E8]/10 flex items-center justify-center text-[#0e8a96] shrink-0">
+      <Icon size={20} strokeWidth={2.2} />
+    </div>
+    <div>
+      <h3 className="text-lg font-bold text-slate-900 leading-tight">{title}</h3>
+      {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
+    </div>
+  </div>
+));
+
+const FormField = memo(({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
+  <div className="flex flex-col gap-2 w-full">
+    <label className="text-[13px] font-bold text-slate-700 ml-1 uppercase tracking-wider">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    {children}
+  </div>
+));
+
+const TextInput = memo(({ placeholder, value, onChange, type = "text" }: { placeholder?: string; value?: string; onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string }) => (
+  <input
+    type={type}
+    placeholder={placeholder}
+    value={value}
+    onChange={onChange}
+    className="w-full h-12 px-4 rounded-xl bg-slate-50 border-2 border-slate-100 outline-none transition-all duration-200 focus:border-[#4DD9E8] focus:bg-white text-slate-900 text-sm font-medium placeholder:text-slate-400"
+  />
+));
+
+const Toggle = memo(({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) => (
+  <button
+    onClick={onToggle}
+    className={cn(
+      "relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 min-h-0 min-w-0",
+      enabled ? "bg-[#4DD9E8]" : "bg-slate-200"
+    )}
+  >
+    <div
+      className={cn(
+        "absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 shadow-sm",
+        enabled ? "translate-x-5" : ""
+      )}
+    />
+  </button>
+));
 
 const ContractorSettings = () => {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -23,9 +103,13 @@ const ContractorSettings = () => {
     pushNotifications: true,
     marketingEmails: false,
   });
+  const [visibility, setVisibility] = React.useState({
+    employers: true,
+    contact: true
+  });
 
   React.useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500);
+    const timer = setTimeout(() => setIsLoading(false), 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -33,195 +117,130 @@ const ContractorSettings = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <BarLoader />
-        <p className="text-muted-foreground animate-pulse">
-          Loading settings...
+        <p className="text-muted-foreground animate-pulse font-medium">
+          Loading your preferences...
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
+    <div className="flex flex-col gap-8 py-4 sm:px-2 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your account preferences and security
-        </p>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Account Settings</h2>
+        <p className="text-muted-foreground mt-2">Manage your account preferences, security, and visibility.</p>
       </div>
 
-      {/* Account Security */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-primary" />
-            Account Security
-          </CardTitle>
-          <CardDescription>
-            Manage your password and security settings
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Current Password</Label>
-            <Input
-              type="password"
-              placeholder="••••••••"
-              className="rounded-xl"
-            />
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>New Password</Label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                className="rounded-xl"
-              />
+      <div className="flex flex-col gap-6 pb-12">
+        {/* Account Security */}
+        <Card hover className="p-5 sm:p-6 md:p-8">
+          <SectionTitle
+            icon={Shield}
+            title="Account Security"
+            subtitle="Secure your account with a strong password"
+          />
+          <div className="flex flex-col gap-6 max-w-full">
+            <FormField label="Current Password">
+              <TextInput type="password" placeholder="Enter Current Password" />
+            </FormField>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField label="New Password">
+                <TextInput type="password" placeholder="Enter New Password" />
+              </FormField>
+              <FormField label="Confirm New Password">
+                <TextInput type="password" placeholder="Enter Confirm New Password" />
+              </FormField>
             </div>
-            <div className="space-y-2">
-              <Label>Confirm Password</Label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                className="rounded-xl"
-              />
-            </div>
+            <button
+              onClick={() => toast.success("Password updated successfully!")}
+              className="mt-2 w-full sm:w-fit px-8 py-3 rounded-xl bg-slate-900 text-white text-sm font-bold shadow-lg shadow-black/10 hover:shadow-black/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
+            >
+              Update Password
+            </button>
           </div>
-          <Button
-            className="rounded-xl"
-            onClick={() => toast.success("Password updated successfully!")}
-          >
-            Update Password
-          </Button>
-        </CardContent>
-      </Card>
+        </Card>
 
-      {/* Notifications */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-primary" />
-            Notifications
-          </CardTitle>
-          <CardDescription>
-            Configure how you receive notifications
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Job Alert Emails</p>
-              <p className="text-sm text-muted-foreground">
-                Receive emails for new job matches
-              </p>
-            </div>
-            <Switch
-              checked={notifications.emailJobAlerts}
-              onCheckedChange={(v) =>
-                setNotifications({ ...notifications, emailJobAlerts: v })
-              }
-            />
+        {/* Notifications */}
+        <Card hover className="p-5 sm:p-6 md:p-8">
+          <SectionTitle
+            icon={Bell}
+            title="Notifications"
+            subtitle="Choose how you want to be notified"
+          />
+          <div className="flex flex-col gap-4">
+            {[
+              { id: "emailJobAlerts", label: "Job Alert Emails", desc: "Receive updates for new jobs matching your profile", icon: Mail },
+              { id: "emailInterviews", label: "Interview Updates", desc: "Get notified when an employer requests an interview", icon: Globe },
+              { id: "pushNotifications", label: "Push Notifications", desc: "Real-time updates delivered to your browser", icon: Smartphone }
+            ].map((n, i, arr) => (
+              <div key={n.id} className={cn(
+                "flex items-center justify-between py-4",
+                i !== arr.length - 1 ? "border-b border-slate-50" : ""
+              )}>
+                <div className="flex gap-3 sm:gap-4 items-center flex-1">
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                    <n.icon size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-[15px] font-bold text-slate-900 leading-tight truncate-1">{n.label}</h4>
+                    <p className="text-[13px] text-slate-500 mt-0.5 line-clamp-2 md:line-clamp-none">{n.desc}</p>
+                  </div>
+                </div>
+                <Toggle
+                  enabled={(notifications as any)[n.id]}
+                  onToggle={() => setNotifications(p => ({ ...p, [n.id]: !(p as any)[n.id] }))}
+                />
+              </div>
+            ))}
           </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Interview Notifications</p>
-              <p className="text-sm text-muted-foreground">
-                Get notified about interview updates
-              </p>
-            </div>
-            <Switch
-              checked={notifications.emailInterviews}
-              onCheckedChange={(v) =>
-                setNotifications({ ...notifications, emailInterviews: v })
-              }
-            />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Push Notifications</p>
-              <p className="text-sm text-muted-foreground">
-                Browser push notifications
-              </p>
-            </div>
-            <Switch
-              checked={notifications.pushNotifications}
-              onCheckedChange={(v) =>
-                setNotifications({ ...notifications, pushNotifications: v })
-              }
-            />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Marketing Emails</p>
-              <p className="text-sm text-muted-foreground">
-                Receive tips and product updates
-              </p>
-            </div>
-            <Switch
-              checked={notifications.marketingEmails}
-              onCheckedChange={(v) =>
-                setNotifications({ ...notifications, marketingEmails: v })
-              }
-            />
-          </div>
-        </CardContent>
-      </Card>
+        </Card>
 
-      {/* Profile Visibility */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Eye className="w-5 h-5 text-primary" />
-            Profile Visibility
-          </CardTitle>
-          <CardDescription>Control who can see your profile</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Visible to Employers</p>
-              <p className="text-sm text-muted-foreground">
-                Allow employers to find your profile
-              </p>
+        {/* Profile Visibility */}
+        <Card hover className="p-5 sm:p-6 md:p-8">
+          <SectionTitle
+            icon={Eye}
+            title="Profile Visibility"
+            subtitle="Control who can find and view your details"
+          />
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between py-4 border-b border-slate-50 gap-4">
+              <div className="min-w-0">
+                <h4 className="text-[15px] font-bold text-slate-900 leading-tight">Visible to Employers</h4>
+                <p className="text-[13px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">Let employers find you in their search results</p>
+              </div>
+              <Toggle enabled={visibility.employers} onToggle={() => setVisibility(p => ({ ...p, employers: !p.employers }))} />
             </div>
-            <Switch defaultChecked />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Show Contact Info</p>
-              <p className="text-sm text-muted-foreground">
-                Display email and phone to matched employers
-              </p>
+            <div className="flex items-center justify-between py-4 gap-4">
+              <div className="min-w-0">
+                <h4 className="text-[15px] font-bold text-slate-900 leading-tight">Show Contact Information</h4>
+                <p className="text-[13px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">Display your email and phone number to matched employers</p>
+              </div>
+              <Toggle enabled={visibility.contact} onToggle={() => setVisibility(p => ({ ...p, contact: !p.contact }))} />
             </div>
-            <Switch defaultChecked />
           </div>
-        </CardContent>
-      </Card>
+        </Card>
 
-      {/* Danger Zone */}
-      <Card className="border-destructive/30">
-        <CardHeader>
-          <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          <CardDescription>
-            Irreversible actions for your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant="destructive"
-            className="rounded-xl"
-            onClick={() =>
-              toast.error("Account deletion requires confirmation via email")
-            }
-          >
-            Delete Account
-          </Button>
-        </CardContent>
-      </Card>
+        {/* Danger Zone */}
+        <Card className="p-5 sm:p-6 md:p-8 border-red-100 bg-red-50/90">
+          <SectionTitle
+            icon={Trash2}
+            title="Danger Zone"
+            subtitle="Permanently delete your account and data"
+          />
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-slate-600 max-w-2xl leading-relaxed">
+              Once you delete your account, there is no going back. All your profile data, interview history, and skill assessment results will be permanently removed.
+            </p>
+            <button
+              onClick={() => toast.error("Account deletion requires confirmation via email")}
+              className="w-full sm:w-fit px-8 py-3 rounded-xl bg-white border-2 border-red-100 text-red-500 text-sm font-bold hover:bg-red-50 hover:border-red-200 transition-all duration-300"
+            >
+              Delete My Account
+            </button>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };

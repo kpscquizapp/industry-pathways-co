@@ -46,7 +46,7 @@ export default function Hero() {
         {/* Heading */}
         <motion.h1
           variants={itemVariants}
-          className="font-heading font-bold text-gray-900 mt-7 mx-auto max-w-5xl tracking-tight leading-none text-4xl md:text-5xl lg:text-7xl"
+          className="font-heading font-bold text-gray-900 mt-7 mx-auto max-w-5xl tracking-tight leading-none text-4xl md:text-6xl lg:text-[4rem]"
         >
           Say Goodbye to Slow Hiring.
           <br />
@@ -56,11 +56,11 @@ export default function Hero() {
         {/* Subtitle */}
         <motion.p
           variants={itemVariants}
-          className="text-[18px] text-black/80 font-medium leading-relaxed mt-5 mx-auto max-w-sm"
+          className="text-gray-500 text-lg md:text-xl font-medium leading-relaxed mt-5 mx-auto max-w-2xl"
         >
-          AI-matched resumes, skill tests, and
-          <br />
-          automated interviews. All in one platform.
+          AI-matched resumes, skill tests, and automated interviews.
+          <br className="hidden sm:block" />
+          All in one platform.
         </motion.p>
 
         {/* CTA */}

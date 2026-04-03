@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import logo from "@/assets/Dark Option.png";
+import logo from "@/assets/White Option.png";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 
@@ -28,7 +28,7 @@ export default function Footer() {
       heading: "Product",
       links: [
         { label: "How It Works", href: "#how-it-works" },
-        { label: "Features", href: "#features" },
+        { label: "Features", href: "#ai-hiring" },
       ],
     },
     {
@@ -47,13 +47,20 @@ export default function Footer() {
         { label: "Security", href: "/security" },
       ],
     },
+    {
+      heading: "Contact",
+      links: [
+        { label: "Email : hello@quickrekruit.com", href: "mailto:hello@quickrekruit.com" },
+        { label: "Phone : +917736805150", href: "tel:+917736805150" },
+      ],
+    },
   ];
 
 
   return (
     <footer
       id="contact"
-      className="border-t border-gray-100 bg-gray-50/50 overflow-hidden scroll-mt-10"
+      className="border-t border-gray-100 bg-gray-50/50 overflow-hidden scroll-mt-10 bg-[#121212]"
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -63,7 +70,7 @@ export default function Footer() {
         className="max-w-[1450px] mx-auto px-6 sm:px-8 pt-12 pb-7"
       >
         {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-x-8 gap-y-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-[2fr_1fr_1fr_1fr_1.5fr] gap-x-8 gap-y-10">
           {/* Brand */}
           <div className="flex flex-col">
             <Link to="/" className="flex items-center no-underline -ml-1">
@@ -78,7 +85,7 @@ export default function Footer() {
           {/* Link columns */}
           {FOOTER_COLS.map((col) => (
             <div key={col.heading} className="flex flex-col">
-              <h4 className="text-xs font-bold text-gray-900 mb-4 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-gray-900 mb-4 uppercase tracking-wider text-white/85">
                 {col.heading}
               </h4>
               <div className="flex flex-col">
@@ -98,7 +105,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-10 pt-5 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div className="mt-10 pt-5 border-t border-gray-200/10 flex flex-col sm:flex-row justify-between items-center gap-3">
           <span className="text-xs text-gray-400">
             &copy; {new Date().getFullYear()} QuickRekruit. All rights reserved.
           </span>

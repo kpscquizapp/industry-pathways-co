@@ -77,8 +77,17 @@ const ContractorDashboard = lazy(
 const ContractorProfile = lazy(
   () => import("./pages/contractor/ContractorProfile"),
 );
+// const ContractorAiInterview = lazy(
+//   () => import("./pages/contractor/ContractorAiInterview"),
+// );
+const ContractorProfileUpdate = lazy(
+  () => import("./pages/contractor/ContractorProfileUpdate"),
+);
 const ContractorSettings = lazy(
   () => import("./pages/contractor/ContractorSettings"),
+);
+const ContractorSkillTest = lazy(
+  () => import("./pages/contractor/ContractorSkillTest"),
 );
 const BenchDashboard = lazy(() => import("./pages/bench/BenchDashboard"));
 // import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
@@ -97,8 +106,6 @@ import { LazyRoute } from "./pages/LazyRoute";
 import ResetPassword from "./pages/ResetPassword";
 import PolicyPage from "./pages/PolicyPage";
 
-import Dash from "../public/quickrekruit-dashboard.jsx"
-import CandidateProfileUpdate from "./pages/CandidateProfileUpdate.js";
 
 const HiringDashboardNew = lazy(
   () => import("./pages/employer/HiringDashboardNew"),
@@ -179,11 +186,6 @@ const App = () => {
                       element={<ContractorLogin />}
                     />
 
-                    {/* NEW DASHBOARD */}
-                    <Route path="/dash" element={<Dash />} />
-                    {/* NEW DASHBOARD */}
-
-
                     <Route
                       path="/contractor-signup"
                       element={<ContractorSignup />}
@@ -218,13 +220,13 @@ const App = () => {
                           element={<ContractorDashboard />}
                         />
                         <Route path="profile" element={<ContractorProfile />} />
-                        <Route path="profile/update" element={<CandidateProfileUpdate />} />
+                        <Route path="profile/update" element={<ContractorProfileUpdate />} />
+                        <Route path="tests" element={<ContractorSkillTest />} />
                         {/* // TODO: replace with dedicated page components */}
-                        <Route path="tests" element={<ContractorDashboard />} />
-                        <Route
+                        {/* <Route
                           path="interviews"
-                          element={<ContractorDashboard />}
-                        />
+                          element={<ContractorAiInterview />}
+                        /> */}
                         <Route
                           path="settings"
                           element={<ContractorSettings />}

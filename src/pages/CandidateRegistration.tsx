@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import LandingHeader from "@/components/landing/LandingHeader";
-import LandingFooter from "@/components/landing/LandingFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -485,9 +483,9 @@ const CandidateRegistration = () => {
                     ...prev,
                     preferredWorkType: checked
                       ? [
-                          ...prev.preferredWorkType.filter((t) => t !== option),
-                          option,
-                        ]
+                        ...prev.preferredWorkType.filter((t) => t !== option),
+                        option,
+                      ]
                       : prev.preferredWorkType.filter((t) => t !== option),
                   }));
                 }}
@@ -670,7 +668,6 @@ const CandidateRegistration = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <LandingHeader />
 
       <main className="flex-1 pt-20 pb-12 px-4">
         <div className="container mx-auto max-w-7xl">
@@ -713,11 +710,10 @@ const CandidateRegistration = () => {
                 {features.map((feature, index) => (
                   <div
                     key={index}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
-                      feature.highlight
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card border-border"
-                    }`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${feature.highlight
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card border-border"
+                      }`}
                   >
                     <feature.icon
                       className={`h-5 w-5 ${feature.highlight ? "" : "text-primary"}`}
@@ -783,9 +779,8 @@ const CandidateRegistration = () => {
                         <Button
                           type="button"
                           onClick={handleNext}
-                          className={`h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl transition-all text-base shadow-lg ${
-                            currentStep === 1 ? "w-full" : "flex-1"
-                          }`}
+                          className={`h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl transition-all text-base shadow-lg ${currentStep === 1 ? "w-full" : "flex-1"
+                            }`}
                         >
                           Next Step
                           <ArrowRight className="ml-2 h-5 w-5" />
@@ -827,8 +822,6 @@ const CandidateRegistration = () => {
           </div>
         </div>
       </main>
-
-      <LandingFooter />
     </div>
   );
 };

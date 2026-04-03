@@ -195,7 +195,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-none text-slate-300"
+      className="border-none text-slate-300 !bg-[#0B1221]"
       style={{
         "--sidebar-background": "221 50% 9%",
         "--sidebar": "221 50% 9%"
@@ -348,11 +348,11 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
 const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-background font-sans">
         <UnifiedSidebarContent role={role} />
 
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="sticky top-0 z-40 h-16 bg-background border-b border-border flex items-center justify-between px-6">
+          <header className="sticky top-0 z-40 h-16 bg-background border-b border-border flex items-center justify-between px-2 sm:px-6">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="text-muted-foreground hover:bg-[#0b1221]/10" title="Toggle Sidebar" />
             </div>

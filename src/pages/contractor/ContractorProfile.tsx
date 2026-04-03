@@ -115,7 +115,7 @@ const ContractorProfile = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-5">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-5 my-8 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500">
       {/* Left Column (Profile Summary, Skills, Certs) */}
       <div className="flex flex-col gap-4">
         <DashCard className="text-center p-7">
@@ -252,7 +252,7 @@ const ContractorProfile = () => {
                 const isCurrentRole = isCurrentWorkExperience(entry.endDate);
                 return (
                   <div key={index} className="flex gap-4">
-                    <div className={`w-1 ${isCurrentRole ? "bg-green-500" : "bg-gray-200"} rounded-full flex-shrink-0`} />
+                    <div className={`w-1 ${isCurrentRole ? "bg-[#4DD9E8]" : "bg-gray-200"} rounded-full flex-shrink-0`} />
                     <div className="flex-1 min-w-0">
                       <h4 className="font-bold text-[15px] text-gray-900 break-words">{entry.role}</h4>
                       <p className="text-[13px] font-semibold text-cyan-600 break-words">{entry.companyName}</p>
@@ -300,7 +300,7 @@ const ContractorProfile = () => {
                     <div className="flex items-center justify-between mb-1">
                       <h4 className="font-bold text-[14px] text-gray-900 break-words">{project.title}</h4>
                       {safeUrl && (
-                        <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-cyan-600 font-semibold hover:underline bg-cyan-50 px-2 py-0.5 rounded-md">
+                        <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-cyan-600 font-semibold hover:underline bg-cyan-50 px-2 py-0.5 rounded-md min-h-0 min-w-0">
                           Link
                         </a>
                       )}

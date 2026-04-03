@@ -87,12 +87,24 @@ export default function Navbar() {
           </div>
 
           {/* CTA button */}
-          <Link
-            className="nav-desktop bg-gray-900 text-white border-none rounded-full px-6 py-2.5 text-sm font-semibold cursor-pointer font-body transition-colors hover:text-[#38BDF8]/80"
-            to={loginPath}
-          >
-            {loginLabel}
-          </Link>
+          <div className="nav-desktop flex items-center gap-4">
+            <Link
+              className="nav-desktop bg-gray-900 text-white border-none rounded-full px-6 py-2.5 text-sm font-semibold cursor-pointer font-body transition-colors hover:text-[#38BDF8]/80"
+              to={loginPath}
+            >
+              {loginLabel}
+            </Link>
+            {
+              !isCandidate && (
+                <Link
+                  className="nav-desktop bg-gray-900 text-white border-none rounded-full px-6 py-2.5 text-sm font-semibold cursor-pointer font-body transition-colors hover:text-[#38BDF8]/80"
+                  to="/contractor-signup"
+                >
+                  Sign Up
+                </Link>
+              )
+            }
+          </div>
 
           {/* Mobile hamburger */}
           <button
@@ -131,6 +143,16 @@ export default function Navbar() {
               >
                 {loginLabel}
               </Link>
+              {
+                !isCandidate && (
+                  <Link
+                    className="bg-gray-900 text-white border-none rounded-full px-6 py-3 text-sm font-semibold cursor-pointer font-body text-center"
+                    to="/contractor-signup"
+                  >
+                    Sign Up
+                  </Link>
+                )
+              }
             </motion.div>
           )}
         </AnimatePresence>

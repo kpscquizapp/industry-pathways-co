@@ -3,7 +3,10 @@ import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import Logos from "@/components/landing/Logos";
 import HowItWorks from "@/components/landing/HowItWorks";
+import AiHiring from "@/components/landing/AiHiring";
 import Roles from "@/components/landing/Roles";
+import TrustedCompanies from "@/components/landing/TrustedCompanies";
+import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
 
 const Index = () => {
@@ -41,6 +44,9 @@ const Index = () => {
         <Logos />
         <HowItWorks />
         <Roles />
+        <TrustedCompanies />
+        <AiHiring />
+        <FAQ />
       </main>
       <Footer />
     </div>
