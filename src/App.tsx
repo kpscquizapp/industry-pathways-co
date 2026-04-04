@@ -104,7 +104,8 @@ import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import Unauthorized from "./pages/Unauthorized";
 import { LazyRoute } from "./pages/LazyRoute";
 import ResetPassword from "./pages/ResetPassword";
-import PolicyPage from "./pages/PolicyPage";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsService from "./pages/TermsService";
 
 
 const HiringDashboardNew = lazy(
@@ -434,9 +435,9 @@ const App = () => {
                     </Route> */}
 
                     <Route path="/unauthorized" element={<Unauthorized />} />
-                    <Route path="/privacy" element={<PolicyPage />} />
-                    <Route path="/terms" element={<PolicyPage />} />
-                    <Route path="/security" element={<PolicyPage />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/terms" element={<TermsService />} />
+
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route
                       path="*"

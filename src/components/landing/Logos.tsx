@@ -4,6 +4,7 @@ import logo1 from "../../assets/logo1.png";
 import logo2 from "../../assets/logo2.png";
 import logo3 from "../../assets/logo3.png";
 import logo4 from "../../assets/logo4.png";
+import logo5 from "../../assets/logo5.png";
 
 
 const containerVariants = {
@@ -64,7 +65,7 @@ export default function Logos() {
           <div className="relative flex flex-col items-center">
             {/* Row 1 — 5 circles */}
             <div className="flex -space-x-4 mb-[-24px] md:mb-[-40px] relative z-10">
-              {[0, 1, 2, 3].map((i) => (
+              {[0, 1, 2, 3, 4].map((i) => (
                 <LogoBubble key={`r1-${i}`} index={i} delay={i * 0.1}>
                   <PlaceholderLogo index={i} />
                 </LogoBubble>
@@ -120,6 +121,7 @@ function PlaceholderLogo({ index }: PlaceholderLogoProps) {
     <img src={logo2} alt="logo2" className='w-full h-full object-contain' />,
     <img src={logo3} alt="logo3" className='w-full h-full object-contain' />,
     <img src={logo4} alt="logo4" className='w-full h-full object-contain' />,
+    <img src={logo5} alt="logo5" className='w-full h-full object-contain' />,
   ];
 
   return <div className="text-gray-900 flex items-center justify-center w-full h-full">{logos[index % logos.length]}</div>;

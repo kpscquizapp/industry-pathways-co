@@ -36,7 +36,6 @@ export default function Footer() {
       links: [
         { label: "About", href: "#about" },
         { label: "Careers", href: loginPath },
-        { label: "Contact", href: "#contact" },
       ],
     },
     {
@@ -44,7 +43,6 @@ export default function Footer() {
       links: [
         { label: "Privacy", href: "/privacy" },
         { label: "Terms", href: "/terms" },
-        { label: "Security", href: "/security" },
       ],
     },
     {
