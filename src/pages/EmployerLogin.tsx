@@ -364,7 +364,7 @@ const EmployerLogin = () => {
               <h3 className="text-4xl font-bold text-[#1a1a2e] mb-3 lg:text-left text-center">
                 Sign In
               </h3>
-              <p className="text-slate-400 font-medium lg:text-left text-center text-[15px]">
+              <p className="text-slate-400 font-medium lg:text-left text-center text-sm">
                 Enter your Hiring credentials below.
               </p>
             </div>

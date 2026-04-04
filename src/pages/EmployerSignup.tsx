@@ -1,28 +1,23 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Building2,
   Mail,
   Lock,
-  Users,
   ArrowRight,
   CheckCircle2,
   Sparkles,
   TrendingUp,
-  Zap,
   Target,
   User,
-  Globe,
   FileText,
   Upload,
   X,
-  FileIcon,
   Check,
-  ChevronLeft,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   useCheckExistingEmailMutation,
@@ -30,10 +25,11 @@ import {
 } from "@/app/queries/loginApi";
 import { toast } from "sonner";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
-import RegistrationStepIndicator from "@/components/auth/RegistrationStepIndicator";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 import { VALIDATION } from "@/services/utils/signUpValidation";
+import logo from "@/assets/White Option.png";
+import logo2 from "@/assets/Dark Option.png";
 
 type EmployerFormData = {
   email: string;
@@ -62,6 +58,8 @@ const EmployerSignup = () => {
 
   const [companyDocument, setCompanyDocument] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Field-level errors for better UX
@@ -330,455 +328,516 @@ const EmployerSignup = () => {
     },
   ];
 
-  const stepInfo = [
-    { title: "Hire Talent Signup", sub: "Start your hire talent journey" },
-    { title: "Organization", sub: "Company profile" },
-    { title: "Verification", sub: "Upload document" },
-  ];
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 18 }, (_) => ({
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: 3 + Math.random() * 5,
+        delay: Math.random() * 6,
+        dur: 8 + Math.random() * 10,
+      })),
+    [],
+  );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
-      {/* Left Panel - Immersive Branding */}
-      <div className="hidden lg:flex lg:w-[50%] bg-[#080b14] p-12 flex-col justify-between relative overflow-hidden shrink-0 border-r border-white/5">
-        <div className="absolute top-[-10%] right-[-10%] w-[80%] h-[80%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-500/10 rounded-full blur-[100px]" />
+    <div className="flex min-h-screen w-full bg-[#f3f5f8] font-sans overflow-x-hidden">
+      <style>{`
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float-y {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-20px); }
+        }
+        @keyframes pulse-soft {
+          0%, 100% { opacity: 0.15; }
+          50% { opacity: 0.35; }
+        }
+        .animate-fade-up { animation: fade-up 0.6s ease forwards; }
+        .login-left-panel { display: none; }
+        .login-right-panel { flex: 1 1 auto; width: 100%; }
+        .login-mobile-brand { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin-bottom: 24px; width: 100%; animation: fade-up 0.55s ease; padding-top: 24px; }
+        
+        @media (min-width: 1025px) {
+          .login-left-panel { display: flex; flex: 0 0 50%; width: 50%; max-width: 50%; min-height: 100vh; position: relative; }
+          .login-right-panel { flex: 0 0 50%; width: 50%; max-width: 50%; justify-content: center; padding: 60px 70px; }
+          .login-mobile-brand { display: none; }
+        }
 
-        <div className="relative z-10">
-          <Link to="/" className="flex items-center gap-3 mb-20 group">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
-              <Building2 className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white tracking-tight">
-              HIRION
-            </span>
+        /* Stepper Responsiveness matching ContractorSignup */
+        @media (max-width: 640px) {
+          .stepper-label { display: none; }
+          .stepper-dot { width: 32px !important; height: 32px !important; font-size: 11px !important; }
+          .stepper-connector { width: 30px !important; background-color: #f1f5f9 !important; height: 2px !important; }
+          .stepper-container { 
+            gap: 12px !important; 
+            margin-bottom: 32px !important;
+            background: white;
+            padding: 16px 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            border: 1px solid rgba(226,232,240,0.8);
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+          }
+          .mobile-brand-tagline {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-top: 12px;
+            margin-bottom: 20px;
+          }
+        }
+      `}</style>
+
+      {/* Left Panel - Hero Branding (Match ContractorSignup animation) */}
+      <div
+        className="login-left-panel flex-col justify-center p-16 px-20 overflow-hidden"
+        style={{
+          background: "linear-gradient(160deg, #0d1117 0%, #111827 40%, #0c1a2a 100%)",
+        }}
+      >
+        {/* Floating particles - Same as ContractorSignup */}
+        {particles.map((p, i) => (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: `${p.x}%`,
+              top: `${p.y}%`,
+              width: p.size,
+              height: p.size,
+              borderRadius: "50%",
+              background: "rgba(77,217,232,0.15)",
+              animation: `float-y ${p.dur}s ease-in-out ${p.delay}s infinite, pulse-soft ${p.dur * 0.7}s ease-in-out ${p.delay}s infinite`,
+            }}
+          />
+        ))}
+
+        {/* Grid pattern - Same as ContractorSignup */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+            backgroundSize: "40px 40px",
+          }}
+        />
+
+        <div className="absolute top-10 left-16 z-20 animate-fade-up">
+          <Link to="/" className="flex items-center gap-3 group">
+            <img src={logo} alt="Logo" className="w-44 h-auto" />
           </Link>
-
-          <div className="space-y-8 max-w-lg">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
-              <Sparkles className="h-3 w-3 text-primary" />
-              <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">
-                Enterprise Registration
-              </span>
-            </div>
-
-            <h1 className="text-5xl xl:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
-              Scale Your <br />
-              <span className="bg-gradient-to-r from-primary via-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Talent Ecosystem.
-              </span>
-            </h1>
-
-            <p className="text-lg text-white/50 leading-relaxed font-light">
-              AI-driven verification and instant procurement. Join the network
-              of high-performance engineering teams.
-            </p>
-          </div>
         </div>
 
-        <div className="relative z-10 space-y-8">
-          <div className="grid grid-cols-2 gap-4">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="group p-4 bg-white/[0.02] backdrop-blur-sm border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300"
-              >
-                <div
-                  className={`w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}
-                >
-                  <feature.icon className={`w-4 h-4 ${feature.color}`} />
-                </div>
-                <h3 className="font-bold text-white/90 text-xs mb-1 uppercase tracking-tight">
-                  {feature.label}
-                </h3>
-              </div>
-            ))}
-          </div>
+        <div className="relative z-10 animate-fade-up">
+          <div className="space-y-8 max-w-lg text-left">
+            <div className="inline-flex items-center gap-2">
+              <span className="text-[#4DD9E8] text-[11px] font-bold tracking-[0.18em] uppercase">
+                HIRING PARTNER REGISTRATION
+              </span>
+            </div>
 
-          <div className="grid grid-cols-2 gap-4 p-6 bg-white/[0.02] border border-white/5 rounded-2xl">
-            {stats.map((stat) => (
-              <div key={stat.id} className="text-left">
-                <p className="text-2xl font-black text-white">{stat.value}</p>
-                <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mt-1">
-                  {stat.label}
-                </p>
-                <p className="text-[9px] text-white/20 mt-0.5">{stat.sub}</p>
-              </div>
-            ))}
+            <h1 className="text-[44px] font-bold text-white leading-[1.1] tracking-tight">
+              Ready to build your
+              <br />
+              <span className="text-[#4DD9E8]">dream team?</span>
+            </h1>
+
+            <p className="text-[16px] text-white/50 leading-relaxed max-w-sm">
+              Join the ecosystem of elite companies and find the perfect match
+              for your company's growth trajectory.
+            </p>
+
+            <div className="space-y-4 pt-4">
+              {[
+                "Access to top-tier candidates",
+                "Build your talent pipeline",
+                "Streamlined hiring process",
+              ].map((feature) => (
+                <div key={feature} className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-5 h-5 rounded-md bg-[#4DD9E8]/10 border border-[#4DD9E8]/20">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#4DD9E8]" />
+                  </div>
+                  <span className="text-white/80 text-[15px] font-medium">
+                    {feature}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Right Panel - Registration Section */}
-      <div className="flex-1 flex flex-col bg-[#fafafa] dark:bg-[#030303] overflow-y-auto">
-        <div className="flex-1 flex flex-col items-center justify-center py-12 px-6 lg:p-12 xl:p-20">
-          <div className="w-full max-w-2xl">
-            <div className="lg:hidden mb-12 flex flex-col items-center text-center">
-              <Link to="/" className="flex items-center gap-2 mb-6">
-                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-xl shadow-primary/20">
-                  <Building2 className="h-5 w-5 text-white" />
+      <div className="login-right-panel flex flex-col overflow-y-auto bg-white">
+        {/* Mobile Logo */}
+        <div className="login-mobile-brand text-center sm:py-4">
+          <Link to="/" className="inline-block">
+            <img src={logo2} alt="Logo" className="w-[180px] h-auto mx-auto" />
+          </Link>
+          <div className="mobile-brand-tagline">
+            Hiring Partner Onboarding
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center sm:py-6">
+          <div className="w-full max-w-[540px] animate-fade-up [animation-delay:150ms] px-4 md:px-0">
+            {/* Custom Stepper - No Glow & Connector Styles */}
+            <div className="stepper-container flex items-center justify-center mb-10 gap-x-2 sm:gap-x-4">
+              {[
+                { step: 1, label: "ACCOUNT" },
+                { step: 2, label: "COMPANY" },
+                { step: 3, label: "PREFERENCES" },
+              ].map((item, index) => (
+                <div key={item.step} className="flex items-center">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`stepper-dot w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-300 ${currentStep >= item.step
+                        ? "bg-[#4DD9E8] text-white"
+                        : "bg-slate-100 text-slate-400 border border-slate-50"
+                        }`}
+                    >
+                      {currentStep > item.step ? (
+                        <Check className="w-3.5 h-3.5" />
+                      ) : (
+                        item.step
+                      )}
+                    </div>
+                    <span
+                      className={`stepper-label text-[10px] sm:text-[11px] font-bold tracking-widest transition-colors duration-300 ${currentStep >= item.step ? "text-[#080b20]" : "text-slate-300"
+                        }`}
+                    >
+                      {item.label}
+                    </span>
+                  </div>
+                  {index < 2 && (
+                    <div className="stepper-connector w-6 sm:w-12 h-[1px] bg-slate-200 mx-2" />
+                  )}
                 </div>
-                <span className="text-xl font-bold tracking-tighter text-slate-900 dark:text-white">
-                  HIRION
-                </span>
-              </Link>
+              ))}
             </div>
 
-            <div className="relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 to-emerald-500/10 rounded-[36px] blur-xl opacity-50 dark:opacity-20" />
+            <div className="employer-form-shell bg-white dark:bg-[#0a0a0a] rounded-[24px] sm:bg-transparent sm:dark:bg-transparent sm:p-0 py-8 px-4 shadow-[0_10px_32px_rgba(0,0,0,0.05)] sm:shadow-none border border-slate-100 sm:border-0">
+              <div className="mb-8 lg:text-left text-center">
+                <h3 className="text-3xl sm:text-4xl font-bold text-[#1a1a2e] mb-2 sm:mb-3">
+                  Hiring Partner Signup
+                </h3>
+                <p className="text-slate-400 text-sm sm:text-[15px]">
+                  Start your journey to hire smarter and faster.
+                </p>
+              </div>
 
-              <div className="relative bg-white dark:bg-[#0a0a0a] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-white/[0.05] p-8 md:p-12">
-                {/* Progress Bar */}
-                <RegistrationStepIndicator
-                  currentStep={currentStep}
-                  totalSteps={totalSteps}
-                  steps={stepInfo}
-                />
-
-                <div className="mb-10">
-                  <h3 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
-                    {stepInfo[currentStep - 1].title}
-                  </h3>
-                  <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">
-                    {stepInfo[currentStep - 1].sub}
-                  </p>
-                </div>
-
-                <form onSubmit={handleSubmit} noValidate className="space-y-6">
-                  {currentStep === 1 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            First Name{" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <div className="relative group">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                            <Input
-                              name="firstName"
-                              placeholder="John"
-                              value={formData.firstName}
-                              onChange={handleInputChange}
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.firstName
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                  : ""
-                              }`}
-                              required
-                            />
-                          </div>
-                          <ErrorMessage error={fieldErrors.firstName} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Last Name{" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <div className="relative group">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                            <Input
-                              name="lastName"
-                              placeholder="Doe"
-                              value={formData.lastName}
-                              onChange={handleInputChange}
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.lastName
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                  : ""
-                              }`}
-                              required
-                            />
-                          </div>
-                          <ErrorMessage error={fieldErrors.lastName} />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Work Email <span className="text-destructive">*</span>
-                        </Label>
-                        <div className="relative group">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                          <Input
-                            name="email"
-                            type="email"
-                            placeholder="name@company.com"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                              fieldErrors.email
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                : ""
-                            }`}
-                            required
-                          />
-                        </div>
-                        {isCheckingEmail && (
-                          <div className="text-sm text-slate-500 flex items-center gap-2">
-                            <SpinnerLoader />{" "}
-                            <span>Checking availability...</span>
-                          </div>
-                        )}
-                        <ErrorMessage error={fieldErrors.email} />
-                      </div>
-
-                      <div className="grid md:grid-cols-2 gap-5">
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Password <span className="text-destructive">*</span>
-                          </Label>
-                          <div className="relative group">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                            <Input
-                              name="password"
-                              type="password"
-                              placeholder="Enter your password"
-                              value={formData.password}
-                              onChange={handleInputChange}
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.password
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                  : ""
-                              }`}
-                              required
-                            />
-                          </div>
-                          <ErrorMessage error={fieldErrors.password} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                            Confirm Password{" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <div className="relative group">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                            <Input
-                              name="confirmPassword"
-                              type="password"
-                              placeholder="Confirm your password"
-                              value={formData.confirmPassword}
-                              onChange={handleInputChange}
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.confirmPassword
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                  : ""
-                              }`}
-                              required
-                            />
-                          </div>
-                          <ErrorMessage error={fieldErrors.confirmPassword} />
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 ml-1">
-                        Must contain: 8+ characters, uppercase, lowercase,
-                        number, special character
-                      </p>
-                    </div>
-                  )}
-
-                  {currentStep === 2 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Organization Name{" "}
-                          <span className="text-destructive">*</span>
-                        </Label>
-                        <div className="relative group">
-                          <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                          <Input
-                            name="companyName"
-                            placeholder="Company Co."
-                            value={formData.companyName}
-                            onChange={handleInputChange}
-                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                              fieldErrors.companyName
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                : ""
-                            }`}
-                            required
-                          />
-                        </div>
-                        <ErrorMessage error={fieldErrors.companyName} />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Company Details (Optional)
-                        </Label>
-                        <div className="relative group">
-                          <FileText className="absolute left-4 top-4 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                          <Textarea
-                            name="companyDetails"
-                            placeholder="Tell us about your organization... (optional)"
-                            value={formData.companyDetails}
-                            onChange={handleInputChange}
-                            maxLength={1000}
-                            className={`min-h-[150px] pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                              fieldErrors.companyDetails
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                : ""
-                            }`}
-                          />
-                        </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 ml-1">
-                          {formData.companyDetails.length}/1000 characters
-                        </p>
-                        <ErrorMessage error={fieldErrors.companyDetails} />
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 3 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                      <div className="space-y-3">
-                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
-                          Verification Document{" "}
-                          <span className="text-destructive">*</span>
-                        </Label>
-                        <p className="text-xs text-slate-500 mb-4">
-                          Please upload a document to verify your organization
-                          (e.g., business license, incorporation certificate).
-                        </p>
-
-                        {!companyDocument ? (
-                          <div
-                            onClick={() => fileInputRef.current?.click()}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                fileInputRef.current?.click();
-                              }
-                            }}
-                            role="button"
-                            tabIndex={0}
-                            aria-label="Upload verification document"
-                            className={`group relative border-2 border-dashed rounded-2xl p-12 transition-all hover:bg-slate-50 dark:hover:bg-white/[0.02] cursor-pointer flex flex-col items-center justify-center gap-4 ${
-                              fieldErrors.companyDocument
-                                ? "border-red-500 hover:border-red-500"
-                                : "border-slate-200 dark:border-white/10 hover:border-primary/50"
-                            }`}
-                          >
-                            <div className="w-16 h-16 bg-slate-100 dark:bg-white/5 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
-                              <Upload
-                                className={`w-8 h-8 ${
-                                  fieldErrors.companyDocument
-                                    ? "text-red-500"
-                                    : "text-slate-400 group-hover:text-primary"
+              <form onSubmit={handleSubmit} noValidate className="space-y-6">
+                {(currentStep === 1 || currentStep === 2 || currentStep === 3) && (
+                  <div className="space-y-5 animate-fade-up">
+                    {currentStep === 1 && (
+                      <div className="space-y-5 animate-fade-up">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div className="flex flex-col gap-1.5">
+                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                              First Name <span className="text-[#4DD9E8]">*</span>
+                            </Label>
+                            <div
+                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.firstName
+                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
                                 }`}
+                            >
+                              <User className="w-4 h-4 text-[#aaa] shrink-0" />
+                              <input
+                                name="firstName"
+                                placeholder="John"
+                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                                value={formData.firstName}
+                                onChange={handleInputChange}
                               />
                             </div>
-                            <div className="text-center">
-                              <p className="text-sm font-extrabold text-slate-600 dark:text-slate-200">
-                                Select business document
-                              </p>
-                              <p className="text-[11px] text-slate-400 mt-1 uppercase tracking-widest">
-                                PDF, DOC, DOCX up to 10MB
-                              </p>
+                            <ErrorMessage error={fieldErrors.firstName} />
+                          </div>
+                          <div className="flex flex-col gap-1.5">
+                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                              Last Name <span className="text-[#4DD9E8]">*</span>
+                            </Label>
+                            <div
+                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.lastName
+                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                }`}
+                            >
+                              <User className="w-4 h-4 text-[#aaa] shrink-0" />
+                              <input
+                                name="lastName"
+                                placeholder="Doe"
+                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                                value={formData.lastName}
+                                onChange={handleInputChange}
+                              />
                             </div>
+                            <ErrorMessage error={fieldErrors.lastName} />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                          <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                            Work Email <span className="text-[#4DD9E8]">*</span>
+                          </Label>
+                          <div
+                            className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.email
+                              ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                              : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                              }`}
+                          >
+                            <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
                             <input
-                              type="file"
-                              ref={fileInputRef}
-                              onChange={handleFileChange}
-                              accept=".pdf,.doc,.docx"
-                              className="hidden"
+                              name="email"
+                              type="email"
+                              placeholder="company@example.com"
+                              className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                              value={formData.email}
+                              onChange={handleInputChange}
                             />
                           </div>
-                        ) : (
-                          <div className="flex items-center justify-between p-6 bg-primary/5 dark:bg-primary/5 border border-primary/20 dark:border-primary/20 rounded-2xl relative overflow-hidden group">
-                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary" />
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-xl flex items-center justify-center">
-                                <FileIcon className="w-6 h-6 text-primary" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[250px]">
-                                  {companyDocument.name}
-                                </p>
-                                <p className="text-[11px] font-bold text-primary/60 uppercase">
-                                  {(companyDocument.size / 1024 / 1024).toFixed(
-                                    2,
-                                  )}{" "}
-                                  MB
-                                </p>
-                              </div>
+                          <ErrorMessage error={fieldErrors.email} />
+                          {isCheckingEmail && (
+                            <div className="text-[11px] text-slate-400 ml-1">
+                              Verifying email...
                             </div>
-                            <button
-                              type="button"
-                              onClick={removeFile}
-                              className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
-                            >
-                              <X className="w-5 h-5" />
-                            </button>
-                          </div>
-                        )}
-                        <ErrorMessage error={fieldErrors.companyDocument} />
-                      </div>
-                    </div>
-                  )}
+                          )}
+                        </div>
 
-                  <div className="flex gap-4 pt-4">
-                    {currentStep > 1 && (
-                      <Button
-                        type="button"
-                        onClick={prevStep}
-                        variant="outline"
-                        className="flex-1 h-14 text-base font-bold rounded-2xl border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-50"
-                      >
-                        <ChevronLeft className="mr-2 w-5 h-5" />
-                        Back
-                      </Button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div className="flex flex-col gap-1.5">
+                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                              Password <span className="text-[#4DD9E8]">*</span>
+                            </Label>
+                            <div
+                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.password
+                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                }`}
+                            >
+                              <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                              <input
+                                name="password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="••••••••"
+                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95"
+                              >
+                                {showPassword ? (
+                                  <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                                ) : (
+                                  <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                                )}
+                              </button>
+                            </div>
+                            <ErrorMessage error={fieldErrors.password} />
+                          </div>
+                          <div className="flex flex-col gap-1.5">
+                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                              Confirm Password <span className="text-[#4DD9E8]">*</span>
+                            </Label>
+                            <div
+                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.confirmPassword
+                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                }`}
+                            >
+                              <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                              <input
+                                name="confirmPassword"
+                                type={showConfirmPassword ? "text" : "password"}
+                                placeholder="••••••••"
+                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
+                                value={formData.confirmPassword}
+                                onChange={handleInputChange}
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setShowConfirmPassword(!showConfirmPassword)
+                                }
+                                className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95"
+                              >
+                                {showConfirmPassword ? (
+                                  <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                                ) : (
+                                  <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                                )}
+                              </button>
+                            </div>
+                            <ErrorMessage error={fieldErrors.confirmPassword} />
+                          </div>
+                        </div>
+                      </div>
                     )}
 
-                    <Button
-                      type="submit"
-                      className="flex-[2] h-14 text-lg font-bold rounded-2xl bg-primary text-white hover:opacity-90 shadow-2xl shadow-primary/10 transition-all active:scale-[0.98] group"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <div className="flex items-center gap-3">
-                          <SpinnerLoader className="w-5 h-5" />
-                          <span>Processing...</span>
+                    {currentStep === 2 && (
+                      <div className="space-y-5 animate-fade-up">
+                        <div className="flex flex-col gap-1.5">
+                          <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                            Organization Name <span className="text-[#4DD9E8]">*</span>
+                          </Label>
+                          <div
+                            className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.companyName
+                              ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                              : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                              }`}
+                          >
+                            <Building2 className="w-4 h-4 text-[#aaa] shrink-0" />
+                            <input
+                              name="companyName"
+                              placeholder="Organization Ltd."
+                              className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                              value={formData.companyName}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                          <ErrorMessage error={fieldErrors.companyName} />
                         </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <span>
-                            {currentStep === totalSteps
-                              ? "Signup"
-                              : "Next Step"}
-                          </span>
-                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      )}
-                    </Button>
-                  </div>
-                </form>
 
-                <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/[0.03] flex flex-col items-center gap-4 text-center">
-                  <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
-                    Already have an enterprise account?{" "}
-                    <Link
-                      to="/hire-talent-login"
-                      className="text-primary hover:opacity-80 transition-colors underline-offset-8 underline decoration-primary/30"
-                    >
-                      Sign in to Dashboard
-                    </Link>
-                  </p>
-                </div>
+                        <div className="flex flex-col gap-1.5">
+                          <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                            Company Details (Optional)
+                          </Label>
+                          <div
+                            className={`flex flex-col gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] p-3.5 transition-all duration-200 ${fieldErrors.companyDetails
+                              ? "border-red-500"
+                              : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                              }`}
+                          >
+                            <textarea
+                              name="companyDetails"
+                              placeholder="Tell us about your organization..."
+                              className="min-h-[120px] bg-transparent border-none focus:ring-0 p-0 text-sm font-normal resize-none shadow-none outline-none"
+                              value={formData.companyDetails}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                          <ErrorMessage error={fieldErrors.companyDetails} />
+                          <div className="text-[11px] text-slate-400 text-right">
+                            {formData.companyDetails.length}/1000
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {currentStep === 3 && (
+                      <div className="space-y-5 animate-fade-up">
+                        <div className="flex flex-col gap-3">
+                          <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                            Verification Document <span className="text-[#4DD9E8]">*</span>
+                          </Label>
+
+                          {!companyDocument ? (
+                            <div
+                              onClick={() => fileInputRef.current?.click()}
+                              className={`group cursor-pointer border-2 border-dashed rounded-2xl p-10 transition-all flex flex-col items-center justify-center gap-4 ${fieldErrors.companyDocument
+                                ? "border-red-500 bg-red-50/10"
+                                : "border-slate-100 hover:border-[#4DD9E8] hover:bg-[#4DD9E8]/5"
+                                }`}
+                            >
+                              <div className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center bg-white group-hover:scale-110 transition-transform">
+                                <Upload className="w-5 h-5 text-[#4DD9E8]" />
+                              </div>
+                              <div className="text-center">
+                                <p className="text-[14px] font-bold text-[#1a1a2e]">
+                                  Click to upload or drag and drop
+                                </p>
+                                <p className="text-[12px] text-slate-400 mt-1">
+                                  PDF, DOC, DOCX or PDF (max. 10MB)
+                                </p>
+                              </div>
+                              <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                accept=".pdf,.doc,.docx"
+                                className="hidden"
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between p-4 bg-[#f8f9fb] border border-slate-100 rounded-xl">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-[#4DD9E8]/10 rounded-lg flex items-center justify-center">
+                                  <FileText className="w-5 h-5 text-[#4DD9E8]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-bold text-[#1a1a2e] truncate max-w-[200px]">
+                                    {companyDocument.name}
+                                  </p>
+                                  <p className="text-[11px] text-slate-400">
+                                    {(companyDocument.size / 1024 / 1024).toFixed(2)} MB
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={removeFile}
+                                className="p-2 hover:bg-slate-200/50 rounded-lg transition-colors"
+                              >
+                                <X className="w-5 h-5 text-slate-400" />
+                              </button>
+                            </div>
+                          )}
+                          <ErrorMessage error={fieldErrors.companyDocument} />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-3 pt-4">
+                      {currentStep > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={prevStep}
+                          className="h-[52px] px-6 rounded-xl hover:border-[#4DD9E8] text-[#1a1a2e] font-bold hover:bg-slate-50 hover:text-teal-600"
+                        >
+                          Back
+                        </Button>
+                      )}
+                      <Button
+                        type="submit"
+                        className="flex-1 h-[52px] bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <SpinnerLoader className="w-5 h-5" />
+                        ) : (
+                          <>
+                            <span>{currentStep === totalSteps ? "Create Account" : "Next Step"}</span>
+                            <ArrowRight className="w-5 h-5" />
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </form>
+
+              <div className="mt-10 text-center text-[14px] sm:text-sm font-medium text-slate-400">
+                Already have an account?{" "}
+                <Link
+                  to="/hire-talent-login"
+                  className="text-teal-600 font-semibold hover:underline"
+                >
+                  Sign In to Dashboard
+                </Link>
               </div>
             </div>
-
-            <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-600 font-medium tracking-wide leading-relaxed">
-              By registering, you agree to our{" "}
-              <span className="text-slate-600 dark:text-slate-300">
-                Terms of Service
-              </span>{" "}
-              <br />
-              and{" "}
-              <span className="text-slate-600 dark:text-slate-300">
-                Enterprise Privacy Policy
-              </span>
-              .
-            </p>
           </div>
         </div>
       </div>
