@@ -970,7 +970,8 @@ const LeftPanel: FC = memo(() => {
             fontSize: 16,
             color: "rgba(255,255,255,0.55)",
             lineHeight: 1.6,
-            maxWidth: 340,
+            maxWidth: 360,
+            marginTop: 32,
           }}
         >
           Join the ecosystem of elite contractors and find the perfect match for
@@ -1918,10 +1919,10 @@ export default function ContractorSignup(): JSX.Element {
             </div>
           )}
 
-        
+
           {step === 2 && (
             <div style={S.column(22)}>
-             
+
               <div
                 style={{
                   background: isEmailVerified ? "rgba(77,217,232,0.05)" : "#fff9f9",
