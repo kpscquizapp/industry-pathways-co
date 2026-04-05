@@ -126,7 +126,7 @@ const ContractorSkillTest = () => {
           </div>
         </GlassCard>
 
-        <GlassCard gradient="bg-gradient-to-br from-emerald-600 to-[#22c55e]">
+        <GlassCard gradient="bg-gradient-to-br from-cyan-600 to-[#06b6d4]">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner text-white">
               <Award size={28} strokeWidth={2.5} />

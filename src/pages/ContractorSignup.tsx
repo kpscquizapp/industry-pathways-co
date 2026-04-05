@@ -22,6 +22,7 @@ import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 import logo from "@/assets/White Option.png";
 import logo2 from "@/assets/Dark Option.png";
 import { toast } from "sonner";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { Briefcase, Clock, Lock, Mail, Phone, Star, User } from "lucide-react";
 import {
   Select as UiSelect,
@@ -1884,6 +1885,12 @@ export default function ContractorSignup(): JSX.Element {
                 onChange={handleInput}
                 error={fieldErrors.email}
               />
+              {isCheckingEmail && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: TEXT_MUTED }}>
+                  <SpinnerLoader />
+                  Checking availability...
+                </div>
+              )}
               <Input
                 label="Mobile Number"
                 required
