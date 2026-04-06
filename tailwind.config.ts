@@ -105,7 +105,7 @@ export default {
       },
       fontFamily: {
         sans: [
-          "Inter",
+     
           "-apple-system",
           "BlinkMacSystemFont",
           "San Francisco",
@@ -114,6 +114,7 @@ export default {
           "Helvetica Neue",
           "sans-serif",
         ],
+    
       },
       keyframes: {
         "accordion-down": {
