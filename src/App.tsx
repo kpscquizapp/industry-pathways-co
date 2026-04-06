@@ -19,10 +19,10 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 // not considering this for now (lazy loading)
 import EmployerSignup from "./pages/EmployerSignup";
 import BenchRegistration from "./pages/BenchRegistration";
-import CandidateSignup from "./pages/CandidateSignup";
 import EmployerLogin from "./pages/EmployerLogin";
 import BenchLogin from "./pages/BenchLogin";
-import CandidateLogin from "./pages/CandidateLogin";
+import ContractorLogin from "./pages/ContractorLogin";
+import ContractorSignup from "./pages/ContractorSignup";
 
 // import ProfileVisibility from "./pages/ProfileVisibility";
 // import Register from "./pages/Register";
@@ -77,8 +77,17 @@ const ContractorDashboard = lazy(
 const ContractorProfile = lazy(
   () => import("./pages/contractor/ContractorProfile"),
 );
+// const ContractorAiInterview = lazy(
+//   () => import("./pages/contractor/ContractorAiInterview"),
+// );
+const ContractorProfileUpdate = lazy(
+  () => import("./pages/contractor/ContractorProfileUpdate"),
+);
 const ContractorSettings = lazy(
   () => import("./pages/contractor/ContractorSettings"),
+);
+const ContractorSkillTest = lazy(
+  () => import("./pages/contractor/ContractorSkillTest"),
 );
 const BenchDashboard = lazy(() => import("./pages/bench/BenchDashboard"));
 // import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
@@ -95,6 +104,10 @@ import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import Unauthorized from "./pages/Unauthorized";
 import { LazyRoute } from "./pages/LazyRoute";
 import ResetPassword from "./pages/ResetPassword";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsService from "./pages/TermsService";
+
+
 const HiringDashboardNew = lazy(
   () => import("./pages/employer/HiringDashboardNew"),
 );
@@ -171,11 +184,12 @@ const App = () => {
                     <Route path="/bench-login" element={<BenchLogin />} />
                     <Route
                       path="/contractor-login"
-                      element={<CandidateLogin />}
+                      element={<ContractorLogin />}
                     />
+
                     <Route
                       path="/contractor-signup"
-                      element={<CandidateSignup />}
+                      element={<ContractorSignup />}
                     />
 
                     {/* Forgot password Route */}
@@ -207,12 +221,13 @@ const App = () => {
                           element={<ContractorDashboard />}
                         />
                         <Route path="profile" element={<ContractorProfile />} />
+                        <Route path="profile/update" element={<ContractorProfileUpdate />} />
+                        <Route path="tests" element={<ContractorSkillTest />} />
                         {/* // TODO: replace with dedicated page components */}
-                        <Route path="tests" element={<ContractorDashboard />} />
-                        <Route
+                        {/* <Route
                           path="interviews"
-                          element={<ContractorDashboard />}
-                        />
+                          element={<ContractorAiInterview />}
+                        /> */}
                         <Route
                           path="settings"
                           element={<ContractorSettings />}
@@ -420,6 +435,9 @@ const App = () => {
                     </Route> */}
 
                     <Route path="/unauthorized" element={<Unauthorized />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/terms" element={<TermsService />} />
+
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route
                       path="*"

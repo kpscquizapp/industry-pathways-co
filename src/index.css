@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -47,7 +46,7 @@
     --gradient-primary: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 71% 45%));
     --gradient-dark: linear-gradient(135deg, hsl(222 47% 11%), hsl(222 47% 18%));
     --gradient-soft: linear-gradient(180deg, hsl(40 25% 98%), hsl(40 20% 95%));
-    
+
     /* Premium Shadows */
     --shadow-elegant: 0 4px 20px -4px hsl(30 20% 20% / 0.1);
     --shadow-card: 0 1px 3px hsl(30 20% 20% / 0.05), 0 8px 24px -4px hsl(30 20% 20% / 0.08);
@@ -107,9 +106,8 @@
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;
-    scrollbar-gutter: stable;
   }
-  
+
   body {
     @apply bg-background text-foreground antialiased;
     text-rendering: optimizeLegibility;
@@ -120,23 +118,23 @@
   }
 
 
-/* Prevent Radix scroll lock without forcing scrollbars */
+  /* Prevent Radix scroll lock without forcing scrollbars */
 
-/* Hide focus guards */
-[data-radix-focus-guard] {
-  display: none !important;
-}
+  /* Hide focus guards */
+  [data-radix-focus-guard] {
+    display: none !important;
+  }
 
-/* Compensate for scrollbar width when it appears/disappears */
-body {
-  width: 100vw;
-  overflow-x: hidden;
-}
+  /* Compensate for scrollbar width when it appears/disappears */
+  body {
+    width: 100vw;
+    overflow-x: hidden;
+  }
 
-/* Ensure select content appears above everything */
-[data-radix-select-content] {
-  z-index: 9999;
-}
+  /* Ensure select content appears above everything */
+  [data-radix-select-content] {
+    z-index: 9999;
+  }
 
   #root {
     min-height: 100vh;
@@ -150,42 +148,43 @@ body {
 }
 
 @layer components {
+
   /* Premium Glass Effects */
   .glass {
-    @apply bg-[hsl(40,25%,98%)]/80 backdrop-blur-xl border border-[hsl(40,20%,90%)]/50;
+    @apply bg-[hsl(40, 25%, 98%)]/80 backdrop-blur-xl border border-[hsl(40, 20%, 90%)]/50;
   }
-  
+
   .glass-dark {
-    @apply bg-[hsl(222,47%,11%)]/90 backdrop-blur-xl border border-white/10;
+    @apply bg-[hsl(222, 47%, 11%)]/90 backdrop-blur-xl border border-white/10;
   }
 
   .glass-card {
     @apply bg-card rounded-2xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elegant)] transition-all duration-300 border border-border/50;
   }
-  
+
   /* Premium Buttons */
   .button-primary {
     @apply bg-primary flex items-center justify-center rounded-xl px-6 py-3 font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-300 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
   }
-  
+
   .button-secondary {
     @apply bg-secondary flex items-center justify-center rounded-xl px-6 py-3 font-semibold text-secondary-foreground transition-all duration-300 hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-2;
   }
-  
+
   .button-outline {
     @apply border-2 border-border bg-transparent flex items-center justify-center rounded-xl px-6 py-3 font-semibold text-foreground transition-all duration-300 hover:border-primary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
   }
-  
+
   /* Premium Input */
   .input-primary {
     @apply rounded-xl border-border bg-card px-4 py-3 text-foreground shadow-sm transition-all duration-300 placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 focus:ring-offset-0;
   }
-  
+
   /* Fade Animation */
   .fade-in-section {
     @apply opacity-0 transition-all duration-700 ease-out;
   }
-  
+
   .fade-in-section.is-visible {
     @apply opacity-100;
   }
@@ -194,22 +193,29 @@ body {
   .premium-card {
     @apply bg-card rounded-2xl border border-border/50 shadow-[var(--shadow-card)] transition-all duration-500;
   }
-  
+
   .premium-card:hover {
     @apply shadow-[var(--shadow-elegant)] -translate-y-1 border-primary/20;
   }
 
   /* Mobile-optimized touch targets */
   @media (max-width: 768px) {
-    button, a, input, select, textarea {
+
+    button,
+    a,
+    input,
+    select,
+    textarea {
       min-height: 44px;
       min-width: 44px;
     }
-    
-    input, select, textarea {
+
+    input,
+    select,
+    textarea {
       font-size: 16px;
     }
-    
+
     .container {
       padding-left: 1rem;
       padding-right: 1rem;
@@ -227,12 +233,282 @@ body {
   }
 }
 
-  
+
 @keyframes loading-bar {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(300%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(300%);
+  }
 }
 
 .animate-loading-bar {
   animation: loading-bar 1.2s infinite ease-in-out;
+}
+
+
+/* ═══════════════════════════════════════
+   NEW UI Styles
+   ═══════════════════════════════════════ */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ═══════════════════════════════════════
+   Typography
+   ═══════════════════════════════════════ */
+.font-heading {
+  font-family: 'Inter', sans-serif;
+}
+
+.font-body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* ═══════════════════════════════════════
+   Tab Slider
+   ═══════════════════════════════════════ */
+.tab-slider {
+  transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(90deg, #5CE1E6, #38BDF8);
+}
+
+/* ═══════════════════════════════════════
+   Donut Chart Gradient
+   ═══════════════════════════════════════ */
+.donut-ring {
+  transition: stroke-dasharray 0.8s ease;
+}
+
+/* ═══════════════════════════════════════
+   Hero Floating Cards
+   ═══════════════════════════════════════ */
+.hero-card-1 {
+  animation: float1 5s ease-in-out infinite;
+}
+
+.hero-card-2 {
+  animation: float2 6s ease-in-out 0.5s infinite;
+}
+
+.hero-card-3 {
+  animation: float3 5.5s ease-in-out 1s infinite;
+}
+
+/* ═══════════════════════════════════════
+   Animation Classes
+   ═══════════════════════════════════════ */
+.anim-hidden {
+  opacity: 0;
+}
+
+.anim-fade-up {
+  animation: fadeUp 0.6s ease both;
+}
+
+.anim-fade-up-d1 {
+  animation: fadeUp 0.6s ease 0.08s both;
+}
+
+.anim-fade-up-d2 {
+  animation: fadeUp 0.6s ease 0.16s both;
+}
+
+.anim-fade-up-d3 {
+  animation: fadeUp 0.6s ease 0.24s both;
+}
+
+.anim-fade-up-d4 {
+  animation: fadeUp 0.6s ease 0.32s both;
+}
+
+.anim-fade-up-d5 {
+  animation: fadeUp 0.6s ease 0.40s both;
+}
+
+.anim-slide-left {
+  animation: slideLeft 0.45s ease both;
+}
+
+.anim-slide-right {
+  animation: slideRight 0.45s ease 0.08s both;
+}
+
+/* ═══════════════════════════════════════
+   Keyframes
+   ═══════════════════════════════════════ */
+@keyframes float1 {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes float2 {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-6px) rotate(0.5deg);
+  }
+}
+
+@keyframes float3 {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ═══════════════════════════════════════
+   Card Hover Effects
+   ═══════════════════════════════════════ */
+.nav-link {
+  @apply text-black text-[16px] font-medium transition-colors duration-200;
+}
+
+.nav-link:hover {
+  @apply text-[#1d6685];
+}
+
+.footer-link {
+  @apply block text-sm text-gray-400 no-underline mb-2 transition-colors duration-200;
+}
+
+.footer-link:hover {
+  @apply text-[#1d6685];
+}
+
+/* ═══════════════════════════════════════
+   Feature Check Icon
+   ═══════════════════════════════════════ */
+.check-icon {
+  @apply w-4 h-4 flex-shrink-0;
+}
+
+/* ═══════════════════════════════════════
+   Dark Card (Roles Section)
+   ═══════════════════════════════════════ */
+.dark-card {
+  background: #111;
+  border-radius: 22px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.dark-inner-card {
+  background: #1a1a24;
+  border-radius: 16px;
+}
+
+.stat-box {
+  background: #2a2a3a;
+  border-radius: 12px;
+}
+
+.stat-box-alt {
+  background: #3a3a45;
+  border-radius: 10px;
+}
+
+/* ═══════════════════════════════════════
+   How It Works Card Images
+   ═══════════════════════════════════════ */
+.card-image {
+  @apply w-full rounded-2xl overflow-hidden relative;
+  aspect-ratio: 1 / 0.85;
+  background: #1a1a1a;
+}
+
+/* ═══════════════════════════════════════
+   Logo Circles
+   ═══════════════════════════════════════ */
+.logo-circle {
+  @apply w-20 h-20 rounded-full flex items-center justify-center;
+  background: #eef0f2;
+}
+
+/* ═══════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  .nav-desktop {
+    display: none !important;
+  }
+
+  .nav-mobile-btn {
+    display: block !important;
+  }
+
+  .hiw-grid {
+    grid-template-columns: 1fr !important;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .tab-content-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
 }

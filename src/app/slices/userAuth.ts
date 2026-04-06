@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { isTokenExpired } from "@/lib/helpers";
 import Cookies from "js-cookie";
 
 export type UserState = {
@@ -13,6 +14,7 @@ export type UserState = {
     lastName?: string;
     admin?: boolean;
   } | null;
+  authInitialized: boolean;
 };
 
 export type SetUserPayload = {
@@ -26,6 +28,12 @@ const cookieData = (() => {
     const raw = Cookies.get("userInfo");
     const parsed = raw ? JSON.parse(raw) : null;
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const token = (parsed as any).token ?? null;
+      //if token exists but is expired, remove cookie and treat as unauthenticated
+      if (token && isTokenExpired(token)) {
+        Cookies.remove("userInfo");
+        return null;
+      }
       return parsed as UserState;
     }
     return null;
@@ -39,6 +47,7 @@ const initialState: UserState = {
   token: cookieData?.token ?? null,
   refreshToken: cookieData?.refreshToken ?? null,
   userDetails: cookieData?.userDetails ?? null,
+  authInitialized: false,
 };
 
 const cookieOptions = (): Cookies.CookieAttributes => ({
@@ -79,9 +88,25 @@ export const userAuth = createSlice({
       };
       Cookies.set("userInfo", JSON.stringify(payloadToStore), cookieOptions());
     },
+    authInitStart: (state) => {
+      state.authInitialized = false;
+    },
+    authInitSuccess: (state) => {
+      state.authInitialized = true;
+    },
+    authInitFail: (state) => {
+      state.authInitialized = true;
+    },
   },
 });
 
-export const { setUser, removeUser, setNewAccessToken } = userAuth.actions;
+export const {
+  setUser,
+  removeUser,
+  setNewAccessToken,
+  authInitStart,
+  authInitSuccess,
+  authInitFail,
+} = userAuth.actions;
 
 export default userAuth.reducer;

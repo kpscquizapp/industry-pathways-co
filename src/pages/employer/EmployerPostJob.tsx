@@ -10,6 +10,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  ArrowRight,
+  Sparkles as SparklesIcon,
+  MapPin,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -243,11 +246,11 @@ const EmployerPostJob = () => {
 
       const normalizedSkills = Array.isArray(job.skills)
         ? job.skills
-            .map((s: { name?: string } | string) =>
-              typeof s === "string" ? s : (s.name ?? ""),
-            )
-            .map((s) => s.trim())
-            .filter(Boolean)
+          .map((s: { name?: string } | string) =>
+            typeof s === "string" ? s : (s.name ?? ""),
+          )
+          .map((s) => s.trim())
+          .filter(Boolean)
         : [];
       setSkills(normalizedSkills);
     } else if (!isEditing) {
@@ -354,14 +357,14 @@ const EmployerPostJob = () => {
     const salaryMax = parseOptionalNumber(formData.salaryMax);
     const normalizedSalaryMin =
       salaryMin !== undefined &&
-      salaryMax !== undefined &&
-      salaryMin > salaryMax
+        salaryMax !== undefined &&
+        salaryMin > salaryMax
         ? salaryMax
         : salaryMin;
     const normalizedSalaryMax =
       salaryMin !== undefined &&
-      salaryMax !== undefined &&
-      salaryMin > salaryMax
+        salaryMax !== undefined &&
+        salaryMin > salaryMax
         ? salaryMin
         : salaryMax;
 
@@ -539,9 +542,9 @@ const EmployerPostJob = () => {
   const getCreatedJobId = (
     response:
       | {
-          data?: { id?: string | number; job?: { id?: string | number } };
-          id?: string | number;
-        }
+        data?: { id?: string | number; job?: { id?: string | number } };
+        id?: string | number;
+      }
       | undefined,
   ) => response?.data?.id ?? response?.data?.job?.id ?? response?.id;
 
@@ -737,18 +740,16 @@ const EmployerPostJob = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {isEditing ? "Edit Job" : "Post a New Job"}
-          </h1>
-          <p className="text-muted-foreground">
-            {isEditing
-              ? "Update the job details"
-              : "Create a contract opportunity for top talent"}
-          </p>
-        </div>
+    <div className="max-w-[1400px] mx-auto py-4 md:py-8 md:px-2 space-y-10 font-sans">
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          {isEditing ? "Edit Job" : "Post a New Job"}
+        </h1>
+        <p className="text-slate-500 text-lg">
+          {isEditing
+            ? "Update the job details"
+            : "Create a contract opportunity for top talent"}
+        </p>
       </div>
 
       {isEditing && jobDetailsLoading && (
@@ -762,12 +763,10 @@ const EmployerPostJob = () => {
       )}
 
       <div
-        className={`${
-          isEditing && jobDetailsLoading ? "pointer-events-none opacity-50" : ""
-        }`}
-      >
-        {/* Step Indicator */}
-        <div className="mb-8">
+        className={`${isEditing && jobDetailsLoading ? "pointer-events-none opacity-50" : ""
+          }`}
+      >        {/* Step Indicator */}
+        <div className="mb-10 max-w-full">
           <div className="flex justify-between mb-4">
             {stepTitles.map((title, index) => {
               const stepNumber = index + 1;
@@ -777,74 +776,63 @@ const EmployerPostJob = () => {
                 index < currentStep
                   ? "hsl(var(--primary))"
                   : "hsl(var(--border))";
+              // Actually use emerald-600 for completed/active
+              const activeColorClass = isCompleted || isActive ? "bg-emerald-600 border-emerald-600 text-white" : "bg-white border-slate-200 text-slate-400";
+              const activeLineClass = index < currentStep ? "bg-emerald-600" : "bg-slate-200";
 
               return (
                 <div
                   key={stepNumber}
                   className="flex flex-col items-center flex-1 relative"
                 >
-                  {/* Left-half connector (connects from previous step's center to this step's circle) */}
+                  {/* Left-half connector */}
                   {index !== 0 && (
                     <div
-                      className="absolute top-4 left-0 right-1/2 h-0.5 -translate-y-1/2"
-                      style={{ background: lineColor }}
+                      className={`absolute top-4 left-0 right-1/2 h-0.5 -translate-y-1/2 transition-colors ${activeLineClass}`}
                     />
                   )}
-                  {/* Right-half connector (connects from this step's circle outward to the next step) */}
+                  {/* Right-half connector */}
                   {index !== stepTitles.length - 1 && (
                     <div
-                      className="absolute top-4 left-1/2 right-0 h-0.5 -translate-y-1/2"
-                      style={{
-                        background:
-                          index < currentStep - 1
-                            ? "hsl(var(--primary))"
-                            : "hsl(var(--border))",
-                      }}
+                      className={`absolute top-4 left-1/2 right-0 h-0.5 -translate-y-1/2 transition-colors ${index < currentStep - 1 ? "bg-emerald-600" : "bg-slate-200"
+                        }`}
                     />
                   )}
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-2 transition-colors ${
-                      isActive
-                        ? "bg-primary border-primary text-primary-foreground"
-                        : isCompleted
-                          ? "bg-primary border-primary text-primary-foreground"
-                          : "bg-background border-border text-muted-foreground"
-                    }`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-2 transition-all duration-300 ${activeColorClass} ${isActive ? "ring-4 ring-emerald-50" : ""}`}
                   >
                     {isCompleted ? (
                       <Check className="h-4 w-4" />
                     ) : (
-                      <span className="text-sm font-semibold">
+                      <span className="text-sm font-bold">
                         {stepNumber}
                       </span>
                     )}
                   </div>
                   <span
-                    className={`text-xs mt-2 font-medium hidden sm:block ${
-                      isActive ? "text-primary" : "text-muted-foreground"
-                    }`}
+                    className={`text-[10px] sm:text-xs mt-2 font-bold uppercase tracking-wider transition-colors ${isActive ? "text-emerald-700" : "text-slate-400"
+                      }`}
                   >
-                    {title}
+                    {title.split(" ")[0]}
                   </span>
                 </div>
               );
             })}
           </div>
-          <Progress value={(currentStep / totalSteps) * 100} className="h-1" />
+          <Progress value={(currentStep / totalSteps) * 100} className="h-1 bg-slate-100" />
         </div>
+
 
         <div className="space-y-6">
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
-            <Card className="border border-border rounded-xl bg-card overflow-hidden">
-              <CardContent className="px-6 py-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span className="text-primary font-semibold text-sm">
-                      1
-                    </span>
+            <Card className="border-none shadow-premium bg-white rounded-2xl overflow-hidden max-w-4xl">
+              <CardContent className="p-6 md:p-10">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <span className="font-bold">1</span>
                   </div>
-                  <h2 className="font-semibold text-xl text-foreground">
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">
                     Basic Information
                   </h2>
                 </div>
@@ -852,9 +840,9 @@ const EmployerPostJob = () => {
                   <div>
                     <Label
                       htmlFor="title"
-                      className={`text-sm font-medium ${fieldErrors.title ? "text-destructive" : "text-foreground"}`}
+                      className={`text-sm font-bold uppercase tracking-tight ${fieldErrors.title ? "text-rose-500" : "text-slate-500"}`}
                     >
-                      Job Title <span className="text-destructive">*</span>
+                      Job Title <span className="text-rose-500">*</span>
                     </Label>
                     <Input
                       id="title"
@@ -877,10 +865,9 @@ const EmployerPostJob = () => {
                   <div>
                     <Label
                       htmlFor="description"
-                      className={`text-sm font-medium ${fieldErrors.description ? "text-destructive" : ""}`}
+                      className={`text-sm font-bold uppercase tracking-tight ${fieldErrors.description ? "text-rose-500" : "text-slate-500"}`}
                     >
-                      Job Description{" "}
-                      <span className="text-destructive">*</span>
+                      Job Description <span className="text-rose-500">*</span>
                     </Label>
                     <Textarea
                       id="description"
@@ -982,28 +969,25 @@ const EmployerPostJob = () => {
 
           {/* Step 2: Skills & Experience */}
           {currentStep === 2 && (
-            <Card className="border border-border rounded-xl bg-card overflow-hidden">
-              <CardContent className="px-6 py-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span className="text-primary font-semibold text-sm">
-                      2
-                    </span>
+            <Card className="border-none shadow-premium bg-white rounded-2xl overflow-hidden max-w-4xl">
+              <CardContent className="p-6 md:p-10">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <span className="font-bold">2</span>
                   </div>
-                  <h2 className="font-semibold text-xl text-foreground">
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">
                     Skills & Experience
                   </h2>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
                     <Label
-                      className={`text-sm font-medium ${fieldErrors.skills ? "text-destructive" : "text-foreground"}`}
+                      className={`text-sm font-bold uppercase tracking-tight ${fieldErrors.skills ? "text-rose-500" : "text-slate-500"}`}
                     >
-                      Required Skills{" "}
-                      <span className="text-destructive">*</span>
+                      Required Skills <span className="text-rose-500">*</span>
                     </Label>
                     <div
-                      className={`flex gap-2 mt-1.5 rounded-md ${fieldErrors.skills ? "ring-1 ring-destructive" : ""}`}
+                      className={`flex gap-2 mt-2 p-1 bg-slate-50 rounded-xl focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all ${fieldErrors.skills ? "ring-2 ring-rose-500/20" : ""}`}
                     >
                       <Input
                         value={newSkill}
@@ -1012,7 +996,7 @@ const EmployerPostJob = () => {
                           if (fieldErrors.skills)
                             setFieldErrors((p) => ({ ...p, skills: false }));
                         }}
-                        placeholder="Add a skill..."
+                        placeholder="Add a skill (e.g. React, Node.js)..."
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
@@ -1021,7 +1005,7 @@ const EmployerPostJob = () => {
                               setFieldErrors((p) => ({ ...p, skills: false }));
                           }
                         }}
-                        className="flex-1"
+                        className="flex-1 bg-transparent border-none focus-visible:ring-0 shadow-none h-11 px-4"
                       />
                       <Button
                         type="button"
@@ -1030,41 +1014,36 @@ const EmployerPostJob = () => {
                           if (fieldErrors.skills)
                             setFieldErrors((p) => ({ ...p, skills: false }));
                         }}
-                        className="bg-primary hover:bg-primary/90"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-6 h-11 font-bold shadow-sm"
                       >
-                        <Plus className="h-4 w-4 mr-1" />
+                        <Plus className="h-4 w-4 mr-1 stroke-[3px]" />
                         Add
                       </Button>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-3">
+                    <div className="flex flex-wrap gap-2 mt-4">
                       {skills.map((skill) => (
                         <Badge
                           key={skill}
                           variant="secondary"
-                          className="px-3 py-1.5 text-sm flex items-center gap-1.5"
+                          className="bg-emerald-50 text-emerald-700 border-none px-4 py-2 text-sm font-bold rounded-full group flex items-center gap-2"
                         >
                           {skill}
                           <button
                             type="button"
                             aria-label={`Remove skill ${skill}`}
                             onClick={() => removeSkill(skill)}
-                            className="hover:text-destructive transition-colors"
+                            className="text-emerald-400 hover:text-emerald-600 transition-colors"
                           >
-                            <X className="h-3 w-3" />
+                            <X className="h-3.5 w-3.5 stroke-[3px]" />
                           </button>
                         </Badge>
                       ))}
                     </div>
-                    {fieldErrors.skills && (
-                      <p className="text-xs text-destructive mt-1">
-                        Please add at least one skill.
-                      </p>
-                    )}
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-6">
                     <div>
-                      <Label className="text-sm font-medium">
+                      <Label className="text-sm font-bold uppercase tracking-tight text-slate-500">
                         Experience Level
                       </Label>
                       <Select
@@ -1079,54 +1058,38 @@ const EmployerPostJob = () => {
                               : "",
                             maxExperience:
                               range?.maxExperience !== null &&
-                              range?.maxExperience !== undefined
+                                range?.maxExperience !== undefined
                                 ? String(range.maxExperience)
                                 : "",
                           });
                         }}
                       >
-                        <SelectTrigger className="mt-1.5">
+                        <SelectTrigger className="mt-2 h-11 rounded-xl border-slate-200 bg-white">
                           <SelectValue placeholder="Select experience level" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="junior">
-                            Junior (0-2 Years)
-                          </SelectItem>
-                          <SelectItem value="mid">
-                            Mid Level (3-5 Years)
-                          </SelectItem>
-                          <SelectItem value="mid-senior">
-                            Mid Senior (6-9 Years)
-                          </SelectItem>
-                          <SelectItem value="senior">
-                            Senior (10+ Years)
-                          </SelectItem>
+                        <SelectContent className="rounded-xl border-slate-200 shadow-xl">
+                          <SelectItem value="junior">Junior (0-2 Years)</SelectItem>
+                          <SelectItem value="mid">Mid Level (3-5 Years)</SelectItem>
+                          <SelectItem value="mid-senior">Mid Senior (6-9 Years)</SelectItem>
+                          <SelectItem value="senior">Senior (10+ Years)</SelectItem>
                           <SelectItem value="lead">Lead (15+ Years)</SelectItem>
-                          <SelectItem value="principal">
-                            Principal (15+ Years)
-                          </SelectItem>
+                          <SelectItem value="principal">Principal (15+ Years)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div>
-                      <Label
-                        htmlFor="certifications"
-                        className="text-sm font-medium"
-                      >
+                      <Label htmlFor="certifications" className="text-sm font-bold uppercase tracking-tight text-slate-500">
                         Certifications
                       </Label>
                       <Input
                         id="certifications"
                         value={formData.certifications}
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            certifications: e.target.value,
-                          })
+                          setFormData({ ...formData, certifications: e.target.value })
                         }
                         placeholder="e.g., AWS Certified, PMP, CISSP"
-                        className="mt-1.5"
+                        className="mt-2 h-11 rounded-xl border-slate-200 bg-white"
                       />
                     </div>
                   </div>
@@ -1137,25 +1100,21 @@ const EmployerPostJob = () => {
 
           {/* Step 3: Location & Terms */}
           {currentStep === 3 && (
-            <Card className="border border-border rounded-xl bg-card overflow-hidden">
-              <CardContent className="px-6 py-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span className="text-primary font-semibold text-sm">
-                      3
-                    </span>
+            <Card className="border-none shadow-premium bg-white rounded-2xl overflow-hidden max-w-4xl">
+              <CardContent className="p-6 md:p-10">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <span className="font-bold">3</span>
                   </div>
-                  <h2 className="font-semibold text-xl text-foreground">
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">
                     Location & Terms
                   </h2>
                 </div>
-                <div className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-6">
+                  <div className="grid sm:grid-cols-2 gap-6">
                     <div>
-                      <Label
-                        className={`text-sm font-medium ${fieldErrors.workMode ? "text-destructive" : "text-foreground"}`}
-                      >
-                        Work Mode <span className="text-destructive">*</span>
+                      <Label className={`text-sm font-bold uppercase tracking-tight ${fieldErrors.workMode ? "text-rose-500" : "text-slate-500"}`}>
+                        Work Mode <span className="text-rose-500">*</span>
                       </Label>
                       <Select
                         value={formData.workMode}
@@ -1165,66 +1124,48 @@ const EmployerPostJob = () => {
                             setFieldErrors((p) => ({ ...p, workMode: false }));
                         }}
                       >
-                        <SelectTrigger
-                          className={`mt-1.5 ${fieldErrors.workMode ? "border-destructive focus:ring-destructive" : ""}`}
-                        >
+                        <SelectTrigger className={`mt-2 h-11 rounded-xl border-slate-200 bg-white ${fieldErrors.workMode ? "border-rose-500 focus:ring-rose-500/20" : ""}`}>
                           <SelectValue placeholder="Select work mode" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="rounded-xl border-slate-200 shadow-xl">
                           <SelectItem value="remote">Remote</SelectItem>
                           <SelectItem value="onsite">On-site</SelectItem>
                           <SelectItem value="hybrid">Hybrid</SelectItem>
                         </SelectContent>
                       </Select>
-                      {fieldErrors.workMode && (
-                        <p className="text-xs text-destructive mt-1">
-                          Work mode is required.
-                        </p>
-                      )}
                     </div>
 
                     <div>
-                      <Label htmlFor="location" className="text-sm font-medium">
+                      <Label htmlFor="location" className="text-sm font-bold uppercase tracking-tight text-slate-500">
                         Location
                       </Label>
-                      <div className="relative mt-1.5">
+                      <div className="relative mt-2">
                         <Input
                           id="location"
                           value={formData.location}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              location: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                           placeholder="City, Country"
-                          className="pr-10"
+                          className="h-11 rounded-xl border-slate-200 bg-white pr-10"
                         />
-                        <Shield className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-muted/50 border border-border">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                  <div className="p-6 rounded-2xl bg-emerald-50/50 border border-emerald-100">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
                         <Switch
                           checked={formData.openToBenchResources}
-                          onCheckedChange={(value) =>
-                            setFormData({
-                              ...formData,
-                              openToBenchResources: value,
-                            })
-                          }
-                          className="data-[state=checked]:bg-green-500"
+                          onCheckedChange={(v) => setFormData({ ...formData, openToBenchResources: v })}
+                          className="data-[state=checked]:bg-emerald-600"
                         />
-                        <div>
-                          <p className="font-medium text-sm">
+                        <div className="space-y-0.5">
+                          <p className="font-bold text-slate-900 text-sm">
                             Open to Bench Resources
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            Allow agencies and companies to propose their bench
-                            employees
+                          <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                            Allow agencies and companies to propose their bench employees for this role.
                           </p>
                         </div>
                       </div>
@@ -1237,98 +1178,69 @@ const EmployerPostJob = () => {
 
           {/* Step 4: Budget & Duration */}
           {currentStep === 4 && (
-            <Card className="border border-border rounded-xl bg-card overflow-hidden">
-              <CardContent className="px-6 py-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span className="text-primary font-semibold text-sm">
-                      4
-                    </span>
+            <Card className="border-none shadow-premium bg-white rounded-2xl overflow-hidden max-w-4xl">
+              <CardContent className="p-6 md:p-10">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <span className="font-bold">4</span>
                   </div>
-                  <h2 className="font-semibold text-xl text-foreground">
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">
                     Budget & Duration
                   </h2>
                 </div>
-                <div className="space-y-4">
-                  <div className="grid sm:grid-cols-3 gap-4">
+                <div className="space-y-6">
+                  <div className="grid sm:grid-cols-3 gap-6">
                     <div className="sm:col-span-2">
-                      <Label
-                        htmlFor="duration"
-                        className="text-sm font-medium text-foreground"
-                      >
+                      <Label htmlFor="duration" className="text-sm font-bold uppercase tracking-tight text-slate-500">
                         Duration
                       </Label>
-                      <div className="flex gap-2 mt-1.5">
+                      <div className="flex gap-2 mt-2">
                         <Input
                           id="duration"
                           type="number"
-                          placeholder="Enter duration"
-                          min="1"
+                          placeholder="Value"
                           value={formData.duration}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              duration: e.target.value,
-                            })
-                          }
-                          className="flex-1"
+                          onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                          className="flex-1 h-11 rounded-xl border-slate-200 bg-white"
                         />
                         <Select
                           value={formData.durationUnit}
-                          onValueChange={(v) =>
-                            setFormData({ ...formData, durationUnit: v })
-                          }
+                          onValueChange={(v) => setFormData({ ...formData, durationUnit: v })}
                         >
-                          <SelectTrigger className="w-32">
+                          <SelectTrigger className="w-32 h-11 rounded-xl border-slate-200 bg-white shadow-sm">
                             <SelectValue placeholder="Unit" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="week">Week</SelectItem>
-                            <SelectItem value="month">Month</SelectItem>
-                            <SelectItem value="year">Year</SelectItem>
+                          <SelectContent className="rounded-xl border-slate-200 shadow-xl">
+                            <SelectItem value="week">Weeks</SelectItem>
+                            <SelectItem value="month">Months</SelectItem>
+                            <SelectItem value="year">Years</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
 
                     <div>
-                      <Label
-                        htmlFor="startDate"
-                        className="text-sm font-medium"
-                      >
+                      <Label htmlFor="startDate" className="text-sm font-bold uppercase tracking-tight text-slate-500">
                         Start Date
                       </Label>
-                      <div className="relative mt-1.5">
-                        <Input
-                          id="startDate"
-                          type="date"
-                          value={formData.startDate}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              startDate: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
+                      <Input
+                        id="startDate"
+                        type="date"
+                        value={formData.startDate}
+                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        className="mt-2 h-11 rounded-xl border-slate-200 bg-white px-4"
+                      />
                     </div>
                   </div>
 
-                  <div className="grid sm:grid-cols-4 gap-4">
-                    <div>
-                      <Label className="text-sm font-medium">
-                        Payment Type
-                      </Label>
-                      <Select
-                        value={formData.paymentType}
-                        onValueChange={(v) =>
-                          setFormData({ ...formData, paymentType: v })
-                        }
-                      >
-                        <SelectTrigger className="mt-1.5">
-                          <SelectValue placeholder="Select payment type" />
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+                    <div className="col-span-2 sm:col-span-1">
+                      <Label className="text-sm font-bold uppercase tracking-tight text-slate-500">Payment Type</Label>
+                      <Select value={formData.paymentType} onValueChange={(v) => setFormData({ ...formData, paymentType: v })}>
+                        <SelectTrigger className="mt-2 h-11 rounded-xl border-slate-200 bg-white">
+                          <SelectValue placeholder="Type" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="rounded-xl shadow-xl">
                           <SelectItem value="hourly">Hourly Rate</SelectItem>
                           <SelectItem value="monthly">Monthly</SelectItem>
                           <SelectItem value="fixed">Fixed Price</SelectItem>
@@ -1336,72 +1248,29 @@ const EmployerPostJob = () => {
                       </Select>
                     </div>
 
-                    <div>
-                      <Label className="text-sm font-medium">Currency</Label>
-                      <Select
-                        value={formData.currency}
-                        onValueChange={(v) =>
-                          setFormData({ ...formData, currency: v })
-                        }
-                      >
-                        <SelectTrigger className="mt-1.5">
-                          <SelectValue placeholder="Select currency" />
+                    <div className="col-span-2 sm:col-span-1">
+                      <Label className="text-sm font-bold uppercase tracking-tight text-slate-500">Currency</Label>
+                      <Select value={formData.currency} onValueChange={(v) => setFormData({ ...formData, currency: v })}>
+                        <SelectTrigger className="mt-2 h-11 rounded-xl border-slate-200 bg-white">
+                          <SelectValue placeholder="Cur" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="USD">USD</SelectItem>
-                          <SelectItem value="EUR">EUR</SelectItem>
-                          <SelectItem value="GBP">GBP</SelectItem>
-                          <SelectItem value="INR">INR</SelectItem>
+                        <SelectContent className="rounded-xl shadow-xl">
+                          <SelectItem value="USD">USD ($)</SelectItem>
+                          <SelectItem value="EUR">EUR (€)</SelectItem>
+                          <SelectItem value="GBP">GBP (£)</SelectItem>
+                          <SelectItem value="INR">INR (₹)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div>
-                      <Label
-                        htmlFor="budgetMin"
-                        className="text-sm font-medium"
-                      >
-                        Min Budget
-                        {formData.currency ? ` (${formData.currency})` : ""}
-                      </Label>
-                      <Input
-                        id="budgetMin"
-                        type="number"
-                        min="0"
-                        value={formData.salaryMin}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            salaryMin: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., 1500"
-                        className="mt-1.5"
-                      />
+                      <Label htmlFor="budgetMin" className="text-sm font-bold uppercase tracking-tight text-slate-500 truncate">Min Budget</Label>
+                      <Input id="budgetMin" type="number" value={formData.salaryMin} onChange={(e) => setFormData({ ...formData, salaryMin: e.target.value })} className="mt-2 h-11 rounded-xl border-slate-200 bg-white" />
                     </div>
 
                     <div>
-                      <Label
-                        htmlFor="budgetMax"
-                        className="text-sm font-medium"
-                      >
-                        Max Budget
-                        {formData.currency ? ` (${formData.currency})` : ""}
-                      </Label>
-                      <Input
-                        id="budgetMax"
-                        type="number"
-                        min="0"
-                        value={formData.salaryMax}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            salaryMax: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., 2500"
-                        className="mt-1.5"
-                      />
+                      <Label htmlFor="budgetMax" className="text-sm font-bold uppercase tracking-tight text-slate-500 truncate">Max Budget</Label>
+                      <Input id="budgetMax" type="number" value={formData.salaryMax} onChange={(e) => setFormData({ ...formData, salaryMax: e.target.value })} className="mt-2 h-11 rounded-xl border-slate-200 bg-white" />
                     </div>
                   </div>
                 </div>
@@ -1412,15 +1281,15 @@ const EmployerPostJob = () => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap gap-3 justify-between pt-6 border-t border-border">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between pt-8 border-t border-slate-100 max-w-4xl">
         <div className="flex gap-3">
           {currentStep > 1 && (
             <Button
               variant="outline"
               onClick={prevStep}
-              className="rounded-xl border-primary text-primary hover:bg-primary/5"
+              className="rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 min-w-[100px] font-bold h-11"
             >
-              <ChevronLeft className="h-4 w-4 mr-2" />
+              <ChevronLeft className="h-4 w-4 mr-2 stroke-[3px]" />
               Back
             </Button>
           )}
@@ -1428,21 +1297,21 @@ const EmployerPostJob = () => {
             <Button
               variant="ghost"
               onClick={handleDeleteJob}
-              className="rounded-xl text-destructive hover:text-destructive hover:bg-destructive/5"
+              className="rounded-xl text-rose-500 hover:text-rose-600 hover:bg-rose-50 font-bold h-11"
               disabled={deleteJobLoading}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete Job
+              Delete
             </Button>
           )}
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           {!isEditing && (
             <Button
               variant="outline"
               onClick={handleSaveDraft}
-              className="rounded-xl"
+              className="rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 min-w-[100px] font-bold h-11"
               disabled={saveJobAsDraftLoading}
             >
               <Save className="h-4 w-4 mr-2" />
@@ -1453,19 +1322,19 @@ const EmployerPostJob = () => {
           {currentStep < totalSteps ? (
             <Button
               onClick={nextStep}
-              className="rounded-xl bg-primary hover:bg-primary/90 px-8"
+              className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-10 h-11 font-bold shadow-sm"
               disabled={isExtractingSkills}
             >
               {isExtractingSkills && currentStep === 1
-                ? "Extracting Skills..."
-                : "Next"}
-              <ChevronRight className="h-4 w-4 ml-2" />
+                ? "Extracting..."
+                : "Continue"}
+              <ChevronRight className="h-4 w-4 ml-2 stroke-[3px]" />
             </Button>
           ) : (
             <>
               <Button
                 onClick={handlePostJob}
-                className="rounded-xl bg-primary hover:bg-primary/90"
+                className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-8 h-11 font-bold shadow-sm"
                 disabled={
                   updateJobLoading ||
                   createJobLoading ||
@@ -1484,13 +1353,13 @@ const EmployerPostJob = () => {
               {!isEditing && (
                 <Button
                   onClick={handlePostAndShowProfiles}
-                  className="rounded-xl hover:bg-primary/90 shadow-md transition-all active:scale-[0.98]"
+                  className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-6 h-11 font-bold shadow-md transition-all active:scale-[0.98] border-none"
                   disabled={createJobLoading}
                 >
-                  <Sparkles className="h-4 w-4 mr-2" />
+                  <SparklesIcon className="h-4 w-4 mr-2" />
                   {createJobLoading && postingAction === "postAndShow"
                     ? "Posting..."
-                    : "Post & Show Relevant Profiles"}
+                    : "Post & Show Profiles"}
                 </Button>
               )}
             </>

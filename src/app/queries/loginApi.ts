@@ -74,8 +74,22 @@ export const loginApi = createApi({
     checkExistingEmail: builder.mutation({
       query: (data) => ({
         method: "POST",
-        body: data,
         url: "auth/check-email",
+        body: data,
+      }),
+    }),
+    sendVerificationOtp: builder.mutation<void, { email: string }>({
+      query: (data) => ({
+        method: "POST",
+        url: "auth/send-verification-otp",
+        body: data,
+      }),
+    }),
+    verifyOtp: builder.mutation<void, { email: string; otp: string }>({
+      query: (data) => ({
+        method: "POST",
+        url: "auth/verify-otp",
+        body: data,
       }),
     }),
     getRefreshToken: builder.mutation<
@@ -131,4 +145,6 @@ export const {
   useLoginCandidateMutation,
   useLoginEmployerMutation,
   useLoginHrMutation,
+  useSendVerificationOtpMutation,
+  useVerifyOtpMutation,
 } = loginApi;

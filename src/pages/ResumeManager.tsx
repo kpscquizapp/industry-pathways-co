@@ -333,7 +333,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
   return (
     <>
       <div>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-6 items-start">
+        <div className="mx-auto grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-6 items-start">
           {/* Upload Area */}
           <div className="relative border-2 border-dashed border-slate-300 rounded-lg p-8 md:p-12 bg-white transition-all duration-200 dark:bg-slate-800 h-full">
             <div className="flex flex-col items-center text-center">
@@ -348,7 +348,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
               </p>
               {isLoadingResumeUpload ? (
                 <div className="flex flex-col items-center gap-2">
-                  <LoaderCircle className="animate-spin w-8 h-8 text-primary" />
+                  <LoaderCircle className="animate-spin w-8 h-8 text-[#1a1a2e]" />
                   <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
                     Uploading resume...
                   </p>
@@ -356,7 +356,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
               ) : (
                 <>
                   <label htmlFor="file-upload" className="cursor-pointer">
-                    <div className="inline-flex items-center px-4 md:px-6 py-2 md:py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 text-sm md:text-base">
+                    <div className="inline-flex items-center px-4 md:px-6 py-2 md:py-3 bg-[#1a1a2e] hover:bg-[#1a1a2e]/90 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 text-sm md:text-base">
                       <Upload className="w-4 h-4 mr-2" />
                       Choose File
                     </div>
@@ -422,7 +422,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                             loadingDeleteId !== null ||
                             loadingDefaultId !== null
                           }
-                          className="flex-1 text-xs md:text-sm flex items-center justify-center gap-2"
+                          className="flex-1 text-xs md:text-sm flex items-center justify-center gap-2 hover:bg-[#1a1a2e] hover:text-white"
                         >
                           <>
                             {loadingViewId === resume.id ? (
@@ -444,11 +444,10 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                             resume.isDefault
                           }
                           onClick={() => handleDefaultResume(resume.id)}
-                          className={`text-xs md:text-sm flex items-center justify-center gap-2 transition-colors ${
-                            resume.isDefault
-                              ? "bg-emerald-600 hover:bg-emerald-600 text-white border-emerald-600 pointer-events-none disabled:opacity-100"
-                              : "border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
-                          }`}
+                          className={`text-xs md:text-sm flex items-center justify-center gap-2 transition-colors ${resume.isDefault
+                            ? "bg-[#1a1a2e] hover:bg-[#1a1a2e] text-white border-[#1a1a2e] pointer-events-none disabled:opacity-100"
+                            : "border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+                            }`}
                         >
                           <>
                             {loadingDefaultId === resume.id ? (
@@ -524,7 +523,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({
                 size="sm"
                 aria-label="Close preview"
                 onClick={clearPreview}
-                className="flex-shrink-0 ml-2"
+                className="flex-shrink-0 ml-2 hover:bg-[#1a1a2e] hover:text-white"
                 ref={closeButtonRef}
               >
                 <X className="w-4 h-4 md:w-5 md:h-5" />

@@ -3,7 +3,13 @@ import {
   useGetRefreshTokenMutation,
   useLogoutMutation,
 } from "../../../app/queries/loginApi";
-import { removeUser, setNewAccessToken } from "../../../app/slices/userAuth";
+import {
+  removeUser,
+  setNewAccessToken,
+  authInitStart,
+  authInitSuccess,
+  authInitFail,
+} from "../../../app/slices/userAuth";
 import { useDispatch, useSelector } from "react-redux";
 import { isTokenExpired, getTokenExpiry } from "../../../lib/helpers";
 import { RootState } from "@/app/store";
@@ -97,6 +103,7 @@ export const useFetchRefreshToken = () => {
     try {
       if (!isMountedRef.current) return;
       if (isRefreshJwtExpired(refreshToken)) {
+        dispatch(authInitFail());
         await handleLogout();
         return;
       }
@@ -109,12 +116,14 @@ export const useFetchRefreshToken = () => {
         if (!isMountedRef.current) return;
         retryCountRef.current = 0; // reset on success
         dispatch(setNewAccessToken(newAccessToken));
+        dispatch(authInitSuccess());
         scheduleRefresh(newAccessToken); // schedule next refresh
       } else {
         if (!isMountedRef.current) return;
         console.error(
           "Refresh response missing accessToken/token, logging out",
         );
+        dispatch(authInitFail());
         await handleLogout();
       }
     } catch (error: any) {
@@ -134,6 +143,7 @@ export const useFetchRefreshToken = () => {
         console.error("Refresh failed:", error);
       }
       if (isMountedRef.current && isAuthError) {
+        dispatch(authInitFail());
         await handleLogout();
       } else if (
         isMountedRef.current &&
@@ -153,6 +163,7 @@ export const useFetchRefreshToken = () => {
         );
       } else if (isMountedRef.current) {
         // Exhausted retries — treat as auth failure
+        dispatch(authInitFail());
         await handleLogout();
       }
     } finally {
@@ -170,11 +181,16 @@ export const useFetchRefreshToken = () => {
     isMountedRef.current = true;
     retryCountRef.current = 0; // reset retry budget on new session / token rotation
 
+    // Mark auth initialization as started
+    dispatch(authInitStart());
+
     // Refresh immediately when access token is missing/expired, otherwise schedule.
     if (!userDetails?.token || isTokenExpired(userDetails.token)) {
       doRefreshRef.current?.();
     } else {
       scheduleRefresh(userDetails.token);
+      // If token is valid, auth initialization is successful
+      dispatch(authInitSuccess());
     }
 
     return () => {
