@@ -94,7 +94,7 @@ interface FormData {
   mobileNumber: string;
   password: string;
   confirmPassword: string;
-  contractorType: string;
+  candidateType: string;
   yearsExperience: number | null;
   primaryJobRole: string;
   availableToJoin: string;
@@ -244,7 +244,7 @@ const VALUE_PROPS = [
 const CONTRACTOR_TYPE_OPTIONS: SelectOption[] = [
   { value: "", label: "Select contractor type" },
   { value: "Full-Time Job Seeker", label: "Full-Time Job Seeker" },
-  { value: "Contract / Freelancer", label: "Contract / Freelancer" },
+  { value: "Contract / Freelance", label: "Contract / Freelance" },
   { value: "Hybrid Professional", label: "Hybrid Professional" },
 ];
 
@@ -265,7 +265,7 @@ const INITIAL_FORM: FormData = {
   mobileNumber: "",
   password: "",
   confirmPassword: "",
-  contractorType: "",
+  candidateType: "",
   yearsExperience: null,
   primaryJobRole: "",
   availableToJoin: "",
@@ -1212,8 +1212,8 @@ export default function ContractorSignup(): JSX.Element {
         errors.confirmPassword = "Passwords do not match";
       }
     } else if (step === 2) {
-      if (!form.contractorType)
-        errors.contractorType = "Please select a contractor type";
+      if (!form.candidateType)
+        errors.candidateType = "Please select a contractor type";
       const expErr = VALIDATION.experience.validate(form.yearsExperience);
       if (expErr) errors.yearsExperience = expErr;
       if (!form.primaryJobRole || !form.primaryJobRole.trim()) {
@@ -1280,7 +1280,7 @@ export default function ContractorSignup(): JSX.Element {
       email: form.email.toLowerCase().trim(),
       mobileNumber: form.mobileNumber.replace(/[\s\-()]/g, ""),
       password: form.password,
-      contractorType: form.contractorType,
+      candidateType: form.candidateType,
       yearsExperience: form.yearsExperience,
       primaryJobRole: form.primaryJobRole.trim(),
       primarySkills,
@@ -1636,7 +1636,7 @@ export default function ContractorSignup(): JSX.Element {
             gap: 12px;
           }
           .contractor-actions {
-            flex-direction: column;
+            flex-direction: column-reverse;
             gap: 10px;
             margin-top: 24px;
           }
@@ -2031,9 +2031,9 @@ export default function ContractorSignup(): JSX.Element {
                   required
                   icon={BriefcaseIcon}
                   options={CONTRACTOR_TYPE_OPTIONS}
-                  value={form.contractorType}
-                  onChange={handleSelect("contractorType")}
-                  error={fieldErrors.contractorType}
+                  value={form.candidateType}
+                  onChange={handleSelect("candidateType")}
+                  error={fieldErrors.candidateType}
                 />
                 {/* Years of Experience — number input */}
                 <Input
