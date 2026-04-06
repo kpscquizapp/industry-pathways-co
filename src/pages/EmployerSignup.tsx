@@ -606,8 +606,9 @@ const EmployerSignup = () => {
                           </div>
                           <ErrorMessage error={fieldErrors.email} />
                           {isCheckingEmail && (
-                            <div className="text-[11px] text-slate-400 ml-1">
-                              Verifying email...
+                            <div className="text-sm text-slate-500 flex items-center gap-2">
+                              <SpinnerLoader />{" "}
+                              <span>Checking availability...</span>
                             </div>
                           )}
                         </div>
@@ -811,11 +812,14 @@ const EmployerSignup = () => {
                       )}
                       <Button
                         type="submit"
-                        className="flex-1 h-[52px] bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3"
-                        disabled={isLoading}
+                        className="flex-1 h-[52px] bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+                        disabled={isLoading || isCheckingEmail}
                       >
-                        {isLoading ? (
-                          <SpinnerLoader className="w-5 h-5" />
+                        {isLoading || isCheckingEmail ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Processing...
+                          </span>
                         ) : (
                           <>
                             <span>{currentStep === totalSteps ? "Create Account" : "Next Step"}</span>
