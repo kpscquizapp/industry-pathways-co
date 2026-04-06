@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import LandingHeader from "@/components/landing/LandingHeader";
-import LandingFooter from "@/components/landing/LandingFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,7 +45,6 @@ const EmployerLogin1 = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <LandingHeader />
 
       <main className="flex-1 pt-24 pb-12 px-4 flex items-center justify-center">
         <div className="container mx-auto max-w-3xl">
@@ -156,8 +153,6 @@ const EmployerLogin1 = () => {
           </Card>
         </div>
       </main>
-
-      <LandingFooter />
     </div>
   );
 };

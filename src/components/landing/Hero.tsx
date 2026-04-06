@@ -79,8 +79,7 @@ export default function Hero() {
           variants={itemVariants}
           className="mt-5 flex items-center justify-center gap-1.5 text-sm text-gray-400"
         >
-          <span className="text-gray-900 text-base">★★★★</span>
-          <span className="text-gray-300 text-base">★</span>
+          <span className="text-gray-900 text-base">★★★★★</span>
           <span className="ml-1">Over 500+ Five Star Reviews</span>
         </motion.div>
 
