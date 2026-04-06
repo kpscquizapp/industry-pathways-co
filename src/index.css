@@ -1,9 +1,11 @@
+@import url(https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap);
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @layer base {
   :root {
+
+    font-family: "Inter", sans-serif;
     /* Premium Palette: Navy, Emerald, Soft Cream */
     --background: 40 30% 96%;
     --foreground: 222 47% 11%;
@@ -257,7 +259,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', sans-serif !important;
+  /* font-family: 'Inter', sans-serif !important; */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -265,13 +267,13 @@ body {
 /* ═══════════════════════════════════════
    Typography
    ═══════════════════════════════════════ */
-.font-heading {
+/* .font-heading {
   font-family: 'Inter', sans-serif;
-}
+} */
 
-.font-body {
+/* .font-body {
   font-family: 'Inter', sans-serif;
-}
+} */
 
 /* ═══════════════════════════════════════
    Tab Slider

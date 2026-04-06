@@ -37,7 +37,8 @@ export default function Hero() {
   return (
     <section className="pt-24 bg-white text-center overflow-hidden">
       <motion.div
-        className="max-w-[1200px] mx-auto px-6 pt-16"
+      // max-w-[1200px] 
+        className="mx-auto px-6 pt-16"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -46,7 +47,7 @@ export default function Hero() {
         {/* Heading */}
         <motion.h1
           variants={itemVariants}
-          className="font-heading font-bold text-gray-900 mt-7 mx-auto max-w-5xl tracking-tight leading-none text-4xl md:text-6xl lg:text-[4rem]"
+          className="font-heading font-semibold text-gray-900 mt-7 mx-auto max-w-5xl tracking-tighter leading-none text-4xl md:text-6xl lg:text-[4.9rem]  "
         >
           Say Goodbye to Slow Hiring.
           <br />
@@ -86,12 +87,12 @@ export default function Hero() {
         {/* ═══ LAPTOP MOCKUP ═══ */}
         <motion.div
           variants={itemVariants}
-          className="mt-12 relative max-w-[880px] mx-auto"
+          className="mt-12 relative max-w-[90%] mx-auto"
         >
           {/* Laptop frame */}
           <div className="bg-gray-900 rounded-t-2xl p-2.5 pb-0 shadow-2xl overflow-hidden">
             {/* Screen */}
-            <div className="rounded-t-xl overflow-hidden relative h-[clamp(200px,38vw,460px)] group">
+            <div className="rounded-t-xl overflow-hidden relative group">
 
               {/* Photo scene */}
               <img
