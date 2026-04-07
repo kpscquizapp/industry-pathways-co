@@ -59,7 +59,7 @@ export default function TrustedCompanies() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="font-heading font-bold text-gray-900 tracking-tight text-4xl md:text-5xl mb-20"
+          className="font-heading font-bold text-gray-900 tracking-tight text-3xl sm:text-4xl md:text-5xl mb-20 text-left sm:text-center"
         >
           Trusted by Companies Worldwide
         </motion.h2>
@@ -74,10 +74,10 @@ export default function TrustedCompanies() {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               className="flex flex-col items-center text-center space-y-4"
             >
-              <div className="w-full flex items-center justify-center">
+              <div className="w-full flex items-start justify-start sm:items-center sm:justify-center">
                 <AnimatedNumber value={stat.value} />
               </div>
-              <div className="space-y-1 flex flex-col items-center">
+              <div className="space-y-1 flex flex-col items-start w-full sm:items-center sm:justify-center">
                 <h3 className="text-xl font-medium text-gray-900">{stat.label}</h3>
                 <p className="text-gray-500 text-sm md:text-base max-w-[280px]">
                   {stat.description}

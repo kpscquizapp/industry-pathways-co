@@ -37,7 +37,8 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-background isolate">
+      <div className="w-full h-10 bg-[#75d6ff]" />
       <Navbar />
       <main>
         <Hero />

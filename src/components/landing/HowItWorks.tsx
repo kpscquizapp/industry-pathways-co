@@ -21,7 +21,7 @@ import profilesImg from "../../assets/how it work image 2.png";
 const STEPS = [
   {
     title: "Post Job / Join Marketplace",
-    desc: "Upload your job description or register as a contractor. Our platform accepts all formats.",
+    desc: "Upload your job description or register as a contractor. Our platform accepts all formats and our AI instantly extracts required skills.",
     features: [
       "AI-powered matching",
       "Faster turnaround",
@@ -31,7 +31,7 @@ const STEPS = [
   },
   {
     title: "AI Match + Skill Validation",
-    desc: "Our AI analyzes resumes against job requirements, validates skills through automated tests.",
+    desc: "Our AI analyzes resumes against job requirements using semantic matching, validates skills through automated coding and domain tests.",
     features: [
       "Precision matching",
       "Automated skill tests",
@@ -41,7 +41,7 @@ const STEPS = [
   },
   {
     title: "Interview & Deploy",
-    desc: "AI-powered interviews provide insights. Hire with confidence and deploy within days.",
+    desc: "AI-powered interviews provide actionable insights with anomaly detection. Hire with confidence and deploy within days, not weeks.",
     features: [
       "AI-driven interviews",
       "Actionable insights",
@@ -130,21 +130,21 @@ function StepCard({ step, index }) {
   return (
     <motion.div
       variants={cardVariants}
-      className="bg-white rounded-2xl p-2 flex flex-col h-full"
+      className="bg-white rounded-2xl py-2 flex flex-col h-full"
     >
       <CardImage type={step.imgType} />
-      <div className="p-4 pt-1 flex-1 flex flex-col">
-        <h3 className="font-heading font-bold text-lg text-gray-900 mt-5 tracking-tight">
+      <div className="py-4 flex-1 flex flex-col">
+        <h3 className="font-heading font-bold text-[27px] text-gray-900 mt-5 tracking-tight">
           {step.title}
         </h3>
-        <p className="text-sm text-gray-400 mt-2.5 leading-relaxed">
+        <p className="text-[17px] text-gray-600 font-medium mt-2.5 leading-relaxed">
           {step.desc}
         </p>
         <div className="mt-auto pt-4 flex flex-col gap-2">
           {step.features.map((feature, i) => (
             <div key={i} className="flex items-center gap-2">
               <CheckIcon />
-              <span className="text-sm text-gray-500 font-medium">
+              <span className="text-sm text-gray-800 font-medium">
                 {feature}
               </span>
             </div>
@@ -205,7 +205,7 @@ const MarqueeRow = ({ icons, reverse = false }) => (
 function CardImage({ type }) {
   if (type === "marketplace") {
     return (
-      <div className="card-image bg-gray-100 rounded-xl overflow-hidden relative group h-[200px]">
+      <div className="card-image bg-gray-100 overflow-hidden relative group h-[250px]  border-[10px] border-black rounded-2xl shadow-xl">
         <img
           src={hiw1}
           alt="Marketplace"
@@ -221,7 +221,7 @@ function CardImage({ type }) {
     const row2 = [Codepen, Database, Code2, Terminal, Cpu, Layers];
 
     return (
-      <div className="card-image bg-[#0f1520] rounded-xl overflow-hidden relative flex flex-col justify-center p-4 h-[200px]">
+      <div className="card-image bg-[#0f1520] rounded-xl overflow-hidden relative flex flex-col justify-center p-4 h-[250px]  border-[10px] border-black rounded-2xl shadow-xl">
         <div className="space-y-4 relative z-10 opacity-30">
           <MarqueeRow icons={row1} />
           <MarqueeRow icons={row2} reverse />
@@ -232,7 +232,7 @@ function CardImage({ type }) {
 
   // Deploy/Profiles
   return (
-    <div className="card-image bg-gray-900 rounded-xl overflow-hidden relative h-[200px]">
+    <div className="card-image bg-gray-900 rounded-xl overflow-hidden relative h-[250px] border-[10px] border-black rounded-2xl shadow-xl">
       <div className="absolute top-0 left-0 w-full p-4 z-20 bg-gradient-to-b from-gray-900 to-transparent">
         <div className="flex items-center justify-between">
           <span className="text-[11px] text-gray-200 font-bold uppercase tracking-wider">

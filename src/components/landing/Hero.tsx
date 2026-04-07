@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import heroMain from '../../assets/landing page main.png'
 import interviewImage from '../../assets/image1.png'
+import { Star } from 'lucide-react'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -35,10 +36,10 @@ const floatingVariants = (delay = 0) => ({
 
 export default function Hero() {
   return (
-    <section className="pt-24 bg-white text-center overflow-hidden">
+    <section className="py-16 sm:py-24 bg-white text-center overflow-hidden">
       <motion.div
-      // max-w-[1200px] 
-        className="mx-auto px-6 pt-16"
+        // max-w-[1240px] 
+        className="mx-auto px-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -47,7 +48,7 @@ export default function Hero() {
         {/* Heading */}
         <motion.h1
           variants={itemVariants}
-          className="font-heading font-semibold text-gray-900 mt-7 mx-auto max-w-5xl tracking-tighter leading-none text-4xl md:text-6xl lg:text-[4.9rem]  "
+          className="font-heading font-medium text-black mt-7 mx-auto max-w-5xl tracking-tighter leading-none text-[29px] sm:text-4xl md:text-5xl lg:text-6xl xl:text-[5rem]"
         >
           Say Goodbye to Slow Hiring.
           <br />
@@ -57,11 +58,9 @@ export default function Hero() {
         {/* Subtitle */}
         <motion.p
           variants={itemVariants}
-          className="text-gray-500 text-lg md:text-xl font-medium leading-relaxed mt-5 mx-auto max-w-2xl"
+          className="text-gray-500 text-[16px] md:text-xl font-medium leading-relaxed mt-5 mx-auto px-8 sm:px-0 sm:max-w-[500px] md:max-w-3xl text-center"
         >
-          AI-matched resumes, skill tests, and automated interviews.
-          <br className="hidden sm:block" />
-          All in one platform.
+          AI-matched resumes, automated skill tests, and smart interviews — from job posting to deployment in days, not weeks. <br /> All in one platform.
         </motion.p>
 
         {/* CTA */}
@@ -78,26 +77,26 @@ export default function Hero() {
         {/* Stars */}
         <motion.div
           variants={itemVariants}
-          className="mt-5 flex items-center justify-center gap-1.5 text-sm text-gray-400"
+          className="mt-5 flex items-center justify-center gap-1.5 text-sm lg:text-base text-gray-500"
         >
-          <span className="text-gray-900 text-base">★★★★★</span>
+          <span className="text-gray-900 text-lg md:text-xl flex"><Star className="fill-[#1d6685] text-[#1d6685]" size={16} /><Star className="fill-[#1d6685] text-[#1d6685]" size={16} /><Star className="fill-[#1d6685] text-[#1d6685]" size={16} /><Star className="fill-[#1d6685] text-[#1d6685]" size={16} /><Star className="fill-[#1d6685] text-[#1d6685]" size={16} /></span>
           <span className="ml-1">Over 500+ Five Star Reviews</span>
         </motion.div>
 
         {/* ═══ LAPTOP MOCKUP ═══ */}
         <motion.div
           variants={itemVariants}
-          className="mt-12 relative max-w-[90%] mx-auto"
+          className="my-10 sm:my-12 relative sm:max-w-[86%] mx-auto"
         >
           {/* Laptop frame */}
-          <div className="bg-gray-900 rounded-t-2xl p-2.5 pb-0 shadow-2xl overflow-hidden">
+          <div className="bg-gray-900 rounded-t-xl rounded-b-xl md:rounded-t-3xl md:rounded-b-3xl p-2.5 md:p-4 lg:p-5 xl:p-8 shadow-[rgba(50,50,93,0.25)_0px_24px_36px_-5px,rgba(0,0,0,0.3)_0px_16px_24px_-8px] overflow-hidden">
             {/* Screen */}
-            <div className="rounded-t-xl overflow-hidden relative group">
+            <div className="rounded-t-xl rounded-b-xl md:rounded-t-3xl md:rounded-b-3xl overflow-hidden relative group">
 
               {/* Photo scene */}
               <img
                 src={heroMain}
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                className="w-full h-full transition-transform duration-1000 group-hover:scale-105"
                 alt="Quickrekruit Dashboard"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
@@ -206,11 +205,6 @@ export default function Hero() {
               </motion.div>
 
             </div>
-          </div>
-
-          {/* Laptop chin */}
-          <div className="h-2.5 sm:h-3 bg-gray-300 rounded-b-lg flex justify-center items-center">
-            <div className="w-10 sm:w-12 h-[3px] bg-gray-400 rounded" />
           </div>
         </motion.div>
       </motion.div>

@@ -107,7 +107,6 @@
 
   html {
     scroll-behavior: smooth;
-    overflow-x: hidden;
   }
 
   body {
@@ -116,21 +115,6 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-
-  /* Prevent Radix scroll lock without forcing scrollbars */
-
-  /* Hide focus guards */
-  [data-radix-focus-guard] {
-    display: none !important;
-  }
-
-  /* Compensate for scrollbar width when it appears/disappears */
-  body {
-    width: 100vw;
-    overflow-x: hidden;
   }
 
   /* Ensure select content appears above everything */
