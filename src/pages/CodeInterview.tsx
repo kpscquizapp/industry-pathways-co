@@ -49,7 +49,7 @@ const Hero = () => {
       if (Date.now() < suppressViolationsUntilRef.current) return;
 
       try {
-        await fetch("/api/violations/log", {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/violations/log`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sessionId, reason }),
@@ -154,7 +154,7 @@ const Hero = () => {
     }
 
     try {
-      const res = await fetch("/api/session/start", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/session/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ candidateId: "123", jobId: "456" }),
@@ -177,7 +177,7 @@ const Hero = () => {
     if (!isInterviewActive) return;
 
     try {
-      await fetch("/api/session/end", {
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/session/end`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId }),

@@ -98,7 +98,7 @@ const WebcamFeed = ({
         throw new Error("No active session ID is available.");
       }
 
-      const response = await fetch(`${apiBaseUrl || ""}/api/recordings/start`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/recordings/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: activeSessionId, type }),
@@ -146,7 +146,7 @@ const WebcamFeed = ({
 
       try {
         const response = await fetch(
-          `${apiBaseUrl || ""}/api/recordings/chunk`,
+          `${import.meta.env.VITE_API_BASE_URL}/recordings/chunk/${activeSessionId}/${type}/${chunkIndex}`,
           {
             method: "POST",
             body: formData,
@@ -195,7 +195,7 @@ const WebcamFeed = ({
         throw new Error("No active session ID is available.");
       }
 
-      const response = await fetch(`${apiBaseUrl || ""}/api/recordings/end`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/recordings/end`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: activeSessionId, type }),
@@ -230,7 +230,7 @@ const WebcamFeed = ({
     }
 
     try {
-      const response = await fetch(`${apiBaseUrl || ""}/api/recordings/ping`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/recordings/ping`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: activeSessionId }),
@@ -309,7 +309,7 @@ const WebcamFeed = ({
     }
 
     let isActive = true;
-    let keepaliveInterval: NodeJS.Timeout | null = null;
+    let keepaliveInterval: ReturnType<typeof setInterval> | null = null;
 
     // Auto start screen sharing when interview becomes active
     const startScreenSharing = async () => {

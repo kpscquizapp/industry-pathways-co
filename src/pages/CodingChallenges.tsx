@@ -18,6 +18,7 @@ import {
   TestCase,
 } from "@/types/coding";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import { useDebouncedCallback } from "@/hooks/useDebounce";
 
 async function detectMultipleMonitors(): Promise<boolean> {
@@ -144,20 +145,19 @@ const CodingChallenge: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const popupRef = useRef<HTMLDivElement>(null);
-  const sessionId = useRef(
-    `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-  ).current;
+  const { user } = useAuth();
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const hasMountedRef = useRef(false);
   const suppressViolationsUntilRef = useRef(0);
   const devtoolsOpenRef = useRef(false);
 
   const handleViolation = useCallback(
     async (reason: string) => {
-      if (!isMonitoringActive) return;
+      if (!isMonitoringActive || !sessionId) return;
       if (Date.now() < suppressViolationsUntilRef.current) return;
 
       try {
-        await fetch("/api/violations/log", {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/violations/log`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sessionId, reason }),
@@ -390,9 +390,32 @@ const CodingChallenge: React.FC = () => {
               if (hasMultipleMonitors) {
                 handleViolation("Multiple monitors detected");
               }
-              setIsInterviewActive(true);
-              setIsMonitoringActive(true);
-              setTotalViolations(0);
+
+              // Create a session in the backend first
+              try {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/session/start`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    candidateId: user?.id || "guest-user",
+                    jobId: challengeId || null
+                  }),
+                });
+
+                if (!response.ok) {
+                  throw new Error("Failed to create anti-cheat session");
+                }
+
+                const data = await response.json();
+                setSessionId(data.sessionId);
+                setIsInterviewActive(true);
+                setIsMonitoringActive(true);
+                setTotalViolations(0);
+                toast.success("Test session started.");
+              } catch (error) {
+                console.error("Session creation failed", error);
+                toast.error("Failed to start secure session. Please try again.");
+              }
             }}
             disabled={isInterviewActive}
             className="gap-2"
