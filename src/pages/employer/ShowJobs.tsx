@@ -3,30 +3,24 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Briefcase,
-  Eye,
-  Users,
   ChevronLeft,
   ChevronRight,
   Edit,
   Trash2,
+  Users,
+  MapPin,
+  Clock,
+  DollarSign,
+  Calendar,
 } from "lucide-react";
 import {
   useGetEmployerAllJobsQuery,
   useDeleteJobMutation,
   EMPLOYER_JOB_STATUS,
 } from "@/app/queries/jobApi";
-import type { Job } from "@/app/queries/aiShortlistApi";
+import type { Job, JobSkill } from "@/app/queries/aiShortlistApi";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import JobDetailsModal from "./JobDetailsModal";
 import { toast } from "sonner";
@@ -42,27 +36,69 @@ const getStatusBadgeProps = (
   if (status === EMPLOYER_JOB_STATUS.PUBLISHED) {
     return {
       label: "Active",
-      className: "bg-green-500 hover:bg-green-600 text-white",
+      className:
+        "bg-[#edf8f1] text-[#16a34a] border-transparent",
     };
   }
   if (status === EMPLOYER_JOB_STATUS.DRAFT) {
     return {
       label: "Draft",
-      className: "bg-yellow-100 hover:bg-yellow-200 text-yellow-800",
+      className:
+        "bg-[#fff6e0] text-[#d97706] border-transparent",
     };
   }
   if (status === EMPLOYER_JOB_STATUS.CLOSED) {
     return {
       label: "Closed",
-      className: "bg-gray-400 hover:bg-gray-500 text-white",
+      className:
+        "bg-slate-100 text-slate-600 border-transparent",
     };
   }
   return {
     label: status
       ? status.charAt(0).toUpperCase() + status.slice(1)
       : "Unknown",
-    className: "bg-slate-200 hover:bg-slate-300 text-slate-700",
+    className: "bg-slate-100 text-slate-600 border-transparent",
   };
+};
+
+const formatTimeAgo = (dateStr?: string): string => {
+  if (!dateStr) return "";
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "Posted today";
+  if (days === 1) return "Posted 1 day ago";
+  if (days < 30) return `Posted ${days} days ago`;
+  const months = Math.floor(days / 30);
+  return `Posted ${months} month${months > 1 ? "s" : ""} ago`;
+};
+
+const getSkillName = (skill: string | JobSkill): string =>
+  typeof skill === "string" ? skill : skill.name ?? "";
+
+const formatSalary = (min?: number | string, max?: number | string, currency?: string): string => {
+  const lo = typeof min === "number" ? min : Number(min);
+  const hi = typeof max === "number" ? max : Number(max);
+  const sym = currency === "EUR" ? "€" : currency === "GBP" ? "£" : currency === "INR" ? "₹" : "$";
+  const fmt = (n: number) => {
+    if (n >= 1000) return `${sym}${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K`;
+    return `${sym}${n}`;
+  };
+  if (Number.isFinite(lo) && lo > 0 && Number.isFinite(hi) && hi > 0)
+    return `${fmt(lo)} - ${fmt(hi)}`;
+  if (Number.isFinite(lo) && lo > 0) return `${fmt(lo)}+`;
+  if (Number.isFinite(hi) && hi > 0) return `Up to ${fmt(hi)}`;
+  return "";
+};
+
+const formatExperience = (min?: number | string, max?: number | string): string => {
+  const lo = typeof min === "number" ? min : Number(min);
+  const hi = typeof max === "number" ? max : Number(max);
+  if (Number.isFinite(lo) && lo >= 0 && Number.isFinite(hi) && hi > 0)
+    return `${lo}-${hi} yrs`;
+  if (Number.isFinite(lo) && lo >= 0) return `${lo}+ yrs`;
+  if (Number.isFinite(hi) && hi > 0) return `Up to ${hi} yrs`;
+  return "";
 };
 
 const ShowJobs = () => {
@@ -93,8 +129,6 @@ const ShowJobs = () => {
   const paginationSource = jobsData ?? latestJobsData;
   const isTransitionLoading = isFetching && !jobsData;
 
-  // Backend response shape from GET /employers/jobs:
-  // { success: boolean, message: string, data: Job[], pagination: { total, page, limit } }
   let jobs: Job[] = [];
   let totalPages = 1;
 
@@ -102,7 +136,6 @@ const ShowJobs = () => {
     if (paginationSource.data && Array.isArray(paginationSource.data)) {
       jobs = paginationSource.data;
     } else if (Array.isArray(paginationSource)) {
-      // Fallback: raw array response (unlikely but defensive)
       jobs = paginationSource;
     }
 
@@ -117,9 +150,6 @@ const ShowJobs = () => {
     }
   }
 
-  // Server already filters by status via queryParams.status; keep a defensive
-  // client-side filter in case a stale cache page mixes statuses.
-
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
       const status = String(job.status ?? "")
@@ -131,12 +161,10 @@ const ShowJobs = () => {
     });
   }, [jobs, activeTab]);
 
-  // Use server-reported total (already filtered by status) for accurate counts.
   const totalForCurrentTab =
     jobsData?.pagination?.total ??
     (isTransitionLoading ? undefined : filteredJobs.length);
 
-  // Clamp currentPage so it never exceeds totalPages after data changes.
   useEffect(() => {
     if (isFetching && !paginationSource) return;
     const maxPage = Math.max(1, totalPages);
@@ -196,187 +224,275 @@ const ShowJobs = () => {
 
   if (error && !jobsData) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">All Jobs</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage all available job postings
-          </p>
+      <div className="min-h-screen bg-[#f2f5fa] px-4 sm:px-8 py-6 sm:py-8 font-sans">
+        <div className="max-w-[1440px] mx-auto space-y-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
+              All Jobs
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Manage all available job postings
+            </p>
+          </div>
+          <Card className="border border-border/50 rounded-2xl shadow-[var(--shadow-card)]">
+            <CardContent className="p-8">
+              <div className="text-center text-destructive">
+                <p>Error loading jobs. Please try again later.</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center text-destructive">
-              <p>Error loading jobs. Please try again later.</p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">All Jobs</h1>
-          <p className="text-muted-foreground mt-2">
-            {isTransitionLoading ? (
-              <>Loading {activeTab === "draft" ? "draft" : "active"} jobs…</>
-            ) : (
-              <>
-                Page {currentPage} of {totalPages} • {totalForCurrentTab}{" "}
-                {activeTab === "draft" ? "draft" : "active"} job
-                {totalForCurrentTab !== 1 ? "s" : ""}
-              </>
-            )}
-          </p>
+    <div className="min-h-screen bg-[#f2f5fa] px-4 sm:px-8 py-6 sm:py-8 font-sans">
+      <div className="max-w-[1440px] mx-auto space-y-7">
+        {/* Header */}
+      <div>
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
+          All Jobs
+        </h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          {isTransitionLoading ? (
+            <>Loading {activeTab === "draft" ? "draft" : "active"} jobs…</>
+          ) : (
+            <>
+              Page {currentPage} of {totalPages} •{" "}
+              {totalForCurrentTab}{" "}
+              {activeTab === "draft" ? "draft" : "active"} job
+              {totalForCurrentTab !== 1 ? "s" : ""}
+            </>
+          )}
+        </p>
+      </div>
+
+      {/* Tab Filter */}
+      <div className="flex">
+        <div className="inline-flex bg-[#f6f4f0] rounded-[14px] p-1.5">
+          <button
+            onClick={() => { setActiveTab("active"); setCurrentPage(1); }}
+            className={`px-10 py-2.5 text-[14px] font-bold rounded-xl transition-all duration-200 ${
+              activeTab === "active"
+                ? "bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Active
+          </button>
+          <button
+            onClick={() => { setActiveTab("draft"); setCurrentPage(1); }}
+            className={`px-10 py-2.5 text-[14px] font-bold rounded-xl transition-all duration-200 ${
+              activeTab === "draft"
+                ? "bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Draft
+          </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs
-        value={activeTab}
-        onValueChange={(v) => {
-          setActiveTab(v as "active" | "draft");
-          setCurrentPage(1);
-        }}
-        className="w-full"
-      >
-        <TabsList className="grid w-full max-w-xs grid-cols-2">
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="draft">Draft</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {/* Job Cards */}
+      {isLoading || isFetching ? (
+        <div className="flex items-center justify-center h-64">
+          <SpinnerLoader className="w-8 h-8 text-[#00e5ff]" />
+        </div>
+      ) : filteredJobs.length === 0 ? (
+        <Card className="border border-border/50 rounded-2xl shadow-[var(--shadow-card)]">
+          <CardContent className="p-12 text-center">
+            <Briefcase className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
+            <p className="text-lg font-bold text-foreground">
+              No {activeTab === "draft" ? "draft" : "active"} jobs found
+            </p>
+            <p className="text-muted-foreground mt-1.5 text-sm">
+              {activeTab === "draft"
+                ? "You have no draft job postings"
+                : "There are no active job postings to display"}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {filteredJobs.map((job) => {
+            const { label: statusLabel, className: statusClass } =
+              getStatusBadgeProps(job.status);
+            const skills = (job.skills ?? [])
+              .map(getSkillName)
+              .filter(Boolean);
+            const salary = formatSalary(
+              job.salaryMin as number | undefined,
+              job.salaryMax as number | undefined,
+              job.currency as string | undefined,
+            );
+            const experience = formatExperience(
+              job.minExperience as number | undefined,
+              job.maxExperience as number | undefined,
+            );
+            const applicants = (job.applicantCount as number) ?? 0;
+            const aiMatches = (job.aiMatchCount as number) ?? 0;
+            const interviews = (job.interviewCount as number) ?? 0;
+            const postedAgo = formatTimeAgo(job.createdAt);
 
-      {/* Jobs Table */}
-      <Card>
-        <CardContent className="p-0">
-          {isLoading || isFetching ? (
-            <div className="flex items-center justify-center h-64">
-              <SpinnerLoader className="w-8 h-8 text-primary" />
-            </div>
-          ) : filteredJobs.length === 0 ? (
-            <div className="p-8 text-center">
-              <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-semibold">
-                No {activeTab === "draft" ? "draft" : "active"} jobs found
-              </p>
-              <p className="text-muted-foreground mt-1">
-                {activeTab === "draft"
-                  ? "You have no draft job postings"
-                  : "There are no active job postings to display"}
-              </p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px]">No.</TableHead>
-                  <TableHead>Job Title</TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    Category
-                  </TableHead>
-                  <TableHead className="hidden md:table-cell">Type</TableHead>
-                  <TableHead className="hidden lg:table-cell text-center">
-                    Openings
-                  </TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-[180px] text-center">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredJobs.map((job, index) => (
-                  <TableRow key={job.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium text-muted-foreground">
-                      {(currentPage - 1) *
-                        (jobsData?.pagination?.limit ?? queryParams.limit) +
-                        index +
-                        1}
-                    </TableCell>
-                    <TableCell>
-                      <p className="font-semibold text-sm truncate max-w-[200px]">
-                        {job.title}
-                      </p>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell text-sm">
-                      {job.category || "N/A"}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-sm">
-                      {job.employmentType || "N/A"}
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell text-center text-sm">
-                      {job.numberOfOpenings || 0}
-                    </TableCell>
-                    <TableCell>
-                      {(() => {
-                        const { label, className } = getStatusBadgeProps(
-                          job.status,
-                        );
-                        return (
-                          <Badge className={`whitespace-nowrap ${className}`}>
-                            {label}
-                          </Badge>
-                        );
-                      })()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="View job details"
-                          aria-label={`View details for ${job.title || "job"}`}
-                          className="h-8 w-8 hover:bg-muted"
+            return (
+              <Card
+                key={job.id}
+                className="bg-white border border-gray-200/80 rounded-[24px] shadow-none hover:shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all duration-300 overflow-hidden group mb-4"
+              >
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row justify-between gap-6">
+                    {/* Left: Job Details */}
+                    <div className="flex-1 space-y-4 min-w-0 pr-0 md:pr-4">
+                      {/* Title & Status */}
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h3
+                          className="text-[19px] md:text-[21px] font-bold text-gray-900 tracking-tight cursor-pointer hover:text-[#0ea5e9] transition-colors truncate"
                           onClick={() => handleViewJob(job)}
+                          title={job.title}
                         >
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        </Button>
+                          {job.title}
+                        </h3>
+                        <Badge
+                          className={`text-[12px] font-bold px-3 py-1 rounded-full ${statusClass}`}
+                        >
+                          {statusLabel}
+                        </Badge>
+                      </div>
+
+                      {/* Meta Row */}
+                      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] font-medium text-gray-500">
+                        {job.location && (
+                          <span className="flex items-center gap-1.5">
+                            <MapPin className="h-4 w-4 text-gray-400" />
+                            {job.location}
+                            {job.workMode && ` / ${(job.workMode as string).charAt(0).toUpperCase() + (job.workMode as string).slice(1)}`}
+                          </span>
+                        )}
+                        {job.employmentType && (
+                          <span className="flex items-center gap-1.5">
+                            <Briefcase className="h-4 w-4 text-gray-400" />
+                            {job.employmentType}
+                          </span>
+                        )}
+                        {salary && (
+                          <span className="flex items-center gap-1.5">
+                            <DollarSign className="h-4 w-4 text-gray-400" />
+                            {salary}
+                          </span>
+                        )}
+                        {postedAgo && (
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="h-4 w-4 text-gray-400" />
+                            {postedAgo}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Description */}
+                      {job.description && (
+                        <p className="text-[14px] text-gray-500 leading-relaxed line-clamp-2 mt-1">
+                          {job.description.replace(/<[^>]*>/g, "").slice(0, 200)}
+                        </p>
+                      )}
+
+                      {/* Skills */}
+                      {skills.length > 0 && (
+                        <div className="flex flex-wrap gap-2.5 pt-2">
+                          {skills.slice(0, 6).map((skill) => (
+                            <span
+                              key={skill}
+                              className="inline-flex items-center text-[12px] font-bold px-3.5 py-1.5 rounded-full bg-[#f0f9ff] text-[#0ea5e9] border-none"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                          {skills.length > 6 && (
+                            <span className="inline-flex items-center text-[12px] font-bold px-3.5 py-1.5 rounded-full bg-gray-100 text-gray-600">
+                              +{skills.length - 6} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right: Stats & Actions */}
+                    <div className="md:w-[280px] lg:w-[300px] shrink-0 flex flex-col justify-between pt-2 md:pt-0">
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-2 gap-3 mb-5">
+                        <div className="bg-[#faf7f0] p-3.5 rounded-2xl flex flex-col justify-center">
+                          <span className="text-[11px] font-medium text-gray-500 mb-1">
+                            Applicants
+                          </span>
+                          <span className="text-[20px] font-extrabold text-gray-900">
+                            {applicants}
+                          </span>
+                        </div>
+                        <div className="bg-[#faf7f0] p-3.5 rounded-2xl flex flex-col justify-center">
+                          <span className="text-[11px] font-medium text-gray-500 mb-1">
+                            AI Matches
+                          </span>
+                          <span className="text-[20px] font-extrabold text-gray-900">
+                            {aiMatches}
+                          </span>
+                        </div>
+                        <div className="bg-[#faf7f0] p-3.5 rounded-2xl flex flex-col justify-center">
+                          <span className="text-[11px] font-medium text-gray-500 mb-1">
+                            Interviews
+                          </span>
+                          <span className="text-[20px] font-extrabold text-gray-900">
+                            {interviews}
+                          </span>
+                        </div>
+                        <div className="bg-[#faf7f0] p-3.5 rounded-2xl flex flex-col justify-center">
+                          <span className="text-[11px] font-medium text-gray-500 mb-1">
+                            Experience
+                          </span>
+                          <span className="text-[15px] font-extrabold text-gray-900 mt-1">
+                            {experience || "—"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center justify-end gap-2 mt-auto">
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Edit job"
-                          aria-label={`Edit ${job.title || "job"}`}
-                          className="h-8 w-8 hover:bg-muted"
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleEditJob(job.id)}
+                          className="h-9 px-4 text-xs font-semibold rounded-xl border-gray-200 text-gray-600 hover:bg-gray-50 shadow-none"
                         >
-                          <Edit className="h-4 w-4 text-muted-foreground" />
+                          Edit
                         </Button>
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Delete job"
-                          aria-label={`Delete ${job.title || "job"}`}
-                          className="h-8 w-8 hover:bg-muted"
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleDeleteJob(job.id)}
+                          className="h-9 px-4 text-xs font-semibold rounded-xl border-red-100 bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 shadow-none"
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                          Delete
                         </Button>
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          title="View matching profiles"
-                          aria-label={`View matching profiles for ${job.title || "job"}`}
-                          className="h-8 w-8 hover:bg-muted"
+                          size="sm"
                           onClick={() => handleViewProfiles(job.id)}
+                          className="h-9 px-4 text-xs font-bold rounded-xl bg-[#0ea5e9] hover:bg-[#0284c7] text-white border-none shadow-sm"
                         >
-                          <Users className="h-4 w-4 text-muted-foreground" />
+                          View Candidates
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6">
-          <p className="text-sm text-muted-foreground">
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-sm text-muted-foreground font-medium">
             Page {currentPage} of {totalPages}
           </p>
           <div className="flex gap-2">
@@ -385,6 +501,7 @@ const ShowJobs = () => {
               size="sm"
               onClick={handlePrevPage}
               disabled={currentPage === 1}
+              className="rounded-xl border-border font-semibold h-9 px-4"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
               Previous
@@ -394,6 +511,7 @@ const ShowJobs = () => {
               size="sm"
               onClick={handleNextPage}
               disabled={currentPage >= totalPages}
+              className="rounded-xl border-border font-semibold h-9 px-4"
             >
               Next
               <ChevronRight className="h-4 w-4 ml-1" />
@@ -408,6 +526,7 @@ const ShowJobs = () => {
         onOpenChange={setIsModalOpen}
         job={selectedJob}
       />
+      </div>
     </div>
   );
 };
