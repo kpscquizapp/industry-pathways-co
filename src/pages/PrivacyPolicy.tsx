@@ -44,7 +44,7 @@ export default function PrivacyPolicy() {
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-            <img src={logo} alt="Quick Recruit" className="h-8 w-auto" />
+            <img src={logo} alt="Quick Recruit" className="h-12 w-auto" />
           </Link>
           <div className="flex items-center gap-4">
             <Link
@@ -90,9 +90,9 @@ export default function PrivacyPolicy() {
               <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
                 Privacy Policy
               </h1>
-              <p className="mt-4 text-lg text-slate-600">
+              {/* <p className="mt-4 text-lg text-slate-600">
                 Effective Date: April 4, 2024
-              </p>
+              </p> */}
             </div>
 
             <div className="space-y-16">
@@ -131,12 +131,12 @@ export default function PrivacyPolicy() {
                   </p>
                   <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
                     <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                       Data Protection Officer (DPO)
+                      Data Protection Officer (DPO)
                     </h3>
                     <ul className="space-y-3">
                       <li className="flex items-start gap-3">
                         <Mail className="mt-1 h-4 w-4 text-blue-500 shrink-0" />
-                        <span>Email: <a href="mailto:privacy@quickrecruit.ai" className="text-blue-600 hover:underline">privacy@quickrecruit.ai</a></span>
+                        <span>Email: <a href="mailto:hello@quickrekruit.com" className="text-blue-600 hover:underline">hello@quickrekruit.com</a></span>
                       </li>
                       <li className="flex items-start gap-3">
                         <MapPin className="mt-1 h-4 w-4 text-blue-500 shrink-0" />
@@ -365,24 +365,24 @@ export default function PrivacyPolicy() {
                   <div className="space-y-4">
                     <h3 className="text-xl font-bold text-slate-900">8.1 Rights Under Indian Law (DPDP Act, 2023)</h3>
                     <div className="grid gap-4 sm:grid-cols-2">
-                       {["Right to Access", "Right to Correction and Erasure", "Right to Grievance Redressal", "Right to Nominate", "Right to Withdraw Consent"].map((right) => (
-                         <div key={right} className="rounded-xl border border-slate-200 p-4 text-sm font-medium"> {right} </div>
-                       ))}
+                      {["Right to Access", "Right to Correction and Erasure", "Right to Grievance Redressal", "Right to Nominate", "Right to Withdraw Consent"].map((right) => (
+                        <div key={right} className="rounded-xl border border-slate-200 p-4 text-sm font-medium"> {right} </div>
+                      ))}
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <h3 className="text-xl font-bold text-slate-900">8.2 Rights Under UAE Law (PDPL)</h3>
                     <div className="grid gap-4 sm:grid-cols-2">
-                       {["Right to Know", "Right of Access", "Right to Rectification", "Right to Erasure", "Right to Object", "Right to Data Portability", "Right to Lodge a Complaint"].map((right) => (
-                         <div key={right} className="rounded-xl border border-slate-200 p-4 text-sm font-medium"> {right} </div>
-                       ))}
+                      {["Right to Know", "Right of Access", "Right to Rectification", "Right to Erasure", "Right to Object", "Right to Data Portability", "Right to Lodge a Complaint"].map((right) => (
+                        <div key={right} className="rounded-xl border border-slate-200 p-4 text-sm font-medium"> {right} </div>
+                      ))}
                     </div>
                   </div>
 
                   <div className="rounded-2xl bg-blue-50/50 p-6 ring-1 ring-inset ring-blue-500/10">
                     <p className="text-sm">
-                      To exercise any of these rights, please submit a written request to <a href="mailto:privacy@quickrecruit.ai" className="font-bold text-blue-600 hover:underline">privacy@quickrecruit.ai</a>. We will respond within 30 days. Identity verification may be required.
+                      To exercise any of these rights, please submit a written request to <a href="mailto:hello@quickrekruit.com" className="font-bold text-blue-600 hover:underline">hello@quickrekruit.com</a>. We will respond within 30 days. Identity verification may be required.
                     </p>
                   </div>
                 </div>
@@ -476,15 +476,15 @@ export default function PrivacyPolicy() {
                   <p>
                     AI is a core feature of our platform. We are committed to transparency and fairness.
                   </p>
-                  
+
                   <div className="space-y-4">
                     <h3 className="font-bold text-slate-900">12.1 AI Features</h3>
                     <ul className="list-disc pl-5 text-sm space-y-2">
-                       <li><strong>Semantic Resume-JD Matching:</strong> Contextual fit analysis.</li>
-                       <li><strong>Skill Gap Analysis:</strong> Identification of competency alignment.</li>
-                       <li><strong>Automated Skill Tests:</strong> Generating tailored assessments.</li>
-                       <li><strong>AI Interview Scoring:</strong> Evaluation of communication and technical depth.</li>
-                       <li><strong>Bias-Reduced Ranking:</strong> Skill-based ranking with demographic controls.</li>
+                      <li><strong>Semantic Resume-JD Matching:</strong> Contextual fit analysis.</li>
+                      <li><strong>Skill Gap Analysis:</strong> Identification of competency alignment.</li>
+                      <li><strong>Automated Skill Tests:</strong> Generating tailored assessments.</li>
+                      <li><strong>AI Interview Scoring:</strong> Evaluation of communication and technical depth.</li>
+                      <li><strong>Bias-Reduced Ranking:</strong> Skill-based ranking with demographic controls.</li>
                     </ul>
                   </div>
 
@@ -498,7 +498,7 @@ export default function PrivacyPolicy() {
                   <div className="space-y-2">
                     <h3 className="font-bold text-slate-900">12.3 Right to Challenge</h3>
                     <p className="text-sm">
-                      If you believe an automated assessment has incorrectly evaluated your profile, contact <a href="mailto:privacy@quickrecruit.ai" className="text-blue-600 hover:underline">privacy@quickrecruit.ai</a> for human review.
+                      If you believe an automated assessment has incorrectly evaluated your profile, contact <a href="mailto:hello@quickrekruit.com" className="text-blue-600 hover:underline">hello@quickrekruit.com</a> for human review.
                     </p>
                   </div>
                 </div>
@@ -567,8 +567,8 @@ export default function PrivacyPolicy() {
               {/* End Note */}
               <div className="border-t border-slate-200 pt-12 text-center text-sm text-slate-500">
                 <p className="font-bold text-slate-900">Quick Recruit — Committed to Your Privacy</p>
-                <p className="mt-2">For all privacy inquiries: <a href="mailto:privacy@quickrecruit.ai" className="text-blue-600 hover:underline">privacy@quickrecruit.ai</a></p>
-                <p className="mt-4">© 2025 Quick Recruit. All Rights Reserved.</p>
+                <p className="mt-2">For all privacy inquiries: <a href="mailto:hello@quickrekruit.com" className="text-blue-600 hover:underline">hello@quickrekruit.com</a></p>
+                <p className="mt-4">&copy; {new Date().getFullYear()} Quick Recruit. All Rights Reserved.</p>
               </div>
             </div>
           </div>
@@ -577,7 +577,7 @@ export default function PrivacyPolicy() {
 
       {/* Floating Action Button (Mobile Only) */}
       <div className="fixed bottom-6 right-6 lg:hidden">
-        <a 
+        <a
           href="#top"
           className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl transition-transform hover:scale-110 active:scale-95"
         >

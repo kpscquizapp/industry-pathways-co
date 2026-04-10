@@ -22,6 +22,7 @@ import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 import logo from "@/assets/White Option.png";
 import logo2 from "@/assets/Dark Option.png";
 import { toast } from "sonner";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { Briefcase, Clock, Lock, Mail, Phone, Star, User } from "lucide-react";
 import {
   Select as UiSelect,
@@ -93,7 +94,7 @@ interface FormData {
   mobileNumber: string;
   password: string;
   confirmPassword: string;
-  contractorType: string;
+  candidateType: string;
   yearsExperience: number | null;
   primaryJobRole: string;
   availableToJoin: string;
@@ -243,7 +244,7 @@ const VALUE_PROPS = [
 const CONTRACTOR_TYPE_OPTIONS: SelectOption[] = [
   { value: "", label: "Select contractor type" },
   { value: "Full-Time Job Seeker", label: "Full-Time Job Seeker" },
-  { value: "Contract / Freelancer", label: "Contract / Freelancer" },
+  { value: "Contract / Freelance", label: "Contract / Freelance" },
   { value: "Hybrid Professional", label: "Hybrid Professional" },
 ];
 
@@ -264,7 +265,7 @@ const INITIAL_FORM: FormData = {
   mobileNumber: "",
   password: "",
   confirmPassword: "",
-  contractorType: "",
+  candidateType: "",
   yearsExperience: null,
   primaryJobRole: "",
   availableToJoin: "",
@@ -970,7 +971,8 @@ const LeftPanel: FC = memo(() => {
             fontSize: 16,
             color: "rgba(255,255,255,0.55)",
             lineHeight: 1.6,
-            maxWidth: 340,
+            maxWidth: 360,
+            marginTop: 32,
           }}
         >
           Join the ecosystem of elite contractors and find the perfect match for
@@ -1210,8 +1212,8 @@ export default function ContractorSignup(): JSX.Element {
         errors.confirmPassword = "Passwords do not match";
       }
     } else if (step === 2) {
-      if (!form.contractorType)
-        errors.contractorType = "Please select a contractor type";
+      if (!form.candidateType)
+        errors.candidateType = "Please select a contractor type";
       const expErr = VALIDATION.experience.validate(form.yearsExperience);
       if (expErr) errors.yearsExperience = expErr;
       if (!form.primaryJobRole || !form.primaryJobRole.trim()) {
@@ -1278,7 +1280,7 @@ export default function ContractorSignup(): JSX.Element {
       email: form.email.toLowerCase().trim(),
       mobileNumber: form.mobileNumber.replace(/[\s\-()]/g, ""),
       password: form.password,
-      contractorType: form.contractorType,
+      candidateType: form.candidateType,
       yearsExperience: form.yearsExperience,
       primaryJobRole: form.primaryJobRole.trim(),
       primarySkills,
@@ -1634,7 +1636,7 @@ export default function ContractorSignup(): JSX.Element {
             gap: 12px;
           }
           .contractor-actions {
-            flex-direction: column;
+            flex-direction: column-reverse;
             gap: 10px;
             margin-top: 24px;
           }
@@ -1883,6 +1885,12 @@ export default function ContractorSignup(): JSX.Element {
                 onChange={handleInput}
                 error={fieldErrors.email}
               />
+              {isCheckingEmail && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: TEXT_MUTED }}>
+                  <SpinnerLoader />
+                  Checking availability...
+                </div>
+              )}
               <Input
                 label="Mobile Number"
                 required
@@ -1918,10 +1926,10 @@ export default function ContractorSignup(): JSX.Element {
             </div>
           )}
 
-        
+
           {step === 2 && (
             <div style={S.column(22)}>
-             
+
               <div
                 style={{
                   background: isEmailVerified ? "rgba(77,217,232,0.05)" : "#fff9f9",
@@ -2023,9 +2031,9 @@ export default function ContractorSignup(): JSX.Element {
                   required
                   icon={BriefcaseIcon}
                   options={CONTRACTOR_TYPE_OPTIONS}
-                  value={form.contractorType}
-                  onChange={handleSelect("contractorType")}
-                  error={fieldErrors.contractorType}
+                  value={form.candidateType}
+                  onChange={handleSelect("candidateType")}
+                  error={fieldErrors.candidateType}
                 />
                 {/* Years of Experience — number input */}
                 <Input

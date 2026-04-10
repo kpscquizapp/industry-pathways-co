@@ -89,6 +89,9 @@ const ContractorSettings = lazy(
 const ContractorSkillTest = lazy(
   () => import("./pages/contractor/ContractorSkillTest"),
 );
+const MockTestReport = lazy(
+  () => import("./pages/contractor/MockTestReport"),
+);
 const BenchDashboard = lazy(() => import("./pages/bench/BenchDashboard"));
 // import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
 // import EmployerPostJob from "./pages/employer/EmployerPostJob";
@@ -223,6 +226,7 @@ const App = () => {
                         <Route path="profile" element={<ContractorProfile />} />
                         <Route path="profile/update" element={<ContractorProfileUpdate />} />
                         <Route path="tests" element={<ContractorSkillTest />} />
+                        <Route path="tests/report" element={<MockTestReport />} />
                         {/* // TODO: replace with dedicated page components */}
                         {/* <Route
                           path="interviews"

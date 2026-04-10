@@ -6,6 +6,9 @@ import { cn } from "@/lib/utils";
 import { useChangePasswordMutation, useDeleteMyAccountMutation } from "@/app/queries/profileApi";
 import { useNavigate } from "react-router-dom";
 import { useLogoutMutation } from "@/app/queries/loginApi";
+import { useDispatch } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
+import { removeUser } from "@/app/slices/userAuth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -136,6 +139,8 @@ const ContractorSettings = () => {
   const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
   const [deleteMyAccount, { isLoading: isDeletingAccount }] = useDeleteMyAccountMutation();
   const [logout] = useLogoutMutation();
+  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
   const handleUpdatePassword = async () => {
     if (!passwords.current || !passwords.new || !passwords.confirm) {
@@ -173,13 +178,22 @@ const ContractorSettings = () => {
       const refreshToken = localStorage.getItem("refreshToken") || "";
       await deleteMyAccount({ password: deletePassword }).unwrap();
       toast.success("Account deleted successfully");
-      await logout(refreshToken).unwrap();
+
+      // Attempt logout — if it fails (e.g. account already gone), we still proceed with cleanup
+      try {
+        await logout(refreshToken).unwrap();
+      } catch {
+        // Logout failure is expected after deletion; safe to ignore
+      }
+
+      dispatch(removeUser());
+      queryClient.clear();
       localStorage.clear();
-      navigate("/login");
+      navigate("/");
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to delete account. Please check your password.");
-      setIsDeleteDialogOpen(false); 
-      setDeletePassword(""); 
+      setIsDeleteDialogOpen(false);
+      setDeletePassword("");
     }
   };
 
@@ -200,7 +214,7 @@ const ContractorSettings = () => {
   }
 
   return (
-    <div className="flex flex-col gap-8 py-4 sm:px-2 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500">
+    <div className="flex flex-col gap-8 py-4 sm:px-2 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">
       {/* Header */}
       <div>
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Account Settings</h2>
@@ -217,26 +231,26 @@ const ContractorSettings = () => {
           />
           <div className="flex flex-col gap-6 max-w-full">
             <FormField label="Current Password">
-              <TextInput 
-                type="password" 
-                placeholder="Enter Current Password" 
+              <TextInput
+                type="password"
+                placeholder="Enter Current Password"
                 value={passwords.current}
                 onChange={(e) => setPasswords(p => ({ ...p, current: e.target.value }))}
               />
             </FormField>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField label="New Password">
-                <TextInput 
-                  type="password" 
-                  placeholder="Enter New Password" 
+                <TextInput
+                  type="password"
+                  placeholder="Enter New Password"
                   value={passwords.new}
                   onChange={(e) => setPasswords(p => ({ ...p, new: e.target.value }))}
                 />
               </FormField>
               <FormField label="Confirm New Password">
-                <TextInput 
-                  type="password" 
-                  placeholder="Enter Confirm New Password" 
+                <TextInput
+                  type="password"
+                  placeholder="Enter Confirm New Password"
                   value={passwords.confirm}
                   onChange={(e) => setPasswords(p => ({ ...p, confirm: e.target.value }))}
                 />
@@ -323,7 +337,7 @@ const ContractorSettings = () => {
             <p className="text-sm text-slate-600 max-w-2xl leading-relaxed">
               Once you delete your account, there is no going back. All your profile data, interview history, and skill assessment results will be permanently removed.
             </p>
-            
+
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
               <AlertDialogTrigger asChild>
                 <button
@@ -344,11 +358,11 @@ const ContractorSettings = () => {
                     Confirm Account Deletion
                   </AlertDialogTitle>
                   <AlertDialogDescription className="text-slate-600 py-4">
-                    This action is <span className="font-bold text-red-600 uppercase tracking-tight">permanent</span> and cannot be undone. 
+                    This action is <span className="font-bold text-red-600 uppercase tracking-tight">permanent</span> and cannot be undone.
                     All your professional data will be wiped from our systems.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                
+
                 <div className="py-4 space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="confirm-password" title="password confirmation field" className="text-sm font-semibold text-slate-700">

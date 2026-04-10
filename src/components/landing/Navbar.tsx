@@ -1,14 +1,17 @@
 import { useState, useEffect, type MouseEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import logo from "@/assets/Dark Option.png";
-import { Menu, X } from "lucide-react";
+import { Equal, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 
 const NAV_LINKS = [
-  { label: "About", target: "#about" },
+  { label: "About", target: "#" },
   { label: "How It Works", target: "#how-it-works" },
+  { label: "Candidates", target: "#candidates" },
+  { label: "Companies", target: "#companies" },
+  { label: "FAQ", target: "#faq" },
   { label: "Contact", target: "#contact" },
 ] as const;
 
@@ -59,10 +62,9 @@ export default function Navbar() {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm" : "bg-white"
-          }`}
+        className={`sticky top-0 left-0 right-0 w-full z-[1000] transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm" : "bg-white"}`}
       >
-        <div className="max-w-[1450px] mx-auto px-6 sm:px-8 py-4 flex items-center justify-between">
+        <div className="max-w-[1450px] mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
           {/* Logo */}
           <motion.a
             href="#"
@@ -112,7 +114,7 @@ export default function Navbar() {
             onClick={() => setMobileOpen((prev) => !prev)}
             type="button"
           >
-            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+            {mobileOpen ? <div className="bg-[#0a0a0a] p-2 text-white rounded-sm shadow-[0px_13px_21px_-9px_rgba(0,_0,_0,_0.7)]"><X size={26} className="text-[#75d6ff]" /></div> : <div className="bg-[#0a0a0a] p-2 text-white rounded-sm shadow-[0px_13px_21px_-9px_rgba(0,_0,_0,_0.7)]"><Equal size={26} className="text-white" /></div>}
           </button>
         </div>
 
@@ -124,7 +126,7 @@ export default function Navbar() {
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="px-8 pb-6 bg-white border-t border-gray-100 flex flex-col gap-4 overflow-hidden py-12"
+              className="px-8 sm:px-12 pb-10 bg-white border-t border-gray-100 flex flex-col gap-3 md:gap-8 overflow-hidden py-12 min-[1070px]:hidden"
             >
               {NAV_LINKS.map(({ label, target }) => (
                 <a
