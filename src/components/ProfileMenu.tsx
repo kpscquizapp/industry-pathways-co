@@ -73,7 +73,7 @@ const ProfileMenu = ({
                   "U"}
               </AvatarFallback>
             </Avatar>
-            <span className="font-medium text-sm hidden sm:inline">
+            <span className="font-medium text-sm hidden sm:inline font-inter">
               {user?.firstName || user?.role || "User"}
             </span>
           </Button>

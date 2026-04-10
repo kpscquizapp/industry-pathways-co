@@ -53,7 +53,7 @@ const ContractorDashboard = () => {
 
 
   return (
-    <div className="py-4 sm:py-4 flex flex-col font-sans sm:px-2 animate-in fade-in slide-in-from-bottom-3 duration-500">
+    <div className="py-4 sm:py-4 flex flex-col font-sans sm:px-2 animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">
       <div>
         <h2 className="text-2xl md:text-3xl font-bold">Dashboard</h2>
         <p className="text-muted-foreground mt-2 mb-8">Welcome back, {userDetails?.firstName}. Here's your activity overview.</p>

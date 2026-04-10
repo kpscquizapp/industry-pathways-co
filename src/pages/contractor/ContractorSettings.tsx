@@ -214,7 +214,7 @@ const ContractorSettings = () => {
   }
 
   return (
-    <div className="flex flex-col gap-8 py-4 sm:px-2 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500">
+    <div className="flex flex-col gap-8 py-4 sm:px-2 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">
       {/* Header */}
       <div>
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Account Settings</h2>

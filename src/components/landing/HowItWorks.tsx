@@ -84,7 +84,7 @@ export default function HowItWorks() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center px-4 py-1.5 rounded-full bg-black/5 border border-black/10 text-gray-600 text-xs font-bold uppercase tracking-[2.5px] mb-6"
+            className="inline-flex items-center px-4 py-1.5 rounded-full bg-black/5 border border-black/10 text-gray-600 text-[11px] font-bold uppercase tracking-[2.5px] mb-6 font-mono"
           >
             AI POWERED
           </motion.div>
@@ -93,7 +93,7 @@ export default function HowItWorks() {
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="font-heading font-bold text-gray-900 tracking-tight text-4xl md:text-5xl"
+            className="font-heading font-bold text-gray-900 tracking-tight text-[30px] md:text-[45px]"
           >
             How It Works
           </motion.h2>
@@ -102,7 +102,7 @@ export default function HowItWorks() {
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="max-w-2xl mx-auto text-gray-500 text-lg md:text-xl leading-relaxed mt-4"
+            className="max-w-3xl mx-auto font-medium text-gray-500 text-[17px] leading-relaxed mt-4"
           >
             From job posting to deployment in three simple steps. Our AI handles
             the heavy lifting.

@@ -38,8 +38,7 @@ export default function Hero() {
   return (
     <section className="py-16 sm:py-24 bg-white text-center overflow-hidden">
       <motion.div
-        // max-w-[1240px] 
-        className="mx-auto px-6"
+        className="mx-auto px-4"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -58,7 +57,7 @@ export default function Hero() {
         {/* Subtitle */}
         <motion.p
           variants={itemVariants}
-          className="text-gray-500 text-[16px] md:text-xl font-medium leading-relaxed mt-5 mx-auto px-8 sm:px-0 sm:max-w-[500px] md:max-w-3xl text-center"
+          className="text-gray-500 md:text-[15px] lg:text-[17px] font-medium leading-relaxed mt-5 mx-auto px-8 sm:px-0 sm:max-w-[350px] md:max-w-2xl text-center"
         >
           AI-matched resumes, automated skill tests, and smart interviews — from job posting to deployment in days, not weeks. <br /> All in one platform.
         </motion.p>
@@ -74,19 +73,10 @@ export default function Hero() {
           </motion.button>
         </motion.div> */}
 
-        {/* Stars */}
-        <motion.div
-          variants={itemVariants}
-          className="mt-5 flex items-center justify-center gap-1.5 text-sm lg:text-base text-gray-500"
-        >
-          <span className="text-gray-900 text-lg md:text-xl flex"><Star className="fill-[#1d6685] text-[#1d6685]" size={16} /><Star className="fill-[#1d6685] text-[#1d6685]" size={16} /><Star className="fill-[#1d6685] text-[#1d6685]" size={16} /><Star className="fill-[#1d6685] text-[#1d6685]" size={16} /><Star className="fill-[#1d6685] text-[#1d6685]" size={16} /></span>
-          <span className="ml-1">Over 500+ Five Star Reviews</span>
-        </motion.div>
-
         {/* ═══ LAPTOP MOCKUP ═══ */}
         <motion.div
           variants={itemVariants}
-          className="my-10 sm:my-12 relative sm:max-w-[86%] mx-auto"
+          className="my-10 sm:my-12 relative sm:max-w-[86%] xl:max-w-[1280px] mx-auto"
         >
           {/* Laptop frame */}
           <div className="bg-gray-900 rounded-t-xl rounded-b-xl md:rounded-t-3xl md:rounded-b-3xl p-2.5 md:p-4 lg:p-5 xl:p-8 shadow-[rgba(50,50,93,0.25)_0px_24px_36px_-5px,rgba(0,0,0,0.3)_0px_16px_24px_-8px] overflow-hidden">

@@ -5,6 +5,8 @@ import Logos from "@/components/landing/Logos";
 import HowItWorks from "@/components/landing/HowItWorks";
 import AiHiring from "@/components/landing/AiHiring";
 import Roles from "@/components/landing/Roles";
+import CandidateAutopilot from "@/components/landing/CandidateAutopilot";
+import CompanyHiringProcess from "@/components/landing/CompanyHiringProcess";
 import TrustedCompanies from "@/components/landing/TrustedCompanies";
 import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
@@ -45,6 +47,8 @@ const Index = () => {
         <Logos />
         <HowItWorks />
         <Roles />
+        <CandidateAutopilot />
+        <CompanyHiringProcess />
         <TrustedCompanies />
         <AiHiring />
         <FAQ />
