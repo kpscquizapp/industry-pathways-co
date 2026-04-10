@@ -12,11 +12,12 @@ import {
   ExternalLink,
   ChevronDown,
   LineChart,
-  RotateCcw
+  RotateCcw,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { useCreateSkillTestMutation } from "@/app/queries/contractorSkillTest";
+import { useCreateSkillTestMutation, useGetMyTestResultsQuery, useGetProblemTagsQuery } from "@/app/queries/contractorSkillTest";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -103,7 +104,12 @@ const ContractorSkillTest = () => {
   const navigate = useNavigate();
   const [mockDifficulty, setMockDifficulty] = useState("");
   const [questionCount, setQuestionCount] = useState("");
-  const [createSkillTest] = useCreateSkillTestMutation();
+  const [createSkillTest, { isLoading: isCreating }] = useCreateSkillTestMutation();
+  const { data: testResultsData, isLoading: isLoadingResults } = useGetMyTestResultsQuery();
+  const { data: tagsData } = useGetProblemTagsQuery();
+  
+  const testResults = testResultsData?.data || [];
+  const availableTags = tagsData?.data || [];
   const [mockTest, setMockTest] = useState({
     title: "",
     totalTime: 0,
@@ -112,6 +118,7 @@ const ContractorSkillTest = () => {
       medium: 0,
       hard: 0,
     },
+    tags: [], // Added tags field
   });
 
   console.log(mockTest)
@@ -126,8 +133,11 @@ const ContractorSkillTest = () => {
     }
 
     try {
-      await createSkillTest(mockTest).unwrap();
+      const resp = await createSkillTest(mockTest).unwrap();
       toast.success("Mock test created successfully");
+      if (resp.success && resp.data?.id) {
+        navigate(`/coding-challenge/${resp.data.id}`);
+      }
     } catch (error) {
       toast.error("Failed to create mock test");
     }
@@ -240,13 +250,20 @@ const ContractorSkillTest = () => {
                     </div>
                     <Select
                       value={mockTest.title}
-                      onValueChange={(val) => setMockTest({ ...mockTest, title: val })}
+                      onValueChange={(val) => setMockTest({ ...mockTest, title: val, tags: [val] })}
                     >
                       <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700 focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none transition-all text-[14px] text-slate-500 font-bold">
                         <SelectValue placeholder="Select Test Type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Mock test" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">Mock test</SelectItem>
+                        {availableTags.map((tag: string) => (
+                          <SelectItem key={tag} value={tag} className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">
+                            {tag}
+                          </SelectItem>
+                        ))}
+                        {availableTags.length === 0 && (
+                          <SelectItem value="Mock test" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">Mock test</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -344,8 +361,12 @@ const ContractorSkillTest = () => {
 
               {/* Full Width Button Area */}
               <div className="mt-8 pt-2">
-                <button onClick={startMockTest} className="w-full h-[52px] bg-[#0F172A] rounded-xl flex items-center justify-center gap-2 text-white text-[15px] font-bold hover:bg-slate-800 transition-all duration-300 shadow-sm hover:shadow-md">
-                  Start Mock Test
+                <button 
+                  onClick={startMockTest} 
+                  disabled={isCreating}
+                  className="w-full h-[52px] bg-[#0F172A] rounded-xl flex items-center justify-center gap-2 text-white text-[15px] font-bold hover:bg-slate-800 transition-all duration-300 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreating ? <Loader2 className="w-5 h-5 animate-spin" /> : "Start Mock Test"}
                   <ExternalLink size={18} />
                 </button>
               </div>
@@ -357,53 +378,65 @@ const ContractorSkillTest = () => {
           <div className="flex flex-col gap-5 max-w-full">
             <h3 className="text-xl font-bold text-slate-900 px-1">Your Mock Test Results</h3>
             <div className="flex flex-col gap-4">
-              {[
-                { title: "ReactJS Frontend Development", diff: "Intermediate", date: "Oct 24, 2023", score: 88, type: "Manual Selection", color: "emerald", scoreColor: "#22c55e" },
-                { title: "Full Stack Engineer (Resume Based)", diff: "Advanced", date: "Oct 18, 2023", score: 62, type: "AI Generated", color: "amber", scoreColor: "#f59e0b" }
-              ].map((res, i) => (
-                <Card key={i} className="p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200">
-                  <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
-                    {/* Score Circle */}
-                    <div
-                      className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
-                      style={{ borderColor: res.scoreColor }}
-                    >
-                      <div className="text-[14px] md:text-[17px] font-black" style={{ color: res.scoreColor }}>
-                        {res.score}%
-                      </div>
-                    </div>
+              {isLoadingResults ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
+                </div>
+              ) : testResults.length > 0 ? (
+                testResults.map((res: any, i: number) => {
+                  const scoreColor = (res.score || 0) >= 80 ? "#22c55e" : (res.score || 0) >= 60 ? "#f59e0b" : "#ef4444";
+                  return (
+                    <Card key={i} className="p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200">
+                      <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
+                        {/* Score Circle */}
+                        <div
+                          className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
+                          style={{ borderColor: scoreColor }}
+                        >
+                          <div className="text-[14px] md:text-[17px] font-black" style={{ color: scoreColor }}>
+                            {res.score || 0}%
+                          </div>
+                        </div>
 
-                    {/* Info */}
-                    <div className="flex flex-col gap-1.5 md:gap-1">
-                      <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">{res.title}</h4>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
-                        <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100">{res.diff}</span>
-                        <span className="text-slate-400">Completed on {res.date}</span>
-                        <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
-                        <span className={cn(
-                          "flex items-center gap-1 font-semibold",
-                          res.type === "AI Generated" ? "text-purple-600" : ""
-                        )}>
-                          {res.type === "AI Generated" && <WandSparkles size={12} />}
-                          {res.type}
-                        </span>
+                        {/* Info */}
+                        <div className="flex flex-col gap-1.5 md:gap-1">
+                          <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">{res.title}</h4>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
+                            <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100">
+                              {Object.entries(res.difficultyDistribution || {}).find(([_, v]) => (v as any) > 0)?.[0] || "Mixed"}
+                            </span>
+                            <span className="text-slate-400">Completed on {res.createdAt ? new Date(res.createdAt).toLocaleDateString() : 'N/A'}</span>
+                            <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                            <span className="flex items-center gap-1 font-semibold text-purple-600">
+                              <WandSparkles size={12} />
+                              AI Generated
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Buttons */}
-                  <div className="flex flex-col xs:flex-row sm:flex-row items-center gap-3 w-full md:w-auto">
-                    <button onClick={() => navigate("/contractor/tests/report")} className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border border-slate-200 text-slate-600 font-bold text-[13px] hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm">
-                      <LineChart size={16} className="text-slate-400" />
-                      View Insights
-                    </button>
-                    <button className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm">
-                      <RotateCcw size={16} />
-                      Retake (₹99)
-                    </button>
-                  </div>
-                </Card>
-              ))}
+                      {/* Buttons */}
+                      <div className="flex flex-col xs:flex-row sm:flex-row items-center gap-3 w-full md:w-auto">
+                        <button 
+                          onClick={() => navigate(`/contractor/tests/report?id=${res.id}`)} 
+                          className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border border-slate-200 text-slate-600 font-bold text-[13px] hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm"
+                        >
+                          <LineChart size={16} className="text-slate-400" />
+                          View Insights
+                        </button>
+                        <button className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm">
+                          <RotateCcw size={16} />
+                          Retake (₹99)
+                        </button>
+                      </div>
+                    </Card>
+                  );
+                })
+              ) : (
+                <div className="p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                  <p className="text-slate-400 font-medium">No practice tests completed yet.</p>
+                </div>
+              )}
             </div>
           </div>
         </div >

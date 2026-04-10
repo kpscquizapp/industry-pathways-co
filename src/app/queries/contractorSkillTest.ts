@@ -32,9 +32,34 @@ export const contractorSkillTestApi = createApi({
                 url: "coding/tests",
                 body: data,
             }),
+            invalidatesTags: ["ContractorSkillTest"],
+        }),
+        getMyTestResults: builder.query<any, void>({
+            query: () => ({
+                method: "GET",
+                url: "coding/tests/my-results",
+            }),
+            providesTags: ["ContractorSkillTest"],
+        }),
+        getTestReport: builder.query<any, string | number>({
+            query: (id) => ({
+                method: "GET",
+                url: `coding/tests/report/${id}`,
+            }),
+        }),
+        getProblemTags: builder.query<any, void>({
+            query: () => ({
+                method: "GET",
+                url: "coding/tags",
+            }),
         }),
     }),
 })
 
-export const { useCreateSkillTestMutation } = contractorSkillTestApi;
+export const { 
+    useCreateSkillTestMutation, 
+    useGetMyTestResultsQuery, 
+    useGetTestReportQuery,
+    useGetProblemTagsQuery
+} = contractorSkillTestApi;
 
