@@ -224,21 +224,23 @@ const ContractorSkillTest = () => {
       {filter === "mock" && (
         <div className="flex flex-col gap-10 pb-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
           {/* Section 1: Start Practice Card */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5">
             <h3 className="text-xl font-bold text-slate-900 px-1">Start a Practice Test</h3>
-            <Card className="p-6 md:p-10 border-slate-100 shadow-sm max-w-full">
-              <div className="flex flex-col lg:flex-row lg:gap-10 gap-4 py-4 lg:py-2">
+            <Card className="p-5 sm:p-7 md:p-10 border-slate-100 shadow-sm w-full">
+              <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
 
-                {/* Left Column: Test Type & Question Count (replaces Target Skill / Generate Resume) */}
-                <div className="flex-1 flex flex-col gap-4 w-full">
-                  <div>
-                    <label className="text-[13px] font-bold text-slate-500 ml-1">Select Test Type</label>
-                    <span className="text-cyan-500">*</span>
+                {/* Left Column: Test Type & Question Count */}
+                <div className="flex-1 flex flex-col gap-6 w-full">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1 ml-1">
+                      <label className="text-[13px] font-bold text-slate-500">Select Test Type</label>
+                      <span className="text-cyan-500">*</span>
+                    </div>
                     <Select
                       value={mockTest.title}
                       onValueChange={(val) => setMockTest({ ...mockTest, title: val })}
                     >
-                      <SelectTrigger className="w-full h-12 rounded-xl text-[14px] text-slate-500 font-bold transition-all capitalize my-2 outline-none px-4 border-2 border-[#e8eaef] bg-[#f8f9fb] shadow-none focus:ring-0 focus:ring-offset-0 focus:border-[#0ea5e9]">
+                      <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700 focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none transition-all text-[14px] text-slate-500 font-bold">
                         <SelectValue placeholder="Select Test Type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -247,14 +249,16 @@ const ContractorSkillTest = () => {
                     </Select>
                   </div>
 
-                  <div>
-                    <label className="text-[13px] font-bold text-slate-500 ml-1">Number of Questions</label>
-                    <span className="text-cyan-500">*</span>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1 ml-1">
+                      <label className="text-[13px] font-bold text-slate-500">Number of Questions</label>
+                      <span className="text-cyan-500">*</span>
+                    </div>
                     <Select
                       value={questionCount}
                       onValueChange={(val) => setQuestionCount(val)}
                     >
-                      <SelectTrigger className="w-full h-12 rounded-xl text-[14px] text-slate-500 font-bold transition-all border-2 border-[#e8eaef] capitalize my-2 outline-none px-4 bg-[#f8f9fb] shadow-none focus:ring-0 focus:ring-offset-0 focus:border-[#0ea5e9]">
+                      <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700 focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none transition-all text-[14px] text-slate-500 font-bold">
                         <SelectValue placeholder="Select Number of Questions" />
                       </SelectTrigger>
                       <SelectContent>
@@ -266,12 +270,14 @@ const ContractorSkillTest = () => {
                   </div>
                 </div>
 
-                {/* Right Column: Difficulty & Start Button */}
+                {/* Right Column: Difficulty, Duration & Start Button */}
                 <div className="flex-1 flex flex-col gap-6 w-full">
-                  <div>
-                    <label className="text-[13px] font-bold text-slate-500 ml-1">Select Difficulty Level</label>
-                    <span className="text-cyan-500">*</span>
-                    <div className="grid grid-cols-3 gap-3 my-2">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1 ml-1">
+                      <label className="text-[13px] font-bold text-slate-500">Select Difficulty Level</label>
+                      <span className="text-cyan-500">*</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
                       {difficultyLevels.map((d) => (
                         <button
                           key={d}
@@ -287,9 +293,9 @@ const ContractorSkillTest = () => {
                             }));
                           }}
                           className={cn(
-                            "h-12 rounded-xl text-[14px] font-bold transition-all border capitalize",
+                            "py-[11px] rounded-xl text-[14px] font-bold transition-all border capitalize",
                             mockDifficulty === d
-                              ? "bg-white border-[#0ea5e9] text-[#0ea5e9] shadow-sm shadow-cyan-100"
+                              ? "bg-white border-[#0ea5e9] text-[#0ea5e9] shadow-sm shadow-cyan-100 ring-1 ring-[#0ea5e9]"
                               : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
                           )}
                         >
@@ -299,18 +305,35 @@ const ContractorSkillTest = () => {
                     </div>
                   </div>
 
-                  {/* NOTE: We removed the Duration dropdown based on the provided UI design image to match it perfectly.
-                      If duration is required for backend, we would need to add it back or set a default.
-                      For now, following the visual design explicitly. */}
-
-                  <div className="lg:mt-6 flex flex-col gap-3">
-                    <button onClick={startMockTest} className="w-full h-12 bg-[#0F172A] rounded-xl flex items-center justify-center gap-2 text-white text-[15px] font-bold hover:bg-slate-800 transition-all duration-300">
-                      Start Mock Test
-                      <ExternalLink size={18} />
-                    </button>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1 ml-1">
+                      <label className="text-[13px] font-bold text-slate-500">Select Duration</label>
+                      <span className="text-cyan-500">*</span>
+                    </div>
+                    <Select
+                      value={mockTest.totalTime ? String(mockTest.totalTime) : undefined}
+                      onValueChange={(val) => setMockTest({ ...mockTest, totalTime: parseInt(val) })}
+                    >
+                      <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700 focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none transition-all text-[14px] text-slate-500 font-bold">
+                        <SelectValue placeholder="Select Duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">30 mins</SelectItem>
+                        <SelectItem value="60" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">60 mins</SelectItem>
+                        <SelectItem value="90" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">90 mins</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
+              </div>
+              
+              {/* Full Width Button Area */}
+              <div className="mt-8 pt-2">
+                <button onClick={startMockTest} className="w-full h-[52px] bg-[#0F172A] rounded-xl flex items-center justify-center gap-2 text-white text-[15px] font-bold hover:bg-slate-800 transition-all duration-300 shadow-sm hover:shadow-md">
+                  Start Mock Test
+                  <ExternalLink size={18} />
+                </button>
               </div>
             </Card>
             {/* End of section 1 */}
