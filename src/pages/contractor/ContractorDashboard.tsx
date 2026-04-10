@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
+import { useGetProfileQuery, useGetDashboardStatsQuery } from "@/app/queries/profileApi";
 import {
   TrendingUp,
   FileCheck,
@@ -20,26 +21,21 @@ const GlassCard = ({ children, gradient, className = "" }: { children: React.Rea
   </div>
 );
 
-
-
-const KPI = [
-  { label: "Interview Invites", value: "-", icon: Video, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "-", sub: "this week" },
-  { label: "Pending Tests", value: "-", icon: FileCheck, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "-", sub: "due soon" },
-  { label: "Profile Views", value: "-", icon: Eye, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "-", sub: "this month" },
-  { label: "Skill Score", value: "-", icon: Star, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "-", sub: "-" },
-];
-
 const ContractorDashboard = () => {
   const { userDetails } = useSelector((state: RootState) => state.user);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: statsData, isLoading: statsLoading } = useGetDashboardStatsQuery();
   const navigate = useNavigate();
 
-  React.useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+  const stats = statsData?.data || {};
 
-  if (isLoading) {
+  const KPI = [
+    { label: "Interview Invites", value: stats.interviewInvites ?? "0", icon: Video, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "this week" },
+    { label: "Pending Tests", value: stats.pendingTests ?? "0", icon: FileCheck, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "due soon" },
+    { label: "Profile Views", value: stats.profileViews ?? "0", icon: Eye, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "total views" },
+    { label: "Skill Score", value: stats.skillScore ? `${stats.skillScore}%` : "0%", icon: Star, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "highest score" },
+  ];
+
+  if (statsLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <BarLoader />

@@ -424,10 +424,10 @@ const ContractorSkillTest = () => {
                           <LineChart size={16} className="text-slate-400" />
                           View Insights
                         </button>
-                        <button className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm">
+                        {/* <button className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm">
                           <RotateCcw size={16} />
                           Retake (₹99)
-                        </button>
+                        </button> */}
                       </div>
                     </Card>
                   );

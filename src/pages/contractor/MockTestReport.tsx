@@ -107,6 +107,68 @@ const MockTestReport = () => {
         })}
       </div>
 
+      {activeTab === "overview" && (
+        <div className="flex flex-col gap-8 animate-in fade-in duration-500">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 md:p-8 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-800 mb-4">Performance Summary</h3>
+              <p className="text-slate-500 text-[14px] leading-relaxed mb-6">
+                You've completed the {report.test.title} with {report.stats.codingAccuracy}% accuracy. 
+                Below is a breakdown of your performance by difficulty and key study recommendations.
+              </p>
+              
+              <div className="space-y-4">
+                {["Easy", "Intermediate", "Advanced"].map((diff) => {
+                  const isMatch = report.test.difficulty === diff;
+                  return (
+                    <div key={diff} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                      <div className="flex flex-col">
+                        <span className="text-[13px] font-bold text-slate-700">{diff}</span>
+                        <span className="text-[11px] text-slate-400">Target Level</span>
+                      </div>
+                      {isMatch ? (
+                        <span className="px-3 py-1 bg-[#f0fdfa] border border-[#ccfbf1] text-[#10b981] text-[11px] font-bold rounded-lg">Target Set</span>
+                      ) : (
+                        <span className="text-[11px] font-bold text-slate-300">--</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 md:p-8 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-800 mb-4">AI Performance Analysis</h3>
+              <div className="p-6 bg-[#f0f9ff] border border-[#e0f2fe] rounded-2xl">
+                <div className="flex items-start gap-4">
+                  <div className="bg-white p-2 rounded-lg shadow-sm">
+                    <LayoutGrid className="text-[#0ea5e9]" size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-[15px] font-bold text-slate-800 mb-1">Key Insight</h4>
+                    <p className="text-[13.5px] text-slate-600 leading-relaxed">
+                      Your strongest area is <span className="font-bold text-[#0ea5e9]">Logical Accuracy</span>, while focusing on <span className="font-bold text-[#0ea5e9]">{report.stats.improvementFocus}</span> could further enhance your efficiency.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-col gap-3">
+                <h4 className="text-[14px] font-bold text-slate-800">Next Steps</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-[13px] text-slate-500">
+                    <CheckCircle2 size={14} className="text-[#22c55e]" /> Review AI-suggested optimizations in Detailed Review.
+                  </li>
+                  <li className="flex items-center gap-2 text-[13px] text-slate-500">
+                    <CheckCircle2 size={14} className="text-[#22c55e]" /> Practice intermediate data structures.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeTab === "detailed" && (
         <div className="flex flex-col gap-8 animate-in fade-in duration-500">
 
@@ -197,33 +259,52 @@ const MockTestReport = () => {
                   </div>
                 </div>
 
-                {currentQuestion.submittedCode && (
-                  <div className="bg-[#0F172A] rounded-xl p-5 mb-8">
-                    <div className="text-[10px] font-bold text-slate-400 mb-4 tracking-wider uppercase">Your Submitted Code</div>
-                    <pre className="text-slate-300 text-[13.5px] font-mono leading-relaxed overflow-x-auto whitespace-pre-wrap">
-                      {currentQuestion.submittedCode}
-                    </pre>
-                  </div>
-                )}
-
-                <div className="mb-8">
-                  <h5 className="text-[14px] font-bold text-slate-800 mb-3">AI Evaluation Feedback</h5>
-                  <p className="text-[13.5px] font-medium text-slate-500 leading-relaxed whitespace-pre-wrap">
-                    {currentQuestion.aiFeedback}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {currentQuestion.auditTrail.map((audit: any, i: number) => (
-                    <div key={i} className="bg-[#f8f9fb] p-4 rounded-xl border border-slate-50 font-inter">
-                      <div className="text-[11px] font-bold text-slate-400 mb-1.5">
-                        {new Date(audit.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                      <div className="text-[13px] font-bold text-slate-600 leading-snug">
-                        {audit.event}
-                      </div>
+                <div className="space-y-8">
+                  {currentQuestion.submittedCode && (
+                    <div className="bg-[#0F172A] rounded-xl p-5 overflow-hidden border border-slate-800">
+                      <div className="text-[10px] font-bold text-slate-400 mb-4 tracking-wider uppercase border-b border-slate-800 pb-2">Your Submitted Code</div>
+                      <pre className="text-slate-300 text-[13px] font-mono leading-relaxed overflow-x-auto whitespace-pre p-2">
+                        {currentQuestion.submittedCode}
+                      </pre>
                     </div>
-                  ))}
+                  )}
+
+                  {currentQuestion.aiImprovedCode && (
+                    <div className="bg-[#f0f9ff] rounded-xl p-5 overflow-hidden border border-[#bae6fd]">
+                      <div className="text-[10px] font-bold text-[#0ea5e9] mb-4 tracking-wider uppercase border-b border-[#bae6fd] pb-2">AI-Improved Version</div>
+                      <pre className="text-slate-700 text-[13px] font-mono leading-relaxed overflow-x-auto whitespace-pre p-2">
+                        {currentQuestion.aiImprovedCode}
+                      </pre>
+                    </div>
+                  )}
+
+                  <div className="bg-slate-50 rounded-2xl p-6 md:p-8 border border-slate-100">
+                    <h5 className="text-[14px] font-bold text-slate-800 mb-4 flex items-center gap-2">
+                      <LayoutGrid size={16} className="text-[#0ea5e9]" />
+                      AI Evaluation Feedback
+                    </h5>
+                    <div className="text-[13.5px] font-medium text-slate-600 leading-relaxed whitespace-pre-wrap">
+                      {currentQuestion.aiFeedback}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+                    {currentQuestion.auditTrail.map((audit: any, i: number) => (
+                      <div key={i} className="bg-white p-4 rounded-xl border border-slate-100 flex items-center gap-4">
+                        <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
+                          <ShieldCheck size={16} />
+                        </div>
+                        <div className="flex flex-col">
+                          <div className="text-[11px] font-bold text-slate-400">
+                            {new Date(audit.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
+                          </div>
+                          <div className="text-[13px] font-bold text-slate-600 leading-snug">
+                            {audit.event}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -233,14 +314,27 @@ const MockTestReport = () => {
         </div>
       )}
 
-      {activeTab !== "detailed" && (
-        <div className="bg-white border border-slate-100 rounded-2xl p-10 shadow-sm min-h-[300px] flex items-center justify-center text-center">
-          <div className="flex flex-col gap-2 max-w-sm">
-            <LayoutGrid className="mx-auto text-slate-300 w-12 h-12 mb-2" />
-            <h3 className="text-lg font-bold text-slate-800">Section Under Development</h3>
-            <p className="text-sm font-medium text-slate-400">
-              You are currently previewing the Mock Test Report design. Switch to the <span className="font-bold text-slate-600 border-b border-slate-200">Detailed Review</span> tab to see the implemented layout.
-            </p>
+      {activeTab === "audit" && (
+        <div className="bg-white border border-slate-100 rounded-2xl p-10 shadow-sm min-h-[400px] animate-in fade-in duration-500">
+          <div className="max-w-2xl mx-auto">
+            <h3 className="text-lg font-bold text-slate-800 mb-6">Test Audit Log</h3>
+            <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-100 before:to-transparent">
+              {report.questions.flatMap((q:any) => q.auditTrail).sort((a:any, b:any) => new Date(b.time).getTime() - new Date(a.time).getTime()).map((audit: any, i: number) => (
+                <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-white text-slate-400 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                    <ShieldCheck size={16} />
+                  </div>
+                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center justify-between space-x-2 mb-1">
+                      <div className="font-bold text-slate-700 text-[13px]">{audit.event}</div>
+                      {/* <time className="font-medium text-[11px] text-slate-400">
+                        {new Date(audit.time).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
+                      </time> */}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
