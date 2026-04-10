@@ -114,6 +114,8 @@ const ContractorSkillTest = () => {
     },
   });
 
+  console.log(mockTest)
+
   const difficultyLevels = ["easy", "medium", "hard"];
 
   const startMockTest = async () => {
@@ -256,7 +258,19 @@ const ContractorSkillTest = () => {
                     </div>
                     <Select
                       value={questionCount}
-                      onValueChange={(val) => setQuestionCount(val)}
+                      onValueChange={(val) => {
+                        setQuestionCount(val);
+                        if (mockDifficulty) {
+                          setMockTest(prev => ({
+                            ...prev,
+                            difficultyDistribution: {
+                              easy: mockDifficulty === "easy" ? Number(val) : 0,
+                              medium: mockDifficulty === "medium" ? Number(val) : 0,
+                              hard: mockDifficulty === "hard" ? Number(val) : 0,
+                            },
+                          }));
+                        }
+                      }}
                     >
                       <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700 focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none transition-all text-[14px] text-slate-500 font-bold">
                         <SelectValue placeholder="Select Number of Questions" />
@@ -327,7 +341,7 @@ const ContractorSkillTest = () => {
                 </div>
 
               </div>
-              
+
               {/* Full Width Button Area */}
               <div className="mt-8 pt-2">
                 <button onClick={startMockTest} className="w-full h-[52px] bg-[#0F172A] rounded-xl flex items-center justify-center gap-2 text-white text-[15px] font-bold hover:bg-slate-800 transition-all duration-300 shadow-sm hover:shadow-md">
@@ -347,28 +361,28 @@ const ContractorSkillTest = () => {
                 { title: "ReactJS Frontend Development", diff: "Intermediate", date: "Oct 24, 2023", score: 88, type: "Manual Selection", color: "emerald", scoreColor: "#22c55e" },
                 { title: "Full Stack Engineer (Resume Based)", diff: "Advanced", date: "Oct 18, 2023", score: 62, type: "AI Generated", color: "amber", scoreColor: "#f59e0b" }
               ].map((res, i) => (
-                <Card key={i} className="px-5 py-8 border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-6 justify-between">
-                  <div className="flex items-center gap-5 w-full md:w-auto text-center md:text-left flex-col md:flex-row">
+                <Card key={i} className="p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200">
+                  <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
                     {/* Score Circle */}
                     <div
-                      className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
+                      className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
                       style={{ borderColor: res.scoreColor }}
                     >
-                      <div className="text-[17px] font-black" style={{ color: res.scoreColor }}>
+                      <div className="text-[14px] md:text-[17px] font-black" style={{ color: res.scoreColor }}>
                         {res.score}%
                       </div>
                     </div>
 
                     {/* Info */}
-                    <div className="flex flex-col">
-                      <h4 className="text-[16px] font-bold text-slate-700 mb-1">{res.title}</h4>
-                      <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-2 gap-y-1 text-[12px] text-slate-400 font-semibold">
-                        <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-500 font-bold border border-slate-100">{res.diff}</span>
-                        <span>Completed on {res.date}</span>
-                        <span className="w-1 h-1 rounded-full bg-slate-300 hidden md:block" />
+                    <div className="flex flex-col gap-1.5 md:gap-1">
+                      <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">{res.title}</h4>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
+                        <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100">{res.diff}</span>
+                        <span className="text-slate-400">Completed on {res.date}</span>
+                        <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
                         <span className={cn(
-                          "flex items-center gap-1",
-                          res.type === "AI Generated" ? "text-purple-500" : ""
+                          "flex items-center gap-1 font-semibold",
+                          res.type === "AI Generated" ? "text-purple-600" : ""
                         )}>
                           {res.type === "AI Generated" && <WandSparkles size={12} />}
                           {res.type}
@@ -378,12 +392,12 @@ const ContractorSkillTest = () => {
                   </div>
 
                   {/* Buttons */}
-                  <div className="flex items-center gap-3 w-full md:w-auto">
-                    <button onClick={() => navigate("/contractor/tests/report")} className="flex-1 md:flex-none h-10 px-4 rounded-lg border border-slate-200 text-slate-500 font-bold text-[13px] hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
-                      <LineChart size={16} />
+                  <div className="flex flex-col xs:flex-row sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <button onClick={() => navigate("/contractor/tests/report")} className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border border-slate-200 text-slate-600 font-bold text-[13px] hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm">
+                      <LineChart size={16} className="text-slate-400" />
                       View Insights
                     </button>
-                    <button className="flex-1 md:flex-none h-10 px-4 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
+                    <button className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm">
                       <RotateCcw size={16} />
                       Retake (₹99)
                     </button>
