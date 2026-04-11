@@ -34,6 +34,7 @@ import {
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
@@ -44,6 +45,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { skipToken } from "@reduxjs/toolkit/query";
 import ResumeManager, { type Resume } from "../ResumeManager";
 import { currencySymbols, getCurrencySymbol } from "@/lib/currency";
+import { useNavigate } from "react-router-dom";
 
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -413,6 +415,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
     useUploadProfileImageMutation();
   const [removeProfileImage, { isLoading: isRemovingImage }] =
     useRemoveProfileImageMutation();
+  const navigation = useNavigate();
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const hasAvatar = !!data?.avatar;
@@ -1509,6 +1512,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
       preferredLocationsDirtyRef.current = false;
       toast.success("Profile updated successfully!");
       setFieldErrors({}); // Clear all errors on success
+      navigation("/contractor/dashboard");
     } catch (err: unknown) {
       const error = err as {
         data?: { message?: string };
@@ -1599,7 +1603,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
   };
 
   return (
-    <div className="w-full mx-auto sm:px-6 md:px-2 py-4 sm:py-4 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500">
+    <div className="w-full mx-auto sm:px-6 md:px-2 py-4 sm:py-4 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">
       <div className="mb-6 sm:mb-8">
         <h2 className="text-2xl sm:text-3xl font-bold">Update Profile
         </h2>
@@ -1807,22 +1811,26 @@ const CandidateProfileUpdate = (): JSX.Element => {
               <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Contractor Type <span className="text-rose-500">*</span>
               </Label>
-              <select
-                name="candidateType"
+              <Select
                 value={formData.candidateType}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.candidateType
-                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl capitalize`}
+                onValueChange={(val) => handleInputChange({ target: { name: "candidateType", value: val } } as any)}
               >
-                <option value="">Select contractor type</option>
-                {candidateTypeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  className={`w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.candidateType
+                    ? "ring-rose-500 dark:ring-rose-500 focus:border-rose-500"
+                    : "ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700"
+                    } focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none`}
+                >
+                  <SelectValue placeholder="Select contractor type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {candidateTypeOptions.map((option) => (
+                    <SelectItem key={option} value={option} className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <ErrorMessage error={fieldErrors.candidateType} />
             </div>
 
@@ -1860,37 +1868,42 @@ const CandidateProfileUpdate = (): JSX.Element => {
               <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Available To Join
               </Label>
-              <select
-                name="availableToJoin"
+              <Select
                 value={formData.availableToJoin}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl capitalize"
+                onValueChange={(val) => handleInputChange({ target: { name: "availableToJoin", value: val } } as any)}
               >
-                <option value="">Select availability</option>
-                {availableToJoinOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-0 focus:border-[#0ea5e9] focus:ring-offset-0 outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl capitalize shadow-none">
+                  <SelectValue placeholder="Select availability" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableToJoinOptions.map((option) => (
+                    <SelectItem key={option} value={option} className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 English Proficiency
               </Label>
-              <select
-                name="englishProficiency"
+              <Select
                 value={formData.englishProficiency}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl capitalize"
+                onValueChange={(val) => handleInputChange({ target: { name: "englishProficiency", value: val } } as any)}
               >
-                {englishProficiencyOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-0 focus:border-[#0ea5e9] focus:ring-offset-0 outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl capitalize shadow-none">
+                  <SelectValue placeholder="Select proficiency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {englishProficiencyOptions.map((option) => (
+                    <SelectItem key={option} value={option} className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -1968,21 +1981,21 @@ const CandidateProfileUpdate = (): JSX.Element => {
               <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Currency
               </Label>
-              <select
-                name="currency"
+              <Select
                 value={formData.currency}
-                onChange={handleInputChange}
-                className="w-full md:w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl"
+                onValueChange={(val) => handleInputChange({ target: { name: "currency", value: val } } as any)}
               >
-                <option value="" disabled>
-                  Select currency
-                </option>
-                {Object.keys(currencySymbols).map((curr) => (
-                  <option key={curr} value={curr}>
-                    {curr}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full md:w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-0 focus:border-[#0ea5e9] focus:ring-offset-0 outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl shadow-none">
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.keys(currencySymbols).map((curr) => (
+                    <SelectItem key={curr} value={curr} className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">
+                      {curr}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -2272,20 +2285,23 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <select
+                  <Select
                     value={exp.employmentType}
-                    onChange={(e) =>
-                      updateWorkExperience(index, "employmentType", e.target.value)
+                    onValueChange={(val) =>
+                      updateWorkExperience(index, "employmentType", val)
                     }
-                    className="px-4 py-3 bg-white dark:bg-slate-900 border-0 w-full  ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:ring-slate-700 rounded-xl"
                   >
-                    <option value="">Employment Type</option>
-                    {employmentTypeOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="px-4 py-3 bg-white dark:bg-slate-900 border-0 w-full ring-1 ring-inset ring-gray-200 focus:ring-0 focus:border-[#0ea5e9] focus:ring-offset-0 outline-none dark:ring-slate-700 rounded-xl shadow-none">
+                      <SelectValue placeholder="Employment Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employmentTypeOptions.map((option) => (
+                        <SelectItem key={option} value={option} className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <input
                     type="text"
                     placeholder="Location"

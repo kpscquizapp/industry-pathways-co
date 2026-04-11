@@ -25,31 +25,35 @@ export default function Footer() {
 
   const FOOTER_COLS: { heading: string; links: FooterLink[] }[] = [
     {
-      heading: "Product",
+      heading: "Platform",
       links: [
         { label: "How It Works", href: "#how-it-works" },
-        { label: "Features", href: "#ai-hiring" },
+        { label: "For Candidates", href: "#candidates" },
+        { label: "For Companies", href: "#companies" },
+        { label: "AI Matching", href: "#ai-hiring" },
       ],
     },
     {
       heading: "Company",
       links: [
-        { label: "About", href: "#about" },
+        { label: "About Us", href: "#about" },
+        { label: "FAQ", href: "#faq" },
         { label: "Careers", href: loginPath },
+        { label: "Contact Us", href: "#contact" },
+      ],
+    },
+    {
+      heading: "Support",
+      links: [
+        { label: "hello@quickrekruit.com", href: "mailto:hello@quickrekruit.com" },
+        { label: "+91 7736805150", href: "tel:+917736805150" },
       ],
     },
     {
       heading: "Legal",
       links: [
-        { label: "Privacy", href: "/privacy" },
-        { label: "Terms", href: "/terms" },
-      ],
-    },
-    {
-      heading: "Contact",
-      links: [
-        { label: "Email : hello@quickrekruit.com", href: "mailto:hello@quickrekruit.com" },
-        { label: "Phone : +917736805150", href: "tel:+917736805150" },
+        { label: "Privacy Policy", href: "/privacy" },
+        { label: "Terms of Service", href: "/terms" },
       ],
     },
   ];
