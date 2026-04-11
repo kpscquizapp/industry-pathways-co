@@ -6,9 +6,19 @@ import {
   Lock,
   Code as CodeIcon,
   Clock,
-  ChevronRight
+  ChevronRight,
+  CircleAlert,
+  WandSparkles,
+  ExternalLink,
+  ChevronDown,
+  LineChart,
+  RotateCcw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { useCreateSkillTestMutation } from "@/app/queries/contractorSkillTest";
+import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -85,27 +95,46 @@ const ProgressBar = memo(({ value, color = C.accent, height = 6 }: { value: numb
   </div>
 ));
 
-/* ═══════════ DATA ═══════════ */
-// const TESTS = [
-//   { id: 1, title: "React Advanced", category: "Frontend", difficulty: "Advanced", duration: "45 min", questions: 30, status: "available", score: null, color: C.accent },
-//   { id: 2, title: "JavaScript Fundamentals", category: "Frontend", difficulty: "Intermediate", duration: "30 min", questions: 25, status: "completed", score: 88, color: C.green },
-//   { id: 3, title: "QA & Testing", category: "Quality Assurance", difficulty: "Advanced", duration: "40 min", questions: 35, status: "completed", score: 92, color: C.green },
-//   { id: 4, title: "SQL & Databases", category: "Backend", difficulty: "Intermediate", duration: "35 min", questions: 28, status: "available", score: null, color: C.amber },
-//   { id: 5, title: "API Testing", category: "Quality Assurance", difficulty: "Advanced", duration: "50 min", questions: 32, status: "locked", score: null, color: C.textMuted },
-//   { id: 6, title: "Cypress & Selenium", category: "Automation", difficulty: "Expert", duration: "60 min", questions: 40, status: "available", score: null, color: C.purple },
-// ];
 
 const diffColor: Record<string, string> = { Intermediate: C.amber, Advanced: C.accent, Expert: C.purple };
 
 const ContractorSkillTest = () => {
   const [filter, setFilter] = useState("all");
+  const navigate = useNavigate();
+  const [mockDifficulty, setMockDifficulty] = useState("");
+  const [questionCount, setQuestionCount] = useState("");
+  const [createSkillTest] = useCreateSkillTestMutation();
+  const [mockTest, setMockTest] = useState({
+    title: "",
+    totalTime: 0,
+    difficultyDistribution: {
+      easy: 0,
+      medium: 0,
+      hard: 0,
+    },
+  });
 
-  // const filtered = filter === "all" ? TESTS : TESTS.filter(t => t.status === filter);
-  // const completedCount = TESTS.filter(t => t.status === "completed").length;
-  // const avgScore = Math.round(TESTS.filter(t => t.score !== null).reduce((a, t) => a + (t.score || 0), 0) / (TESTS.filter(t => t.score !== null).length || 1));
+  console.log(mockTest)
+
+  const difficultyLevels = ["easy", "medium", "hard"];
+
+  const startMockTest = async () => {
+
+    if (!questionCount || !mockDifficulty || !mockTest.title || !mockTest.totalTime) {
+      toast.error("Please fill all the fields");
+      return;
+    }
+
+    try {
+      await createSkillTest(mockTest).unwrap();
+      toast.success("Mock test created successfully");
+    } catch (error) {
+      toast.error("Failed to create mock test");
+    }
+  }
 
   return (
-    <div className="flex flex-col gap-8 py-4 sm:px-2 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500">
+    <div className="flex flex-col gap-8 py-4 sm:px-2 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">
       {/* Header Section */}
       <div>
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Skill Tests</h2>
@@ -113,43 +142,60 @@ const ContractorSkillTest = () => {
       </div>
 
       {/* KPI Stats Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <GlassCard gradient="bg-gradient-to-br from-cyan-600 to-[#06b6d4]">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner text-white">
-              <Target size={28} strokeWidth={2.5} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Tests Completed Card */}
+        <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 text-white shadow-lg bg-gradient-to-br from-[#38bdf8] to-[#0ea5e9]">
+          <div className="absolute -bottom-10 -right-10 w-48 h-48 rounded-full bg-white/10 pointer-events-none" />
+          <div className="absolute top-10 right-10 w-32 h-32 rounded-full bg-white/5 pointer-events-none" />
+          <div className="relative z-10 flex items-start md:flex-col min-[950px]:flex-row gap-3 md:gap-4">
+            <div className="w-12 h-12 md:w-16 md:h-16 flex-shrink-0 rounded-xl bg-white/20 flex items-center justify-center">
+              <Target className="w-6 h-6 md:w-9 md:h-9 text-white" />
             </div>
             <div>
-              <div className="text-3xl font-extrabold leading-none">-</div>
-              <div className="text-sm font-medium text-white/80 mt-1">Tests Completed</div>
+              <div className="text-3xl md:text-4xl font-bold leading-none mb-1">-</div>
+              <h3 className="text-base md:text-[17px] font-bold text-white mb-2 md:mb-3">Tests Completed</h3>
+              <p className="text-xs md:text-sm font-medium text-white/80 leading-snug mt-2 md:mt-4">
+                Number of skill assessments you have successfully attempted as part of company hiring processes.
+              </p>
             </div>
           </div>
-        </GlassCard>
+        </div>
 
-        <GlassCard gradient="bg-gradient-to-br from-emerald-600 to-[#22c55e]">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner text-white">
-              <Award size={28} strokeWidth={2.5} />
+        {/* Average Score Card */}
+        <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 text-white shadow-lg bg-gradient-to-br from-[#38bdf8] to-[#0ea5e9]">
+          <div className="absolute -bottom-10 -right-10 w-48 h-48 rounded-full bg-white/10 pointer-events-none" />
+          <div className="absolute top-10 right-10 w-32 h-32 rounded-full bg-white/5 pointer-events-none" />
+          <div className="relative z-10 flex items-start md:flex-col min-[950px]:flex-row gap-3 md:gap-4">
+            <div className="w-12 h-12 md:w-16 md:h-16 flex-shrink-0 rounded-xl bg-white/20 flex items-center justify-center">
+              <Award className="w-6 h-6 md:w-9 md:h-9 text-white" />
             </div>
             <div>
-              <div className="text-3xl font-extrabold leading-none">-</div>
-              <div className="text-sm font-medium text-white/80 mt-1">Average Score</div>
+              <div className="text-3xl md:text-4xl font-bold leading-none mb-1">-</div>
+              <h3 className="text-base md:text-[17px] font-bold text-white mb-2 md:mb-3">Average Score</h3>
+              <p className="text-xs md:text-sm font-medium text-white/80 leading-snug mt-2 md:mt-4">
+                Your overall performance score calculated across all completed assessments.
+              </p>
             </div>
           </div>
-        </GlassCard>
+        </div>
       </div>
 
       {/* Filter Section */}
-      <div className="flex gap-2.5 flex-wrap">
-        {[{ k: "all", l: "All Tests" }, { k: "available", l: "Available" }, { k: "completed", l: "Completed" }, { k: "locked", l: "Locked" }].map(f => (
+      <div className="flex gap-2 flex-wrap">
+        {[
+          { k: "all", l: "All Assessments" },
+          { k: "available", l: "Available" },
+          { k: "completed", l: "Completed" },
+          { k: "mock", l: "Mock Test" }
+        ].map(f => (
           <button
             key={f.k}
             onClick={() => setFilter(f.k)}
             className={cn(
-              "px-5 py-2.5 rounded-full text-[13px] font-bold transition-all duration-300 border-2",
+              "px-4 md:px-6 py-2 rounded-full text-[12px] md:text-[13px] font-bold transition-all duration-300 border",
               filter === f.k
-                ? "border-[#4DD9E8] bg-[#4DD9E8]/10 text-[#0e8a96] shadow-sm"
-                : "border-slate-100 bg-white text-slate-500 hover:border-slate-200 hover:bg-slate-50"
+                ? "border-[#4DD9E8] bg-white text-[#0EA5E9] shadow-sm"
+                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
             )}
           >
             {f.l}
@@ -157,86 +203,212 @@ const ContractorSkillTest = () => {
         ))}
       </div>
 
+      {/* Info Banner */}
+      {filter !== "mock" && (
+        <div className="bg-white border border-slate-100 rounded-xl p-4 flex gap-3 md:gap-4 items-center shadow-sm relative overflow-hidden w-full lg:w-[80%] border-l-4 border-l-[#0ea5e9]">
+          <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
+            <CircleAlert size={20} className="text-[#0ea5e9]" />
+          </div>
+          <p className="text-[13px] md:text-sm text-slate-500 font-medium">
+            Companies invite candidates to skill assessments based on AI matching scores. Completing tests helps validate your expertise and increases your chances of interview selection.
+          </p>
+        </div>
+      )}
+
       {/* Tests Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
-        {/* {filtered.map(t => (
-          <Card key={t.id} hover className="flex flex-col border-slate-100">
-            <div className="p-6 md:p-8 flex-1">
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div
-                    className={cn(
-                      "w-12 h-12 rounded-xl flex items-center justify-center shadow-sm transition-transform duration-300",
-                      t.status === "locked" ? "bg-slate-50 text-slate-400" : "group-hover:scale-110"
-                    )}
-                    style={{
-                      backgroundColor: t.status !== "locked" ? `${t.color}14` : undefined,
-                      color: t.status !== "locked" ? t.color : undefined
-                    }}
-                  >
-                    {t.status === "locked" ? <Lock size={22} /> : <CodeIcon size={22} />}
+      {filter !== "mock" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
+          {/* {filtered.map(t => (...))} */}
+        </div>
+      )}
+
+      {/* Mock Test UI */}
+      {filter === "mock" && (
+        <div className="flex flex-col gap-10 pb-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
+          {/* Section 1: Start Practice Card */}
+          <div className="flex flex-col gap-5">
+            <h3 className="text-xl font-bold text-slate-900 px-1">Start a Practice Test</h3>
+            <Card className="p-5 sm:p-7 md:p-10 border-slate-100 shadow-sm w-full">
+              <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+
+                {/* Left Column: Test Type & Question Count */}
+                <div className="flex-1 flex flex-col gap-6 w-full">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1 ml-1">
+                      <label className="text-[13px] font-bold text-slate-500">Select Test Type</label>
+                      <span className="text-cyan-500">*</span>
+                    </div>
+                    <Select
+                      value={mockTest.title}
+                      onValueChange={(val) => setMockTest({ ...mockTest, title: val })}
+                    >
+                      <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700 focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none transition-all text-[14px] text-slate-500 font-bold">
+                        <SelectValue placeholder="Select Test Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Mock test" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">Mock test</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div>
-                    <h4 className={cn(
-                      "text-lg font-bold leading-tight",
-                      t.status === "locked" ? "text-slate-400" : "text-slate-900"
-                    )}>{t.title}</h4>
-                    <p className="text-[13px] font-medium text-slate-500 mt-1">{t.category}</p>
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1 ml-1">
+                      <label className="text-[13px] font-bold text-slate-500">Number of Questions</label>
+                      <span className="text-cyan-500">*</span>
+                    </div>
+                    <Select
+                      value={questionCount}
+                      onValueChange={(val) => {
+                        setQuestionCount(val);
+                        if (mockDifficulty) {
+                          setMockTest(prev => ({
+                            ...prev,
+                            difficultyDistribution: {
+                              easy: mockDifficulty === "easy" ? Number(val) : 0,
+                              medium: mockDifficulty === "medium" ? Number(val) : 0,
+                              hard: mockDifficulty === "hard" ? Number(val) : 0,
+                            },
+                          }));
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700 focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none transition-all text-[14px] text-slate-500 font-bold">
+                        <SelectValue placeholder="Select Number of Questions" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="3" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">3</SelectItem>
+                        <SelectItem value="5" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">5</SelectItem>
+                        <SelectItem value="10" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">10</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-                <Badge
-                  text={t.status === "completed" ? `${t.score}%` : t.status}
-                  color={t.status === "completed" ? C.green : t.status === "available" ? C.accent : C.textMuted}
-                  bg={t.status === "completed" ? C.greenBg : t.status === "available" ? C.accentBg : "#f8fafc"}
-                />
-              </div>
 
-              <div className="flex items-center gap-4 mb-6 text-[13px] font-semibold text-slate-600">
-                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 rounded-lg"><Clock size={14} className="text-slate-400" /> {t.duration}</span>
-                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 rounded-lg"><ChevronRight size={14} className="text-slate-400" /> {t.questions} Questions</span>
-                <span
-                  className="px-2.5 py-1 rounded-lg border uppercase tracking-[0.5px] text-[10px] font-bold"
-                  style={{ color: diffColor[t.difficulty] || C.textMuted, borderColor: `${diffColor[t.difficulty] || C.textMuted}30` }}
-                >
-                  {t.difficulty}
-                </span>
-              </div>
-
-              {t.status === "completed" && (
-                <div className="mb-6">
-                  <div className="flex justify-between items-center mb-2.5">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Assessment Status</span>
-                    <span className={cn(
-                      "text-[13px] font-extrabold px-2 py-0.5 rounded",
-                      (t.score || 0) >= 80 ? "text-emerald-600 bg-emerald-50" : "text-amber-600 bg-amber-50"
-                    )}>
-                      {(t.score || 0) >= 80 ? "PASS" : "RETRY"} ({(t.score || 0)}%)
-                    </span>
+                {/* Right Column: Difficulty, Duration & Start Button */}
+                <div className="flex-1 flex flex-col gap-6 w-full">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1 ml-1">
+                      <label className="text-[13px] font-bold text-slate-500">Select Difficulty Level</label>
+                      <span className="text-cyan-500">*</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      {difficultyLevels.map((d) => (
+                        <button
+                          key={d}
+                          onClick={() => {
+                            setMockDifficulty(d);
+                            setMockTest(prev => ({
+                              ...prev,
+                              difficultyDistribution: {
+                                easy: d === "easy" ? (Number(questionCount) || 0) : 0,
+                                medium: d === "medium" ? (Number(questionCount) || 0) : 0,
+                                hard: d === "hard" ? (Number(questionCount) || 0) : 0,
+                              },
+                            }));
+                          }}
+                          className={cn(
+                            "py-[11px] rounded-xl text-[14px] font-bold transition-all border capitalize",
+                            mockDifficulty === d
+                              ? "bg-white border-[#0ea5e9] text-[#0ea5e9] shadow-sm shadow-cyan-100 ring-1 ring-[#0ea5e9]"
+                              : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                          )}
+                        >
+                          {d}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <ProgressBar value={t.score || 0} color={(t.score || 0) >= 80 ? C.green : C.amber} height={8} />
-                </div>
-              )}
-            </div>
 
-            <div className="px-6 md:px-8 pb-6 md:pb-8">
-              <button
-                disabled={t.status === "locked"}
-                className={cn(
-                  "w-full py-4 rounded-xl text-[13px] font-bold transition-all duration-300 border-2",
-                  t.status === "locked"
-                    ? "bg-slate-50 border-transparent text-slate-300 cursor-not-allowed"
-                    : t.status === "completed"
-                      ? "bg-white border-[#4DD9E8]/20 text-[#0e8a96] hover:bg-[#4DD9E8]/05 hover:border-[#4DD9E8]/50"
-                      : "bg-gradient-to-r from-[#4DD9E8] to-[#06b6d4] border-transparent text-white shadow-lg shadow-cyan-200/50 hover:shadow-cyan-300/60 hover:-translate-y-0.5 active:translate-y-0"
-                )}
-              >
-                {t.status === "completed" ? "Retake Assessment" : t.status === "locked" ? "Complete Prerequisites" : "Start Assessment Now"}
-              </button>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1 ml-1">
+                      <label className="text-[13px] font-bold text-slate-500">Select Duration</label>
+                      <span className="text-cyan-500">*</span>
+                    </div>
+                    <Select
+                      value={mockTest.totalTime ? String(mockTest.totalTime) : undefined}
+                      onValueChange={(val) => setMockTest({ ...mockTest, totalTime: parseInt(val) })}
+                    >
+                      <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700 focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none transition-all text-[14px] text-slate-500 font-bold">
+                        <SelectValue placeholder="Select Duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">30 mins</SelectItem>
+                        <SelectItem value="60" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">60 mins</SelectItem>
+                        <SelectItem value="90" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">90 mins</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Full Width Button Area */}
+              <div className="mt-8 pt-2">
+                <button onClick={startMockTest} className="w-full h-[52px] bg-[#0F172A] rounded-xl flex items-center justify-center gap-2 text-white text-[15px] font-bold hover:bg-slate-800 transition-all duration-300 shadow-sm hover:shadow-md">
+                  Start Mock Test
+                  <ExternalLink size={18} />
+                </button>
+              </div>
+            </Card>
+            {/* End of section 1 */}
+          </div>
+
+          {/* Section 2: Previous Results */}
+          <div className="flex flex-col gap-5 max-w-full">
+            <h3 className="text-xl font-bold text-slate-900 px-1">Your Mock Test Results</h3>
+            <div className="flex flex-col gap-4">
+              {[
+                { title: "ReactJS Frontend Development", diff: "Intermediate", date: "Oct 24, 2023", score: 88, type: "Manual Selection", color: "emerald", scoreColor: "#22c55e" },
+                { title: "Full Stack Engineer (Resume Based)", diff: "Advanced", date: "Oct 18, 2023", score: 62, type: "AI Generated", color: "amber", scoreColor: "#f59e0b" }
+              ].map((res, i) => (
+                <Card key={i} className="p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200">
+                  <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
+                    {/* Score Circle */}
+                    <div
+                      className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
+                      style={{ borderColor: res.scoreColor }}
+                    >
+                      <div className="text-[14px] md:text-[17px] font-black" style={{ color: res.scoreColor }}>
+                        {res.score}%
+                      </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex flex-col gap-1.5 md:gap-1">
+                      <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">{res.title}</h4>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
+                        <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100">{res.diff}</span>
+                        <span className="text-slate-400">Completed on {res.date}</span>
+                        <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                        <span className={cn(
+                          "flex items-center gap-1 font-semibold",
+                          res.type === "AI Generated" ? "text-purple-600" : ""
+                        )}>
+                          {res.type === "AI Generated" && <WandSparkles size={12} />}
+                          {res.type}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex flex-col xs:flex-row sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <button onClick={() => navigate("/contractor/tests/report")} className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border border-slate-200 text-slate-600 font-bold text-[13px] hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm">
+                      <LineChart size={16} className="text-slate-400" />
+                      View Insights
+                    </button>
+                    <button className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm">
+                      <RotateCcw size={16} />
+                      Retake (₹99)
+                    </button>
+                  </div>
+                </Card>
+              ))}
             </div>
-          </Card>
-        ))} */}
-      </div>
-    </div>
+          </div>
+        </div >
+      )}
+    </div >
   );
 };
 
