@@ -393,12 +393,8 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
               <Button size="icon" className="relative bg-transparent hover:bg-gray-100 rounded-xl">
                 <Bell className="h-5 w-5 text-gray-500" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-            {/* <div className="flex items-center gap-3">
-              <Button size="icon" className="relative bg-transparent hover:bg-[#0b1221]/10">
-                <Bell className="h-5 w-5 text-muted-foreground" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
               </Button>
-            </div> */}
+            </div>
           </header>
           )}
 
