@@ -308,7 +308,7 @@ const EmployerPostJob = () => {
   return (
     <div className="min-h-screen bg-[#f2f5fa] font-sans flex flex-col">
       {/* Page Header — replacing dashboard layout header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 py-5 sm:py-7 shrink-0">
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 py-2.5 sm:py-3.5 shrink-0">
         <div className="flex items-center gap-4">
           <SidebarTrigger className="text-muted-foreground hover:bg-gray-100" title="Toggle Sidebar" />
           <div className="space-y-0.5">
@@ -329,7 +329,7 @@ const EmployerPostJob = () => {
         </div>
       </div>
 
-      <div className="max-w-[900px] w-full mx-auto py-6 md:py-8 px-4 md:px-6 flex-1">
+      <div className="max-w-[1000px] w-full mx-auto py-6 md:py-8 px-2 md:px-4 flex-1">
 
         {isEditing && jobDetailsLoading && (
           <Card className="border-none shadow-lg bg-card/80 backdrop-blur-sm rounded-2xl mb-6">

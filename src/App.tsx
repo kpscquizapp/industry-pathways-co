@@ -128,6 +128,9 @@ const EmployerContracts = lazy(
 const EmployerSettings = lazy(
   () => import("./pages/employer/EmployerSettings"),
 );
+const InterviewQuestions = lazy(
+  () => import("./pages/employer/InterviewQuestions"),
+);
 const CandidateProfileView = lazy(
   () => import("./pages/employer/CandidateProfileView"),
 );
@@ -272,6 +275,10 @@ const App = () => {
                         <Route
                           path="ai-interviews"
                           element={<EmployerAIInterviews />}
+                        />
+                        <Route
+                          path="interview-questions"
+                          element={<InterviewQuestions />}
                         />
                         <Route
                           path="contracts"

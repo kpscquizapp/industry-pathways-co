@@ -13,6 +13,7 @@ import {
   ArrowRight,
   BarChart3,
   ClipboardCheck,
+  ChevronDown,
 } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -133,9 +134,7 @@ const HiringDashboardNew = () => {
   const [topCandidates, setTopCandidates] = React.useState<any[]>([]);
   const [isTopCandidatesLoading, setIsTopCandidatesLoading] =
     React.useState(false);
-  const [topCandidatesJobId, setTopCandidatesJobId] = React.useState<
-    string | null
-  >(null);
+  const [selectedJobId, setSelectedJobId] = React.useState<string>("");
 
   const { data: jobsResponse, isLoading: jobsLoading } =
     useGetEmployerJobsQuery({ page: 1, limit: 100 });
@@ -183,22 +182,26 @@ const HiringDashboardNew = () => {
     return () => { active = false; };
   }, [activeJobs, activeJobsCount, getJobMatches]);
 
-  // Fetch top candidates
+  // Set default selected job
+  React.useEffect(() => {
+    if (activeJobsCount > 0 && !selectedJobId) {
+      setSelectedJobId(String(activeJobs[0].id));
+    }
+  }, [activeJobsCount, activeJobs, selectedJobId]);
+
+  // Fetch top candidates based on selected job
   React.useEffect(() => {
     let active = true;
-    if (activeJobsCount === 0) {
+    if (!selectedJobId) {
       setTopCandidates([]);
-      setTopCandidatesJobId(null);
       setIsTopCandidatesLoading(false);
       return () => { active = false; };
     }
     setIsTopCandidatesLoading(true);
     const run = async () => {
       try {
-        const job = activeJobs[0];
-        if (active) setTopCandidatesJobId(String(job.id));
         const resp = await getJobMatches({
-          id: String(job.id), page: 1, limit: 3,
+          id: selectedJobId, page: 1, limit: 3,
         }).unwrap();
         if (active) setTopCandidates((resp?.data || []).slice(0, 3));
       } catch {
@@ -209,7 +212,7 @@ const HiringDashboardNew = () => {
     };
     run();
     return () => { active = false; };
-  }, [activeJobs, activeJobsCount, getJobMatches]);
+  }, [selectedJobId, getJobMatches]);
 
   const totalCandidates = React.useMemo(
     () => Object.values(matchCounts).reduce((s, c) => s + c, 0),
@@ -412,17 +415,31 @@ const HiringDashboardNew = () => {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col flex-1">
             {/* Card header — inside the card */}
             <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-gray-100">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <h2 className="text-[17px] font-bold text-gray-900">
                   Top AI-Ranked Candidates
                 </h2>
-                <span className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-600 border border-teal-100 px-2.5 py-1 rounded-md text-[10px] font-bold">
+                {activeJobsCount > 0 && (
+                  <div className="relative">
+                    <select 
+                      className="appearance-none pl-3 pr-8 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-teal-500/20 max-w-[200px] truncate"
+                      value={selectedJobId}
+                      onChange={(e) => setSelectedJobId(e.target.value)}
+                    >
+                      {activeJobs.map(job => (
+                        <option key={job.id} value={job.id}>{job.title}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                  </div>
+                )}
+                <span className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-600 border border-teal-100 px-2.5 py-1 rounded-md text-[10px] font-bold hidden sm:inline-flex">
                   <Sparkles className="w-3 h-3" />
                   Auto-Matched
                 </span>
               </div>
               <Link
-                to="/hire-talent/ai-shortlists"
+                to={`/hire-talent/ai-shortlists${selectedJobId ? `?jobId=${selectedJobId}` : ''}`}
                 className="text-teal-500 text-[13px] font-semibold hover:text-teal-600 transition-colors"
               >
                 View Pipeline

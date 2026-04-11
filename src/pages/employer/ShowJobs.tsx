@@ -101,6 +101,111 @@ const formatExperience = (min?: number | string, max?: number | string): string 
   return "";
 };
 
+const JobDescription = ({ description }: { description: string }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  const formattedText = useMemo(() => {
+    return description
+      .replace(/<\/p>/gi, "\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<li[^>]*>/gi, "\n• ")
+      .replace(/([^\n])([A-Z][^:\n]{2,30}:)/g, "$1\n$2") // Insert newline before headings like "Location:" if missing
+      .replace(/<[^>]*>/g, "")
+      .trim();
+  }, [description]);
+
+  const threshold = 180;
+  const isLong = formattedText.length > threshold;
+
+  return (
+    <div className="mt-1">
+      <div className="text-[14px] text-gray-500 leading-relaxed">
+        {isExpanded ? (
+          <div className="space-y-1.5 text-justify">
+            {formattedText.split("\n").map((line, i) => {
+              const match = line.match(/^([^:]+):/);
+              if (match) {
+                const header = match[1];
+                const rest = line.slice(header.length + 1);
+                return (
+                  <div key={i}>
+                    <span className="font-bold text-gray-700">{header}:</span>
+                    {rest}
+                  </div>
+                );
+              }
+              return (
+                <div key={i} className={line.startsWith("•") ? "pl-2" : ""}>
+                  {line}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p>
+            {formattedText.slice(0, threshold)}
+            {isLong && "..."}
+          </p>
+        )}
+      </div>
+      {isLong && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
+          className="text-[#0ea5e9] font-bold text-[13px] mt-2 hover:text-[#0284c7] transition-colors focus:outline-none"
+        >
+          {isExpanded ? "show less" : "more"}
+        </button>
+      )}
+    </div>
+  );
+};
+
+const JobSkills = ({ skills }: { skills: string[] }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  if (!skills || skills.length === 0) return null;
+
+  const displaySkills = isExpanded ? skills : skills.slice(0, 6);
+  const remainingCount = skills.length - 6;
+
+  return (
+    <div className="flex flex-wrap gap-2.5 pt-2">
+      {displaySkills.map((skill) => (
+        <span
+          key={skill}
+          className="inline-flex items-center text-[12px] font-bold px-3.5 py-1.5 rounded-full bg-[#f0f9ff] text-[#0ea5e9] border-none"
+        >
+          {skill}
+        </span>
+      ))}
+      {!isExpanded && remainingCount > 0 && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(true);
+          }}
+          className="inline-flex items-center text-[12px] font-bold px-3.5 py-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors focus:outline-none"
+        >
+          +{remainingCount} more
+        </button>
+      )}
+      {isExpanded && remainingCount > 0 && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(false);
+          }}
+          className="inline-flex items-center text-[12px] font-bold px-3.5 py-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors focus:outline-none"
+        >
+          show less
+        </button>
+      )}
+    </div>
+  );
+};
+
 const ShowJobs = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -341,7 +446,7 @@ const ShowJobs = () => {
                 className="bg-white border border-gray-200/80 rounded-[24px] shadow-none hover:shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all duration-300 overflow-hidden group mb-4"
               >
                 <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row justify-between gap-6">
+                  <div className="flex flex-col md:flex-row justify-between gap-8 items-start">
                     {/* Left: Job Details */}
                     <div className="flex-1 space-y-4 min-w-0 pr-0 md:pr-4">
                       {/* Title & Status */}
@@ -391,33 +496,15 @@ const ShowJobs = () => {
 
                       {/* Description */}
                       {job.description && (
-                        <p className="text-[14px] text-gray-500 leading-relaxed line-clamp-2 mt-1">
-                          {job.description.replace(/<[^>]*>/g, "").slice(0, 200)}
-                        </p>
+                         <JobDescription description={job.description} />
                       )}
 
                       {/* Skills */}
-                      {skills.length > 0 && (
-                        <div className="flex flex-wrap gap-2.5 pt-2">
-                          {skills.slice(0, 6).map((skill) => (
-                            <span
-                              key={skill}
-                              className="inline-flex items-center text-[12px] font-bold px-3.5 py-1.5 rounded-full bg-[#f0f9ff] text-[#0ea5e9] border-none"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                          {skills.length > 6 && (
-                            <span className="inline-flex items-center text-[12px] font-bold px-3.5 py-1.5 rounded-full bg-gray-100 text-gray-600">
-                              +{skills.length - 6} more
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      <JobSkills skills={skills} />
                     </div>
 
                     {/* Right: Stats & Actions */}
-                    <div className="md:w-[280px] lg:w-[300px] shrink-0 flex flex-col justify-between pt-2 md:pt-0">
+                    <div className="md:w-[280px] lg:w-[320px] shrink-0 flex flex-col pt-2 md:pt-0 self-stretch">
                       {/* Stats Grid */}
                       <div className="grid grid-cols-2 gap-3 mb-5">
                         <div className="bg-[#faf7f0] p-3.5 rounded-2xl flex flex-col justify-center">

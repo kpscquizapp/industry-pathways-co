@@ -19,6 +19,7 @@ import {
   LayoutGrid,
   Code,
   Search,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -119,13 +120,18 @@ const getMenuItems = (role: DashboardRole) => {
           label: "Skill Tests",
           href: "/hire-talent/skill-tests",
         },
+        // {
+        //   icon: Video,
+        //   label: "AI Interviews",
+        //   href: "/hire-talent/ai-interviews",
+        //   isAI: true,
+        // },
         {
-          icon: Video,
-          label: "AI Interviews",
-          href: "/hire-talent/ai-interviews",
-          isAI: true,
+          icon: MessageSquare,
+          label: "Interview Questions",
+          href: "/hire-talent/interview-questions",
         },
-        { icon: FileText, label: "Contracts", href: "/hire-talent/contracts" },
+        // { icon: FileText, label: "Contracts", href: "/hire-talent/contracts" },
         { icon: Settings, label: "Settings", href: "/hire-talent/settings" },
       ];
     default:
@@ -355,12 +361,12 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
         <UnifiedSidebarContent role={role} />
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {!location.pathname.includes('/post-job') && !location.pathname.includes('/edit-job') && (
-            <header className="sticky top-0 z-40 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 py-5 sm:py-7 shrink-0">
+          {!location.pathname.includes('/post-job') && !location.pathname.includes('/edit-job') && !location.pathname.includes('/ai-shortlists') && !location.pathname.includes('/settings') && !location.pathname.includes('/interview-questions') && (
+            <header className="sticky top-0 z-40 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 py-2.5 sm:py-3.5 shrink-0">
             <div className="flex items-center gap-3 flex-1">
               <SidebarTrigger className="text-muted-foreground hover:bg-gray-100" title="Toggle Sidebar" />
               {/* Search bar */}
-              <div className="relative flex-1 max-w-md">
+              {/* <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
@@ -371,7 +377,7 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
                   <kbd className="px-1.5 py-0.5 text-[10px] font-semibold text-gray-400 bg-white border border-gray-200 rounded">⌘</kbd>
                   <kbd className="px-1.5 py-0.5 text-[10px] font-semibold text-gray-400 bg-white border border-gray-200 rounded">K</kbd>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             <div className="flex items-center gap-3">
