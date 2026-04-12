@@ -29,8 +29,18 @@ const cookieData = (() => {
     const parsed = raw ? JSON.parse(raw) : null;
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
       const token = (parsed as any).token ?? null;
-      //if token exists but is expired, remove cookie and treat as unauthenticated
+      const refreshToken = (parsed as any).refreshToken ?? null;
+
+      // If the access token is expired but we still have a valid refresh token,
+      // keep the session data so the refresh-token hook can obtain a new access token.
+      // Only nuke the cookie when there's no refresh token at all.
       if (token && isTokenExpired(token)) {
+        if (refreshToken) {
+          // Clear only the expired access token; keep refreshToken & userDetails
+          // so useFetchRefreshToken can silently refresh the session.
+          return { ...parsed, token: null } as UserState;
+        }
+        // No refresh token either — fully unauthenticated
         Cookies.remove("userInfo");
         return null;
       }

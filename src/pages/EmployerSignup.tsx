@@ -42,6 +42,34 @@ type EmployerFormData = {
 };
 type FieldErrorKey = keyof EmployerFormData | "companyDocument";
 
+interface StepConfig {
+  id: number;
+  label: string;
+  title: string;
+  subtitle: string;
+}
+
+const STEPS: StepConfig[] = [
+  {
+    id: 1,
+    label: "ACCOUNT",
+    title: "Employer Signup",
+    subtitle: "Start your journey as a hiring partner.",
+  },
+  {
+    id: 2,
+    label: "COMPANY",
+    title: "Organization Profile",
+    subtitle: "Tell us about your company and mission.",
+  },
+  {
+    id: 3,
+    label: "PREFERENCES",
+    title: "Verification Docs",
+    subtitle: "Finalize your settings and join the ecosystem.",
+  },
+];
+
 const EmployerSignup = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -328,6 +356,8 @@ const EmployerSignup = () => {
     },
   ];
 
+  const currentStepCfg = STEPS[currentStep - 1];
+
   const particles = useMemo(
     () =>
       Array.from({ length: 18 }, (_) => ({
@@ -341,7 +371,7 @@ const EmployerSignup = () => {
   );
 
   return (
-    <div className="flex min-h-screen w-full bg-[#f3f5f8] font-sans overflow-x-hidden">
+    <div className="flex min-h-screen w-full bg-[#f3f5f8] font-inter overflow-x-hidden">
       <style>{`
         @keyframes fade-up {
           from { opacity: 0; transform: translateY(20px); }
@@ -357,12 +387,32 @@ const EmployerSignup = () => {
         }
         .animate-fade-up { animation: fade-up 0.6s ease forwards; }
         .login-left-panel { display: none; }
-        .login-right-panel { flex: 1 1 auto; width: 100%; }
+        .login-right-panel { 
+          flex: 1 1 auto; 
+          width: 100%; 
+          padding: 40px 24px;
+          display: flex;
+          flex-direction: column;
+        }
         .login-mobile-brand { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin-bottom: 24px; width: 100%; animation: fade-up 0.55s ease; padding-top: 24px; }
         
         @media (min-width: 1025px) {
-          .login-left-panel { display: flex; flex: 0 0 50%; width: 50%; max-width: 50%; min-height: 100vh; position: relative; }
-          .login-right-panel { flex: 0 0 50%; width: 50%; max-width: 50%; justify-content: center; padding: 60px 70px; }
+          .login-left-panel { 
+            display: flex; 
+            flex: 0 0 50%; 
+            width: 50%; 
+            max-width: 50%; 
+            min-height: 100vh; 
+            position: relative; 
+            padding: 60px 64px;
+          }
+          .login-right-panel { 
+            flex: 0 0 50%; 
+            width: 50%; 
+            max-width: 50%; 
+            justify-content: center; 
+            padding: 60px 70px; 
+          }
           .login-mobile-brand { display: none; }
         }
 
@@ -430,42 +480,42 @@ const EmployerSignup = () => {
           }}
         />
 
-        <div className="absolute top-10 left-16 z-20 animate-fade-up">
+        <div className="absolute top-[36px] left-[50px] z-20 animate-fade-up">
           <Link to="/" className="flex items-center gap-3 group">
             <img src={logo} alt="Logo" className="w-44 h-auto" />
           </Link>
         </div>
 
         <div className="relative z-10 animate-fade-up">
-          <div className="space-y-8 max-w-lg text-left">
-            <div className="inline-flex items-center gap-2">
+          <div className="max-w-lg text-left">
+            <div className="inline-flex items-center gap-2 mb-4 opacity-90">
               <span className="text-[#4DD9E8] text-[11px] font-bold tracking-[0.18em] uppercase">
                 HIRING PARTNER REGISTRATION
               </span>
             </div>
 
-            <h1 className="text-[44px] font-bold text-white leading-[1.1] tracking-tight">
+            <h1 className="text-[44px] font-bold text-white leading-[1.15] tracking-tight mb-4">
               Ready to build your
               <br />
               <span className="text-[#4DD9E8]">dream team?</span>
             </h1>
 
-            <p className="text-[16px] text-white/50 leading-relaxed max-w-sm">
+            <p className="text-[16px] text-white/55 leading-relaxed max-w-sm mt-8">
               Join the ecosystem of elite companies and find the perfect match
               for your company's growth trajectory.
             </p>
 
-            <div className="space-y-4 pt-4">
+            <div className="space-y-4 mt-12 relative z-10">
               {[
                 "Access to top-tier candidates",
                 "Build your talent pipeline",
                 "Streamlined hiring process",
               ].map((feature) => (
                 <div key={feature} className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-5 h-5 rounded-md bg-[#4DD9E8]/10 border border-[#4DD9E8]/20">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#4DD9E8]/10 border border-[#4DD9E8]/20">
                     <CheckCircle2 className="w-3.5 h-3.5 text-[#4DD9E8]" />
                   </div>
-                  <span className="text-white/80 text-[15px] font-medium">
+                  <span className="text-white/80 text-[14px] font-medium">
                     {feature}
                   </span>
                 </div>
@@ -476,7 +526,7 @@ const EmployerSignup = () => {
       </div>
 
       {/* Right Panel - Registration Section */}
-      <div className="login-right-panel flex flex-col overflow-y-auto bg-white">
+      <div className="login-right-panel overflow-y-auto bg-white font-inter">
         {/* Mobile Logo */}
         <div className="login-mobile-brand text-center sm:py-4">
           <Link to="/" className="inline-block">
@@ -487,37 +537,33 @@ const EmployerSignup = () => {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center sm:py-6">
-          <div className="w-full max-w-[540px] animate-fade-up [animation-delay:150ms] px-4 md:px-0">
+        <div className="flex flex-col items-center justify-center sm:py-6">
+          <div className="w-full max-w-[520px] animate-fade-up [animation-delay:150ms]">
             {/* Custom Stepper - No Glow & Connector Styles */}
-            <div className="stepper-container flex items-center justify-center mb-10 gap-x-2 sm:gap-x-4">
-              {[
-                { step: 1, label: "ACCOUNT" },
-                { step: 2, label: "COMPANY" },
-                { step: 3, label: "PREFERENCES" },
-              ].map((item, index) => (
-                <div key={item.step} className="flex items-center">
+            <div className="stepper-container flex items-center justify-center mb-9 gap-x-2 sm:gap-x-4">
+              {STEPS.map((item, index) => (
+                <div key={item.id} className="flex items-center text-[11px]">
                   <div className="flex items-center gap-2">
                     <div
-                      className={`stepper-dot w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-300 ${currentStep >= item.step
+                      className={`stepper-dot w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-300 ${currentStep >= item.id
                         ? "bg-[#4DD9E8] text-white"
                         : "bg-slate-100 text-slate-400 border border-slate-50"
                         }`}
                     >
-                      {currentStep > item.step ? (
+                      {currentStep > item.id ? (
                         <Check className="w-3.5 h-3.5" />
                       ) : (
-                        item.step
+                        item.id
                       )}
                     </div>
                     <span
-                      className={`stepper-label text-[10px] sm:text-[11px] font-bold tracking-widest transition-colors duration-300 ${currentStep >= item.step ? "text-[#080b20]" : "text-slate-300"
+                      className={`stepper-label text-[10px] sm:text-[11px] font-semibold tracking-widest transition-colors duration-300 ${currentStep >= item.id ? "text-[#080b20]" : "text-[#bbb]"
                         }`}
                     >
                       {item.label}
                     </span>
                   </div>
-                  {index < 2 && (
+                  {index < STEPS.length - 1 && (
                     <div className="stepper-connector w-6 sm:w-12 h-[1px] bg-slate-200 mx-2" />
                   )}
                 </div>
@@ -526,11 +572,11 @@ const EmployerSignup = () => {
 
             <div className="employer-form-shell bg-white dark:bg-[#0a0a0a] rounded-[24px] sm:bg-transparent sm:dark:bg-transparent sm:p-0 py-8 px-4 shadow-[0_10px_32px_rgba(0,0,0,0.05)] sm:shadow-none border border-slate-100 sm:border-0">
               <div className="mb-8 lg:text-left text-center">
-                <h3 className="text-3xl sm:text-4xl font-bold text-[#1a1a2e] mb-2 sm:mb-3">
-                  Hiring Partner Signup
+                <h3 className="text-3xl font-bold text-[#1a1a2e] mb-2">
+                  {currentStepCfg.title}
                 </h3>
-                <p className="text-slate-400 text-sm sm:text-[15px]">
-                  Start your journey to hire smarter and faster.
+                <p className="text-slate-400 text-sm mb-8 leading-relaxed">
+                  {currentStepCfg.subtitle}
                 </p>
               </div>
 
@@ -606,7 +652,7 @@ const EmployerSignup = () => {
                           </div>
                           <ErrorMessage error={fieldErrors.email} />
                           {isCheckingEmail && (
-                            <div className="text-sm text-slate-500 flex items-center gap-2">
+                            <div className="text-sm text-slate-500 flex items-center gap-2 mt-3">
                               <SpinnerLoader />{" "}
                               <span>Checking availability...</span>
                             </div>
@@ -832,7 +878,7 @@ const EmployerSignup = () => {
                 )}
               </form>
 
-              <div className="mt-10 text-center text-[14px] sm:text-sm font-medium text-slate-400">
+              <div className="mt-10 text-center text-sm font-medium text-slate-400">
                 Already have an account?{" "}
                 <Link
                   to="/hire-talent-login"

@@ -46,6 +46,7 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import ResumeManager, { type Resume } from "../ResumeManager";
 import { currencySymbols, getCurrencySymbol } from "@/lib/currency";
 import { useNavigate } from "react-router-dom";
+import BarLoader from "@/components/loader/BarLoader";
 
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -1601,6 +1602,17 @@ const CandidateProfileUpdate = (): JSX.Element => {
       cancel: { label: "Cancel", onClick: () => { } },
     });
   };
+
+  if (isLoadingProfile) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <BarLoader />
+        <p className="text-muted-foreground animate-pulse font-medium">
+          Loading your profile...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full mx-auto sm:px-6 md:px-2 py-4 sm:py-4 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">

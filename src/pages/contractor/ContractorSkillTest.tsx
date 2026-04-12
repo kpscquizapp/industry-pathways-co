@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { useCreateSkillTestMutation, useGetMyTestResultsQuery, useGetProblemTagsQuery } from "@/app/queries/contractorSkillTest";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import BarLoader from "@/components/loader/BarLoader";
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -107,7 +108,7 @@ const ContractorSkillTest = () => {
   const [createSkillTest, { isLoading: isCreating }] = useCreateSkillTestMutation();
   const { data: testResultsData, isLoading: isLoadingResults } = useGetMyTestResultsQuery();
   const { data: tagsData } = useGetProblemTagsQuery();
-  
+
   const testResults = testResultsData?.data || [];
   const availableTags = tagsData?.data || [];
   const [mockTest, setMockTest] = useState({
@@ -120,8 +121,6 @@ const ContractorSkillTest = () => {
     },
     tags: [], // Added tags field
   });
-
-  console.log(mockTest)
 
   const difficultyLevels = ["easy", "medium", "hard"];
 
@@ -245,27 +244,17 @@ const ContractorSkillTest = () => {
                 <div className="flex-1 flex flex-col gap-6 w-full">
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-1 ml-1">
-                      <label className="text-[13px] font-bold text-slate-500">Select Test Type</label>
+                      <label className="text-[13px] font-bold text-slate-500">Test Type</label>
                       <span className="text-cyan-500">*</span>
                     </div>
-                    <Select
+                    <input
+                      type="text"
+                      name="testType"
+                      placeholder="Enter Test Type"
                       value={mockTest.title}
-                      onValueChange={(val) => setMockTest({ ...mockTest, title: val, tags: [val] })}
-                    >
-                      <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700 focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none transition-all text-[14px] text-slate-500 font-bold">
-                        <SelectValue placeholder="Select Test Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableTags.map((tag: string) => (
-                          <SelectItem key={tag} value={tag} className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">
-                            {tag}
-                          </SelectItem>
-                        ))}
-                        {availableTags.length === 0 && (
-                          <SelectItem value="Mock test" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">Mock test</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
+                      onChange={(e) => setMockTest({ ...mockTest, title: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl"
+                    />
                   </div>
 
                   <div className="flex flex-col gap-2">
@@ -361,13 +350,22 @@ const ContractorSkillTest = () => {
 
               {/* Full Width Button Area */}
               <div className="mt-8 pt-2">
-                <button 
-                  onClick={startMockTest} 
+                <button
+                  onClick={startMockTest}
                   disabled={isCreating}
                   className="w-full h-[52px] bg-[#0F172A] rounded-xl flex items-center justify-center gap-2 text-white text-[15px] font-bold hover:bg-slate-800 transition-all duration-300 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isCreating ? <Loader2 className="w-5 h-5 animate-spin" /> : "Start Mock Test"}
-                  <ExternalLink size={18} />
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Generating practice test...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Start Mock Test</span>
+                      <ExternalLink size={18} />
+                    </>
+                  )}
                 </button>
               </div>
             </Card>
@@ -417,8 +415,8 @@ const ContractorSkillTest = () => {
 
                       {/* Buttons */}
                       <div className="flex flex-col xs:flex-row sm:flex-row items-center gap-3 w-full md:w-auto">
-                        <button 
-                          onClick={() => navigate(`/contractor/tests/report?id=${res.id}`)} 
+                        <button
+                          onClick={() => navigate(`/contractor/tests/report?id=${res.id}`)}
                           className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border border-slate-200 text-slate-600 font-bold text-[13px] hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm"
                         >
                           <LineChart size={16} className="text-slate-400" />

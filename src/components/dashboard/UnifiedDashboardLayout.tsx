@@ -51,6 +51,7 @@ import { useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
 import { skipToken } from "@reduxjs/toolkit/query";
 import logo from "../../assets/White Option.png";
 import logoIcon from "../../assets/logo_icon.png";
+import BarLoader from "../loader/BarLoader";
 
 type DashboardRole = "contractor" | "bench" | "hire-talent";
 
@@ -369,7 +370,7 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
             <React.Suspense
               fallback={
                 <div className="flex items-center justify-center h-full">
-                  <SpinnerLoader className="w-8 h-8 text-primary" />
+                  <BarLoader />
                 </div>
               }
             >

@@ -10,7 +10,7 @@ const MockTestReport = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const testId = queryParams.get("id");
-  
+
   const [activeTab, setActiveTab] = useState("detailed");
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
 
@@ -23,7 +23,6 @@ const MockTestReport = () => {
   const tabs = [
     { id: "overview", label: "Overview", icon: LayoutGrid },
     { id: "detailed", label: "Detailed Review", icon: ListChecks },
-    { id: "audit", label: "Audit Trail", icon: ShieldCheck },
   ];
 
   if (isLoading) {
@@ -113,10 +112,10 @@ const MockTestReport = () => {
             <div className="bg-white border border-slate-100 rounded-2xl p-6 md:p-8 shadow-sm">
               <h3 className="text-lg font-bold text-slate-800 mb-4">Performance Summary</h3>
               <p className="text-slate-500 text-[14px] leading-relaxed mb-6">
-                You've completed the {report.test.title} with {report.stats.codingAccuracy}% accuracy. 
+                You've completed the {report.test.title} with {report.stats.codingAccuracy}% accuracy.
                 Below is a breakdown of your performance by difficulty and key study recommendations.
               </p>
-              
+
               <div className="space-y-4">
                 {["Easy", "Intermediate", "Advanced"].map((diff) => {
                   const isMatch = report.test.difficulty === diff;
@@ -208,7 +207,7 @@ const MockTestReport = () => {
                 </p>
                 <div className="flex flex-col gap-2">
                   {report.questions.map((q: any, index: number) => (
-                    <div 
+                    <div
                       key={q.id}
                       onClick={() => setActiveQuestionIndex(index)}
                       className={cn(
@@ -319,7 +318,7 @@ const MockTestReport = () => {
           <div className="max-w-2xl mx-auto">
             <h3 className="text-lg font-bold text-slate-800 mb-6">Test Audit Log</h3>
             <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-100 before:to-transparent">
-              {report.questions.flatMap((q:any) => q.auditTrail).sort((a:any, b:any) => new Date(b.time).getTime() - new Date(a.time).getTime()).map((audit: any, i: number) => (
+              {report.questions.flatMap((q: any) => q.auditTrail).sort((a: any, b: any) => new Date(b.time).getTime() - new Date(a.time).getTime()).map((audit: any, i: number) => (
                 <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                   <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-white text-slate-400 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
                     <ShieldCheck size={16} />

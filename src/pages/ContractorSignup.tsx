@@ -1886,9 +1886,9 @@ export default function ContractorSignup(): JSX.Element {
                 error={fieldErrors.email}
               />
               {isCheckingEmail && (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: TEXT_MUTED }}>
-                  <SpinnerLoader />
-                  Checking availability...
+                <div className="text-sm text-slate-500 flex items-center gap-2">
+                  <SpinnerLoader />{" "}
+                  <span>Checking availability...</span>
                 </div>
               )}
               <Input
@@ -2168,11 +2168,10 @@ export default function ContractorSignup(): JSX.Element {
               disabled={isLoading || isCheckingEmail}
               style={btnPrimary}
               onMouseEnter={(e) => {
-                if (!isLoading && !isCheckingEmail)
-                  e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.backgroundColor = 'rgba(15, 23, 41, 0.9)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.backgroundColor = '#0f1729';
               }}
             >
               {isLoading || isCheckingEmail ? (
