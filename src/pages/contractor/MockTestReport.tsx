@@ -121,9 +121,9 @@ const MockTestReport = () => {
 
               <div className="space-y-4">
                 {[
-                  { label: "Easy", value: "Easy" },
-                  { label: "Intermediate", value: "Medium" },
-                  { label: "Advanced", value: "Hard" }
+                  { label: "Easy", value: "easy" },
+                  { label: "Intermediate", value: "medium" },
+                  { label: "Advanced", value: "hard" }
                 ].map((item) => {
                   const isMatch = report.test.difficulty?.toLowerCase() === item.value;
                   return (
@@ -214,23 +214,29 @@ const MockTestReport = () => {
                 </p>
                 <div className="flex flex-col gap-2">
                   {questions.map((q: any, index: number) => (
-                    <div
+                    <button
+                      type="button"
                       key={q.id}
                       onClick={() => setActiveQuestionIndex(index)}
                       className={cn(
-                        "flex items-center justify-between px-4 py-3 rounded-xl border border-transparent cursor-pointer transition-all",
+                        "flex w-full items-center justify-between px-4 py-3 rounded-xl border border-transparent transition-all text-left",
                         activeQuestionIndex === index ? "bg-[#f0fdfa] border-[#ccfbf1]" : "bg-white hover:bg-slate-50"
                       )}
+                      aria-pressed={activeQuestionIndex === index}
                     >
                       <div className="flex flex-col gap-0.5">
                         <span className="font-bold text-[13px] text-slate-800">Q{index + 1}</span>
                         <span className="text-[12px] font-medium text-slate-400 truncate max-w-[120px]">{q.title}</span>
                       </div>
                       <div className={cn(
-                        "w-2.5 h-2.5 rounded-full",
-                        q.status === 'Correct' ? "bg-[#22c55e]" : q.status === 'Incorrect' ? "bg-red-500" : "bg-slate-300"
+                        "w-2.5 h-2.5 rounded-full transition-colors",
+                        q.status === 'Correct' 
+                          ? "bg-[#22c55e]" 
+                          : (q.status === 'Incorrect' || q.status === 'Failed') 
+                            ? "bg-red-500" 
+                            : "bg-slate-300"
                       )}></div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -253,17 +259,26 @@ const MockTestReport = () => {
                     </div>
                     <div className={cn(
                       "px-3 py-1.5 rounded-lg flex items-center gap-1.5 shrink-0 h-fit border",
-                      currentQuestion.status === 'Correct' ? "bg-[#f0fdfa] border-[#ccfbf1]" : "bg-red-50 border-red-100"
+                      currentQuestion.status === 'Correct' 
+                        ? "bg-[#f0fdfa] border-[#ccfbf1]" 
+                        : (currentQuestion.status === 'Incorrect' || currentQuestion.status === 'Failed')
+                          ? "bg-red-50 border-red-100"
+                          : "bg-slate-50 border-slate-200"
                     )}>
                       {currentQuestion.status === 'Correct' ? (
                         <>
                           <CheckCircle2 size={14} className="text-[#10b981]" />
                           <span className="text-[12px] font-bold text-[#10b981]">Passed</span>
                         </>
-                      ) : (
+                      ) : (currentQuestion.status === 'Incorrect' || currentQuestion.status === 'Failed') ? (
                         <>
                           <XCircle size={14} className="text-red-500" />
                           <span className="text-[12px] font-bold text-red-600">Failed</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle size={14} className="text-slate-500" />
+                          <span className="text-[12px] font-bold text-slate-600">{currentQuestion.status}</span>
                         </>
                       )}
                     </div>

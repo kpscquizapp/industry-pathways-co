@@ -145,7 +145,7 @@ const CodingChallenge: React.FC = () => {
   const devtoolsOpenRef = useRef(false);
 
   // ── Functions (Moved up to avoid TDZ errors) ─────────────────────
-  
+
   const handleRecordingStart = useCallback(() => {
     setIsMonitoringActive(true);
   }, []);
@@ -378,11 +378,11 @@ const CodingChallenge: React.FC = () => {
             return;
           }
 
-          const sessionData = await startSessionMutation({ 
-            candidateId: String(candidateId), 
-            jobId: actualJobId ? String(actualJobId) : undefined 
+          const sessionData = await startSessionMutation({
+            candidateId: String(candidateId),
+            jobId: actualJobId ? String(actualJobId) : undefined
           }).unwrap();
-          
+
           if (sessionData.sessionId) {
             setSessionId(sessionData.sessionId);
           }
@@ -398,8 +398,17 @@ const CodingChallenge: React.FC = () => {
 
         // Multiple monitor check
         const hasMultipleMonitors = await detectMultipleMonitors();
-        if (hasMultipleMonitors) {
-          handleViolation("Multiple monitors detected");
+        if (hasMultipleMonitors && sessionId) {
+          try {
+            await logViolationMutation({
+              sessionId: sessionId,
+              reason: "Multiple monitors detected",
+            }).unwrap();
+            setTotalViolations((prev) => prev + 1);
+            addLog("Violation: Multiple monitors detected");
+          } catch {
+            // Silent - don't disrupt candidate experience
+          }
         }
       }
     } catch (err) {
