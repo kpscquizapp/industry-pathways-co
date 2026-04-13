@@ -2169,9 +2169,16 @@ export default function ContractorSignup(): JSX.Element {
               style={btnPrimary}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = 'rgba(15, 23, 41, 0.9)';
+                e.currentTarget.style.backgroundImage = 'none';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#0f1729';
+                if (isLast) {
+                  e.currentTarget.style.backgroundImage = `linear-gradient(135deg, ${ACCENT} 0%, #06b6d4 100%)`;
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                } else {
+                  e.currentTarget.style.backgroundColor = TEXT_PRIMARY;
+                  e.currentTarget.style.backgroundImage = 'none';
+                }
               }}
             >
               {isLoading || isCheckingEmail ? (

@@ -72,7 +72,7 @@ const STEPS: StepConfig[] = [
 
 const EmployerSignup = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
+  const totalSteps = STEPS.length;
 
   const [formData, setFormData] = useState<EmployerFormData>({
     email: "",

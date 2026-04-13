@@ -2,16 +2,17 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
-import { useGetProfileQuery, useGetDashboardStatsQuery } from "@/app/queries/profileApi";
+import { useGetDashboardStatsQuery } from "@/app/queries/profileApi";
 import {
   TrendingUp,
   FileCheck,
   Video,
   Eye,
   Star,
+  AlertCircle,
 } from "lucide-react";
-import BarLoader from "@/components/loader/BarLoader";
 import ContractorProfile from "./ContractorProfile";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 
 const GlassCard = ({ children, gradient, className = "" }: { children: React.ReactNode; gradient: string; className?: string }) => (
   <div className={`relative overflow-hidden rounded-2xl p-6 text-white shadow-lg ${gradient} ${className}`}>
@@ -26,25 +27,37 @@ const ContractorDashboard = () => {
   const { data: statsData, isLoading: statsLoading } = useGetDashboardStatsQuery();
   const navigate = useNavigate();
 
-  const stats = statsData?.data || {};
-
-  const KPI = [
-    { label: "Interview Invites", value: stats.interviewInvites ?? "0", icon: Video, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "this week" },
-    { label: "Pending Tests", value: stats.pendingTests ?? "0", icon: FileCheck, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "due soon" },
-    { label: "Profile Views", value: stats.profileViews ?? "0", icon: Eye, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "total views" },
-    { label: "Skill Score", value: stats.skillScore ? `${stats.skillScore}%` : "0%", icon: Star, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "highest score" },
-  ];
-
   if (statsLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <BarLoader />
-        <p className="text-muted-foreground animate-pulse">
+      <div className="flex items-center justify-center gap-4 h-full">
+        <SpinnerLoader className="w-10 h-10" />
+        <p className="text-muted-foreground">
           Personalizing your dashboard...
         </p>
       </div>
     );
   }
+
+  if (!statsData?.data) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 py-20">
+        <AlertCircle className="w-12 h-12 text-slate-300" />
+        <h3 className="text-xl font-bold text-slate-900">Stats Unavailable</h3>
+        <p className="text-slate-500 max-w-sm text-center">
+          We couldn&apos;t retrieve your dashboard statistics. Some activity data might be temporarily unavailable.
+        </p>
+      </div>
+    );
+  }
+
+  const stats = statsData.data;
+
+  const KPI = [
+    { label: "Interview Invites", value: stats.interviewInvites, icon: Video, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "this week" },
+    { label: "Pending Tests", value: stats.pendingTests, icon: FileCheck, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "due soon" },
+    { label: "Profile Views", value: stats.profileViews, icon: Eye, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "total views" },
+    { label: "Skill Score", value: stats.skillScore ? `${stats.skillScore}%` : "0%", icon: Star, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "highest score" },
+  ];
 
 
 

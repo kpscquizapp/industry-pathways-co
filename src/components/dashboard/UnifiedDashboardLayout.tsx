@@ -369,8 +369,9 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
           <main className="flex-1 p-6 overflow-auto">
             <React.Suspense
               fallback={
-                <div className="flex items-center justify-center h-full">
-                  <BarLoader />
+                <div className="flex items-center justify-center gap-4 h-full">
+                  <SpinnerLoader className="w-10 h-10" />
+                  <p className="text-muted-foreground">Loading...</p>
                 </div>
               }
             >

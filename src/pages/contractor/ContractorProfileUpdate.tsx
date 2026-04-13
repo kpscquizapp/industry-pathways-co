@@ -1605,9 +1605,9 @@ const CandidateProfileUpdate = (): JSX.Element => {
 
   if (isLoadingProfile) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <BarLoader />
-        <p className="text-muted-foreground animate-pulse font-medium">
+      <div className="flex items-center justify-center gap-4 h-full">
+        <SpinnerLoader className="w-10 h-10" />
+        <p className="text-muted-foreground">
           Loading your profile...
         </p>
       </div>

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { ArrowLeft, LayoutGrid, ListChecks, ShieldCheck, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, LayoutGrid, ListChecks, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useGetTestReportQuery } from "@/app/queries/contractorSkillTest";
-import { Loader2, AlertCircle } from "lucide-react";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 
 const MockTestReport = () => {
   const navigate = useNavigate();
@@ -27,9 +27,9 @@ const MockTestReport = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-[#0ea5e9]" />
-        <p className="text-slate-500 font-medium font-inter">Loading your assessment report...</p>
+      <div className="flex items-center justify-center gap-4 h-full">
+        <SpinnerLoader className="w-10 h-10" />
+        <p className="text-muted-foreground">Loading your assessment report...</p>
       </div>
     );
   }
@@ -286,53 +286,8 @@ const MockTestReport = () => {
                       {currentQuestion.aiFeedback}
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-                    {currentQuestion.auditTrail.map((audit: any, i: number) => (
-                      <div key={i} className="bg-white p-4 rounded-xl border border-slate-100 flex items-center gap-4">
-                        <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
-                          <ShieldCheck size={16} />
-                        </div>
-                        <div className="flex flex-col">
-                          <div className="text-[11px] font-bold text-slate-400">
-                            {new Date(audit.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
-                          </div>
-                          <div className="text-[13px] font-bold text-slate-600 leading-snug">
-                            {audit.event}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
-
-            </div>
-          </div>
-
-        </div>
-      )}
-
-      {activeTab === "audit" && (
-        <div className="bg-white border border-slate-100 rounded-2xl p-10 shadow-sm min-h-[400px] animate-in fade-in duration-500">
-          <div className="max-w-2xl mx-auto">
-            <h3 className="text-lg font-bold text-slate-800 mb-6">Test Audit Log</h3>
-            <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-100 before:to-transparent">
-              {report.questions.flatMap((q: any) => q.auditTrail).sort((a: any, b: any) => new Date(b.time).getTime() - new Date(a.time).getTime()).map((audit: any, i: number) => (
-                <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-white text-slate-400 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
-                    <ShieldCheck size={16} />
-                  </div>
-                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl bg-slate-50 border border-slate-100">
-                    <div className="flex items-center justify-between space-x-2 mb-1">
-                      <div className="font-bold text-slate-700 text-[13px]">{audit.event}</div>
-                      {/* <time className="font-medium text-[11px] text-slate-400">
-                        {new Date(audit.time).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
-                      </time> */}
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>

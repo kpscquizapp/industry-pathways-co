@@ -20,7 +20,6 @@ import { useNavigate } from "react-router-dom";
 import { useCreateSkillTestMutation, useGetMyTestResultsQuery, useGetProblemTagsQuery } from "@/app/queries/contractorSkillTest";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import BarLoader from "@/components/loader/BarLoader";
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -133,9 +132,11 @@ const ContractorSkillTest = () => {
 
     try {
       const resp = await createSkillTest(mockTest).unwrap();
-      toast.success("Mock test created successfully");
       if (resp.success && resp.data?.id) {
+        toast.success("Mock test created successfully");
         navigate(`/coding-challenge/${resp.data.id}`);
+      } else {
+        toast.error("Test created but navigation failed. Please check your results.");
       }
     } catch (error) {
       toast.error("Failed to create mock test");

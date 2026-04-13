@@ -38,7 +38,17 @@ const cookieData = (() => {
         if (refreshToken) {
           // Clear only the expired access token; keep refreshToken & userDetails
           // so useFetchRefreshToken can silently refresh the session.
-          return { ...parsed, token: null } as UserState;
+          const sanitized = { ...parsed, token: null };
+          // Persist the sanitized state back to the cookie so service.ts
+          // authHeader() won't read the stale expired token.
+          Cookies.set("userInfo", JSON.stringify(sanitized), {
+            expires: 15,
+            secure:
+              typeof window !== "undefined" &&
+              window.location.protocol === "https:",
+            sameSite: "strict",
+          });
+          return sanitized as UserState;
         }
         // No refresh token either — fully unauthenticated
         Cookies.remove("userInfo");

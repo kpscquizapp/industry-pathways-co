@@ -28,13 +28,15 @@ const ForgotPassword = () => {
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setInterval> | undefined;
     if (cooldown > 0) {
       timer = setInterval(() => {
         setCooldown((prev) => prev - 1);
       }, 1000);
     }
-    return () => clearInterval(timer);
+    return () => {
+      if (timer) clearInterval(timer);
+    };
   }, [cooldown]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,6 +55,10 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Guard: prevent Enter-key or programmatic submits during cooldown
+    if (cooldown > 0) return;
+
     setTouched({ email: true });
 
     const errors: Record<string, string> = {};
