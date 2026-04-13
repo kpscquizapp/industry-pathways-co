@@ -19,6 +19,7 @@ import {
 } from "@/types/coding";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "@/hooks/useDebounce";
+import { useAppSelector } from "@/app/hooks";
 import TestTimer from "@/components/coding/TestTimer";
 import {
   useLazyGetTestStatusQuery,
@@ -137,10 +138,107 @@ const CodingChallenge: React.FC = () => {
   const [startSessionMutation] = useStartSessionMutation();
   const [endSessionMutation] = useEndSessionMutation();
   const [logViolationMutation] = useLogViolationMutation();
+  const user = useAppSelector((state) => state.user.userDetails);
 
   const hasMountedRef = useRef(false);
   const suppressViolationsUntilRef = useRef(0);
   const devtoolsOpenRef = useRef(false);
+
+  // ── Functions (Moved up to avoid TDZ errors) ─────────────────────
+  
+  const handleRecordingStart = useCallback(() => {
+    setIsMonitoringActive(true);
+  }, []);
+
+  const handleRecordingStop = useCallback(() => {
+    setIsMonitoringActive(false);
+  }, []);
+
+  const handleCameraError = useCallback(() => {
+    setIsMonitoringActive(false);
+  }, []);
+
+  const handleScreenShareStart = useCallback(() => {
+    suppressViolationsUntilRef.current = Date.now() + 1500;
+  }, []);
+
+  const handleViolation = useCallback(
+    async (reason: string) => {
+      if (!isMonitoringActive) return;
+      if (Date.now() < suppressViolationsUntilRef.current) return;
+      try {
+        await logViolationMutation({ sessionId, reason }).unwrap();
+        setTotalViolations((prev) => prev + 1);
+        addLog(`Violation: ${reason}`);
+      } catch {
+        // Silent — never disrupt the candidate experience
+      }
+    },
+    [isMonitoringActive, sessionId, logViolationMutation, addLog],
+  );
+
+  const onResize = useDebouncedCallback(() => {
+    handleViolation("Window resized");
+  }, 1000);
+
+  const checkDevtools = useCallback(() => {
+    if (!isMonitoringActive) return;
+    if (document.visibilityState !== "visible") {
+      devtoolsOpenRef.current = false;
+      return;
+    }
+    const threshold = 160;
+    const widthDiff = Math.abs(window.outerWidth - window.innerWidth);
+    const heightDiff = Math.abs(window.outerHeight - window.innerHeight);
+    const isOpen =
+      (widthDiff > threshold || heightDiff > threshold) &&
+      window.outerWidth > 0 &&
+      window.outerHeight > 0;
+    if (isOpen && !devtoolsOpenRef.current) {
+      devtoolsOpenRef.current = true;
+      handleViolation("Developer tools opened");
+    } else if (!isOpen) {
+      devtoolsOpenRef.current = false;
+    }
+  }, [handleViolation, isMonitoringActive]);
+
+  const performCleanup = useCallback(async () => {
+    // 1. Stop frontend monitoring immediately so WebcamFeed begins finalizing
+    setIsInterviewActive(false);
+    setIsMonitoringActive(false);
+    initialWebcamStreamRef.current?.getTracks().forEach(t => t.stop());
+    initialScreenStreamRef.current?.getTracks().forEach(t => t.stop());
+    initialWebcamStreamRef.current = null;
+    initialScreenStreamRef.current = null;
+    setInitialWebcamStream(null);
+    setInitialScreenStream(null);
+
+    // 2. Give WebcamFeed a window to flush final chunks
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    try {
+      await endTestMutation({ testId: testId!, token }).unwrap();
+      if (sessionId) {
+        await endSessionMutation({ sessionId }).unwrap().catch((err) =>
+          console.error("Failed to end session:", err)
+        );
+      }
+      return true;
+    } catch (err) {
+      console.error("Cleanup failed:", err);
+      return false;
+    }
+  }, [testId, token, sessionId, endTestMutation, endSessionMutation]);
+
+  const handleEndTest = useCallback(async () => {
+    const success = await performCleanup();
+    if (success) {
+      setTestStatus("completed");
+      toast.success("Test submitted successfully!");
+    } else {
+      toast.error("Failed to submit test");
+    }
+  }, [performCleanup]);
 
   // Back-button & page-close guard
   useEffect(() => {
@@ -150,12 +248,14 @@ const CodingChallenge: React.FC = () => {
     // Push a dummy state so there's a history entry to intercept
     window.history.pushState({ guardedTest: true }, "");
 
-    const handlePopState = (e: PopStateEvent) => {
+    const handlePopState = async (e: PopStateEvent) => {
       const confirmed = window.confirm(
         "⚠️ Warning: Leaving will permanently end your test!\n\nYou will NOT be able to re-enter this test once you leave. Your current progress will be lost.\n\nAre you sure you want to exit?"
       );
       if (confirmed) {
-        // Remove our guard and navigate away
+        // Perform cleanup before navigating
+        toast.info("Ending session and saving progress...", { duration: 2000 });
+        await performCleanup();
         navigate("/contractor/tests");
       } else {
         // Re-push the dummy state so the back button still works next time
@@ -175,7 +275,7 @@ const CodingChallenge: React.FC = () => {
       window.removeEventListener("popstate", handlePopState);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [testStatus, navigate]);
+  }, [testStatus, navigate, performCleanup]);
 
   // Dragging logic for the floating monitor window
   useEffect(() => {
@@ -269,10 +369,27 @@ const CodingChallenge: React.FC = () => {
         setMetadata(data.data);
         // Start session
         try {
-          const sessionData = await startSessionMutation({ candidateId: "123", jobId: testId }).unwrap();
-          if (sessionData.sessionId) setSessionId(sessionData.sessionId);
+          const candidateId = user?.id || user?.uuid;
+          const actualJobId = metadata?.id || data.data?.id;
+
+          if (!candidateId) {
+            console.error("No candidate ID found in session state");
+            toast.error("Authentication error. Please re-login.");
+            return;
+          }
+
+          const sessionData = await startSessionMutation({ 
+            candidateId: String(candidateId), 
+            jobId: actualJobId ? String(actualJobId) : undefined 
+          }).unwrap();
+          
+          if (sessionData.sessionId) {
+            setSessionId(sessionData.sessionId);
+          }
         } catch (sessionErr) {
           console.error("Failed to start session:", sessionErr);
+          // We still allow the test to proceed even if session tracking fails, 
+          // but we log it. Depending on strictness, we might want to return here.
         }
         setTestStatus("active");
         setIsInterviewActive(true);
@@ -290,93 +407,6 @@ const CodingChallenge: React.FC = () => {
     }
   };
 
-  const handleRecordingStart = useCallback(() => {
-    setIsMonitoringActive(true);
-  }, []);
-
-  const handleRecordingStop = useCallback(() => {
-    setIsMonitoringActive(false);
-  }, []);
-
-  const handleCameraError = useCallback(() => {
-    setIsMonitoringActive(false);
-  }, []);
-
-  const handleScreenShareStart = useCallback(() => {
-    suppressViolationsUntilRef.current = Date.now() + 1500;
-  }, []);
-
-  const handleEndTest = useCallback(async () => {
-    try {
-      // 1. Stop frontend monitoring immediately so WebcamFeed begins finalizing
-      setIsInterviewActive(false);
-      setIsMonitoringActive(false);
-      initialWebcamStreamRef.current?.getTracks().forEach(t => t.stop());
-      initialScreenStreamRef.current?.getTracks().forEach(t => t.stop());
-      initialWebcamStreamRef.current = null;
-      initialScreenStreamRef.current = null;
-      setInitialWebcamStream(null);
-      setInitialScreenStream(null);
-
-      // 2. Give WebcamFeed a window to flush final chunks
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      const data = await endTestMutation({ testId: testId!, token }).unwrap();
-      if (data.success) {
-        // End session (fire and forget)
-        if (sessionId) {
-          endSessionMutation({ sessionId }).catch((err) =>
-            console.error("Failed to end session:", err)
-          );
-        }
-        setTestStatus("completed");
-        toast.success("Test submitted successfully!");
-      }
-    } catch (err) {
-      toast.error("Failed to submit test");
-    }
-  }, [testId, token, sessionId, endTestMutation, endSessionMutation]);
-
-  // Violation monitoring via RTK
-  const handleViolation = useCallback(
-    async (reason: string) => {
-      if (!isMonitoringActive) return;
-      if (Date.now() < suppressViolationsUntilRef.current) return;
-      try {
-        await logViolationMutation({ sessionId, reason }).unwrap();
-        setTotalViolations((prev) => prev + 1);
-        addLog(`Violation: ${reason}`);
-      } catch {
-        // Silent — never disrupt the candidate experience
-      }
-    },
-    [isMonitoringActive, sessionId, logViolationMutation, addLog],
-  );
-
-  const onResize = useDebouncedCallback(() => {
-    handleViolation("Window resized");
-  }, 1000);
-
-  const checkDevtools = useCallback(() => {
-    if (!isMonitoringActive) return;
-    if (document.visibilityState !== "visible") {
-      devtoolsOpenRef.current = false;
-      return;
-    }
-    const threshold = 160;
-    const widthDiff = Math.abs(window.outerWidth - window.innerWidth);
-    const heightDiff = Math.abs(window.outerHeight - window.innerHeight);
-    const isOpen =
-      (widthDiff > threshold || heightDiff > threshold) &&
-      window.outerWidth > 0 &&
-      window.outerHeight > 0;
-    if (isOpen && !devtoolsOpenRef.current) {
-      devtoolsOpenRef.current = true;
-      handleViolation("Developer tools opened");
-    } else if (!isOpen) {
-      devtoolsOpenRef.current = false;
-    }
-  }, [handleViolation, isMonitoringActive]);
 
   // ── Violation event listeners (were missing before!) ────────────
   useEffect(() => {
@@ -739,8 +769,10 @@ const CodingChallenge: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => {
-              if (window.confirm("Are you sure? Your progress will stay but the timer is running.")) {
+            onClick={async () => {
+              if (window.confirm("⚠️ Warning: Exiting will end your assessment. Are you sure?")) {
+                toast.info("Ending session...", { duration: 2000 });
+                await performCleanup();
                 navigate("/contractor/tests");
               }
             }}

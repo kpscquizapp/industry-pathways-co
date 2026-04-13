@@ -156,18 +156,20 @@ const Hero = () => {
         toast.success("Interview started!");
 
         // Check after monitoring becomes active (onRecordingStart sets isMonitoringActive)
-        // Use a small delay to allow the recording to start before logging
-        const hasMultipleMonitors = await detectMultipleMonitors();
-        if (hasMultipleMonitors) {
-          // Use direct fetch since handleViolation checks isMonitoringActive
-          // which may not have updated yet in this sync call
-          await fetch("/api/violations/log", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sessionId: data.sessionId, reason: "Multiple monitors detected" }),
-          });
-          setTabViolationCount((prev) => prev + 1);
-          addLog("Violation: Multiple monitors detected");
+        // Wrapped in try/catch so failure to log violation doesn't trigger "Failed to start interview"
+        try {
+          const hasMultipleMonitors = await detectMultipleMonitors();
+          if (hasMultipleMonitors) {
+            await fetch("/api/violations/log", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sessionId: data.sessionId, reason: "Multiple monitors detected" }),
+            });
+            setTabViolationCount((prev) => prev + 1);
+            addLog("Violation: Multiple monitors detected");
+          }
+        } catch (violationError) {
+          console.warn("Failed to check/log initial monitor violation:", violationError);
         }
       } else {
         toast.error("Failed to start interview");

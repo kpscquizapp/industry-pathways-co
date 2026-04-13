@@ -36,26 +36,30 @@ export const assessmentApi = createApi({
     // ── Test lifecycle ──────────────────────────────────────────────
     getTestStatus: builder.query<any, { testId: string; token?: string | null }>({
       query: ({ testId, token }) => ({
-        url: `coding/tests/${testId}/status${token ? `?token=${token}` : ""}`,
+        url: `coding/tests/${testId}/status`,
         method: "GET",
+        params: token ? { token } : undefined,
       }),
     }),
     getTestProblems: builder.query<any, { testId: string; token?: string | null }>({
       query: ({ testId, token }) => ({
-        url: `coding/tests/${testId}/problems${token ? `?token=${token}` : ""}`,
+        url: `coding/tests/${testId}/problems`,
         method: "GET",
+        params: token ? { token } : undefined,
       }),
     }),
     startTest: builder.mutation<any, { testId: string; token?: string | null }>({
       query: ({ testId, token }) => ({
-        url: `coding/tests/${testId}/start${token ? `?token=${token}` : ""}`,
+        url: `coding/tests/${testId}/start`,
         method: "PATCH",
+        params: token ? { token } : undefined,
       }),
     }),
     endTest: builder.mutation<any, { testId: string; token?: string | null }>({
       query: ({ testId, token }) => ({
-        url: `coding/tests/${testId}/end${token ? `?token=${token}` : ""}`,
+        url: `coding/tests/${testId}/end`,
         method: "PATCH",
+        params: token ? { token } : undefined,
       }),
     }),
 

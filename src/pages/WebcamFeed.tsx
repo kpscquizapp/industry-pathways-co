@@ -258,7 +258,9 @@ const WebcamFeed = ({
     }
     streamRef.current = null;
     setScreenShareStream((prev) => {
-      stopTracks(prev);
+      if (prev && prev !== initialScreenStream) {
+        stopTracks(prev);
+      }
       return null;
     });
     pendingChunksRef.current.webcam.clear();

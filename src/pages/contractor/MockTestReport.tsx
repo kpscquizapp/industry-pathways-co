@@ -47,7 +47,10 @@ const MockTestReport = () => {
     );
   }
 
-  const currentQuestion = report.questions[activeQuestionIndex];
+  const questions = Array.isArray(report?.questions) ? report.questions : [];
+  const currentQuestion = questions.length > 0 && activeQuestionIndex >= 0 && activeQuestionIndex < questions.length
+    ? questions[activeQuestionIndex]
+    : null;
 
   return (
     <div className="flex flex-col gap-6 py-4 sm:px-2 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 max-w-full mx-auto w-full font-inter">
@@ -117,12 +120,16 @@ const MockTestReport = () => {
               </p>
 
               <div className="space-y-4">
-                {["Easy", "Intermediate", "Advanced"].map((diff) => {
-                  const isMatch = report.test.difficulty === diff;
+                {[
+                  { label: "Easy", value: "Easy" },
+                  { label: "Intermediate", value: "Medium" },
+                  { label: "Advanced", value: "Hard" }
+                ].map((item) => {
+                  const isMatch = report.test.difficulty?.toLowerCase() === item.value;
                   return (
-                    <div key={diff} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                    <div key={item.label} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
                       <div className="flex flex-col">
-                        <span className="text-[13px] font-bold text-slate-700">{diff}</span>
+                        <span className="text-[13px] font-bold text-slate-700">{item.label}</span>
                         <span className="text-[11px] text-slate-400">Target Level</span>
                       </div>
                       {isMatch ? (
@@ -206,7 +213,7 @@ const MockTestReport = () => {
                   Open one detailed review tab at a time, so the screen stays focused and avoids long scrolling.
                 </p>
                 <div className="flex flex-col gap-2">
-                  {report.questions.map((q: any, index: number) => (
+                  {questions.map((q: any, index: number) => (
                     <div
                       key={q.id}
                       onClick={() => setActiveQuestionIndex(index)}
@@ -231,63 +238,68 @@ const MockTestReport = () => {
 
             {/* Questions List Content */}
             <div className="lg:col-span-3 flex flex-col gap-6">
-
-              <div className="border border-slate-100 bg-white shadow-sm rounded-2xl p-6 md:p-8">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
-                  <div className="flex gap-4">
-                    <span className="font-bold text-slate-600 mt-0.5 text-[15px]">Q{activeQuestionIndex + 1}</span>
-                    <p className="font-bold text-slate-800 text-[15px] leading-relaxed">
-                      {currentQuestion.title}
-                    </p>
+              {!currentQuestion ? (
+                <div className="border border-slate-100 bg-white shadow-sm rounded-2xl p-6 md:p-8 text-center text-slate-500">
+                  <p>No question details available.</p>
+                </div>
+              ) : (
+                <div className="border border-slate-100 bg-white shadow-sm rounded-2xl p-6 md:p-8">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
+                    <div className="flex gap-4">
+                      <span className="font-bold text-slate-600 mt-0.5 text-[15px]">Q{activeQuestionIndex + 1}</span>
+                      <p className="font-bold text-slate-800 text-[15px] leading-relaxed">
+                        {currentQuestion.title}
+                      </p>
+                    </div>
+                    <div className={cn(
+                      "px-3 py-1.5 rounded-lg flex items-center gap-1.5 shrink-0 h-fit border",
+                      currentQuestion.status === 'Correct' ? "bg-[#f0fdfa] border-[#ccfbf1]" : "bg-red-50 border-red-100"
+                    )}>
+                      {currentQuestion.status === 'Correct' ? (
+                        <>
+                          <CheckCircle2 size={14} className="text-[#10b981]" />
+                          <span className="text-[12px] font-bold text-[#10b981]">Passed</span>
+                        </>
+                      ) : (
+                        <>
+                          <XCircle size={14} className="text-red-500" />
+                          <span className="text-[12px] font-bold text-red-600">Failed</span>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div className={cn(
-                    "px-3 py-1.5 rounded-lg flex items-center gap-1.5 shrink-0 h-fit border",
-                    currentQuestion.status === 'Correct' ? "bg-[#f0fdfa] border-[#ccfbf1]" : "bg-red-50 border-red-100"
-                  )}>
-                    {currentQuestion.status === 'Correct' ? (
-                      <>
-                        <CheckCircle2 size={14} className="text-[#10b981]" />
-                        <span className="text-[12px] font-bold text-[#10b981]">Passed</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle size={14} className="text-red-500" />
-                        <span className="text-[12px] font-bold text-red-600">Failed</span>
-                      </>
+
+                  <div className="space-y-8">
+                    {currentQuestion.submittedCode && (
+                      <div className="bg-[#0F172A] rounded-xl p-5 overflow-hidden border border-slate-800">
+                        <div className="text-[10px] font-bold text-slate-400 mb-4 tracking-wider uppercase border-b border-slate-800 pb-2">Your Submitted Code</div>
+                        <pre className="text-slate-300 text-[13px] font-mono leading-relaxed overflow-x-auto whitespace-pre p-2">
+                          {currentQuestion.submittedCode}
+                        </pre>
+                      </div>
                     )}
-                  </div>
-                </div>
 
-                <div className="space-y-8">
-                  {currentQuestion.submittedCode && (
-                    <div className="bg-[#0F172A] rounded-xl p-5 overflow-hidden border border-slate-800">
-                      <div className="text-[10px] font-bold text-slate-400 mb-4 tracking-wider uppercase border-b border-slate-800 pb-2">Your Submitted Code</div>
-                      <pre className="text-slate-300 text-[13px] font-mono leading-relaxed overflow-x-auto whitespace-pre p-2">
-                        {currentQuestion.submittedCode}
-                      </pre>
-                    </div>
-                  )}
+                    {currentQuestion.aiImprovedCode && (
+                      <div className="bg-[#f0f9ff] rounded-xl p-5 overflow-hidden border border-[#bae6fd]">
+                        <div className="text-[10px] font-bold text-[#0ea5e9] mb-4 tracking-wider uppercase border-b border-[#bae6fd] pb-2">AI-Improved Version</div>
+                        <pre className="text-slate-700 text-[13px] font-mono leading-relaxed overflow-x-auto whitespace-pre p-2">
+                          {currentQuestion.aiImprovedCode}
+                        </pre>
+                      </div>
+                    )}
 
-                  {currentQuestion.aiImprovedCode && (
-                    <div className="bg-[#f0f9ff] rounded-xl p-5 overflow-hidden border border-[#bae6fd]">
-                      <div className="text-[10px] font-bold text-[#0ea5e9] mb-4 tracking-wider uppercase border-b border-[#bae6fd] pb-2">AI-Improved Version</div>
-                      <pre className="text-slate-700 text-[13px] font-mono leading-relaxed overflow-x-auto whitespace-pre p-2">
-                        {currentQuestion.aiImprovedCode}
-                      </pre>
-                    </div>
-                  )}
-
-                  <div className="bg-slate-50 rounded-2xl p-6 md:p-8 border border-slate-100">
-                    <h5 className="text-[14px] font-bold text-slate-800 mb-4 flex items-center gap-2">
-                      <LayoutGrid size={16} className="text-[#0ea5e9]" />
-                      AI Evaluation Feedback
-                    </h5>
-                    <div className="text-[13.5px] font-medium text-slate-600 leading-relaxed whitespace-pre-wrap">
-                      {currentQuestion.aiFeedback}
+                    <div className="bg-slate-50 rounded-2xl p-6 md:p-8 border border-slate-100">
+                      <h5 className="text-[14px] font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <LayoutGrid size={16} className="text-[#0ea5e9]" />
+                        AI Evaluation Feedback
+                      </h5>
+                      <div className="text-[13.5px] font-medium text-slate-600 leading-relaxed whitespace-pre-wrap">
+                        {currentQuestion.aiFeedback}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
