@@ -136,6 +136,13 @@ export const assessmentApi = createApi({
         body,
       }),
     }),
+    runTestCases: builder.mutation<any, { problemId: number; code: string; languageId: number }>({
+      query: (body) => ({
+        url: "coding/run-testcases",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -151,4 +158,5 @@ export const {
   useUploadChunkMutation,
   useEndRecordingMutation,
   useRecordingPingMutation,
+  useRunTestCasesMutation,
 } = assessmentApi;

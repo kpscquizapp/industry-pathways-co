@@ -68,7 +68,11 @@ const getMenuItems = (role: DashboardRole) => {
           label: "Dashboard",
           href: "/contractor/dashboard",
         },
-        { icon: User, label: "Profile", href: "/contractor/profile/update" },
+        {
+          icon: User,
+          label: "Update Profile",
+          href: "/contractor/profile/update",
+        },
         { icon: Code, label: "Skill Tests", href: "/contractor/tests" },
         // {
         //   icon: Video,
@@ -197,17 +201,17 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
     <Sidebar
       collapsible="icon"
       className="border-none text-slate-300 !bg-[#0B1221]"
-      style={{
-        "--sidebar-background": "221 50% 9%",
-        "--sidebar": "221 50% 9%"
-      } as React.CSSProperties}
+      style={
+        {
+          "--sidebar-background": "221 50% 9%",
+          "--sidebar": "221 50% 9%",
+        } as React.CSSProperties
+      }
     >
       <SidebarHeader className="p-6">
-        {
-          isCollapsed && (
-            <img src={logoIcon} alt="logo icon" className="w-12 h-auto" />
-          )
-        }
+        {isCollapsed && (
+          <img src={logoIcon} alt="logo icon" className="w-12 h-auto" />
+        )}
         <Link to="/" className="flex items-center gap-3">
           {!isCollapsed && (
             <img src={logo} alt="company logo" className="h-auto w-36" />
@@ -250,9 +254,16 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
                     {isActive && (
                       <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-[#00e5ff] rounded-r-md z-10 shadow-[0_0_10px_rgba(0,229,255,0.4)]" />
                     )}
-                    <item.icon className={cn("!w-[20px] !h-[20px] flex-shrink-0 z-10 transition-colors", isActive ? "" : "group-hover/menuBtn:text-[#00e5ff]")} />
+                    <item.icon
+                      className={cn(
+                        "!w-[20px] !h-[20px] flex-shrink-0 z-10 transition-colors",
+                        isActive ? "" : "group-hover/menuBtn:text-[#00e5ff]",
+                      )}
+                    />
                     {!isCollapsed && (
-                      <span className="font-semibold text-[14px] ml-4 z-10 transition-colors">{item.label}</span>
+                      <span className="font-semibold text-[14px] ml-4 z-10 transition-colors">
+                        {item.label}
+                      </span>
                     )}
                     {item.isAI && !isCollapsed && (
                       <span className="ml-auto px-2 py-0.5 text-[10px] bg-[rgba(0,229,255,0.1)] text-[#00e5ff] rounded-full font-bold">
@@ -273,7 +284,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
             <button
               className={cn(
                 "flex items-center w-full p-2.5 rounded-2xl hover:bg-white/5 transition-colors bg-[#111928] border border-transparent hover:border-white/10",
-                isCollapsed ? "justify-center" : "gap-3"
+                isCollapsed ? "justify-center" : "gap-3",
               )}
             >
               <Avatar className="h-10 w-10 bg-cyan-900/40 flex-shrink-0 rounded-xl">
@@ -306,7 +317,11 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" className="w-56 bg-[#0B1221] border-[#1c2e3d] text-slate-300 shadow-2xl shadow-black/50 font-inter">
+          <DropdownMenuContent
+            align="end"
+            side="top"
+            className="w-56 bg-[#0B1221] border-[#1c2e3d] text-slate-300 shadow-2xl shadow-black/50 font-inter"
+          >
             <DropdownMenuItem
               onClick={handleProfile}
               className="focus:bg-[#112433] focus:text-[#00e5ff]/80 cursor-pointer transition-colors"
@@ -355,7 +370,10 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
         <div className="flex-1 flex flex-col min-w-0">
           <header className="sticky top-0 z-40 h-16 bg-background border-b border-border flex items-center justify-between px-2 sm:px-6">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="text-muted-foreground hover:bg-[#0b1221]/10" title="Toggle Sidebar" />
+              <SidebarTrigger
+                className="text-muted-foreground hover:bg-[#0b1221]/10"
+                title="Toggle Sidebar"
+              />
             </div>
 
             {/* <div className="flex items-center gap-3">

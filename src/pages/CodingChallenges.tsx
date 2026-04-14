@@ -29,6 +29,7 @@ import {
   useStartSessionMutation,
   useEndSessionMutation,
   useLogViolationMutation,
+  useRunTestCasesMutation,
 } from "@/app/queries/assessmentApi";
 
 type TestStatus = "loading" | "instructions" | "active" | "completed" | "expired" | "error";
@@ -138,6 +139,7 @@ const CodingChallenge: React.FC = () => {
   const [startSessionMutation] = useStartSessionMutation();
   const [endSessionMutation] = useEndSessionMutation();
   const [logViolationMutation] = useLogViolationMutation();
+  const [runTestCases] = useRunTestCasesMutation();
   const user = useAppSelector((state) => state.user.userDetails);
 
   const hasMountedRef = useRef(false);
@@ -490,54 +492,72 @@ const CodingChallenge: React.FC = () => {
     setCode(newCode);
   };
 
-  const simulateTestRun = () => {
-    // Simulate running tests with mock results
-    return new Promise<TestCase[]>((resolve) => {
-      setTimeout(() => {
-        // Support both naming schemes
-        const problemTests = currentProblem?.testcases || currentProblem?.testCases || [];
-        const results: TestCase[] = problemTests.map((tc, idx) => ({
-          ...tc,
-          actualOutput: idx === 0 ? "1" : "2",
-          passed: true,
-          runtime: Math.floor(Math.random() * 50) + 10,
-          memory: Math.floor(Math.random() * 1024) + 512,
-        }));
-        resolve(results);
-      }, 2000);
-    });
+  const getLanguageId = (lang: SupportedLanguage): number => {
+    const mapping: Record<SupportedLanguage, number> = {
+      [SupportedLanguage.JAVASCRIPT]: 63,
+      [SupportedLanguage.TYPESCRIPT]: 74,
+      [SupportedLanguage.PYTHON]: 71,
+      [SupportedLanguage.JAVA]: 62,
+      [SupportedLanguage.CPP]: 54,
+    };
+    return mapping[lang] || 63;
   };
 
   const handleRunCode = async () => {
+    if (!currentProblem) return;
+    
     setIsRunning(true);
     setError(undefined);
     setTestCases([]);
 
     try {
-      const results = await simulateTestRun();
-      setTestCases(results);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const result = await runTestCases({
+        problemId: Number(currentProblem.id),
+        code: code,
+        languageId: getLanguageId(language)
+      }).unwrap();
+
+      if (result.success) {
+        setTestCases(result.data?.testCases || []);
+      } else {
+        setError(result.message || "Execution failed");
+      }
+    } catch (err: any) {
+      setError(err?.data?.message || err.message || "An error occurred during execution");
     } finally {
       setIsRunning(false);
     }
   };
 
   const handleSubmit = async () => {
+    if (!currentProblem) return;
+
     setIsRunning(true);
     setError(undefined);
     setTestCases([]);
 
     try {
-      const results = await simulateTestRun();
-      setTestCases(results);
+      const result = await runTestCases({
+        problemId: Number(currentProblem.id),
+        code: code,
+        languageId: getLanguageId(language)
+      }).unwrap();
 
-      const allPassed = results.every((tc) => tc.passed);
-      if (allPassed) {
-        toast.success("All test cases passed! Submission successful.");
+      if (result.success) {
+        const results = result.data?.testCases || [];
+        setTestCases(results);
+        
+        const allPassed = results.every((tc: any) => tc.passed);
+        if (allPassed) {
+          toast.success("All test cases passed!");
+        } else {
+          toast.error("Some test cases failed.");
+        }
+      } else {
+        setError(result.message || "Submission failed");
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+    } catch (err: any) {
+      setError(err?.data?.message || err.message || "An error occurred during submission");
     } finally {
       setIsRunning(false);
     }

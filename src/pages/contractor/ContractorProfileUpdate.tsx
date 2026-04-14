@@ -19,6 +19,9 @@ import {
   FileText,
   Code,
   AlignLeft,
+  CheckSquare,
+  Check,
+  PencilLine,
 } from "lucide-react";
 import {
   useGetCandidateProfileImageQuery,
@@ -34,7 +37,13 @@ import {
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
@@ -54,6 +63,12 @@ type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type Skill = {
   id: number;
   name: string;
+};
+
+type ExtractedSkill = {
+  id: string;
+  name: string;
+  isPrimary: boolean;
 };
 
 type WorkExperienceForm = {
@@ -100,6 +115,7 @@ interface FormDataState {
   bio: string;
   yearsExperience: string | number;
   primarySkills: string[];
+  secondarySkills: string[];
   primaryJobRole: string;
   availableToJoin: string;
   englishProficiency: string;
@@ -130,6 +146,7 @@ interface CandidateProfileUpdateProps {
       bio?: string;
       yearsExperience?: string | number;
       primarySkills?: Skill[];
+      secondarySkills?: any[];
       primaryJobRole?: string;
       availableToJoin?: string;
       englishProficiency?: string;
@@ -383,13 +400,31 @@ const VALIDATION = {
 };
 
 // ==================== UI HELPERS ====================
-const DashCard = ({ children, className = "", noPadding = false }: { children: React.ReactNode; className?: string; noPadding?: boolean }) => (
-  <div className={`bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300 ${noPadding ? "" : "p-4 sm:p-6 md:p-8"} ${className}`}>
+const DashCard = ({
+  children,
+  className = "",
+  noPadding = false,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  noPadding?: boolean;
+}) => (
+  <div
+    className={`bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300 ${noPadding ? "" : "p-4 sm:p-6 md:p-8"} ${className}`}
+  >
     {children}
   </div>
 );
 
-const SectionTitle = ({ icon, title, action }: { icon?: React.ReactNode, title: string, action?: React.ReactNode }) => (
+const SectionTitle = ({
+  icon,
+  title,
+  action,
+}: {
+  icon?: React.ReactNode;
+  title: string;
+  action?: React.ReactNode;
+}) => (
   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 mb-6">
     <div className="flex items-center gap-3 text-gray-900 dark:text-white">
       {icon && <div className="text-gray-400 dark:text-gray-500">{icon}</div>}
@@ -403,7 +438,10 @@ const SectionTitle = ({ icon, title, action }: { icon?: React.ReactNode, title: 
 const CandidateProfileUpdate = (): JSX.Element => {
   // API calls
   const { token, userDetails } = useSelector((state: RootState) => state.user);
-  const { data: response, isLoading: isLoadingProfile } = useGetProfileQuery(undefined, { skip: !token });
+  const { data: response, isLoading: isLoadingProfile } = useGetProfileQuery(
+    undefined,
+    { skip: !token },
+  );
   const data = response?.data;
 
   const [updateProfile, { isLoading: isUpdating, isError: updateError }] =
@@ -458,41 +496,39 @@ const CandidateProfileUpdate = (): JSX.Element => {
     Record<string, ReturnType<typeof setTimeout>>
   >({});
 
+  const [extractedSkills, setExtractedSkills] = useState<ExtractedSkill[]>([]);
+  const [editingExtractedSkillId, setEditingExtractedSkillId] = useState<
+    string | null
+  >(null);
+  const [editingExtractedSkillName, setEditingExtractedSkillName] =
+    useState("");
+  const [isEditingPrimarySkills, setIsEditingPrimarySkills] = useState(false);
+  const [showPrimarySkillsDisplay, setShowPrimarySkillsDisplay] =
+    useState(false);
+  const processedResumeDataRef = useRef<any>(null);
+
   useEffect(() => {
     preferredLocationsDirtyRef.current = false;
   }, [data?.id]);
 
   const normalizeSkill = (value: string) => value.toLowerCase().trim();
 
-  const skills = useMemo(() => {
-    // Get resume skills (priority)
-    const resumeSkills = Array.isArray(resumeData)
-      ? resumeData.filter(
-        (s): s is string => typeof s === "string" && s.trim() !== "",
-      )
-      : [];
-
-    // Get profile skills
-    const profileSkills =
+  const profileSkills = useMemo(() => {
+    // Get profile skills ONLY
+    const profileSkillsList =
       data?.candidateProfile?.primarySkills
         ?.map((skill) => (typeof skill === "string" ? skill : skill.name))
         .filter((s): s is string => typeof s === "string" && s.trim() !== "") ||
       [];
 
-    // Combine with resume skills first, then profile skills
-    const combined = [...resumeSkills, ...profileSkills];
-
-    // Remove duplicates (case-insensitive comparison)
-    const unique = combined.filter(
+    return profileSkillsList.filter(
       (skill, index, self) =>
         index ===
         self.findIndex(
           (s) => s.toLowerCase().trim() === skill.toLowerCase().trim(),
         ),
     );
-
-    return unique;
-  }, [data, resumeData]);
+  }, [data]);
 
   const workExperiences = useMemo(
     () =>
@@ -590,6 +626,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
         bio: "",
         yearsExperience: "",
         primarySkills: [],
+        secondarySkills: [],
         primaryJobRole: "",
         availableToJoin: "",
         englishProficiency: "",
@@ -614,7 +651,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
       candidateType: data?.candidateProfile.candidateType || "",
       bio: data?.candidateProfile.bio || "",
       yearsExperience: data?.candidateProfile.yearsExperience ?? "",
-      primarySkills: skills || [],
+      primarySkills: profileSkills || [],
+      secondarySkills:
+        data?.candidateProfile.secondarySkills
+          ?.map((s: any) => (typeof s === "string" ? s : s.name))
+          .filter((s: string) => !!s) || [],
       primaryJobRole: data?.candidateProfile.primaryJobRole || "",
       availableToJoin: data?.candidateProfile.availableToJoin || "",
       englishProficiency: data?.candidateProfile.englishProficiency ?? "",
@@ -635,7 +676,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
       projects: projects || [],
       certifications: certification || [],
     };
-  }, [data, skills, workExperiences, projects, certification]);
+  }, [data, profileSkills, workExperiences, projects, certification]);
 
   const [formData, setFormData] = useState<FormDataState>(handleForm);
 
@@ -678,30 +719,90 @@ const CandidateProfileUpdate = (): JSX.Element => {
   }, [data, handleForm, teardownPendingRemovals]);
 
   useEffect(() => {
-    if (!data) return;
+    const validResumeSkills = Array.isArray(resumeData)
+      ? resumeData.filter(
+          (s): s is string => typeof s === "string" && s.trim() !== "",
+        )
+      : [];
 
-    // Compute the authoritative primary skills list from parsed resumes and profile
-    // This is idempotent - it replaces formData.primarySkills with the computed set
-    // rather than appending, so deleted/removed skills are properly cleaned up
-    setFormData((prev) => {
-      const normalizedSkills = skills
-        .map((s) => normalizeSkill(s))
-        .filter(Boolean);
-      const normalizedPrev = prev.primarySkills.map((s) => normalizeSkill(s));
+    if (
+      validResumeSkills.length > 0 &&
+      JSON.stringify(validResumeSkills) !==
+        JSON.stringify(processedResumeDataRef.current)
+    ) {
+      processedResumeDataRef.current = validResumeSkills;
+      setShowPrimarySkillsDisplay(true);
 
-      // Check if skills have actually changed (for performance optimization)
-      const skillsChanged =
-        normalizedSkills.length !== normalizedPrev.length ||
-        !normalizedSkills.every((s) => normalizedPrev.includes(s));
+      setFormData((prev) => {
+        const currentPrimary = [...prev.primarySkills];
+        const newExtractedObjects: ExtractedSkill[] = [];
 
-      if (!skillsChanged) return prev;
+        let checkedCount = 0;
 
-      return {
-        ...prev,
-        primarySkills: skills,
-      };
-    });
-  }, [data, skills]);
+        validResumeSkills.forEach((skill) => {
+          const normalized = normalizeSkill(skill);
+          const inPrimary = currentPrimary.some(
+            (p) => normalizeSkill(p) === normalized,
+          );
+          if (inPrimary) {
+            checkedCount++;
+            const actualName =
+              currentPrimary.find((p) => normalizeSkill(p) === normalized) ||
+              skill;
+            newExtractedObjects.push({
+              id: createLocalId("ext"),
+              name: actualName,
+              isPrimary: true,
+            });
+          }
+        });
+
+        validResumeSkills.forEach((skill) => {
+          const normalized = normalizeSkill(skill);
+          const inPrimary = currentPrimary.some(
+            (p) => normalizeSkill(p) === normalized,
+          );
+          if (!inPrimary) {
+            if (checkedCount < 5) {
+              currentPrimary.push(skill);
+              newExtractedObjects.push({
+                id: createLocalId("ext"),
+                name: skill,
+                isPrimary: true,
+              });
+              checkedCount++;
+            } else {
+              newExtractedObjects.push({
+                id: createLocalId("ext"),
+                name: skill,
+                isPrimary: false,
+              });
+            }
+          }
+        });
+
+        setTimeout(() => {
+          setExtractedSkills((prevExt) => {
+            const updated = [...prevExt];
+            newExtractedObjects.forEach((newObj) => {
+              const existing = updated.find(
+                (u) => normalizeSkill(u.name) === normalizeSkill(newObj.name),
+              );
+              // Important: we only update/add if missing to prevent losing edit status if component re-runs
+              if (!existing) {
+                updated.push(newObj);
+              } else {
+                existing.isPrimary = newObj.isPrimary;
+              }
+            });
+            return updated;
+          });
+        }, 0);
+
+        return { ...prev, primarySkills: currentPrimary };
+      });
+    }
+  }, [resumeData]);
 
   useEffect(() => {
     return () => {
@@ -824,6 +925,59 @@ const CandidateProfileUpdate = (): JSX.Element => {
     preferredLocationsDirtyRef.current = true;
   };
 
+  const addSecondarySkill = () => {
+    const name = skillInput.trim();
+
+    if (!name) {
+      toast.error("Please enter a skill name");
+      return;
+    }
+
+    if (name.length > 50) {
+      toast.error("Skill name must be less than 50 characters");
+      return;
+    }
+
+    if (formData.secondarySkills.length >= 50) {
+      toast.error("You can add a maximum of 50 secondary skills");
+      return;
+    }
+
+    // Check if skill already exists in either primary or secondary
+    if (
+      formData.secondarySkills.some(
+        (skill) => skill.toLowerCase() === name.toLowerCase(),
+      )
+    ) {
+      toast.error("This skill has already been added to secondary skills");
+      return;
+    }
+
+    if (
+      formData.primarySkills.some(
+        (skill) => skill.toLowerCase() === name.toLowerCase(),
+      )
+    ) {
+      toast.error("This skill is already in primary skills");
+      return;
+    }
+
+    setFormData((prevData) => ({
+      ...prevData,
+      secondarySkills: [...prevData.secondarySkills, name],
+    }));
+    setSkillInput("");
+
+    // Clear secondary skills error if it exists
+    if (fieldErrors.secondarySkills) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.secondarySkills;
+        return newErrors;
+      });
+    }
+  };
+
   const addSkill = () => {
     const name = skillInput.trim();
 
@@ -857,6 +1011,14 @@ const CandidateProfileUpdate = (): JSX.Element => {
     }));
     setSkillInput("");
 
+    setExtractedSkills((prev) =>
+      prev.map((sk) =>
+        normalizeSkill(sk.name) === normalizeSkill(name)
+          ? { ...sk, isPrimary: true }
+          : sk,
+      ),
+    );
+
     // Clear skills error if it exists
     if (fieldErrors.primarySkills) {
       setFieldErrors((prev) => {
@@ -880,7 +1042,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
         typeof skill === "string"
           ? skill.toLowerCase() === skillToRemove.toLowerCase()
           : (skill as { name: string }).name.toLowerCase() ===
-          skillToRemove.toLowerCase(),
+            skillToRemove.toLowerCase(),
     );
 
     // Guard clause: skill not found (local, not persisted)
@@ -904,6 +1066,13 @@ const CandidateProfileUpdate = (): JSX.Element => {
             (s) => s.toLowerCase() !== localName.toLowerCase(),
           ),
         }));
+        setExtractedSkills((prev) =>
+          prev.map((sk) =>
+            normalizeSkill(sk.name) === normalizeSkill(localName)
+              ? { ...sk, isPrimary: false }
+              : sk,
+          ),
+        );
         setRemovingSkillId(null);
         delete removeSkillTimeoutsRef.current[timerKey];
       }, 180);
@@ -921,6 +1090,13 @@ const CandidateProfileUpdate = (): JSX.Element => {
           (s) => s.toLowerCase() !== skillToRemove.toLowerCase(),
         ),
       }));
+      setExtractedSkills((prev) =>
+        prev.map((sk) =>
+          normalizeSkill(sk.name) === normalizeSkill(skillToRemove)
+            ? { ...sk, isPrimary: false }
+            : sk,
+        ),
+      );
     } catch (err) {
       const error = err as { data?: { message?: string }; message?: string };
       const errorMessage =
@@ -931,8 +1107,140 @@ const CandidateProfileUpdate = (): JSX.Element => {
     }
   };
 
+  const removeSecondarySkill = (skillToRemove: string) => {
+    if (formData.primarySkills.length + formData.secondarySkills.length <= 1) {
+      toast.warning("You must keep at least one skill.");
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      secondarySkills: prev.secondarySkills.filter(
+        (s) => s.toLowerCase() !== skillToRemove.toLowerCase(),
+      ),
+    }));
+    toast.success("Secondary skill removed");
+  };
+
   const createLocalId = (prefix = "local") =>
     `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  const handleToggleExtractedSkill = (id: string, check: boolean) => {
+    const skill = extractedSkills.find((s) => s.id === id);
+    if (!skill) return;
+
+    if (check) {
+      const currentlyChecked = extractedSkills.filter(
+        (s) => s.isPrimary,
+      ).length;
+      if (currentlyChecked >= 5) {
+        toast.error(
+          "You can only select up to 5 extracted skills as primary. Please uncheck one first.",
+        );
+        return;
+      }
+      if (formData.primarySkills.length >= 50) {
+        toast.error("You can add a maximum of 50 primary skills.");
+        return;
+      }
+
+      setFormData((prev) => {
+        const newPrimary = [...prev.primarySkills];
+        if (
+          !newPrimary.some(
+            (s) => normalizeSkill(s) === normalizeSkill(skill.name),
+          )
+        ) {
+          newPrimary.push(skill.name);
+        }
+        return { ...prev, primarySkills: newPrimary };
+      });
+      setExtractedSkills((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, isPrimary: true } : s)),
+      );
+    } else {
+      if (formData.primarySkills.length <= 1) {
+        toast.warning("You must have at least one primary skill overall");
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        primarySkills: prev.primarySkills.filter(
+          (s) => normalizeSkill(s) !== normalizeSkill(skill.name),
+        ),
+      }));
+      setExtractedSkills((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, isPrimary: false } : s)),
+      );
+    }
+  };
+
+  const saveExtractedSkillEdit = (id: string) => {
+    const skill = extractedSkills.find((s) => s.id === id);
+    if (!skill) return;
+    const newName = editingExtractedSkillName.trim();
+    if (!newName) {
+      toast.error("Skill name cannot be empty");
+      return;
+    }
+    if (newName.length > 50) {
+      toast.error("Skill name must be less than 50 characters");
+      return;
+    }
+
+    if (
+      extractedSkills.some(
+        (s) =>
+          s.id !== id && normalizeSkill(s.name) === normalizeSkill(newName),
+      )
+    ) {
+      toast.error("This skill already exists in extracted skills");
+      return;
+    }
+
+    setExtractedSkills((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, name: newName } : s)),
+    );
+
+    if (skill.isPrimary) {
+      setFormData((prev) => ({
+        ...prev,
+        primarySkills: prev.primarySkills.map((s) =>
+          normalizeSkill(s) === normalizeSkill(skill.name) ? newName : s,
+        ),
+      }));
+    }
+
+    setEditingExtractedSkillId(null);
+    setEditingExtractedSkillName("");
+  };
+
+  const deleteExtractedSkill = (id: string) => {
+    const skill = extractedSkills.find((s) => s.id === id);
+    if (!skill) return;
+
+    const totalSkills =
+      formData.primarySkills.length + formData.secondarySkills.length;
+    if (totalSkills <= 1) {
+      toast.warning("You must keep at least one skill.");
+      return;
+    }
+
+    if (skill.isPrimary && formData.primarySkills.length <= 1) {
+      toast.warning("You must have at least one primary skill overall");
+      return;
+    }
+
+    setExtractedSkills((prev) => prev.filter((s) => s.id !== id));
+
+    if (skill.isPrimary) {
+      setFormData((prev) => ({
+        ...prev,
+        primarySkills: prev.primarySkills.filter(
+          (s) => normalizeSkill(s) !== normalizeSkill(skill.name),
+        ),
+      }));
+    }
+  };
 
   const addWorkExperience = () => {
     setFormData((prev) => ({
@@ -1450,6 +1758,17 @@ const CandidateProfileUpdate = (): JSX.Element => {
       primaryJobRole: formData.primaryJobRole.trim(),
       bio: formData.bio.trim(),
       primarySkills: formData.primarySkills,
+      secondarySkills: Array.from(
+        new Set([
+          ...formData.secondarySkills,
+          ...extractedSkills.filter((s) => !s.isPrimary).map((s) => s.name),
+        ]),
+      ).filter(
+        (sec) =>
+          !formData.primarySkills.some(
+            (prim) => prim.toLowerCase().trim() === sec.toLowerCase().trim(),
+          ),
+      ),
       preferredJobLocations: formData.preferredJobLocations,
       hourlyRateMin:
         formData.hourlyRateMin === "" ? null : Number(formData.hourlyRateMin),
@@ -1486,9 +1805,9 @@ const CandidateProfileUpdate = (): JSX.Element => {
           techStack: Array.isArray(project.techStack)
             ? project.techStack
             : String(project.techStack ?? "")
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean),
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean),
         })),
       workExperiences: formData.workExperiences
         .filter(
@@ -1513,6 +1832,8 @@ const CandidateProfileUpdate = (): JSX.Element => {
       preferredLocationsDirtyRef.current = false;
       toast.success("Profile updated successfully!");
       setFieldErrors({}); // Clear all errors on success
+      setIsEditingPrimarySkills(false);
+      setShowPrimarySkillsDisplay(false);
       navigation("/contractor/dashboard");
     } catch (err: unknown) {
       const error = err as {
@@ -1599,7 +1920,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
           }
         },
       },
-      cancel: { label: "Cancel", onClick: () => { } },
+      cancel: { label: "Cancel", onClick: () => {} },
     });
   };
 
@@ -1607,9 +1928,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
     return (
       <div className="flex items-center justify-center gap-4 h-full">
         <SpinnerLoader className="w-10 h-10" />
-        <p className="text-muted-foreground">
-          Loading your profile...
-        </p>
+        <p className="text-muted-foreground">Loading your profile...</p>
       </div>
     );
   }
@@ -1617,14 +1936,18 @@ const CandidateProfileUpdate = (): JSX.Element => {
   return (
     <div className="w-full mx-auto sm:px-6 md:px-2 py-4 sm:py-4 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">
       <div className="mb-6 sm:mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold">Update Profile
-        </h2>
-        <p className="text-muted-foreground my-2">Keep your profile up to date to get the best matches.</p>
+        <h2 className="text-2xl sm:text-3xl font-bold">Update Profile</h2>
+        <p className="text-muted-foreground my-2">
+          Keep your profile up to date to get the best matches.
+        </p>
       </div>
       <div className="space-y-6 sm:space-y-8">
         {/* Profile Image Section */}
         <DashCard>
-          <SectionTitle icon={<Camera className="w-6 h-6" />} title="Profile Image" />
+          <SectionTitle
+            icon={<Camera className="w-6 h-6" />}
+            title="Profile Image"
+          />
           <div className="flex flex-col sm:flex-row items-center gap-6 w-full mt-2">
             <Avatar className="w-24 h-24 sm:w-32 sm:h-32 shadow-lg ring-4 ring-white/90 dark:ring-slate-700/90 relative">
               {isLoadingImage || isRemovingImage || isProfileImageLoading ? (
@@ -1687,7 +2010,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
 
         {/* Resume Section */}
         <DashCard>
-          <SectionTitle icon={<FileText className="w-6 h-6" />} title="Resume" />
+          <SectionTitle
+            icon={<FileText className="w-6 h-6" />}
+            title="Resume"
+          />
           <ResumeManager
             resumes={
               data && data.candidateProfile.resumes
@@ -1697,9 +2023,109 @@ const CandidateProfileUpdate = (): JSX.Element => {
           />
         </DashCard>
 
+        {/* Primary Skills Section - Hidden when editing */}
+        {showPrimarySkillsDisplay &&
+          extractedSkills.length > 0 &&
+          !isEditingPrimarySkills && (
+            <DashCard>
+              <SectionTitle
+                icon={<CheckSquare className="w-5 h-5" />}
+                title="Primary Skills"
+              />
+              <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">
+                Select up to 5 primary skills from your extracted resume.
+                Unchecked skills are kept as secondary skills.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {extractedSkills.map((skill) => {
+                  const isChecked = skill.isPrimary;
+                  return (
+                    <div
+                      key={skill.id}
+                      className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-100 rounded-xl dark:bg-slate-900 dark:border-slate-700"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) =>
+                          handleToggleExtractedSkill(skill.id, e.target.checked)
+                        }
+                        className="w-4 h-4 text-[#4DD9E8] rounded border-gray-300 focus:ring-[#4DD9E8] accent-[#4DD9E8] min-h-0 min-w-0"
+                      />
+                      {editingExtractedSkillId === skill.id ? (
+                        <div className="flex-1 flex gap-2 items-center">
+                          <input
+                            type="text"
+                            value={editingExtractedSkillName}
+                            onChange={(e) =>
+                              setEditingExtractedSkillName(e.target.value)
+                            }
+                            className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded dark:bg-slate-800 dark:border-slate-600 outline-none focus:border-[#4DD9E8]"
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            onClick={() => saveExtractedSkillEdit(skill.id)}
+                            className="text-green-500 hover:text-green-600 transition-colors"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingExtractedSkillId(null);
+                              setEditingExtractedSkillName("");
+                            }}
+                            className="text-gray-400 hover:text-gray-500 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex-1 flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {skill.name}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingExtractedSkillId(skill.id);
+                                setEditingExtractedSkillName(skill.name);
+                              }}
+                              className="text-gray-400 hover:text-[#4DD9E8] transition-colors"
+                            >
+                              <PencilLine className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteExtractedSkill(skill.id)}
+                              className="text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {extractedSkills.filter((s) => s.isPrimary).length > 0 && (
+                <p className="text-xs font-medium text-gray-400 mt-4">
+                  {extractedSkills.filter((s) => s.isPrimary).length} / 5
+                  primary skills selected from resume
+                </p>
+              )}
+            </DashCard>
+          )}
+
         {/* Basic Information */}
         <DashCard>
-          <SectionTitle icon={<User className="w-5 h-5" />} title="Basic Information" />
+          <SectionTitle
+            icon={<User className="w-5 h-5" />}
+            title="Basic Information"
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-left">
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
@@ -1713,10 +2139,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 maxLength={50}
                 required
                 placeholder="Enter your first name"
-                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.firstName
-                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
+                  fieldErrors.firstName
+                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                    : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.firstName} />
             </div>
@@ -1733,10 +2160,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 maxLength={50}
                 required
                 placeholder="Enter your last name"
-                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.lastName
-                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
+                  fieldErrors.lastName
+                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                    : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.lastName} />
             </div>
@@ -1753,10 +2181,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 maxLength={254}
                 required
                 placeholder="Enter your email address"
-                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.email
-                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
+                  fieldErrors.email
+                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                    : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.email} />
             </div>
@@ -1772,10 +2201,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 onChange={handleInputChange}
                 maxLength={100}
                 placeholder="e.g., Senior Full Stack Developer"
-                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.primaryJobRole
-                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
+                  fieldErrors.primaryJobRole
+                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                    : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.primaryJobRole} />
             </div>
@@ -1791,10 +2221,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 onChange={handleInputChange}
                 maxLength={20}
                 placeholder="Enter your mobile number"
-                className={`w-full md:w-1/2 px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.mobileNumber
-                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                className={`w-full md:w-1/2 px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
+                  fieldErrors.mobileNumber
+                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                    : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.mobileNumber} />
             </div>
@@ -1803,7 +2234,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
 
         {/* Professional Details */}
         <DashCard>
-          <SectionTitle icon={<Briefcase className="w-5 h-5" />} title="Professional Details" />
+          <SectionTitle
+            icon={<Briefcase className="w-5 h-5" />}
+            title="Professional Details"
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-left">
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
@@ -1825,19 +2259,28 @@ const CandidateProfileUpdate = (): JSX.Element => {
               </Label>
               <Select
                 value={formData.candidateType}
-                onValueChange={(val) => handleInputChange({ target: { name: "candidateType", value: val } } as any)}
+                onValueChange={(val) =>
+                  handleInputChange({
+                    target: { name: "candidateType", value: val },
+                  } as any)
+                }
               >
                 <SelectTrigger
-                  className={`w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.candidateType
-                    ? "ring-rose-500 dark:ring-rose-500 focus:border-rose-500"
-                    : "ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700"
-                    } focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none`}
+                  className={`w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
+                    fieldErrors.candidateType
+                      ? "ring-rose-500 dark:ring-rose-500 focus:border-rose-500"
+                      : "ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700"
+                  } focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none`}
                 >
                   <SelectValue placeholder="Select contractor type" />
                 </SelectTrigger>
                 <SelectContent>
                   {candidateTypeOptions.map((option) => (
-                    <SelectItem key={option} value={option} className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">
+                    <SelectItem
+                      key={option}
+                      value={option}
+                      className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600"
+                    >
                       {option}
                     </SelectItem>
                   ))}
@@ -1882,14 +2325,22 @@ const CandidateProfileUpdate = (): JSX.Element => {
               </Label>
               <Select
                 value={formData.availableToJoin}
-                onValueChange={(val) => handleInputChange({ target: { name: "availableToJoin", value: val } } as any)}
+                onValueChange={(val) =>
+                  handleInputChange({
+                    target: { name: "availableToJoin", value: val },
+                  } as any)
+                }
               >
                 <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-0 focus:border-[#0ea5e9] focus:ring-offset-0 outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl capitalize shadow-none">
                   <SelectValue placeholder="Select availability" />
                 </SelectTrigger>
                 <SelectContent>
                   {availableToJoinOptions.map((option) => (
-                    <SelectItem key={option} value={option} className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">
+                    <SelectItem
+                      key={option}
+                      value={option}
+                      className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600"
+                    >
                       {option}
                     </SelectItem>
                   ))}
@@ -1903,14 +2354,22 @@ const CandidateProfileUpdate = (): JSX.Element => {
               </Label>
               <Select
                 value={formData.englishProficiency}
-                onValueChange={(val) => handleInputChange({ target: { name: "englishProficiency", value: val } } as any)}
+                onValueChange={(val) =>
+                  handleInputChange({
+                    target: { name: "englishProficiency", value: val },
+                  } as any)
+                }
               >
                 <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-0 focus:border-[#0ea5e9] focus:ring-offset-0 outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl capitalize shadow-none">
                   <SelectValue placeholder="Select proficiency" />
                 </SelectTrigger>
                 <SelectContent>
                   {englishProficiencyOptions.map((option) => (
-                    <SelectItem key={option} value={option} className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">
+                    <SelectItem
+                      key={option}
+                      value={option}
+                      className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600"
+                    >
                       {option}
                     </SelectItem>
                   ))}
@@ -1929,10 +2388,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 onChange={handleInputChange}
                 min="0"
                 max="70"
-                className={`w-full px-4 py-2.5 bg-gray-50 border-0 outline-none ring-1 ring-inset ${fieldErrors.yearsExperience
-                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                  : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 outline-none ring-1 ring-inset ${
+                  fieldErrors.yearsExperience
+                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                    : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.yearsExperience} />
             </div>
@@ -1995,14 +2455,22 @@ const CandidateProfileUpdate = (): JSX.Element => {
               </Label>
               <Select
                 value={formData.currency}
-                onValueChange={(val) => handleInputChange({ target: { name: "currency", value: val } } as any)}
+                onValueChange={(val) =>
+                  handleInputChange({
+                    target: { name: "currency", value: val },
+                  } as any)
+                }
               >
                 <SelectTrigger className="w-full md:w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-0 focus:border-[#0ea5e9] focus:ring-offset-0 outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl shadow-none">
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.keys(currencySymbols).map((curr) => (
-                    <SelectItem key={curr} value={curr} className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">
+                    <SelectItem
+                      key={curr}
+                      value={curr}
+                      className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600"
+                    >
                       {curr}
                     </SelectItem>
                   ))}
@@ -2012,8 +2480,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
 
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
-                Expected Salary (Min){" "}
-                <span className="text-rose-500">*</span>
+                Expected Salary (Min) <span className="text-rose-500">*</span>
               </Label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
@@ -2026,10 +2493,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                   onChange={handleInputChange}
                   min="0"
                   placeholder="Enter your expected salary (min)"
-                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.expectedSalaryMin
-                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                    : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                    } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${
+                    fieldErrors.expectedSalaryMin
+                      ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                      : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                 />
               </div>
               <ErrorMessage error={fieldErrors.expectedSalaryMin} />
@@ -2037,8 +2505,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
 
             <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
-                Expected Salary (Max){" "}
-                <span className="text-rose-500">*</span>
+                Expected Salary (Max) <span className="text-rose-500">*</span>
               </Label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium text-sm">
@@ -2051,10 +2518,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                   onChange={handleInputChange}
                   min="0"
                   placeholder="Enter your expected salary (max)"
-                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 outline-none ring-1 ring-inset ${fieldErrors.expectedSalaryMax
-                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                    : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                    } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 outline-none ring-1 ring-inset ${
+                    fieldErrors.expectedSalaryMax
+                      ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                      : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                 />
               </div>
               <ErrorMessage error={fieldErrors.expectedSalaryMax} />
@@ -2076,10 +2544,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                   placeholder="Enter your hourly rate (min)"
                   min="0"
                   max="10000"
-                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.hourlyRate
-                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                    : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                    } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${
+                    fieldErrors.hourlyRate
+                      ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                      : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                 />
               </div>
             </div>
@@ -2100,20 +2569,28 @@ const CandidateProfileUpdate = (): JSX.Element => {
                   min="0"
                   max="10000"
                   placeholder="Enter your hourly rate (max)"
-                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.hourlyRate
-                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                    : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                    } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${
+                    fieldErrors.hourlyRate
+                      ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                      : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                 />
               </div>
             </div>
-            {fieldErrors.hourlyRate && <div className="sm:col-span-2"><ErrorMessage error={fieldErrors.hourlyRate} /></div>}
+            {fieldErrors.hourlyRate && (
+              <div className="sm:col-span-2">
+                <ErrorMessage error={fieldErrors.hourlyRate} />
+              </div>
+            )}
           </div>
         </DashCard>
 
         {/* Short Bio */}
         <DashCard>
-          <SectionTitle icon={<AlignLeft className="w-5 h-5" />} title="Short Bio" />
+          <SectionTitle
+            icon={<AlignLeft className="w-5 h-5" />}
+            title="Short Bio"
+          />
           <div>
             <textarea
               name="bio"
@@ -2121,10 +2598,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
               onChange={handleInputChange}
               maxLength={1000}
               rows={5}
-              className={`w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.bio
-                ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl text-base leading-relaxed resize-y`}
+              className={`w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ${
+                fieldErrors.bio
+                  ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                  : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+              } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl text-base leading-relaxed resize-y`}
               placeholder="Tell us about yourself, your background, and what you're looking for..."
             />
             <div className="flex justify-between items-center mt-2.5">
@@ -2136,81 +2614,296 @@ const CandidateProfileUpdate = (): JSX.Element => {
           </div>
         </DashCard>
 
-
         <DashCard>
-          <SectionTitle icon={<Code className="w-5 h-5" />} title="Skills & Tech" />
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={skillInput}
-              onChange={(e) => setSkillInput(e.target.value)}
-              onKeyDown={(e) =>
-                e.key === "Enter" && (e.preventDefault(), addSkill())
-              }
-              maxLength={50}
-              placeholder="Add a skill (e.g., TypeScript)"
-              className={`flex-1 px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.primarySkills
-                ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
-            />
-            <Button
-              type="button"
-              onClick={addSkill}
-              className="px-5 py-2.5 bg-[#4DD9E8] text-white rounded-xl hover:bg-[#4DD9E8]/90 transition shadow-sm"
-            >
-              <Plus className="w-5 h-5" />
-            </Button>
-          </div>
-          <ErrorMessage error={fieldErrors.primarySkills} />
+          <SectionTitle
+            icon={<Code className="w-5 h-5" />}
+            title="Skills"
+            action={
+              <Button
+                type="button"
+                onClick={() => {
+                  setIsEditingPrimarySkills(!isEditingPrimarySkills);
+                  if (!isEditingPrimarySkills) {
+                    setEditingExtractedSkillId(null);
+                    setEditingExtractedSkillName("");
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-[#4DD9E8]/10 text-[#288e99] hover:bg-[#4DD9E8]/20 hover:text-[#288e99] rounded-xl transition text-sm shadow-none"
+              >
+                <PencilLine className="w-4 h-4" />
+                {isEditingPrimarySkills ? "Done Editing" : "Edit Primary"}
+              </Button>
+            }
+          />
 
-          <div className="flex flex-wrap gap-2.5 mt-4">
-            {formData.primarySkills.map((name, index) => {
-              const skillObj = data?.candidateProfile?.primarySkills?.find(
-                (s) =>
-                  typeof s === "string"
-                    ? false
-                    : s.name.toLowerCase() === name.toLowerCase(),
-              );
-              const skillId = skillObj?.id ?? null;
-
-              return (
-                <div
-                  key={`${skillId ?? name.toLowerCase()}-${index}`}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#4DD9E8]/10 text-[#288e99] rounded-xl text-sm font-medium"
-                >
-                  {name}
-                  {(() => {
-                    const isRemoving = removingSkillId === (skillId ?? name);
-                    return isRemoving ? (
-                      <div className="ml-2 flex items-center justify-center">
-                        <SpinnerLoader className="text-red-500 w-3 h-3" />
+          {/* Primary Skills Subsection - Only shown when editing */}
+          {isEditingPrimarySkills && (
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-xl">
+              <div className="flex items-center gap-2 mb-3">
+                <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-200">
+                  Edit Skills (Select up to 5 as Primary)
+                </h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  (to update the primary skills please click the update profile
+                  button after done editing)
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Show all primary skills */}
+                {formData.primarySkills.map((skillName, idx) => {
+                  const extractedSkill = extractedSkills.find(
+                    (s) => normalizeSkill(s.name) === normalizeSkill(skillName),
+                  );
+                  return (
+                    <div
+                      key={`primary-${skillName}-${idx}`}
+                      className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 rounded-xl"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={true}
+                        onChange={(e) => {
+                          if (!e.target.checked) {
+                            if (formData.primarySkills.length <= 1) {
+                              toast.warning(
+                                "You must have at least one primary skill overall",
+                              );
+                              return;
+                            }
+                            // Move from primary to secondary
+                            setFormData((prev) => ({
+                              ...prev,
+                              primarySkills: prev.primarySkills.filter(
+                                (s) =>
+                                  s.toLowerCase() !== skillName.toLowerCase(),
+                              ),
+                              secondarySkills: [
+                                ...prev.secondarySkills,
+                                skillName,
+                              ].filter(
+                                (skill, idx, self) =>
+                                  self.findIndex(
+                                    (s) =>
+                                      s.toLowerCase() === skill.toLowerCase(),
+                                  ) === idx,
+                              ),
+                            }));
+                            if (extractedSkill) {
+                              setExtractedSkills((prev) =>
+                                prev.map((s) =>
+                                  s.id === extractedSkill.id
+                                    ? { ...s, isPrimary: false }
+                                    : s,
+                                ),
+                              );
+                            }
+                          }
+                        }}
+                        className="w-4 h-4 text-[#4DD9E8] rounded border-gray-300 focus:ring-[#4DD9E8] accent-[#4DD9E8] min-h-0 min-w-0"
+                      />
+                      <div className="flex-1 flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {skillName}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {extractedSkill && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingExtractedSkillId(extractedSkill.id);
+                                  setEditingExtractedSkillName(
+                                    extractedSkill.name,
+                                  );
+                                }}
+                                className="text-gray-400 hover:text-[#4DD9E8] transition-colors"
+                              >
+                                <PencilLine className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  deleteExtractedSkill(extractedSkill.id)
+                                }
+                                className="text-gray-400 hover:text-red-500 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => removeSkills(name)}
-                        className="hover:text-red-500 transition-colors bg-white/50 dark:bg-black/20 rounded-full p-0.5 min-w-0 min-h-0"
-                        aria-label={`Remove ${name}`}
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    );
-                  })()}
-                </div>
-              );
-            })}
-            {formData.primarySkills.length === 0 && (
-              <p className="text-sm text-gray-400 italic">
-                No skills added yet. Add at least one skill.
+                    </div>
+                  );
+                })}
+
+                {/* Show all secondary skills */}
+                {formData.secondarySkills.map((skillName, idx) => {
+                  const extractedSkill = extractedSkills.find(
+                    (s) => normalizeSkill(s.name) === normalizeSkill(skillName),
+                  );
+                  return (
+                    <div
+                      key={`secondary-${skillName}-${idx}`}
+                      className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 rounded-xl"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={false}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            if (formData.primarySkills.length >= 5) {
+                              toast.error(
+                                "You can only select up to 5 primary skills. Please uncheck one first.",
+                              );
+                              return;
+                            }
+                            // Move from secondary to primary
+                            setFormData((prev) => ({
+                              ...prev,
+                              primarySkills: [...prev.primarySkills, skillName],
+                              secondarySkills: prev.secondarySkills.filter(
+                                (s) =>
+                                  s.toLowerCase() !== skillName.toLowerCase(),
+                              ),
+                            }));
+                            if (extractedSkill) {
+                              setExtractedSkills((prev) =>
+                                prev.map((s) =>
+                                  s.id === extractedSkill.id
+                                    ? { ...s, isPrimary: true }
+                                    : s,
+                                ),
+                              );
+                            }
+                          }
+                        }}
+                        className="w-4 h-4 text-[#4DD9E8] rounded border-gray-300 focus:ring-[#4DD9E8] accent-[#4DD9E8] min-h-0 min-w-0"
+                      />
+                      <div className="flex-1 flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {skillName}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => removeSecondarySkill(skillName)}
+                            className="text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {formData.primarySkills.length > 0 && (
+                <p className="text-xs font-medium text-blue-600 dark:text-blue-300 mt-3">
+                  {formData.primarySkills.length} / 5 primary skills selected
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Primary Skills Display - Always shown when skills exist and not editing */}
+          {!isEditingPrimarySkills && formData.primarySkills.length > 0 && (
+            <div className="mb-6 p-4 bg-[#4DD9E8]/10 dark:bg-[#4DD9E8]/20 border border-[#4DD9E8] dark:border-[#4DD9E8] rounded-xl">
+              <h4 className="text-sm font-semibold text-inherit dark:text-white mb-3">
+                Primary Skills
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {formData.primarySkills.map((skill, index) => (
+                  <div
+                    key={`${skill}-${index}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#4DD9E8]/20 dark:bg-green-900/50 text-[#288e99] dark:text-green-200 rounded-lg text-sm font-medium"
+                  >
+                    {skill}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Secondary Skills Subsection */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+              Secondary Skills
+            </h4>
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={skillInput}
+                onChange={(e) => setSkillInput(e.target.value)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && (e.preventDefault(), addSecondarySkill())
+                }
+                maxLength={50}
+                placeholder="Add a secondary skill (e.g., TypeScript)"
+                className={`flex-1 px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${
+                  fieldErrors.secondarySkills
+                    ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                    : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+              />
+              <Button
+                type="button"
+                onClick={addSecondarySkill}
+                className="px-5 py-2.5 bg-[#4DD9E8] text-white rounded-xl hover:bg-[#4DD9E8]/90 transition shadow-sm"
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
+            </div>
+            <ErrorMessage error={fieldErrors.secondarySkills} />
+
+            <div className="flex flex-wrap gap-2.5">
+              {formData.secondarySkills.map((name, index) => {
+                const skillObj = data?.candidateProfile?.secondarySkills?.find(
+                  (s) =>
+                    typeof s === "string"
+                      ? false
+                      : s.name.toLowerCase() === name.toLowerCase(),
+                );
+                const skillId = skillObj?.id ?? null;
+
+                return (
+                  <div
+                    key={`${skillId ?? name.toLowerCase()}-${index}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#4DD9E8]/10 text-[#288e99] rounded-xl text-sm font-medium"
+                  >
+                    {name}
+                    {(() => {
+                      const isRemoving = removingSkillId === (skillId ?? name);
+                      return isRemoving ? (
+                        <div className="ml-2 flex items-center justify-center">
+                          <SpinnerLoader className="text-red-500 w-3 h-3" />
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => removeSecondarySkill(name)}
+                          className="hover:text-red-500 transition-colors bg-white/50 dark:bg-black/20 rounded-full p-0.5 min-w-0 min-h-0"
+                          aria-label={`Remove ${name}`}
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      );
+                    })()}
+                  </div>
+                );
+              })}
+              {formData.secondarySkills.length === 0 && (
+                <p className="text-sm text-gray-400 italic">
+                  No secondary skills added yet.
+                </p>
+              )}
+            </div>
+            {formData.secondarySkills.length > 0 && (
+              <p className="text-xs font-medium text-gray-400 mt-3">
+                {formData.secondarySkills.length} secondary skills added
               </p>
             )}
           </div>
-          {formData.primarySkills.length > 0 && (
-            <p className="text-xs font-medium text-gray-400 mt-3">
-              {formData.primarySkills.length} / 50 skills added
-            </p>
-          )}
         </DashCard>
 
         {/* Work Experience */}
@@ -2270,14 +2963,21 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       placeholder="Company Name *"
                       value={exp.companyName}
                       onChange={(e) =>
-                        updateWorkExperience(index, "companyName", e.target.value)
+                        updateWorkExperience(
+                          index,
+                          "companyName",
+                          e.target.value,
+                        )
                       }
-                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`workExp_${index}_company`]
-                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                        } focus:ring-2 focus:ring-inset rounded-xl`}
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
+                        fieldErrors[`workExp_${index}_company`]
+                          ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                          : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                      } focus:ring-2 focus:ring-inset rounded-xl`}
                     />
-                    <ErrorMessage error={fieldErrors[`workExp_${index}_company`]} />
+                    <ErrorMessage
+                      error={fieldErrors[`workExp_${index}_company`]}
+                    />
                   </div>
                   <div>
                     <input
@@ -2287,12 +2987,15 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       onChange={(e) =>
                         updateWorkExperience(index, "role", e.target.value)
                       }
-                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`workExp_${index}_role`]
-                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                        } focus:ring-2 focus:ring-inset rounded-xl`}
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
+                        fieldErrors[`workExp_${index}_role`]
+                          ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                          : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                      } focus:ring-2 focus:ring-inset rounded-xl`}
                     />
-                    <ErrorMessage error={fieldErrors[`workExp_${index}_role`]} />
+                    <ErrorMessage
+                      error={fieldErrors[`workExp_${index}_role`]}
+                    />
                   </div>
                 </div>
 
@@ -2308,7 +3011,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                     </SelectTrigger>
                     <SelectContent>
                       {employmentTypeOptions.map((option) => (
-                        <SelectItem key={option} value={option} className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">
+                        <SelectItem
+                          key={option}
+                          value={option}
+                          className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600"
+                        >
                           {option}
                         </SelectItem>
                       ))}
@@ -2336,10 +3043,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       onChange={(e) =>
                         updateWorkExperience(index, "startDate", e.target.value)
                       }
-                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`workExp_${index}_startDate`]
-                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                        } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
+                        fieldErrors[`workExp_${index}_startDate`]
+                          ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                          : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                      } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
                     />
                     <ErrorMessage
                       error={fieldErrors[`workExp_${index}_startDate`]}
@@ -2383,7 +3091,8 @@ const CandidateProfileUpdate = (): JSX.Element => {
 
             {formData.workExperiences.length === 0 && (
               <p className="text-sm text-gray-400 italic text-center py-6 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-200 dark:border-slate-700">
-                No work experience added yet. Click "Add Experience" to get started.
+                No work experience added yet. Click "Add Experience" to get
+                started.
               </p>
             )}
           </div>
@@ -2417,7 +3126,8 @@ const CandidateProfileUpdate = (): JSX.Element => {
                     Project #{index + 1}
                   </h3>
                   {(() => {
-                    const localKey = project?.localId ?? `local-project-${index}`;
+                    const localKey =
+                      project?.localId ?? `local-project-${index}`;
                     const isRemoving =
                       project.id != null
                         ? removingProjectId === project.id
@@ -2444,11 +3154,14 @@ const CandidateProfileUpdate = (): JSX.Element => {
                     type="text"
                     placeholder="Project Title *"
                     value={project.title}
-                    onChange={(e) => updateProject(index, "title", e.target.value)}
-                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`project_${index}_title`]
-                      ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                      : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                      } focus:ring-2 focus:ring-inset rounded-xl`}
+                    onChange={(e) =>
+                      updateProject(index, "title", e.target.value)
+                    }
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
+                      fieldErrors[`project_${index}_title`]
+                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                    } focus:ring-2 focus:ring-inset rounded-xl`}
                   />
                   <ErrorMessage error={fieldErrors[`project_${index}_title`]} />
                 </div>
@@ -2461,10 +3174,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       updateProject(index, "description", e.target.value)
                     }
                     rows={3}
-                    className={`w-full px-4 py-3 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`project_${index}_description`]
-                      ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                      : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                      } focus:ring-2 focus:ring-inset rounded-xl resize-y`}
+                    className={`w-full px-4 py-3 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
+                      fieldErrors[`project_${index}_description`]
+                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                    } focus:ring-2 focus:ring-inset rounded-xl resize-y`}
                   />
                   <ErrorMessage
                     error={fieldErrors[`project_${index}_description`]}
@@ -2503,10 +3217,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                     onChange={(e) =>
                       updateProject(index, "projectUrl", e.target.value)
                     }
-                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`project_${index}_url`]
-                      ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                      : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                      } focus:ring-2 focus:ring-inset rounded-xl`}
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
+                      fieldErrors[`project_${index}_url`]
+                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                    } focus:ring-2 focus:ring-inset rounded-xl`}
                   />
                   <ErrorMessage error={fieldErrors[`project_${index}_url`]} />
                 </div>
@@ -2529,7 +3244,8 @@ const CandidateProfileUpdate = (): JSX.Element => {
 
             {formData.projects.length === 0 && (
               <p className="text-sm text-gray-400 italic text-center py-6 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-200 dark:border-slate-700">
-                No projects added yet. Click "Add Project" to showcase your work.
+                No projects added yet. Click "Add Project" to showcase your
+                work.
               </p>
             )}
           </div>
@@ -2594,10 +3310,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       onChange={(e) =>
                         updateCertification(index, "name", e.target.value)
                       }
-                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_name`]
-                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                        } focus:ring-2 focus:ring-inset rounded-xl`}
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
+                        fieldErrors[`cert_${index}_name`]
+                          ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                          : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                      } focus:ring-2 focus:ring-inset rounded-xl`}
                     />
                     <ErrorMessage error={fieldErrors[`cert_${index}_name`]} />
                   </div>
@@ -2609,10 +3326,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       onChange={(e) =>
                         updateCertification(index, "issuedBy", e.target.value)
                       }
-                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_issuer`]
-                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                        } focus:ring-2 focus:ring-inset rounded-xl`}
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
+                        fieldErrors[`cert_${index}_issuer`]
+                          ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                          : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                      } focus:ring-2 focus:ring-inset rounded-xl`}
                     />
                     <ErrorMessage error={fieldErrors[`cert_${index}_issuer`]} />
                   </div>
@@ -2629,12 +3347,15 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       onChange={(e) =>
                         updateCertification(index, "issueDate", e.target.value)
                       }
-                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_issueDate`]
-                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                        } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
+                        fieldErrors[`cert_${index}_issueDate`]
+                          ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                          : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                      } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
                     />
-                    <ErrorMessage error={fieldErrors[`cert_${index}_issueDate`]} />
+                    <ErrorMessage
+                      error={fieldErrors[`cert_${index}_issueDate`]}
+                    />
                   </div>
                   <div>
                     <Label className="block text-xs font-medium text-gray-500 mb-1.5 dark:text-gray-400">
@@ -2650,12 +3371,15 @@ const CandidateProfileUpdate = (): JSX.Element => {
                           e.target.value || null,
                         )
                       }
-                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_expiryDate`]
-                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                        } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
+                        fieldErrors[`cert_${index}_expiryDate`]
+                          ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                          : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                      } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
                     />
-                    <ErrorMessage error={fieldErrors[`cert_${index}_expiryDate`]} />
+                    <ErrorMessage
+                      error={fieldErrors[`cert_${index}_expiryDate`]}
+                    />
                   </div>
                 </div>
 
@@ -2665,12 +3389,17 @@ const CandidateProfileUpdate = (): JSX.Element => {
                     placeholder="Credential URL (e.g., https://coursera.org/verify/...)"
                     value={cert.credentialUrl}
                     onChange={(e) =>
-                      updateCertification(index, "credentialUrl", e.target.value)
+                      updateCertification(
+                        index,
+                        "credentialUrl",
+                        e.target.value,
+                      )
                     }
-                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_url`]
-                      ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                      : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                      } focus:ring-2 focus:ring-inset rounded-xl`}
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
+                      fieldErrors[`cert_${index}_url`]
+                        ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                        : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
+                    } focus:ring-2 focus:ring-inset rounded-xl`}
                   />
                   <ErrorMessage error={fieldErrors[`cert_${index}_url`]} />
                 </div>
@@ -2679,8 +3408,8 @@ const CandidateProfileUpdate = (): JSX.Element => {
 
             {formData.certifications.length === 0 && (
               <p className="text-sm text-gray-400 italic text-center py-6 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-200 dark:border-slate-700">
-                No certifications added yet. Click "Add Certification" to highlight
-                your credentials.
+                No certifications added yet. Click "Add Certification" to
+                highlight your credentials.
               </p>
             )}
           </div>
@@ -2716,6 +3445,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
               setFormData(handleForm());
               setFieldErrors({}); // Clear errors on cancel
               setLocationInput("");
+              setIsEditingPrimarySkills(false);
               preferredLocationsDirtyRef.current = false;
               toast.info("Changes discarded");
             }}

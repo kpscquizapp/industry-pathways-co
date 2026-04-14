@@ -37,13 +37,13 @@ class LazyErrorBoundary extends Component<Props, State> {
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600"
+              className="rounded bg-[#1d6685] px-6 py-2 text-white hover:bg-[#1d6685]/90"
             >
               Reload Page
             </button>
             <Link
               to="/"
-              className="ml-2 rounded bg-gray-300 px-6 py-2 text-gray-800 hover:bg-gray-400"
+              className="ml-2 rounded bg-gray-300 px-6 py-2.5 text-gray-800 hover:bg-gray-400"
             >
               Go Home
             </Link>
