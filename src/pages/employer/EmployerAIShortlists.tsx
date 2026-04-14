@@ -12,6 +12,7 @@ import {
   User,
   ArrowRight,
   ChevronDown,
+  Clock,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
@@ -594,361 +596,216 @@ const EmployerAIShortlists = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Overview Banner */}
-      <Card className="bg-primary/5 border-primary/20">
-        <CardContent className="p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center">
-                <Sparkles className="h-7 w-7 text-primary-foreground" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-foreground">
-                  {filteredCandidates.length} Candidates
-                </h2>
-                <p className="text-muted-foreground">
-                  {activeTab === "matched"
-                    ? `Matched Candidates`
-                    : activeTab === "shortlisted"
-                      ? `Shortlisted Candidates`
-                      : `For your active job postings`}
-                  {searchTerm && ` (Search: "${searchTerm}")`}
-                </p>
-              </div>
-            </div>
-            {/* <Button
-              className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground"
-              onClick={handleRefreshMatches}
-              disabled={!shouldFetchMatches || matchesLoading}
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh Matches
-            </Button> */}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 items-center">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search candidates by name..."
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-10 rounded-xl"
-            />
+    <div className="min-h-screen bg-[#f2f5fa] font-sans">
+      {/* Header */}
+      <div className="bg-white px-4 sm:px-8 py-2.5 sm:py-3.5 border-b border-gray-100 flex justify-between items-center sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <SidebarTrigger className="text-muted-foreground hover:bg-gray-100 shrink-0" title="Toggle Sidebar" />
+          <div>
+            <h1 className="text-lg sm:text-[22px] font-bold text-gray-900 leading-tight">Talent Pipeline</h1>
+            <p className="text-gray-500 text-sm mt-1 text-[13px] hidden sm:block">Manage, assess, and move candidates through your hiring process.</p>
           </div>
         </div>
-
-        <Select value={selectedJob} onValueChange={handleSelectedJobChange}>
-          <SelectTrigger className="w-[200px] rounded-xl">
-            <SelectValue placeholder="Select a job" />
-          </SelectTrigger>
-          <SelectContent>
-            {jobsLoading && (
-              <SelectItem value="__loading__" disabled>
-                Loading jobs...
-              </SelectItem>
-            )}
-            {!jobsLoading && employerJobs.length === 0 && (
-              <SelectItem value="__none__" disabled>
-                No jobs found
-              </SelectItem>
-            )}
-            {employerJobs.map((job) => (
-              <SelectItem key={job.id} value={String(job.id)}>
-                {job.title ?? "Untitled Job"}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* <Button
-          variant="outline"
-          className="rounded-xl"
-          onClick={handleLoadMoreJobs}
-          disabled={jobsLoading || !hasMoreEmployerJobs}
-        >
-          <ChevronDown className="h-4 w-4 mr-2" />
-          {hasMoreEmployerJobs ? "Load More Jobs" : "All Jobs Loaded"}
-        </Button> */}
-
-        {/* <Button variant="outline" className="rounded-xl">
-          <Filter className="h-4 w-4 mr-2" />
-          More Filters
+        <Button className="bg-[#08b8cc] hover:bg-[#07a3b5] text-white rounded-md font-semibold text-sm px-4 h-9 shadow-sm">
+          + Add Candidate
         </Button>
-
-        <Button variant="outline" className="rounded-xl">
-          <Download className="h-4 w-4 mr-2" />
-          Export CSV
-        </Button> */}
       </div>
 
-      {/* Stages Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-muted/50 rounded-xl p-1">
-          <TabsTrigger value="all" className="rounded-lg px-6">
-            All ({counts.all})
-          </TabsTrigger>
-          <TabsTrigger value="matched" className="rounded-lg px-6">
-            Matched ({counts.matched})
-          </TabsTrigger>
-          <TabsTrigger value="shortlisted" className="rounded-lg px-6">
-            Shortlisted ({counts.shortlisted})
-          </TabsTrigger>
-        </TabsList>
+      <div className="px-8 mt-6 max-w-[1400px] mx-auto">
+        {/* Stages Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="bg-transparent border-b border-gray-200 w-full justify-start h-auto p-0 gap-8 rounded-none">
+            <TabsTrigger 
+              value="all" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-[#08b8cc] data-[state=active]:text-[#08b8cc] data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none px-0 py-3 text-gray-500 font-semibold text-sm transition-none"
+            >
+              All Candidates <span className="ml-2 text-[10px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{counts.all}</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="matched" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-[#08b8cc] data-[state=active]:text-[#08b8cc] data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none px-0 py-3 text-gray-500 font-semibold text-sm transition-none"
+            >
+              Matched Candidates <span className="ml-2 text-[10px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{counts.matched}</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="shortlisted" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-[#08b8cc] data-[state=active]:text-[#08b8cc] data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none px-0 py-3 text-gray-500 font-semibold text-sm transition-none"
+            >
+              Shortlisted <span className="ml-2 text-[10px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{counts.shortlisted}</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value={activeTab} className="mt-6">
-          <div className="grid gap-4">
-            {matchesLoading && (
-              <Card className="border-dashed">
-                <CardContent className="p-6 text-center text-muted-foreground">
-                  Loading AI matches...
-                </CardContent>
-              </Card>
-            )}
-            {!matchesLoading && matchesError && (
-              <Card className="border-dashed">
-                <CardContent className="p-6 text-center text-muted-foreground">
-                  Failed to load AI matches. Please try again.
-                </CardContent>
-              </Card>
-            )}
-            {!matchesLoading && !matchesError && !shouldFetchMatches && (
-              <Card className="border-dashed">
-                <CardContent className="p-6 text-center text-muted-foreground">
-                  Select a job to see AI matched candidates.
-                </CardContent>
-              </Card>
-            )}
-            {!matchesLoading &&
-              !matchesError &&
-              !jobsLoading &&
-              shouldFetchMatches &&
-              jobRelevantCandidates.length === 0 && (
-                <Card className="border-dashed">
-                  <CardContent className="p-6 text-center text-muted-foreground">
-                    No candidates matching this job found.
-                  </CardContent>
-                </Card>
+          <TabsContent value={activeTab} className="mt-6 outline-none">
+            {/* Filters */}
+            <div className="flex flex-wrap gap-3 items-center mb-6">
+              <div className="relative flex-1 min-w-[260px] max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by name, skill, or role..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="pl-9 h-10 rounded-md border-gray-200 text-sm focus-visible:ring-1 focus-visible:ring-[#08b8cc] bg-white"
+                />
+              </div>
+
+              <Select value={selectedJob} onValueChange={handleSelectedJobChange}>
+                <SelectTrigger className="w-[200px] h-10 rounded-md border-gray-200 text-sm bg-white font-medium text-gray-700">
+                  <SelectValue placeholder="Select a job" />
+                </SelectTrigger>
+                <SelectContent className="rounded-md">
+                  {jobsLoading && (
+                    <SelectItem value="__loading__" disabled>Loading jobs...</SelectItem>
+                  )}
+                  {!jobsLoading && employerJobs.length === 0 && (
+                    <SelectItem value="__none__" disabled>No jobs found</SelectItem>
+                  )}
+                  {employerJobs.map((job) => (
+                    <SelectItem key={job.id} value={String(job.id)}>{job.title ?? "Untitled Job"}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Static UI Filters to match design */}
+              <div className="px-4 h-10 rounded-md border border-gray-200 flex items-center justify-between gap-3 bg-white text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50">
+                All Status <ChevronDown className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="px-4 h-10 rounded-md border border-gray-200 flex items-center justify-between gap-3 bg-white text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50">
+                AI Score: All <ChevronDown className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="px-4 h-10 rounded-md border border-gray-200 flex items-center justify-between gap-3 bg-white text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50">
+                Location: All <ChevronDown className="h-4 w-4 text-gray-400" />
+              </div>
+              
+              <Button variant="outline" className="ml-auto h-10 rounded-md border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-gray-500"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                Bulk Actions
+              </Button>
+            </div>
+
+            <div className="grid gap-3">
+              {matchesLoading && (
+                <div className="p-6 text-center text-muted-foreground border rounded-lg bg-white">Loading AI matches...</div>
               )}
-            {!matchesLoading &&
-              !matchesError &&
-              shouldFetchMatches &&
-              jobRelevantCandidates.length > 0 &&
-              filteredCandidates.length === 0 && (
-                <Card className="border-dashed">
-                  <CardContent className="p-6 text-center text-muted-foreground">
+              {!matchesLoading && matchesError && (
+                <div className="p-6 text-center text-muted-foreground border rounded-lg bg-white">Failed to load AI matches. Please try again.</div>
+              )}
+              {!matchesLoading && !matchesError && !shouldFetchMatches && (
+                <div className="p-6 text-center text-muted-foreground border rounded-lg bg-white">Select a job to see AI matched candidates.</div>
+              )}
+              {!matchesLoading && !matchesError && !jobsLoading && shouldFetchMatches && jobRelevantCandidates.length === 0 && (
+                <div className="p-6 text-center text-muted-foreground border rounded-lg bg-white">No candidates matching this job found.</div>
+              )}
+              {!matchesLoading && !matchesError && shouldFetchMatches && jobRelevantCandidates.length > 0 && filteredCandidates.length === 0 && (
+                <div className="p-6 text-center text-muted-foreground border rounded-lg bg-white">
+                  <p className="font-semibold mb-1">No results found</p>
+                  <p className="text-sm">No candidates matching "{searchTerm}" in the {activeTab} category.</p>
+                </div>
+              )}
+
+              {filteredCandidates.map((candidate: CandidateListItem) => {
+                const scoreColor = candidate.matchScore >= 90 ? "text-[#08b8cc]" : candidate.matchScore >= 80 ? "text-[#3b82f6]" : "text-[#f59e0b]";
+                const scoreBorder = candidate.matchScore >= 90 ? "border-[#08b8cc]" : candidate.matchScore >= 80 ? "border-[#3b82f6]" : "border-[#f59e0b]";
+                
+                let badgeUI;
+                if (candidate.stage === "shortlisted") {
+                  badgeUI = <Badge className="bg-[#ccfbf1] text-[#0f766e] hover:bg-[#ccfbf1] border-none px-2.5 py-0.5 font-semibold text-[11px] rounded-sm">Shortlisted</Badge>;
+                } else if (candidate.matchScore >= 90) {
+                  badgeUI = (
+                    <div className="flex flex-col gap-1.5 items-center">
+                      <Badge className="bg-[#f3e8ff] hover:bg-[#f3e8ff] text-[#7e22ce] border-none px-2.5 py-0.5 font-semibold text-[11px] rounded-sm">Interview Done</Badge>
+                      <div className="text-[10px] text-gray-500 font-medium flex items-center gap-1 border border-gray-200 bg-white rounded flex px-1.5 py-0.5"><div className="w-1.5 h-1.5 rounded-full bg-[#08b8cc]"></div> Test: 92%</div>
+                    </div>
+                  );
+                } else if (candidate.matchScore >= 80) {
+                  badgeUI = <Badge className="bg-[#e0f2fe] text-[#0369a1] hover:bg-[#e0f2fe] border-none px-2.5 py-0.5 font-semibold text-[11px] rounded-sm">New Match</Badge>;
+                } else {
+                  badgeUI = (
+                    <div className="flex flex-col gap-1.5 items-center">
+                      {/* <Badge className="bg-[#fef3c7] hover:bg-[#fef3c7] text-[#b45309] border-none px-2.5 py-0.5 font-semibold text-[11px] rounded-sm">Test Assigned</Badge> */}
+                      {/* <div className="text-[10px] text-gray-500 font-medium flex items-center gap-1 border border-gray-200 bg-white rounded flex px-1.5 py-0.5"><Clock className="w-2.5 h-2.5" /> Pending</div> */}
+                    </div>
+                  );
+                }
+
+                return (
+                <div key={candidate.id} className="bg-white border border-gray-100 rounded-lg p-5 flex items-center gap-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-4 min-w-[280px]">
+                    <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#08b8cc] focus:ring-[#08b8cc]" />
+                    <Avatar className="h-12 w-12 rounded-full border border-gray-100">
+                      <AvatarFallback className="bg-gray-100 text-gray-700 font-semibold text-lg">{candidate.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
                     <div>
-                      <p className="font-semibold mb-1">No results found</p>
-                      <p className="text-sm">
-                        {searchTerm
-                          ? `No candidates matching "${searchTerm}" in the ${activeTab} category.`
-                          : `No ${activeTab === "matched" ? "matched " : activeTab === "shortlisted" ? "shortlisted " : ""}candidates found.`}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            {filteredCandidates.map((candidate: CandidateListItem) => (
-              <Card
-                key={candidate.id}
-                className="hover:border-primary/30 transition-colors"
-              >
-                <CardContent className="p-6">
-                  <div className="flex flex-wrap gap-6 items-start">
-                    {/* Avatar & Basic Info */}
-                    <div className="flex items-center gap-4 flex-1 min-w-[280px]">
-                      <Avatar className="h-14 w-14 bg-primary/10">
-                        <AvatarFallback className="text-lg font-semibold text-primary">
-                          {candidate.name
-                            .trim()
-                            .split(/\s+/)
-                            .filter((segment) => segment.length > 0)
-                            .map((segment) => segment[0])
-                            .slice(0, 2)
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-lg">
-                            {getHighlightedName(candidate.name, searchTerm)}
-                          </h3>
-                          {candidate.type === "bench" ? (
-                            <Badge variant="secondary" className="text-xs">
-                              <Building2 className="h-3 w-3 mr-1" />
-                              Bench
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">
-                              <User className="h-3 w-3 mr-1" />
-                              Individual
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-muted-foreground">
-                          {candidate.role}
-                        </p>
-                        {candidate.type === "bench" && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            via {candidate.company}
-                          </p>
-                        )}
+                      <h3 className="font-bold text-gray-900 text-[15px] cursor-pointer hover:underline" onClick={() => handleViewProfile(candidate)}>
+                        {getHighlightedName(candidate.name, searchTerm)}
+                      </h3>
+                      <div className="flex items-center gap-2 text-[12px] text-gray-500 mt-0.5">
+                        <span className="truncate max-w-[150px]">{candidate.role}</span>
+                        <span className="text-gray-300">•</span>
+                        <span>{candidate.experience.split(" ")[0]} yrs</span>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Match Score */}
-                    <div className="text-center min-w-[100px]">
-                      <div className="relative inline-flex items-center justify-center">
-                        <svg className="w-16 h-16 transform -rotate-90">
-                          <circle
-                            cx="32"
-                            cy="32"
-                            r="28"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            fill="transparent"
-                            className="text-muted/30"
-                          />
-                          <circle
-                            cx="32"
-                            cy="32"
-                            r="28"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            fill="transparent"
-                            strokeDasharray={`${(candidate.matchScore / 100) * 176} 176`}
-                            className="text-primary"
-                          />
-                        </svg>
-                        <span className="absolute text-sm font-bold text-primary">
-                          {candidate.matchScore}%
+                  <div className="flex-1">
+                    <div className="flex flex-wrap gap-1.5">
+                      {candidate.skills.slice(0, 5).map((skill) => (
+                        <span key={skill} className="px-2 py-0.5 bg-[#f0f9ff] text-[#5abdcc] text-[11px] font-semibold rounded shrink-0">
+                          {skill}
                         </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        AI Match
-                      </p>
-                    </div>
-
-                    {/* Match Validation - Shows why this candidate is relevant */}
-                    {candidate.matchReasons.length > 0 && (
-                      <div className="flex-1 min-w-[200px]">
-                        <p className="text-xs text-muted-foreground mb-2">
-                          Match Reason
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {candidate.matchReasons.map((reason: string) => (
-                            <Badge
-                              key={reason}
-                              className="text-xs bg-green-100 text-green-800 border-green-200"
-                            >
-                              ✓ {reason}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Skills */}
-                    <div className="flex-1 min-w-[200px]">
-                      <p className="text-xs text-muted-foreground mb-2">
-                        Skills
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {candidate.skills.slice(0, 4).map((skill) => (
-                          <Badge
-                            key={skill}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            {skill}
-                          </Badge>
-                        ))}
-                        {candidate.skills.length > 4 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{candidate.skills.length - 4}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Details */}
-                    <div className="min-w-[120px]">
-                      <p className="text-xs text-muted-foreground">
-                        Experience
-                      </p>
-                      <p className="font-medium text-sm">
-                        {candidate.experience}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Availability
-                      </p>
-                      <p className="font-medium text-sm text-primary">
-                        {candidate.availability}
-                      </p>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex flex-col gap-2 min-w-[140px]">
-                      <Button
-                        size="sm"
-                        className="rounded-lg"
-                        onClick={() => handleViewProfile(candidate)}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View Profile
-                      </Button>
-                      {candidate.stage === "matched" ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="rounded-lg"
-                          onClick={() => handleShortlist(candidate)}
-                        >
-                          <UserCheck className="h-4 w-4 mr-1" />
-                          Shortlist
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="rounded-lg text-primary border-primary hover:bg-primary/10"
-                          onClick={() => handleSkillTest(candidate)}
-                        >
-                          <ArrowRight className="h-4 w-4 mr-1" />
-                          Skill Test
-                        </Button>
+                      ))}
+                      {candidate.skills.length > 5 && (
+                        <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-[11px] font-semibold rounded shrink-0">
+                          +{candidate.skills.length - 5}
+                        </span>
                       )}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-            {shouldFetchMatches &&
-              !matchesError &&
-              (jobRelevantCandidates.length > 0 || hasMoreMatches) && (
-                <div className="flex justify-center pt-2">
+
+                  <div className="flex flex-col items-center justify-center min-w-[80px]">
+                    <div className={`w-11 h-11 rounded-full border-2 ${scoreBorder} flex items-center justify-center`}>
+                      <span className={`font-bold text-[13px] ${scoreColor}`}>{Math.round(candidate.matchScore)}%</span>
+                    </div>
+                    <span className="text-[10px] text-gray-400 font-medium mt-1">AI Match</span>
+                  </div>
+
+                  <div className="min-w-[120px] flex justify-center">
+                    {badgeUI}
+                  </div>
+
+                  <div className="flex items-center gap-2 ml-auto min-w-[220px] justify-end">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleShortlist(candidate)}
+                      className="h-8 px-4 text-[12px] font-semibold rounded border border-gray-200 text-gray-700 hover:bg-gray-50"
+                    >
+                      {candidate.stage === "shortlisted" ? "Shortlisted" : "Shortlist"}
+                    </Button>
+                    <Button 
+                      onClick={() => handleSkillTest(candidate)}
+                      className="h-8 px-4 text-[12px] font-semibold rounded bg-[#08b8cc] hover:bg-[#07a3b5] text-white border-none shadow-none"
+                    >
+                      Initiate Skill Test
+                    </Button>
+                  </div>
+                </div>
+              )})}
+
+              {shouldFetchMatches && !matchesError && (jobRelevantCandidates.length > 0 || hasMoreMatches) && (
+                <div className="flex justify-center pt-6 pb-4">
                   <Button
                     variant="outline"
-                    className="rounded-xl"
+                    className="rounded-md border-gray-200 h-9 px-6 text-sm font-medium"
                     onClick={handleLoadMoreMatches}
                     disabled={matchesLoading || !hasMoreMatches}
                   >
-                    {matchesLoading
-                      ? "Loading..."
-                      : hasMoreMatches
-                        ? "Load More Candidates"
-                        : "All Candidates Loaded"}
+                    {matchesLoading ? "Loading..." : hasMoreMatches ? "Load More Candidates" : "All Candidates Loaded"}
                   </Button>
                 </div>
               )}
-          </div>
-        </TabsContent>
-      </Tabs>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
