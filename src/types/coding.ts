@@ -10,6 +10,8 @@ export enum SupportedLanguage {
   PYTHON = "python",
   JAVA = "java",
   CPP = "cpp",
+  C = "c",
+  GO = "go",
 }
 
 export interface TestCase {

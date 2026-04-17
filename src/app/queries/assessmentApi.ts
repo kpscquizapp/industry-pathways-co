@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { config } from "../../services/service";
+import { getAuthHeaders } from "@/lib/helpers";
 
 export type RecordingType = "webcam" | "screen";
 
@@ -26,35 +27,55 @@ export interface UploadChunkArgs {
   chunk: Blob;
 }
 
+export interface Language {
+  id: number;
+  name: string;
+}
+
 export const assessmentApi = createApi({
   reducerPath: "assessmentApi",
   baseQuery: fetchBaseQuery({
     baseUrl: config.baseURL,
+    prepareHeaders: (headers) => {
+      const { Authorization } = getAuthHeaders();
+      if (Authorization) {
+        headers.set("Authorization", Authorization);
+      }
+      return headers;
+    },
   }),
   tagTypes: ["Test"],
   endpoints: (builder) => ({
     // ── Test lifecycle ──────────────────────────────────────────────
-    getTestStatus: builder.query<any, { testId: string; token?: string | null }>({
+    getTestStatus: builder.query<
+      any,
+      { testId: string; token?: string | null }
+    >({
       query: ({ testId, token }) => ({
         url: `coding/tests/${testId}/status`,
         method: "GET",
         params: token ? { token } : undefined,
       }),
     }),
-    getTestProblems: builder.query<any, { testId: string; token?: string | null }>({
+    getTestProblems: builder.query<
+      any,
+      { testId: string; token?: string | null }
+    >({
       query: ({ testId, token }) => ({
         url: `coding/tests/${testId}/problems`,
         method: "GET",
         params: token ? { token } : undefined,
       }),
     }),
-    startTest: builder.mutation<any, { testId: string; token?: string | null }>({
-      query: ({ testId, token }) => ({
-        url: `coding/tests/${testId}/start`,
-        method: "PATCH",
-        params: token ? { token } : undefined,
-      }),
-    }),
+    startTest: builder.mutation<any, { testId: string; token?: string | null }>(
+      {
+        query: ({ testId, token }) => ({
+          url: `coding/tests/${testId}/start`,
+          method: "PATCH",
+          params: token ? { token } : undefined,
+        }),
+      },
+    ),
     endTest: builder.mutation<any, { testId: string; token?: string | null }>({
       query: ({ testId, token }) => ({
         url: `coding/tests/${testId}/end`,
@@ -64,7 +85,10 @@ export const assessmentApi = createApi({
     }),
 
     // ── Session management ──────────────────────────────────────────
-    startSession: builder.mutation<{ sessionId: string }, { candidateId: string; jobId?: string }>({
+    startSession: builder.mutation<
+      { sessionId: string },
+      { candidateId: string; jobId?: string }
+    >({
       query: (body) => ({
         url: "session/start",
         method: "POST",
@@ -100,7 +124,14 @@ export const assessmentApi = createApi({
       }),
     }),
     uploadChunk: builder.mutation<any, UploadChunkArgs>({
-      query: ({ sessionId, chunkIndex, type, timestamp, recordingId, chunk }) => {
+      query: ({
+        sessionId,
+        chunkIndex,
+        type,
+        timestamp,
+        recordingId,
+        chunk,
+      }) => {
         const formData = new FormData();
         formData.append("sessionId", sessionId);
         formData.append("chunkIndex", String(chunkIndex));
@@ -136,11 +167,30 @@ export const assessmentApi = createApi({
         body,
       }),
     }),
-    runTestCases: builder.mutation<any, { problemId: number; code: string; languageId: number }>({
+    runTestCases: builder.mutation<
+      any,
+      { problemId: number; code: string; languageId: number }
+    >({
       query: (body) => ({
         url: "coding/run-testcases",
         method: "POST",
         body,
+      }),
+    }),
+    submitSolution: builder.mutation<
+      any,
+      { problemId: number; code: string; languageId: number; testId: number }
+    >({
+      query: (body) => ({
+        url: "coding/submissions",
+        method: "POST",
+        body,
+      }),
+    }),
+    getAllLanguages: builder.query<Language[], void>({
+      query: () => ({
+        url: "http://44.222.35.138:2358/languages",
+        method: "GET",
       }),
     }),
   }),
@@ -159,4 +209,6 @@ export const {
   useEndRecordingMutation,
   useRecordingPingMutation,
   useRunTestCasesMutation,
+  useSubmitSolutionMutation,
+  useGetAllLanguagesQuery,
 } = assessmentApi;

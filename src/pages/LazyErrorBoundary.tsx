@@ -43,7 +43,7 @@ class LazyErrorBoundary extends Component<Props, State> {
             </button>
             <Link
               to="/"
-              className="ml-2 rounded bg-gray-300 px-6 py-2.5 text-gray-800 hover:bg-gray-400"
+              className="ml-2 rounded bg-gray-300 px-6 py-2 text-gray-800 hover:bg-gray-400"
             >
               Go Home
             </Link>

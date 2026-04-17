@@ -100,7 +100,8 @@ const EmployerSignup = () => {
   const [registerEmployer] = useRegisterEmployerMutation();
   const [checkExistingEmail, { isLoading: isCheckingEmail }] =
     useCheckExistingEmailMutation();
-  const [sendVerificationOtp, { isLoading: isSendingOtp }] = useSendVerificationOtpMutation();
+  const [sendVerificationOtp, { isLoading: isSendingOtp }] =
+    useSendVerificationOtpMutation();
   const [verifyOtp, { isLoading: isVerifyingOtp }] = useVerifyOtpMutation();
 
   const [otp, setOtp] = useState("");
@@ -136,7 +137,10 @@ const EmployerSignup = () => {
   /* ── Timer for OTP resend cooldown ── */
   React.useEffect(() => {
     if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      const timer = setTimeout(
+        () => setResendCooldown(resendCooldown - 1),
+        1000,
+      );
       return () => clearTimeout(timer);
     }
   }, [resendCooldown]);
@@ -145,6 +149,12 @@ const EmployerSignup = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
+
+    // Reset email verification when email changes
+    if (name === "email" && value !== formData.email && isEmailVerified) {
+      setIsEmailVerified(false);
+      setOtp("");
+    }
 
     // Clear field error when user starts typing
     if (fieldErrors[name]) {
@@ -499,7 +509,8 @@ const EmployerSignup = () => {
       <div
         className="login-left-panel flex-col justify-center p-16 px-20 overflow-hidden"
         style={{
-          background: "linear-gradient(160deg, #0d1117 0%, #111827 40%, #0c1a2a 100%)",
+          background:
+            "linear-gradient(160deg, #0d1117 0%, #111827 40%, #0c1a2a 100%)",
         }}
       >
         {/* Floating particles - Same as ContractorSignup */}
@@ -581,9 +592,7 @@ const EmployerSignup = () => {
           <Link to="/" className="inline-block">
             <img src={logo2} alt="Logo" className="w-[180px] h-auto mx-auto" />
           </Link>
-          <div className="mobile-brand-tagline">
-            Hiring Partner Onboarding
-          </div>
+          <div className="mobile-brand-tagline">Hiring Partner Onboarding</div>
         </div>
 
         <div className="flex flex-col items-center justify-center sm:py-6">
@@ -594,10 +603,11 @@ const EmployerSignup = () => {
                 <div key={item.id} className="flex items-center text-[11px]">
                   <div className="flex items-center gap-2">
                     <div
-                      className={`stepper-dot w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-300 ${currentStep >= item.id
-                        ? "bg-[#4DD9E8] text-white"
-                        : "bg-slate-100 text-slate-400 border border-slate-50"
-                        }`}
+                      className={`stepper-dot w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-300 ${
+                        currentStep >= item.id
+                          ? "bg-[#4DD9E8] text-white"
+                          : "bg-slate-100 text-slate-400 border border-slate-50"
+                      }`}
                     >
                       {currentStep > item.id ? (
                         <Check className="w-3.5 h-3.5" />
@@ -606,8 +616,11 @@ const EmployerSignup = () => {
                       )}
                     </div>
                     <span
-                      className={`stepper-label text-[10px] sm:text-[11px] font-semibold tracking-widest transition-colors duration-300 ${currentStep >= item.id ? "text-[#080b20]" : "text-[#bbb]"
-                        }`}
+                      className={`stepper-label text-[10px] sm:text-[11px] font-semibold tracking-widest transition-colors duration-300 ${
+                        currentStep >= item.id
+                          ? "text-[#080b20]"
+                          : "text-[#bbb]"
+                      }`}
                     >
                       {item.label}
                     </span>
@@ -630,20 +643,24 @@ const EmployerSignup = () => {
               </div>
 
               <form onSubmit={handleSubmit} noValidate className="space-y-6">
-                {(currentStep === 1 || currentStep === 2 || currentStep === 3) && (
+                {(currentStep === 1 ||
+                  currentStep === 2 ||
+                  currentStep === 3) && (
                   <div className="space-y-5 animate-fade-up">
                     {currentStep === 1 && (
                       <div className="space-y-5 animate-fade-up">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="flex flex-col gap-1.5">
                             <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                              First Name <span className="text-[#4DD9E8]">*</span>
+                              First Name{" "}
+                              <span className="text-[#4DD9E8]">*</span>
                             </Label>
                             <div
-                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.firstName
-                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                                }`}
+                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                                fieldErrors.firstName
+                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                              }`}
                             >
                               <User className="w-4 h-4 text-[#aaa] shrink-0" />
                               <input
@@ -658,13 +675,15 @@ const EmployerSignup = () => {
                           </div>
                           <div className="flex flex-col gap-1.5">
                             <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                              Last Name <span className="text-[#4DD9E8]">*</span>
+                              Last Name{" "}
+                              <span className="text-[#4DD9E8]">*</span>
                             </Label>
                             <div
-                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.lastName
-                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                                }`}
+                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                                fieldErrors.lastName
+                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                              }`}
                             >
                               <User className="w-4 h-4 text-[#aaa] shrink-0" />
                               <input
@@ -684,10 +703,11 @@ const EmployerSignup = () => {
                             Work Email <span className="text-[#4DD9E8]">*</span>
                           </Label>
                           <div
-                            className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.email
-                              ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                              : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                              }`}
+                            className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                              fieldErrors.email
+                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                            }`}
                           >
                             <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
                             <input
@@ -714,10 +734,11 @@ const EmployerSignup = () => {
                               Password <span className="text-[#4DD9E8]">*</span>
                             </Label>
                             <div
-                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.password
-                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                                }`}
+                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                                fieldErrors.password
+                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                              }`}
                             >
                               <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                               <input
@@ -744,13 +765,15 @@ const EmployerSignup = () => {
                           </div>
                           <div className="flex flex-col gap-1.5">
                             <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                              Confirm Password <span className="text-[#4DD9E8]">*</span>
+                              Confirm Password{" "}
+                              <span className="text-[#4DD9E8]">*</span>
                             </Label>
                             <div
-                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.confirmPassword
-                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                                }`}
+                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                                fieldErrors.confirmPassword
+                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                              }`}
                             >
                               <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                               <input
@@ -785,18 +808,20 @@ const EmployerSignup = () => {
                       <div className="space-y-6 animate-fade-up">
                         {/* Email Verification Section */}
                         <div
-                          className={`rounded-2xl p-5 border-[1.5px] transition-all duration-200 ${isEmailVerified
-                            ? "bg-emerald-50/30 border-emerald-100"
-                            : "bg-[#f8f9fb] border-[#e8eaef]"
-                            }`}
+                          className={`rounded-2xl p-5 border-[1.5px] transition-all duration-200 ${
+                            isEmailVerified
+                              ? "bg-emerald-50/30 border-emerald-100"
+                              : "bg-[#f8f9fb] border-[#e8eaef]"
+                          }`}
                         >
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
                               <div
-                                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isEmailVerified
-                                  ? "bg-emerald-500 text-white"
-                                  : "bg-slate-200 text-slate-500"
-                                  }`}
+                                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                  isEmailVerified
+                                    ? "bg-emerald-500 text-white"
+                                    : "bg-slate-200 text-slate-500"
+                                }`}
                               >
                                 {isEmailVerified ? (
                                   <Check className="w-5 h-5" />
@@ -828,10 +853,11 @@ const EmployerSignup = () => {
                                 </Label>
                                 <div className="flex gap-3">
                                   <div
-                                    className={`flex-1 flex items-center gap-2.5 bg-white border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.otp
-                                      ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                      : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                                      }`}
+                                    className={`flex-1 flex items-center gap-2.5 bg-white border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                                      fieldErrors.otp
+                                        ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                        : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                    }`}
                                   >
                                     <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                                     <input
@@ -839,15 +865,26 @@ const EmployerSignup = () => {
                                       maxLength={6}
                                       className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-medium tracking-[0.2em]"
                                       value={otp}
-                                      onChange={(e) =>
-                                        setOtp(e.target.value.replace(/\D/g, ""))
-                                      }
+                                      onChange={(e) => {
+                                        setOtp(
+                                          e.target.value.replace(/\D/g, ""),
+                                        );
+                                        if (fieldErrors.otp) {
+                                          setFieldErrors((prev) => {
+                                            const newErrors = { ...prev };
+                                            delete newErrors.otp;
+                                            return newErrors;
+                                          });
+                                        }
+                                      }}
                                     />
                                   </div>
                                   <Button
                                     type="button"
                                     onClick={handleVerifyOtp}
-                                    disabled={isVerifyingOtp || otp.length !== 6}
+                                    disabled={
+                                      isVerifyingOtp || otp.length !== 6
+                                    }
                                     className="h-[46px] px-6 bg-[#1a1a2e] hover:bg-[#2a2a4e] text-white font-bold rounded-[10px] transition-all"
                                   >
                                     {isVerifyingOtp ? (
@@ -868,10 +905,11 @@ const EmployerSignup = () => {
                                   type="button"
                                   onClick={handleSendOtp}
                                   disabled={isSendingOtp || resendCooldown > 0}
-                                  className={`font-bold transition-colors ${isSendingOtp || resendCooldown > 0
-                                    ? "text-slate-300 cursor-not-allowed"
-                                    : "text-[#4DD9E8] hover:text-[#0e8a96] underline"
-                                    }`}
+                                  className={`font-bold transition-colors ${
+                                    isSendingOtp || resendCooldown > 0
+                                      ? "text-slate-300 cursor-not-allowed"
+                                      : "text-[#4DD9E8] hover:text-[#0e8a96] underline"
+                                  }`}
                                 >
                                   {isSendingOtp
                                     ? "Sending..."
@@ -886,13 +924,15 @@ const EmployerSignup = () => {
 
                         <div className="flex flex-col gap-1.5">
                           <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                            Organization Name <span className="text-[#4DD9E8]">*</span>
+                            Organization Name{" "}
+                            <span className="text-[#4DD9E8]">*</span>
                           </Label>
                           <div
-                            className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.companyName
-                              ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                              : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                              }`}
+                            className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                              fieldErrors.companyName
+                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                            }`}
                           >
                             <Building2 className="w-4 h-4 text-[#aaa] shrink-0" />
                             <input
@@ -911,10 +951,11 @@ const EmployerSignup = () => {
                             Company Details (Optional)
                           </Label>
                           <div
-                            className={`flex flex-col gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] p-3.5 transition-all duration-200 ${fieldErrors.companyDetails
-                              ? "border-red-500"
-                              : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                              }`}
+                            className={`flex flex-col gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] p-3.5 transition-all duration-200 ${
+                              fieldErrors.companyDetails
+                                ? "border-red-500"
+                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                            }`}
                           >
                             <textarea
                               name="companyDetails"
@@ -936,16 +977,18 @@ const EmployerSignup = () => {
                       <div className="space-y-5 animate-fade-up">
                         <div className="flex flex-col gap-3">
                           <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                            Verification Document <span className="text-[#4DD9E8]">*</span>
+                            Verification Document{" "}
+                            <span className="text-[#4DD9E8]">*</span>
                           </Label>
 
                           {!companyDocument ? (
                             <div
                               onClick={() => fileInputRef.current?.click()}
-                              className={`group cursor-pointer border-2 border-dashed rounded-2xl p-10 transition-all flex flex-col items-center justify-center gap-4 ${fieldErrors.companyDocument
-                                ? "border-red-500 bg-red-50/10"
-                                : "border-slate-100 hover:border-[#4DD9E8] hover:bg-[#4DD9E8]/5"
-                                }`}
+                              className={`group cursor-pointer border-2 border-dashed rounded-2xl p-10 transition-all flex flex-col items-center justify-center gap-4 ${
+                                fieldErrors.companyDocument
+                                  ? "border-red-500 bg-red-50/10"
+                                  : "border-slate-100 hover:border-[#4DD9E8] hover:bg-[#4DD9E8]/5"
+                              }`}
                             >
                               <div className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center bg-white group-hover:scale-110 transition-transform">
                                 <Upload className="w-5 h-5 text-[#4DD9E8]" />
@@ -977,7 +1020,12 @@ const EmployerSignup = () => {
                                     {companyDocument.name}
                                   </p>
                                   <p className="text-[11px] text-slate-400">
-                                    {(companyDocument.size / 1024 / 1024).toFixed(2)} MB
+                                    {(
+                                      companyDocument.size /
+                                      1024 /
+                                      1024
+                                    ).toFixed(2)}{" "}
+                                    MB
                                   </p>
                                 </div>
                               </div>
@@ -1018,7 +1066,11 @@ const EmployerSignup = () => {
                           </span>
                         ) : (
                           <>
-                            <span>{currentStep === totalSteps ? "Create Account" : "Next Step"}</span>
+                            <span>
+                              {currentStep === totalSteps
+                                ? "Create Account"
+                                : "Next Step"}
+                            </span>
                             <ArrowRight className="w-5 h-5" />
                           </>
                         )}

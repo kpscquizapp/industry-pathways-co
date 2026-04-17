@@ -1,22 +1,29 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Button } from "@/components/ui/button";
-import { Play, Send, ChevronLeft, AlertTriangle, Clock, Code2, ShieldCheck, Video, Airplay, Layers } from "lucide-react";
+import {
+  Play,
+  Send,
+  ChevronLeft,
+  AlertTriangle,
+  Clock,
+  Code2,
+  ShieldCheck,
+  Video,
+  Airplay,
+  Layers,
+} from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import ProblemPanel from "@/components/coding/ProblemPanel";
 import EditorPanel from "@/components/coding/EditorPanel";
 import ConsoleOutput from "@/components/coding/ConsoleOutput";
 import WebcamFeed from "@/pages/WebcamFeed";
-import {
-  CodingProblem,
-  SupportedLanguage,
-  TestCase,
-} from "@/types/coding";
+import { CodingProblem, SupportedLanguage, TestCase } from "@/types/coding";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "@/hooks/useDebounce";
 import { useAppSelector } from "@/app/hooks";
@@ -30,9 +37,18 @@ import {
   useEndSessionMutation,
   useLogViolationMutation,
   useRunTestCasesMutation,
+  useSubmitSolutionMutation,
+  useGetAllLanguagesQuery,
+  Language,
 } from "@/app/queries/assessmentApi";
 
-type TestStatus = "loading" | "instructions" | "active" | "completed" | "expired" | "error";
+type TestStatus =
+  | "loading"
+  | "instructions"
+  | "active"
+  | "completed"
+  | "expired"
+  | "error";
 
 interface TestMetadata {
   id: number;
@@ -65,6 +81,59 @@ async function detectMultipleMonitors(): Promise<boolean> {
 
 // Deleted sampleProblem - Loading from API instead
 
+// --- Helper Functions ---
+const getLanguageId = (langObj?: Language): number => {
+  return langObj?.id || 63; // Fallback to 63 (JS) if not provided
+};
+
+const getLanguageKey = (name?: string): string => {
+  if (!name) return "";
+  const n = name.toLowerCase();
+  if (n.includes("javascript")) return "javascript";
+  if (n.includes("typescript")) return "typescript";
+  if (n.includes("python")) return "python";
+  if (n.includes("java") && !n.includes("javascript")) return "java";
+  if (n.includes("c++") || n.includes("cpp")) return "cpp";
+  if (n.includes("go")) return "go";
+  if (n === "c" || n.startsWith("c (") || n.startsWith("c  (")) return "c";
+  return n;
+};
+
+// Merge raw API result with known problem test cases by index/id.
+const mergeTestCaseResults = (raw: any[], knownTCs: TestCase[]): TestCase[] => {
+  // Map over known (visible) test cases so we never show hidden ones
+  return knownTCs.map((known, idx) => {
+    // Find matching result in raw by id, fall back to positional index
+    const tc = raw.find((r: any) => String(r.id ?? r.testCaseId ?? r.testcase_id) === String(known.id)) ?? raw[idx] ?? {};
+
+    const statusId = tc.status_id ?? tc.status?.id ?? tc.statusId;
+    const stdout = (tc.stdout ?? tc.actual_output ?? tc.actualOutput ?? "").toString().trim();
+    const expected = (known.expectedOutput ?? tc.expected_output ?? tc.expectedOutput ?? tc.expected ?? "").toString().trim();
+    const input = known.input ?? tc.input ?? tc.stdin ?? "";
+
+    let passed: boolean;
+    if (typeof tc.passed === "boolean") {
+      passed = tc.passed;
+    } else if (statusId !== undefined) {
+      passed = statusId === 3; // Judge0: 3 = Accepted
+    } else if (tc.id !== undefined || raw[idx] !== undefined) {
+      passed = stdout === expected;
+    } else {
+      passed = false; // no API result available yet
+    }
+
+    return {
+      id: known.id,
+      input,
+      expectedOutput: known.expectedOutput ?? expected,
+      actualOutput: stdout,
+      passed,
+      runtime: tc.time !== undefined ? Math.round(Number(tc.time) * 1000) : tc.runtime,
+      memory: tc.memory,
+    };
+  });
+};
+
 const CodingChallenge: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -78,19 +147,20 @@ const CodingChallenge: React.FC = () => {
   const [problems, setProblems] = useState<CodingProblem[]>([]);
   const [activeProblemIndex, setActiveProblemIndex] = useState(0);
 
-  const [language, setLanguage] = useState<SupportedLanguage>(
-    SupportedLanguage.JAVASCRIPT,
-  );
   const [code, setCode] = useState<string>("");
   const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string>();
+  // Track which problems have been explicitly submitted (ref avoids stale closure in handleEndTest)
+  const submittedProblemIdsRef = useRef<Set<string | number>>(new Set());
 
   // Consents
   const [hasWebcamPermission, setHasWebcamPermission] = useState(false);
   const [isScreenSelected, setIsScreenSelected] = useState(false);
-  const [initialWebcamStream, setInitialWebcamStream] = useState<MediaStream | null>(null);
-  const [initialScreenStream, setInitialScreenStream] = useState<MediaStream | null>(null);
+  const [initialWebcamStream, setInitialWebcamStream] =
+    useState<MediaStream | null>(null);
+  const [initialScreenStream, setInitialScreenStream] =
+    useState<MediaStream | null>(null);
   // Refs to stop tracks on End Test (not on every re-render)
   const initialWebcamStreamRef = useRef<MediaStream | null>(null);
   const initialScreenStreamRef = useRef<MediaStream | null>(null);
@@ -99,7 +169,9 @@ const CodingChallenge: React.FC = () => {
   const [isInterviewActive, setIsInterviewActive] = useState(false);
   const [isMonitoringActive, setIsMonitoringActive] = useState(false);
   const [totalViolations, setTotalViolations] = useState(0);
-  const [violationLogs, setViolationLogs] = useState<{ id: string; message: string; time: string }[]>([]);
+  const [violationLogs, setViolationLogs] = useState<
+    { id: string; message: string; time: string }[]
+  >([]);
 
   const addLog = useCallback((message: string): void => {
     const now = new Date();
@@ -140,6 +212,47 @@ const CodingChallenge: React.FC = () => {
   const [endSessionMutation] = useEndSessionMutation();
   const [logViolationMutation] = useLogViolationMutation();
   const [runTestCases] = useRunTestCasesMutation();
+  const [submitSolution] = useSubmitSolutionMutation();
+  const { data: languagesData } = useGetAllLanguagesQuery();
+
+  const filteredLanguages = useMemo(() => {
+    if (!languagesData) return [];
+    const getLangKey = (name: string): string => {
+      const n = name.toLowerCase();
+      if (n.includes("javascript")) return "javascript";
+      if (n.includes("typescript")) return "typescript";
+      if (n.includes("python")) return "python";
+      if (n.includes("java") && !n.includes("javascript")) return "java";
+      if (n.includes("c++") || n.includes("cpp")) return "cpp";
+      if (n.includes("go")) return "go";
+      if (n === "c" || n.startsWith("c (") || n.startsWith("c  (")) return "c";
+      return n;
+    };
+
+    const supportedKeys = ["c", "cpp", "go", "java", "javascript", "python", "typescript"];
+    const uniqueLangs = new Map<string, Language>();
+
+    languagesData.forEach(lang => {
+      const key = getLangKey(lang.name);
+      if (supportedKeys.includes(key)) {
+        // Keeps the first version of the language found
+        if (!uniqueLangs.has(key)) {
+          uniqueLangs.set(key, lang);
+        }
+      }
+    });
+
+    return Array.from(uniqueLangs.values());
+  }, [languagesData]);
+
+  const [language, setLanguage] = useState<Language | undefined>();
+
+  // Initialize language once data is available
+  useEffect(() => {
+    if (filteredLanguages.length > 0 && !language) {
+      setLanguage(filteredLanguages[0]);
+    }
+  }, [filteredLanguages, language]);
   const user = useAppSelector((state) => state.user.userDetails);
 
   const hasMountedRef = useRef(false);
@@ -208,8 +321,8 @@ const CodingChallenge: React.FC = () => {
     // 1. Stop frontend monitoring immediately so WebcamFeed begins finalizing
     setIsInterviewActive(false);
     setIsMonitoringActive(false);
-    initialWebcamStreamRef.current?.getTracks().forEach(t => t.stop());
-    initialScreenStreamRef.current?.getTracks().forEach(t => t.stop());
+    initialWebcamStreamRef.current?.getTracks().forEach((t) => t.stop());
+    initialScreenStreamRef.current?.getTracks().forEach((t) => t.stop());
     initialWebcamStreamRef.current = null;
     initialScreenStreamRef.current = null;
     setInitialWebcamStream(null);
@@ -221,9 +334,9 @@ const CodingChallenge: React.FC = () => {
     try {
       await endTestMutation({ testId: testId!, token }).unwrap();
       if (sessionId) {
-        await endSessionMutation({ sessionId }).unwrap().catch((err) =>
-          console.error("Failed to end session:", err)
-        );
+        await endSessionMutation({ sessionId })
+          .unwrap()
+          .catch((err) => console.error("Failed to end session:", err));
       }
       return true;
     } catch (err) {
@@ -233,14 +346,65 @@ const CodingChallenge: React.FC = () => {
   }, [testId, token, sessionId, endTestMutation, endSessionMutation]);
 
   const handleEndTest = useCallback(async () => {
+    // Auto-submit any problems the candidate hasn't explicitly submitted yet.
+    // This covers time-up, early exits, and skipped problems.
+    // We use `problems` from the outer scope (captured at call time via ref pattern).
+    const unsubmitted = problems.filter(p => !submittedProblemIdsRef.current.has(p.id));
+
+    if (unsubmitted.length > 0) {
+      toast.info(`Auto-submitting ${unsubmitted.length} remaining problem(s)...`);
+      await Promise.allSettled(
+        unsubmitted.map(async (problem) => {
+          // Prefer saved code from localStorage, fall back to empty string
+          const savedCode = (() => {
+            // Try all possible language keys from localStorage
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && key.startsWith(`code_${problem.id}_`)) {
+                return localStorage.getItem(key) || "";
+              }
+            }
+            return "";
+          })();
+
+          try {
+            await submitSolution({
+              problemId: Number(problem.id),
+              code: savedCode, // empty string or baseCode → backend marks as failed
+              languageId: getLanguageId(language),
+              testId: Number(testId),
+            }).unwrap();
+            submittedProblemIdsRef.current.add(problem.id);
+          } catch {
+            // Silently swallow — best-effort, never block test ending
+          }
+        })
+      );
+    }
+
     const success = await performCleanup();
     if (success) {
       setTestStatus("completed");
+
+      // Clear saved codes from localStorage for all problems in this test
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && problems.some(p => key.startsWith(`code_${p.id}_`))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+
+      // Reset IDE code
+      setCode("");
+
       toast.success("Test submitted successfully!");
     } else {
       toast.error("Failed to submit test");
     }
-  }, [performCleanup]);
+  }, [performCleanup, problems, submitSolution, language, testId]);
+
 
   // Back-button & page-close guard
   useEffect(() => {
@@ -252,7 +416,7 @@ const CodingChallenge: React.FC = () => {
 
     const handlePopState = async (e: PopStateEvent) => {
       const confirmed = window.confirm(
-        "⚠️ Warning: Leaving will permanently end your test!\n\nYou will NOT be able to re-enter this test once you leave. Your current progress will be lost.\n\nAre you sure you want to exit?"
+        "⚠️ Warning: Leaving will permanently end your test!\n\nYou will NOT be able to re-enter this test once you leave. Your current progress will be lost.\n\nAre you sure you want to exit?",
       );
       if (confirmed) {
         // Perform cleanup before navigating
@@ -267,7 +431,8 @@ const CodingChallenge: React.FC = () => {
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = "⚠️ Warning: Leaving will permanently end your test! You will NOT be able to re-enter.";
+      e.returnValue =
+        "⚠️ Warning: Leaving will permanently end your test! You will NOT be able to re-enter.";
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -284,7 +449,7 @@ const CodingChallenge: React.FC = () => {
     const handleMouseMove = (e: MouseEvent | TouchEvent) => {
       if (isDragging) {
         let clientX, clientY;
-        if ('touches' in e) {
+        if ("touches" in e) {
           clientX = e.touches[0].clientX;
           clientY = e.touches[0].clientY;
         } else {
@@ -304,7 +469,9 @@ const CodingChallenge: React.FC = () => {
     if (isDragging) {
       window.addEventListener("mousemove", handleMouseMove as EventListener);
       window.addEventListener("mouseup", handleMouseUp);
-      window.addEventListener("touchmove", handleMouseMove as EventListener, { passive: false });
+      window.addEventListener("touchmove", handleMouseMove as EventListener, {
+        passive: false,
+      });
       window.addEventListener("touchend", handleMouseUp);
     }
     return () => {
@@ -318,8 +485,8 @@ const CodingChallenge: React.FC = () => {
   // Cleanup initial streams on unmount only
   useEffect(() => {
     return () => {
-      initialWebcamStreamRef.current?.getTracks().forEach(t => t.stop());
-      initialScreenStreamRef.current?.getTracks().forEach(t => t.stop());
+      initialWebcamStreamRef.current?.getTracks().forEach((t) => t.stop());
+      initialScreenStreamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);
 
@@ -330,7 +497,10 @@ const CodingChallenge: React.FC = () => {
     if (!testId) return;
     const load = async () => {
       try {
-        const statusData = await triggerGetTestStatus({ testId, token }).unwrap();
+        const statusData = await triggerGetTestStatus({
+          testId,
+          token,
+        }).unwrap();
         if (!statusData.success) {
           toast.error("Failed to load test status");
           setTestStatus("expired");
@@ -342,7 +512,10 @@ const CodingChallenge: React.FC = () => {
           setTestStatus("completed");
           return;
         }
-        const problemsData = await triggerGetTestProblems({ testId, token }).unwrap();
+        const problemsData = await triggerGetTestProblems({
+          testId,
+          token,
+        }).unwrap();
         if (problemsData.success) {
           setProblems(problemsData.data);
           if (testMeta.startedAt) {
@@ -382,7 +555,7 @@ const CodingChallenge: React.FC = () => {
 
           const sessionData = await startSessionMutation({
             candidateId: String(candidateId),
-            jobId: actualJobId ? String(actualJobId) : undefined
+            jobId: actualJobId ? String(actualJobId) : undefined,
           }).unwrap();
 
           if (sessionData.sessionId) {
@@ -390,7 +563,7 @@ const CodingChallenge: React.FC = () => {
           }
         } catch (sessionErr) {
           console.error("Failed to start session:", sessionErr);
-          // We still allow the test to proceed even if session tracking fails, 
+          // We still allow the test to proceed even if session tracking fails,
           // but we log it. Depending on strictness, we might want to return here.
         }
         setTestStatus("active");
@@ -418,11 +591,11 @@ const CodingChallenge: React.FC = () => {
     }
   };
 
-
   // ── Violation event listeners (were missing before!) ────────────
   useEffect(() => {
     const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") handleViolation("Tab Switched");
+      if (document.visibilityState === "hidden")
+        handleViolation("Tab Switched");
     };
     const onCopy = (e: ClipboardEvent) => {
       if (!isMonitoringActive) return;
@@ -459,31 +632,59 @@ const CodingChallenge: React.FC = () => {
 
   // Update code when language changes or problem changes
   useEffect(() => {
-    if (!currentProblem) return;
+    if (!currentProblem || !language) return;
 
-    const savedCode = localStorage.getItem(`code_${currentProblem.id}_${language}`);
+    const savedCode = localStorage.getItem(
+      `code_${currentProblem.id}_${language.name}`,
+    );
     if (savedCode) {
       setCode(savedCode);
     } else {
-      // Use baseCode or fallback
-      const baseCode = currentProblem.baseCode || currentProblem.starterCode;
-      setCode(baseCode?.[language] || "");
+      // Priority: baseCode (for specific languages) -> starterCode -> empty
+      const baseCode = currentProblem.baseCode;
+      const starterCode = currentProblem.starterCode;
+
+      const langKey = getLanguageKey(language.name);
+
+      const supportedKeys = [
+        "c",
+        "cpp",
+        "go",
+        "java",
+        "javascript",
+        "python",
+        "typescript",
+      ];
+
+      if (supportedKeys.includes(langKey) && baseCode && baseCode[langKey]) {
+        setCode(baseCode[langKey]);
+      } else if (starterCode && (starterCode as any)[langKey]) {
+        setCode((starterCode as any)[langKey]);
+      } else {
+        setCode("");
+      }
     }
   }, [language, currentProblem]);
 
+  // Clear test case results and errors when switching to a different problem
+  useEffect(() => {
+    setTestCases([]);
+    setError(undefined);
+  }, [currentProblem?.id]);
+
   // Auto-save code to localStorage
   useEffect(() => {
-    if (!currentProblem) return;
+    if (!currentProblem || !language) return;
     const timer = setTimeout(() => {
-      localStorage.setItem(`code_${currentProblem.id}_${language}`, code);
+      localStorage.setItem(`code_${currentProblem.id}_${language.name}`, code);
     }, 1000);
     return () => clearTimeout(timer);
   }, [code, language, currentProblem]);
 
-  const handleLanguageChange = (newLanguage: SupportedLanguage) => {
+  const handleLanguageChange = (newLanguage: Language) => {
     // Flush current code to localStorage before switching
-    if (currentProblem) {
-      localStorage.setItem(`code_${currentProblem.id}_${language}`, code);
+    if (currentProblem && language) {
+      localStorage.setItem(`code_${currentProblem.id}_${language.name}`, code);
     }
     setLanguage(newLanguage);
   };
@@ -492,83 +693,135 @@ const CodingChallenge: React.FC = () => {
     setCode(newCode);
   };
 
-  const getLanguageId = (lang: SupportedLanguage): number => {
-    const mapping: Record<SupportedLanguage, number> = {
-      [SupportedLanguage.JAVASCRIPT]: 63,
-      [SupportedLanguage.TYPESCRIPT]: 74,
-      [SupportedLanguage.PYTHON]: 71,
-      [SupportedLanguage.JAVA]: 62,
-      [SupportedLanguage.CPP]: 54,
-    };
-    return mapping[lang] || 63;
-  };
-
   const handleRunCode = async () => {
     if (!currentProblem) return;
-    
+
     setIsRunning(true);
     setError(undefined);
-    setTestCases([]);
+    const knownTCs: TestCase[] = currentProblem.testcases || currentProblem.testCases || [];
+    setTestCases(knownTCs.map(tc => ({ ...tc, passed: undefined, actualOutput: undefined })));
 
     try {
       const result = await runTestCases({
         problemId: Number(currentProblem.id),
         code: code,
-        languageId: getLanguageId(language)
+        languageId: getLanguageId(language),
       }).unwrap();
 
       if (result.success) {
-        setTestCases(result.data?.testCases || []);
+        const raw = result.data?.testCases ?? result.data?.testcases ?? result.data?.results ?? [];
+        setTestCases(mergeTestCaseResults(raw, knownTCs));
       } else {
         setError(result.message || "Execution failed");
       }
     } catch (err: any) {
-      setError(err?.data?.message || err.message || "An error occurred during execution");
+      setError(
+        err?.data?.message ||
+        err.message ||
+        "An error occurred during execution",
+      );
     } finally {
       setIsRunning(false);
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmitProblem = async (autoAdvance = false) => {
     if (!currentProblem) return;
 
     setIsRunning(true);
     setError(undefined);
-    setTestCases([]);
+
+    // Save current code before submitting
+    if (language) {
+      localStorage.setItem(`code_${currentProblem.id}_${language.name}`, code);
+    }
+
+    const knownTCs: TestCase[] = currentProblem.testcases || currentProblem.testCases || [];
+    setTestCases(knownTCs.map(tc => ({ ...tc, passed: undefined, actualOutput: undefined })));
 
     try {
-      const result = await runTestCases({
+      const result = await submitSolution({
         problemId: Number(currentProblem.id),
         code: code,
-        languageId: getLanguageId(language)
+        languageId: getLanguageId(language),
+        testId: Number(testId),
       }).unwrap();
 
       if (result.success) {
-        const results = result.data?.testCases || [];
+        const raw = result.data?.testCases ?? result.data?.testcases ?? result.data?.results ?? [];
+        const results = mergeTestCaseResults(raw, knownTCs);
         setTestCases(results);
-        
+
+        // Mark this problem as submitted
+        submittedProblemIdsRef.current.add(currentProblem.id);
+
         const allPassed = results.every((tc: any) => tc.passed);
+        const grade = result.data?.grade;
+        const gradeText = grade !== undefined ? ` (Grade: ${grade}/100)` : "";
+
         if (allPassed) {
-          toast.success("All test cases passed!");
+          toast.success(`Problem submitted successfully!${gradeText}`);
         } else {
-          toast.error("Some test cases failed.");
+          toast.info(`Submitted with some failing tests.${gradeText}`);
+        }
+
+        // Auto-advance to next problem if not the last one
+        if (autoAdvance && activeProblemIndex < problems.length - 1) {
+          setTimeout(() => {
+            setActiveProblemIndex(activeProblemIndex + 1);
+          }, 1500);
         }
       } else {
         setError(result.message || "Submission failed");
       }
     } catch (err: any) {
-      setError(err?.data?.message || err.message || "An error occurred during submission");
+      setError(
+        err?.data?.message ||
+        err.message ||
+        "An error occurred during submission",
+      );
     } finally {
       setIsRunning(false);
     }
   };
+
+  const handleSubmitAndEndTest = async () => {
+    if (!currentProblem) return;
+
+    setIsRunning(true);
+    setError(undefined);
+
+    try {
+      // Submit the last problem first
+      await submitSolution({
+        problemId: Number(currentProblem.id),
+        code: code,
+        languageId: getLanguageId(language),
+        testId: Number(testId),
+      }).unwrap();
+
+      toast.success("Final problem submitted! Ending test...");
+    } catch {
+      // Even if submission fails, still end the test
+      toast.warning("Submission had issues, but ending test...");
+    } finally {
+      setIsRunning(false);
+    }
+
+    // End the test after submission
+    await handleEndTest();
+  };
+
+  const isLastProblem = activeProblemIndex === problems.length - 1;
 
   if (testStatus === "loading") {
     return (
       <div className="h-screen flex items-center justify-center bg-slate-50 font-inter">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <p className="text-slate-600 font-medium">Preparing your assessment...</p>
+          <p className="text-slate-600 font-medium">
+            Preparing your assessment...
+          </p>
         </div>
       </div>
     );
@@ -581,11 +834,17 @@ const CodingChallenge: React.FC = () => {
           <div className="h-16 w-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <Send className="h-8 w-8" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Assessment Completed</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+            Assessment Completed
+          </h1>
           <p className="text-slate-600 mb-8">
-            Thank you for completing the assessment. Your results have been submitted and are being reviewed.
+            Thank you for completing the assessment. Your results have been
+            submitted and are being reviewed.
           </p>
-          <Button onClick={() => navigate("/contractor/tests")} className="w-full bg-slate-900 hover:bg-slate-900/90">
+          <Button
+            onClick={() => navigate("/contractor/tests")}
+            className="w-full bg-slate-900 hover:bg-slate-900/90"
+          >
             Back to Dashboard
           </Button>
         </div>
@@ -608,7 +867,11 @@ const CodingChallenge: React.FC = () => {
               ? "This assessment link has expired or is no longer valid. Please contact your recruiter."
               : "We encountered a problem loading your assessment. Please try again later or contact support."}
           </p>
-          <Button onClick={() => navigate("/contractor/tests")} variant="outline" className="w-full">
+          <Button
+            onClick={() => navigate("/contractor/tests")}
+            variant="outline"
+            className="w-full"
+          >
             Back to Dashboard
           </Button>
         </div>
@@ -620,7 +883,6 @@ const CodingChallenge: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f8f9fb] p-3 sm:p-4 font-inter">
         <div className="max-w-[850px] w-full bg-white rounded-[24px] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-[#e8eaef] overflow-hidden flex flex-col md:flex-row my-4">
-
           {/* Left Side: Brand / Welcome */}
           <div className="md:w-[40%] bg-[#080b20] p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden shrink-0">
             {/* Background elements */}
@@ -635,7 +897,9 @@ const CodingChallenge: React.FC = () => {
                 {metadata?.title || "Coding Assessment"}
               </h1>
               <p className="text-white/60 text-[14px] leading-relaxed">
-                Demonstrate your technical skills in a secure environment. Please ensure you are in a quiet room with a stable internet connection.
+                Demonstrate your technical skills in a secure environment.
+                Please ensure you are in a quiet room with a stable internet
+                connection.
               </p>
             </div>
 
@@ -645,8 +909,12 @@ const CodingChallenge: React.FC = () => {
                   <Clock className="w-4 h-4 text-[#4DD9E8]" />
                 </div>
                 <div>
-                  <div className="text-[11px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">Duration</div>
-                  <div className="font-medium text-[13px]">{metadata?.totalTime || 0} Minutes</div>
+                  <div className="text-[11px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">
+                    Duration
+                  </div>
+                  <div className="font-medium text-[13px]">
+                    {metadata?.totalTime || 0} Minutes
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-4 text-white/80">
@@ -654,8 +922,13 @@ const CodingChallenge: React.FC = () => {
                   <Layers className="w-4 h-4 text-[#4DD9E8]" />
                 </div>
                 <div>
-                  <div className="text-[11px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">Questions</div>
-                  <div className="font-medium text-[13px]">{problems.length} {problems.length === 1 ? 'Problem' : 'Problems'}</div>
+                  <div className="text-[11px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">
+                    Questions
+                  </div>
+                  <div className="font-medium text-[13px]">
+                    {problems.length}{" "}
+                    {problems.length === 1 ? "Problem" : "Problems"}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-4 text-white/80">
@@ -663,8 +936,12 @@ const CodingChallenge: React.FC = () => {
                   <ShieldCheck className="w-4 h-4 text-[#4DD9E8]" />
                 </div>
                 <div>
-                  <div className="text-[11px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">Proctoring</div>
-                  <div className="font-medium text-[13px] text-[#4DD9E8]">Strictly Enabled</div>
+                  <div className="text-[11px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">
+                    Proctoring
+                  </div>
+                  <div className="font-medium text-[13px] text-[#4DD9E8]">
+                    Strictly Enabled
+                  </div>
                 </div>
               </div>
             </div>
@@ -672,9 +949,12 @@ const CodingChallenge: React.FC = () => {
 
           {/* Right Side: Setup & Permissions */}
           <div className="md:w-[60%] p-6 sm:p-10 bg-white flex flex-col justify-center">
-            <h3 className="text-[20px] font-bold text-[#1a1a2e] mb-2">System Check</h3>
+            <h3 className="text-[20px] font-bold text-[#1a1a2e] mb-2">
+              System Check
+            </h3>
             <p className="text-[14px] text-slate-500 mb-8">
-              Please grant the necessary permissions to begin the assessment. Your camera and screen will be monitored.
+              Please grant the necessary permissions to begin the assessment.
+              Your camera and screen will be monitored.
             </p>
 
             <div className="space-y-4 mb-8">
@@ -686,7 +966,10 @@ const CodingChallenge: React.FC = () => {
                 onClick={async () => {
                   if (hasWebcamPermission) return;
                   try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                      video: true,
+                      audio: true,
+                    });
                     initialWebcamStreamRef.current = stream;
                     setInitialWebcamStream(stream);
                     setHasWebcamPermission(true);
@@ -697,18 +980,30 @@ const CodingChallenge: React.FC = () => {
                 }}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${hasWebcamPermission ? "bg-[#4DD9E8] text-white" : "bg-[#f8f9fb] border border-[#e8eaef] text-slate-500 group-hover:text-[#4DD9E8]"}`}>
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${hasWebcamPermission ? "bg-[#4DD9E8] text-white" : "bg-[#f8f9fb] border border-[#e8eaef] text-slate-500 group-hover:text-[#4DD9E8]"}`}
+                  >
                     <Video className="w-5 h-5" />
                   </div>
                   <div className="text-left">
-                    <div className={`font-semibold text-[14px] ${hasWebcamPermission ? "text-[#1a1a2e]" : "text-slate-700"}`}>Camera & Mic</div>
-                    <div className="text-[12px] text-slate-500 mt-0.5">Required for verification</div>
+                    <div
+                      className={`font-semibold text-[14px] ${hasWebcamPermission ? "text-[#1a1a2e]" : "text-slate-700"}`}
+                    >
+                      Camera & Mic
+                    </div>
+                    <div className="text-[12px] text-slate-500 mt-0.5">
+                      Required for verification
+                    </div>
                   </div>
                 </div>
                 {hasWebcamPermission ? (
-                  <div className="px-3 py-1 bg-[#4DD9E8]/10 text-[#0ea5e9] text-[11px] uppercase tracking-wider font-bold rounded-full">Granted</div>
+                  <div className="px-3 py-1 bg-[#4DD9E8]/10 text-[#0ea5e9] text-[11px] uppercase tracking-wider font-bold rounded-full">
+                    Granted
+                  </div>
                 ) : (
-                  <div className="px-4 py-1.5 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-full group-hover:bg-[#4DD9E8] group-hover:text-white transition-colors shadow-sm">Grant</div>
+                  <div className="px-4 py-1.5 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-full group-hover:bg-[#4DD9E8] group-hover:text-white transition-colors shadow-sm">
+                    Grant
+                  </div>
                 )}
               </button>
 
@@ -720,7 +1015,9 @@ const CodingChallenge: React.FC = () => {
                 onClick={async () => {
                   if (isScreenSelected) return;
                   try {
-                    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                    const stream = await navigator.mediaDevices.getDisplayMedia(
+                      { video: true },
+                    );
                     initialScreenStreamRef.current = stream;
                     setInitialScreenStream(stream);
                     setIsScreenSelected(true);
@@ -731,18 +1028,30 @@ const CodingChallenge: React.FC = () => {
                 }}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${isScreenSelected ? "bg-[#4DD9E8] text-white" : "bg-[#f8f9fb] border border-[#e8eaef] text-slate-500 group-hover:text-[#4DD9E8]"}`}>
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${isScreenSelected ? "bg-[#4DD9E8] text-white" : "bg-[#f8f9fb] border border-[#e8eaef] text-slate-500 group-hover:text-[#4DD9E8]"}`}
+                  >
                     <Airplay className="w-5 h-5" />
                   </div>
                   <div className="text-left">
-                    <div className={`font-semibold text-[14px] ${isScreenSelected ? "text-[#1a1a2e]" : "text-slate-700"}`}>Screen Share</div>
-                    <div className="text-[12px] text-slate-500 mt-0.5">Select entire screen</div>
+                    <div
+                      className={`font-semibold text-[14px] ${isScreenSelected ? "text-[#1a1a2e]" : "text-slate-700"}`}
+                    >
+                      Screen Share
+                    </div>
+                    <div className="text-[12px] text-slate-500 mt-0.5">
+                      Select entire screen
+                    </div>
                   </div>
                 </div>
                 {isScreenSelected ? (
-                  <div className="px-3 py-1 bg-[#4DD9E8]/10 text-[#0ea5e9] text-[11px] uppercase tracking-wider font-bold rounded-full">Granted</div>
+                  <div className="px-3 py-1 bg-[#4DD9E8]/10 text-[#0ea5e9] text-[11px] uppercase tracking-wider font-bold rounded-full">
+                    Granted
+                  </div>
                 ) : (
-                  <div className="px-4 py-1.5 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-full group-hover:bg-[#4DD9E8] group-hover:text-white transition-colors shadow-sm">Grant</div>
+                  <div className="px-4 py-1.5 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-full group-hover:bg-[#4DD9E8] group-hover:text-white transition-colors shadow-sm">
+                    Grant
+                  </div>
                 )}
               </button>
             </div>
@@ -759,7 +1068,8 @@ const CodingChallenge: React.FC = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1 h-1 rounded-full bg-[#fbbf24] mt-1.5 shrink-0" />
-                  Switching tabs or leaving full-screen may flag your submission.
+                  Switching tabs or leaving full-screen may flag your
+                  submission.
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1 h-1 rounded-full bg-[#fbbf24] mt-1.5 shrink-0" />
@@ -771,17 +1081,33 @@ const CodingChallenge: React.FC = () => {
             <div className="mt-auto pt-2">
               <Button
                 style={{
-                  background: (!hasWebcamPermission || !isScreenSelected) ? "#f1f5f9" : "linear-gradient(135deg, #4DD9E8, #0ea5e9)",
-                  boxShadow: (!hasWebcamPermission || !isScreenSelected) ? "none" : "0 4px 20px rgba(77,217,232,0.35)",
-                  color: (!hasWebcamPermission || !isScreenSelected) ? "#94a3b8" : "white",
-                  border: (!hasWebcamPermission || !isScreenSelected) ? "1px solid #e2e8f0" : "none"
+                  background:
+                    !hasWebcamPermission || !isScreenSelected
+                      ? "#f1f5f9"
+                      : "linear-gradient(135deg, #4DD9E8, #0ea5e9)",
+                  boxShadow:
+                    !hasWebcamPermission || !isScreenSelected
+                      ? "none"
+                      : "0 4px 20px rgba(77,217,232,0.35)",
+                  color:
+                    !hasWebcamPermission || !isScreenSelected
+                      ? "#94a3b8"
+                      : "white",
+                  border:
+                    !hasWebcamPermission || !isScreenSelected
+                      ? "1px solid #e2e8f0"
+                      : "none",
                 }}
-                className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${(!hasWebcamPermission || !isScreenSelected) ? "cursor-not-allowed opacity-100" : "hover:opacity-90"
+                className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${!hasWebcamPermission || !isScreenSelected
+                  ? "cursor-not-allowed opacity-100"
+                  : "hover:opacity-90"
                   }`}
                 disabled={!hasWebcamPermission || !isScreenSelected}
                 onClick={handleStartTest}
               >
-                {!hasWebcamPermission || !isScreenSelected ? "Complete Setup to Start" : "Start Assessment"}
+                {!hasWebcamPermission || !isScreenSelected
+                  ? "Complete Setup to Start"
+                  : "Start Assessment"}
               </Button>
             </div>
           </div>
@@ -799,7 +1125,11 @@ const CodingChallenge: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={async () => {
-              if (window.confirm("⚠️ Warning: Exiting will end your assessment. Are you sure?")) {
+              if (
+                window.confirm(
+                  "⚠️ Warning: Exiting will end your assessment. Are you sure?",
+                )
+              ) {
                 toast.info("Ending session...", { duration: 2000 });
                 await performCleanup();
                 navigate("/contractor/tests");
@@ -826,10 +1156,11 @@ const CodingChallenge: React.FC = () => {
                   "px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-[11px] sm:text-sm font-medium transition-all whitespace-nowrap shrink-0",
                   activeProblemIndex === idx
                     ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-slate-500 hover:text-slate-800"
+                    : "text-slate-500 hover:text-slate-800",
                 )}
               >
-                P{idx + 1}{!isMobile && `: ${p.title}`}
+                P{idx + 1}
+                {!isMobile && `: ${p.title}`}
               </button>
             ))}
           </div>
@@ -837,7 +1168,9 @@ const CodingChallenge: React.FC = () => {
 
         <div className="flex items-center gap-2 sm:gap-6">
           {metadata?.startedAt && (
-            <div className={cn("flex flex-col items-end", isMobile && "scale-90")}>
+            <div
+              className={cn("flex flex-col items-end", isMobile && "scale-90")}
+            >
               <TestTimer
                 startedAt={metadata.startedAt}
                 totalMinutes={metadata.totalTime}
@@ -854,21 +1187,35 @@ const CodingChallenge: React.FC = () => {
               size={isMobile ? "icon" : "default"}
               className={cn(
                 "gap-2 border-slate-200 hover:bg-slate-50 shrink-0",
-                !isMobile && "bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none"
+                !isMobile &&
+                "bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none",
               )}
             >
               <Play className={cn("h-4 w-4", !isMobile && "text-white")} />
               {!isMobile && "Run Code"}
             </Button>
-            <Button
-              onClick={handleEndTest}
-              variant="destructive"
-              size={isMobile ? "icon" : "default"}
-              className="gap-2 shrink-0"
-            >
-              <Send className="h-4 w-4" />
-              {!isMobile && "End Test"}
-            </Button>
+            {isLastProblem ? (
+              <Button
+                onClick={handleSubmitAndEndTest}
+                disabled={isRunning}
+                variant="destructive"
+                size={isMobile ? "icon" : "default"}
+                className="gap-2 shrink-0"
+              >
+                <Send className="h-4 w-4" />
+                {!isMobile && "Submit & End Test"}
+              </Button>
+            ) : (
+              <Button
+                onClick={() => handleSubmitProblem(true)}
+                disabled={isRunning}
+                size={isMobile ? "icon" : "default"}
+                className="gap-2 shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                <Send className="h-4 w-4" />
+                {!isMobile && "Submit Code"}
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -878,14 +1225,20 @@ const CodingChallenge: React.FC = () => {
         {currentProblem && (
           <ResizablePanelGroup direction={isMobile ? "vertical" : "horizontal"}>
             {/* Left Panel - Problem Description */}
-            <ResizablePanel defaultSize={isMobile ? 40 : 35} minSize={isMobile ? 20 : 25}>
+            <ResizablePanel
+              defaultSize={isMobile ? 40 : 35}
+              minSize={isMobile ? 20 : 25}
+            >
               <ProblemPanel problem={currentProblem} />
             </ResizablePanel>
 
             <ResizableHandle withHandle />
 
             {/* Right Panel - Editor and Console */}
-            <ResizablePanel defaultSize={isMobile ? 60 : 65} minSize={isMobile ? 30 : 40}>
+            <ResizablePanel
+              defaultSize={isMobile ? 60 : 65}
+              minSize={isMobile ? 30 : 40}
+            >
               <ResizablePanelGroup direction="vertical">
                 {/* Editor */}
                 <ResizablePanel defaultSize={60} minSize={30}>
@@ -895,6 +1248,8 @@ const CodingChallenge: React.FC = () => {
                     code={code}
                     onCodeChange={handleCodeChange}
                     starterCode={currentProblem.starterCode}
+                    baseCode={currentProblem.baseCode}
+                    allLanguages={filteredLanguages}
                   />
                 </ResizablePanel>
 

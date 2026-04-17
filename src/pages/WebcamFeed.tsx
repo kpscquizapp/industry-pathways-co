@@ -594,9 +594,6 @@ const WebcamFeed = ({
           >
             {isRecording ? "Recording" : "Idle"}
           </span>
-          <span className="rounded-full bg-white/15 px-2 py-1 text-xs font-semibold uppercase tracking-widest text-white/80">
-            Violations: {totalViolations}
-          </span>
         </div>
 
         <button

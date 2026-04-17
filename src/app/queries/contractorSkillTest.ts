@@ -53,6 +53,13 @@ export const contractorSkillTestApi = createApi({
                 url: "coding/tags",
             }),
         }),
+        getTestStatusById: builder.query<any, { testId: string | number; token?: string }>({
+            query: ({ testId, token }) => ({
+                method: "GET",
+                url: `coding/tests/${testId}/status`,
+                params: token ? { token } : undefined,
+            }),
+        }),
     }),
 })
 
@@ -60,6 +67,7 @@ export const {
     useCreateSkillTestMutation, 
     useGetMyTestResultsQuery, 
     useGetTestReportQuery,
-    useGetProblemTagsQuery
+    useGetProblemTagsQuery,
+    useLazyGetTestStatusByIdQuery,
 } = contractorSkillTestApi;
 
