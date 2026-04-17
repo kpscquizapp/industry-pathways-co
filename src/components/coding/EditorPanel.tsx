@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { SupportedLanguage } from "@/types/coding";
+import { Language } from "@/app/queries/assessmentApi";
 import {
   Settings,
   Maximize2,
@@ -28,25 +29,25 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface EditorPanelProps {
-  language: SupportedLanguage;
-  onLanguageChange: (language: SupportedLanguage) => void;
+  language: Language | undefined;
+  onLanguageChange: (language: Language) => void;
   code: string;
   onCodeChange: (code: string) => void;
-  starterCode: Record<SupportedLanguage, string>;
+  starterCode?: Record<string, string>;
+  baseCode?: Record<string, string>;
+  allLanguages: Language[];
 }
 
-const languageMap = {
-  [SupportedLanguage.JAVASCRIPT]: {
-    label: "JavaScript",
-    monacoLang: "javascript",
-  },
-  [SupportedLanguage.TYPESCRIPT]: {
-    label: "TypeScript",
-    monacoLang: "typescript",
-  },
-  [SupportedLanguage.PYTHON]: { label: "Python", monacoLang: "python" },
-  [SupportedLanguage.JAVA]: { label: "Java", monacoLang: "java" },
-  [SupportedLanguage.CPP]: { label: "C++", monacoLang: "cpp" },
+const getMonacoLanguage = (name?: string): string => {
+  if (!name) return "javascript";
+  const normalized = name.toLowerCase();
+  if (normalized.includes("javascript")) return "javascript";
+  if (normalized.includes("typescript")) return "typescript";
+  if (normalized.includes("python")) return "python";
+  if (normalized.includes("java") && !normalized.includes("javascript"))
+    return "java";
+  if (normalized.includes("c++") || normalized.includes("cpp")) return "cpp";
+  return normalized;
 };
 
 const EditorPanel: React.FC<EditorPanelProps> = ({
@@ -55,6 +56,8 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
   code,
   onCodeChange,
   starterCode,
+  baseCode,
+  allLanguages,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   useEffect(() => {
@@ -82,7 +85,30 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
   }, []);
 
   const handleReset = () => {
-    onCodeChange(starterCode[language]);
+    if (!language) return;
+
+    const getLanguageKey = (name?: string): string => {
+      if (!name) return "";
+      const n = name.toLowerCase();
+      if (n.includes("javascript")) return "javascript";
+      if (n.includes("typescript")) return "typescript";
+      if (n.includes("python")) return "python";
+      if (n.includes("java") && !n.includes("javascript")) return "java";
+      if (n.includes("c++") || n.includes("cpp")) return "cpp";
+      if (n.includes("go")) return "go";
+      if (n.includes("c") && !n.includes("c++") && !n.includes("c#")) return "c";
+      return n;
+    };
+
+    const langKey = getLanguageKey(language.name);
+
+    if (baseCode && baseCode[langKey]) {
+      onCodeChange(baseCode[langKey]);
+    } else if (starterCode && (starterCode as any)[langKey]) {
+      onCodeChange((starterCode as any)[langKey]);
+    } else {
+      onCodeChange("");
+    }
   };
 
   const handleCopy = async () => {
@@ -106,16 +132,19 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
       <div className="border-b border-border px-4 py-2 flex items-center justify-between gap-4 bg-card flex-shrink-0">
         <div className="flex items-center gap-3">
           <Select
-            value={language}
-            onValueChange={(val) => onLanguageChange(val as SupportedLanguage)}
+            value={language?.id.toString()}
+            onValueChange={(val) => {
+              const selected = allLanguages.find((l) => l.id.toString() === val);
+              if (selected) onLanguageChange(selected);
+            }}
           >
             <SelectTrigger className="w-[180px] h-9">
               <SelectValue placeholder="Select Language" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(languageMap).map(([key, { label }]) => (
-                <SelectItem key={key} value={key}>
-                  {label}
+              {allLanguages.map((lang) => (
+                <SelectItem key={lang.id} value={lang.id.toString()}>
+                  {lang.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -186,9 +215,9 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
       {/* Monaco Editor */}
       <div className="flex-1 overflow-hidden">
         <Editor
-          key={language}
+          key={language?.id}
           height="100%"
-          language={languageMap[language].monacoLang}
+          language={getMonacoLanguage(language?.name)}
           value={code}
           onChange={(value) => onCodeChange(value || "")}
           theme={theme}

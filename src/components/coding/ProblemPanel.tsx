@@ -23,6 +23,9 @@ const getDifficultyColor = (difficulty: Difficulty) => {
 };
 
 const ProblemPanel: React.FC<ProblemPanelProps> = ({ problem }) => {
+  const examples = problem.examples || [];
+  const constraints = problem.constraints || [];
+
   return (
     <Card className="h-full border-none rounded-none shadow-none">
       <CardHeader className="border-b border-border">
@@ -31,7 +34,7 @@ const ProblemPanel: React.FC<ProblemPanelProps> = ({ problem }) => {
             <CardTitle className="text-xl mb-2">{problem.title}</CardTitle>
             <Badge
               variant="outline"
-              className={getDifficultyColor(problem.difficulty)}
+              className={getDifficultyColor(problem.difficulty as Difficulty)}
             >
               {problem.difficulty}
             </Badge>
@@ -66,69 +69,81 @@ const ProblemPanel: React.FC<ProblemPanelProps> = ({ problem }) => {
               Submissions
             </TabsTrigger>
           </TabsList>
-
+ 
           <ScrollArea className="h-[calc(100vh-280px)]">
             <TabsContent value="description" className="p-6 space-y-4">
               <div
                 className="prose prose-sm dark:prose-invert max-w-none"
                 dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(problem.description),
+                  __html: DOMPurify.sanitize(problem.description || ""),
                 }}
               />
             </TabsContent>
-
+ 
             <TabsContent value="examples" className="p-6 space-y-6">
-              {problem.examples.map((example, idx) => (
-                <div key={idx} className="space-y-3">
-                  <h4 className="font-semibold text-foreground">
-                    Example {idx + 1}:
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <p className="text-sm font-medium text-muted-foreground mb-1">
-                        Input:
-                      </p>
-                      <code className="text-sm text-foreground">
-                        {example.input}
-                      </code>
-                    </div>
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <p className="text-sm font-medium text-muted-foreground mb-1">
-                        Output:
-                      </p>
-                      <code className="text-sm text-foreground">
-                        {example.output}
-                      </code>
-                    </div>
-                    {example.explanation && (
-                      <div className="bg-muted/30 rounded-lg p-4">
+              {examples.length > 0 ? (
+                examples.map((example, idx) => (
+                  <div key={idx} className="space-y-3">
+                    <h4 className="font-semibold text-foreground">
+                      Example {idx + 1}:
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="bg-muted/50 rounded-lg p-4">
                         <p className="text-sm font-medium text-muted-foreground mb-1">
-                          Explanation:
+                          Input:
                         </p>
-                        <p className="text-sm text-foreground">
-                          {example.explanation}
-                        </p>
+                        <code className="text-sm text-foreground">
+                          {example.input}
+                        </code>
                       </div>
-                    )}
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <p className="text-sm font-medium text-muted-foreground mb-1">
+                          Output:
+                        </p>
+                        <code className="text-sm text-foreground">
+                          {example.output}
+                        </code>
+                      </div>
+                      {example.explanation && (
+                        <div className="bg-muted/30 rounded-lg p-4">
+                          <p className="text-sm font-medium text-muted-foreground mb-1">
+                            Explanation:
+                          </p>
+                          <p className="text-sm text-foreground">
+                            {example.explanation}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p className="text-sm">No examples available for this problem.</p>
                 </div>
-              ))}
+              )}
             </TabsContent>
-
+ 
             <TabsContent value="constraints" className="p-6">
-              <ul className="space-y-2">
-                {problem.constraints.map((constraint, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-start gap-2 text-sm text-muted-foreground"
-                  >
-                    <Circle className="h-2 w-2 mt-1.5 fill-current" />
-                    <span>{constraint}</span>
-                  </li>
-                ))}
-              </ul>
+              {constraints.length > 0 ? (
+                <ul className="space-y-2">
+                  {constraints.map((constraint, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2 text-sm text-muted-foreground"
+                    >
+                      <Circle className="h-2 w-2 mt-1.5 fill-current" />
+                      <span>{constraint}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p className="text-sm">No constraints specified.</p>
+                </div>
+              )}
             </TabsContent>
-
+ 
             <TabsContent value="submissions" className="p-6">
               <div className="text-center py-12 text-muted-foreground">
                 <CheckCircle2 className="h-12 w-12 mx-auto mb-4 opacity-50" />

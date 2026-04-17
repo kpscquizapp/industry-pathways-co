@@ -11,14 +11,31 @@ import {
   WandSparkles,
   ExternalLink,
   ChevronDown,
+  ChevronUp,
   LineChart,
-  RotateCcw
+  RotateCcw,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  FileCode2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { useCreateSkillTestMutation } from "@/app/queries/contractorSkillTest";
+import {
+  useCreateSkillTestMutation,
+  useGetMyTestResultsQuery,
+  useGetProblemTagsQuery,
+  useLazyGetTestStatusByIdQuery,
+} from "@/app/queries/contractorSkillTest";
 import { toast } from "sonner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -46,64 +63,127 @@ const C = {
 };
 
 /* ═══════════ REUSABLE COMPONENTS ═══════════ */
-const Card = memo(({ children, className, hover }: { children: React.ReactNode; className?: string; hover?: boolean }) => {
-  const [hov, setHov] = useState(false);
-  return (
+const Card = memo(
+  ({
+    children,
+    className,
+    hover,
+  }: {
+    children: React.ReactNode;
+    className?: string;
+    hover?: boolean;
+  }) => {
+    const [hov, setHov] = useState(false);
+    return (
+      <div
+        onMouseEnter={hover ? () => setHov(true) : undefined}
+        onMouseLeave={hover ? () => setHov(false) : undefined}
+        className={cn(
+          "rounded-2xl border transition-all duration-300 overflow-hidden bg-white",
+          hov ? "shadow-2xl -translate-y-1" : "shadow-sm",
+          className,
+        )}
+        style={{
+          borderColor: C.border,
+        }}
+      >
+        {children}
+      </div>
+    );
+  },
+);
+
+const GlassCard = memo(
+  ({
+    children,
+    gradient,
+    className,
+  }: {
+    children: React.ReactNode;
+    gradient: string;
+    className?: string;
+  }) => (
     <div
-      onMouseEnter={hover ? () => setHov(true) : undefined}
-      onMouseLeave={hover ? () => setHov(false) : undefined}
       className={cn(
-        "rounded-2xl border transition-all duration-300 overflow-hidden bg-white",
-        hov ? "shadow-2xl -translate-y-1" : "shadow-sm",
-        className
+        "relative overflow-hidden rounded-2xl p-6 text-white shadow-lg",
+        gradient,
+        className,
       )}
-      style={{
-        borderColor: C.border,
-      }}
     >
-      {children}
+      <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-white/10" />
+      <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
+      <div className="relative z-10">{children}</div>
     </div>
-  );
-});
+  ),
+);
 
-const GlassCard = memo(({ children, gradient, className }: { children: React.ReactNode; gradient: string; className?: string }) => (
-  <div className={cn("relative overflow-hidden rounded-2xl p-6 text-white shadow-lg", gradient, className)}>
-    <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-white/10" />
-    <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
-    <div className="relative z-10">{children}</div>
-  </div>
-));
+const Badge = memo(
+  ({
+    text,
+    color = C.green,
+    bg = C.greenBg,
+  }: {
+    text: string;
+    color?: string;
+    bg?: string;
+  }) => (
+    <span
+      className="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase"
+      style={{ color, background: bg }}
+    >
+      {text}
+    </span>
+  ),
+);
 
-const Badge = memo(({ text, color = C.green, bg = C.greenBg }: { text: string; color?: string; bg?: string }) => (
-  <span
-    className="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase"
-    style={{ color, background: bg }}
-  >
-    {text}
-  </span>
-));
-
-const ProgressBar = memo(({ value, color = C.accent, height = 6 }: { value: number; color?: string; height?: number }) => (
-  <div className="w-full bg-slate-100 rounded-full overflow-hidden" style={{ height }}>
+const ProgressBar = memo(
+  ({
+    value,
+    color = C.accent,
+    height = 6,
+  }: {
+    value: number;
+    color?: string;
+    height?: number;
+  }) => (
     <div
-      className="h-full transition-all duration-1000 ease-out rounded-full"
-      style={{
-        width: `${value}%`,
-        background: `linear-gradient(90deg, ${color}, ${color}cc)`
-      }}
-    />
-  </div>
-));
+      className="w-full bg-slate-100 rounded-full overflow-hidden"
+      style={{ height }}
+    >
+      <div
+        className="h-full transition-all duration-1000 ease-out rounded-full"
+        style={{
+          width: `${value}%`,
+          background: `linear-gradient(90deg, ${color}, ${color}cc)`,
+        }}
+      />
+    </div>
+  ),
+);
 
-
-const diffColor: Record<string, string> = { Intermediate: C.amber, Advanced: C.accent, Expert: C.purple };
+const diffColor: Record<string, string> = {
+  Intermediate: C.amber,
+  Advanced: C.accent,
+  Expert: C.purple,
+};
 
 const ContractorSkillTest = () => {
   const [filter, setFilter] = useState("all");
   const navigate = useNavigate();
   const [mockDifficulty, setMockDifficulty] = useState("");
   const [questionCount, setQuestionCount] = useState("");
-  const [createSkillTest] = useCreateSkillTestMutation();
+  const [createSkillTest, { isLoading: isCreating }] =
+    useCreateSkillTestMutation();
+  const { data: testResultsData, isLoading: isLoadingResults } =
+    useGetMyTestResultsQuery();
+  const { data: tagsData } = useGetProblemTagsQuery();
+  const [triggerGetTestStatus] = useLazyGetTestStatusByIdQuery();
+
+  const testResults = testResultsData?.data || [];
+  const availableTags = tagsData?.data || [];
+  const [expandedTestId, setExpandedTestId] = useState<number | null>(null);
+  const [insightsData, setInsightsData] = useState<Record<number, any>>({});
+  const [insightsLoading, setInsightsLoading] = useState<Record<number, boolean>>({});
   const [mockTest, setMockTest] = useState({
     title: "",
     totalTime: 0,
@@ -112,33 +192,50 @@ const ContractorSkillTest = () => {
       medium: 0,
       hard: 0,
     },
+    tags: [], // Added tags field
   });
-
-  console.log(mockTest)
 
   const difficultyLevels = ["easy", "medium", "hard"];
 
   const startMockTest = async () => {
-
-    if (!questionCount || !mockDifficulty || !mockTest.title || !mockTest.totalTime) {
+    if (
+      !questionCount ||
+      !mockDifficulty ||
+      !mockTest.title ||
+      !mockTest.totalTime
+    ) {
       toast.error("Please fill all the fields");
       return;
     }
 
     try {
-      await createSkillTest(mockTest).unwrap();
-      toast.success("Mock test created successfully");
+      const resp = await createSkillTest(mockTest).unwrap();
+      if (resp.success && resp.data?.id) {
+        toast.success("Mock test created successfully");
+        navigate(`/coding-challenge/${resp.data.id}`);
+      } else if (resp.success) {
+        toast.error(
+          "Test created but response missing test ID. Please check your results.",
+        );
+      } else {
+        toast.error("Failed to create mock test. Please try again.");
+      }
     } catch (error) {
       toast.error("Failed to create mock test");
     }
-  }
+  };
 
   return (
     <div className="flex flex-col gap-8 py-4 sm:px-2 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">
       {/* Header Section */}
       <div>
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Skill Tests</h2>
-        <p className="text-muted-foreground mt-2">Validate your expertise and unlock premium opportunities with our assessment system.</p>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+          Skill Tests
+        </h2>
+        <p className="text-muted-foreground mt-2">
+          Validate your expertise and unlock premium opportunities with our
+          assessment system.
+        </p>
       </div>
 
       {/* KPI Stats Section */}
@@ -152,10 +249,15 @@ const ContractorSkillTest = () => {
               <Target className="w-6 h-6 md:w-9 md:h-9 text-white" />
             </div>
             <div>
-              <div className="text-3xl md:text-4xl font-bold leading-none mb-1">-</div>
-              <h3 className="text-base md:text-[17px] font-bold text-white mb-2 md:mb-3">Tests Completed</h3>
+              <div className="text-3xl md:text-4xl font-bold leading-none mb-1">
+                -
+              </div>
+              <h3 className="text-base md:text-[17px] font-bold text-white mb-2 md:mb-3">
+                Tests Completed
+              </h3>
               <p className="text-xs md:text-sm font-medium text-white/80 leading-snug mt-2 md:mt-4">
-                Number of skill assessments you have successfully attempted as part of company hiring processes.
+                Number of skill assessments you have successfully attempted as
+                part of company hiring processes.
               </p>
             </div>
           </div>
@@ -170,10 +272,15 @@ const ContractorSkillTest = () => {
               <Award className="w-6 h-6 md:w-9 md:h-9 text-white" />
             </div>
             <div>
-              <div className="text-3xl md:text-4xl font-bold leading-none mb-1">-</div>
-              <h3 className="text-base md:text-[17px] font-bold text-white mb-2 md:mb-3">Average Score</h3>
+              <div className="text-3xl md:text-4xl font-bold leading-none mb-1">
+                -
+              </div>
+              <h3 className="text-base md:text-[17px] font-bold text-white mb-2 md:mb-3">
+                Average Score
+              </h3>
               <p className="text-xs md:text-sm font-medium text-white/80 leading-snug mt-2 md:mt-4">
-                Your overall performance score calculated across all completed assessments.
+                Your overall performance score calculated across all completed
+                assessments.
               </p>
             </div>
           </div>
@@ -186,8 +293,8 @@ const ContractorSkillTest = () => {
           { k: "all", l: "All Assessments" },
           { k: "available", l: "Available" },
           { k: "completed", l: "Completed" },
-          { k: "mock", l: "Mock Test" }
-        ].map(f => (
+          { k: "mock", l: "Mock Test" },
+        ].map((f) => (
           <button
             key={f.k}
             onClick={() => setFilter(f.k)}
@@ -195,7 +302,7 @@ const ContractorSkillTest = () => {
               "px-4 md:px-6 py-2 rounded-full text-[12px] md:text-[13px] font-bold transition-all duration-300 border",
               filter === f.k
                 ? "border-[#4DD9E8] bg-white text-[#0EA5E9] shadow-sm"
-                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300",
             )}
           >
             {f.l}
@@ -210,7 +317,9 @@ const ContractorSkillTest = () => {
             <CircleAlert size={20} className="text-[#0ea5e9]" />
           </div>
           <p className="text-[13px] md:text-sm text-slate-500 font-medium">
-            Companies invite candidates to skill assessments based on AI matching scores. Completing tests helps validate your expertise and increases your chances of interview selection.
+            Companies invite candidates to skill assessments based on AI
+            matching scores. Completing tests helps validate your expertise and
+            increases your chances of interview selection.
           </p>
         </div>
       )}
@@ -227,33 +336,37 @@ const ContractorSkillTest = () => {
         <div className="flex flex-col gap-10 pb-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
           {/* Section 1: Start Practice Card */}
           <div className="flex flex-col gap-5">
-            <h3 className="text-xl font-bold text-slate-900 px-1">Start a Practice Test</h3>
+            <h3 className="text-xl font-bold text-slate-900 px-1">
+              Start a Practice Test
+            </h3>
             <Card className="p-5 sm:p-7 md:p-10 border-slate-100 shadow-sm w-full">
               <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-
                 {/* Left Column: Test Type & Question Count */}
                 <div className="flex-1 flex flex-col gap-6 w-full">
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-1 ml-1">
-                      <label className="text-[13px] font-bold text-slate-500">Select Test Type</label>
+                      <label className="text-[13px] font-bold text-slate-500">
+                        Test Type
+                      </label>
                       <span className="text-cyan-500">*</span>
                     </div>
-                    <Select
+                    <input
+                      type="text"
+                      name="testType"
+                      placeholder="Enter Test Type"
                       value={mockTest.title}
-                      onValueChange={(val) => setMockTest({ ...mockTest, title: val })}
-                    >
-                      <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700 focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none transition-all text-[14px] text-slate-500 font-bold">
-                        <SelectValue placeholder="Select Test Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Mock test" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">Mock test</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      onChange={(e) =>
+                        setMockTest({ ...mockTest, title: e.target.value })
+                      }
+                      className="w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none dark:bg-slate-900 dark:ring-slate-700 rounded-xl"
+                    />
                   </div>
 
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-1 ml-1">
-                      <label className="text-[13px] font-bold text-slate-500">Number of Questions</label>
+                      <label className="text-[13px] font-bold text-slate-500">
+                        Number of Questions
+                      </label>
                       <span className="text-cyan-500">*</span>
                     </div>
                     <Select
@@ -261,11 +374,12 @@ const ContractorSkillTest = () => {
                       onValueChange={(val) => {
                         setQuestionCount(val);
                         if (mockDifficulty) {
-                          setMockTest(prev => ({
+                          setMockTest((prev) => ({
                             ...prev,
                             difficultyDistribution: {
                               easy: mockDifficulty === "easy" ? Number(val) : 0,
-                              medium: mockDifficulty === "medium" ? Number(val) : 0,
+                              medium:
+                                mockDifficulty === "medium" ? Number(val) : 0,
                               hard: mockDifficulty === "hard" ? Number(val) : 0,
                             },
                           }));
@@ -276,9 +390,24 @@ const ContractorSkillTest = () => {
                         <SelectValue placeholder="Select Number of Questions" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="3" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">3</SelectItem>
-                        <SelectItem value="5" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">5</SelectItem>
-                        <SelectItem value="10" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">10</SelectItem>
+                        <SelectItem
+                          value="3"
+                          className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600"
+                        >
+                          3
+                        </SelectItem>
+                        <SelectItem
+                          value="5"
+                          className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600"
+                        >
+                          5
+                        </SelectItem>
+                        <SelectItem
+                          value="10"
+                          className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600"
+                        >
+                          10
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -288,7 +417,9 @@ const ContractorSkillTest = () => {
                 <div className="flex-1 flex flex-col gap-6 w-full">
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-1 ml-1">
-                      <label className="text-[13px] font-bold text-slate-500">Select Difficulty Level</label>
+                      <label className="text-[13px] font-bold text-slate-500">
+                        Select Difficulty Level
+                      </label>
                       <span className="text-cyan-500">*</span>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
@@ -297,12 +428,17 @@ const ContractorSkillTest = () => {
                           key={d}
                           onClick={() => {
                             setMockDifficulty(d);
-                            setMockTest(prev => ({
+                            setMockTest((prev) => ({
                               ...prev,
                               difficultyDistribution: {
-                                easy: d === "easy" ? (Number(questionCount) || 0) : 0,
-                                medium: d === "medium" ? (Number(questionCount) || 0) : 0,
-                                hard: d === "hard" ? (Number(questionCount) || 0) : 0,
+                                easy:
+                                  d === "easy" ? Number(questionCount) || 0 : 0,
+                                medium:
+                                  d === "medium"
+                                    ? Number(questionCount) || 0
+                                    : 0,
+                                hard:
+                                  d === "hard" ? Number(questionCount) || 0 : 0,
                               },
                             }));
                           }}
@@ -310,7 +446,7 @@ const ContractorSkillTest = () => {
                             "py-[11px] rounded-xl text-[14px] font-bold transition-all border capitalize",
                             mockDifficulty === d
                               ? "bg-white border-[#0ea5e9] text-[#0ea5e9] shadow-sm shadow-cyan-100 ring-1 ring-[#0ea5e9]"
-                              : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                              : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50",
                           )}
                         >
                           {d}
@@ -321,32 +457,67 @@ const ContractorSkillTest = () => {
 
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-1 ml-1">
-                      <label className="text-[13px] font-bold text-slate-500">Select Duration</label>
+                      <label className="text-[13px] font-bold text-slate-500">
+                        Select Duration
+                      </label>
                       <span className="text-cyan-500">*</span>
                     </div>
                     <Select
-                      value={mockTest.totalTime ? String(mockTest.totalTime) : undefined}
-                      onValueChange={(val) => setMockTest({ ...mockTest, totalTime: parseInt(val) })}
+                      value={
+                        mockTest.totalTime
+                          ? String(mockTest.totalTime)
+                          : undefined
+                      }
+                      onValueChange={(val) =>
+                        setMockTest({ ...mockTest, totalTime: parseInt(val) })
+                      }
                     >
                       <SelectTrigger className="w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700 focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none transition-all text-[14px] text-slate-500 font-bold">
                         <SelectValue placeholder="Select Duration" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="30" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">30 mins</SelectItem>
-                        <SelectItem value="60" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">60 mins</SelectItem>
-                        <SelectItem value="90" className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600">90 mins</SelectItem>
+                        <SelectItem
+                          value="30"
+                          className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600"
+                        >
+                          30 mins
+                        </SelectItem>
+                        <SelectItem
+                          value="60"
+                          className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600"
+                        >
+                          60 mins
+                        </SelectItem>
+                        <SelectItem
+                          value="90"
+                          className="focus:bg-[#f0fdfa] focus:text-[#0ea5e9] cursor-pointer font-semibold text-slate-600"
+                        >
+                          90 mins
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-
               </div>
 
               {/* Full Width Button Area */}
               <div className="mt-8 pt-2">
-                <button onClick={startMockTest} className="w-full h-[52px] bg-[#0F172A] rounded-xl flex items-center justify-center gap-2 text-white text-[15px] font-bold hover:bg-slate-800 transition-all duration-300 shadow-sm hover:shadow-md">
-                  Start Mock Test
-                  <ExternalLink size={18} />
+                <button
+                  onClick={startMockTest}
+                  disabled={isCreating}
+                  className="w-full h-[52px] bg-[#0F172A] rounded-xl flex items-center justify-center gap-2 text-white text-[15px] font-bold hover:bg-slate-800 transition-all duration-300 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Generating practice test...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Start Mock Test</span>
+                      <ExternalLink size={18} />
+                    </>
+                  )}
                 </button>
               </div>
             </Card>
@@ -355,60 +526,300 @@ const ContractorSkillTest = () => {
 
           {/* Section 2: Previous Results */}
           <div className="flex flex-col gap-5 max-w-full">
-            <h3 className="text-xl font-bold text-slate-900 px-1">Your Mock Test Results</h3>
+            <h3 className="text-xl font-bold text-slate-900 px-1">
+              Your Mock Test Results
+            </h3>
             <div className="flex flex-col gap-4">
-              {[
-                { title: "ReactJS Frontend Development", diff: "Intermediate", date: "Oct 24, 2023", score: 88, type: "Manual Selection", color: "emerald", scoreColor: "#22c55e" },
-                { title: "Full Stack Engineer (Resume Based)", diff: "Advanced", date: "Oct 18, 2023", score: 62, type: "AI Generated", color: "amber", scoreColor: "#f59e0b" }
-              ].map((res, i) => (
-                <Card key={i} className="p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200">
-                  <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
-                    {/* Score Circle */}
-                    <div
-                      className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
-                      style={{ borderColor: res.scoreColor }}
+              {isLoadingResults ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
+                </div>
+              ) : testResults.length > 0 ? (
+                testResults.map((res: any, i: number) => {
+                  const scoreColor =
+                    (res.score || 0) >= 80
+                      ? "#22c55e"
+                      : (res.score || 0) >= 60
+                        ? "#f59e0b"
+                        : "#ef4444";
+                  const isExpanded = expandedTestId === res.id;
+                  const status = insightsData[res.id];
+                  const isLoadingInsights = insightsLoading[res.id];
+
+                  const handleToggleInsights = async () => {
+                    if (isExpanded) {
+                      setExpandedTestId(null);
+                      return;
+                    }
+                    setExpandedTestId(res.id);
+                    if (!insightsData[res.id]) {
+                      setInsightsLoading((prev) => ({ ...prev, [res.id]: true }));
+                      try {
+                        const result = await triggerGetTestStatus({ testId: res.id }).unwrap();
+                        setInsightsData((prev) => ({ ...prev, [res.id]: result.data || result }));
+                      } catch {
+                        toast.error("Failed to load test insights");
+                      } finally {
+                        setInsightsLoading((prev) => ({ ...prev, [res.id]: false }));
+                      }
+                    }
+                  };
+
+                  return (
+                    <div key={i} className="flex flex-col">
+                    <Card
+                      className={cn(
+                        "p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200",
+                        isExpanded && "rounded-b-none border-b-0"
+                      )}
                     >
-                      <div className="text-[14px] md:text-[17px] font-black" style={{ color: res.scoreColor }}>
-                        {res.score}%
-                      </div>
-                    </div>
+                      <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
+                        {/* Score Circle */}
+                        <div
+                          className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
+                          style={{ borderColor: scoreColor }}
+                        >
+                          <div
+                            className="text-[14px] md:text-[17px] font-black"
+                            style={{ color: scoreColor }}
+                          >
+                            {res.score || 0}%
+                          </div>
+                        </div>
 
-                    {/* Info */}
-                    <div className="flex flex-col gap-1.5 md:gap-1">
-                      <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">{res.title}</h4>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
-                        <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100">{res.diff}</span>
-                        <span className="text-slate-400">Completed on {res.date}</span>
-                        <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
-                        <span className={cn(
-                          "flex items-center gap-1 font-semibold",
-                          res.type === "AI Generated" ? "text-purple-600" : ""
-                        )}>
-                          {res.type === "AI Generated" && <WandSparkles size={12} />}
-                          {res.type}
-                        </span>
+                        {/* Info */}
+                        <div className="flex flex-col gap-1.5 md:gap-1">
+                          <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">
+                            {res.title}
+                          </h4>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
+                            <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100">
+                              {Object.entries(
+                                res.difficultyDistribution || {},
+                              ).find(([_, v]) => (v as any) > 0)?.[0] ||
+                                "Mixed"}
+                            </span>
+                            <span className="text-slate-400">
+                              Completed on{" "}
+                              {res.completedAt || res.completed_at || res.createdAt || res.created_at || res.updatedAt || res.updated_at
+                                ? new Date(res.completedAt || res.completed_at || res.createdAt || res.created_at || res.updatedAt || res.updated_at).toLocaleDateString()
+                                : "N/A"}
+                            </span>
+                            <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                            <span className="flex items-center gap-1 font-semibold text-purple-600">
+                              <WandSparkles size={12} />
+                              AI Generated
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Buttons */}
-                  <div className="flex flex-col xs:flex-row sm:flex-row items-center gap-3 w-full md:w-auto">
-                    <button onClick={() => navigate("/contractor/tests/report")} className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border border-slate-200 text-slate-600 font-bold text-[13px] hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm">
-                      <LineChart size={16} className="text-slate-400" />
-                      View Insights
-                    </button>
-                    <button className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm">
-                      <RotateCcw size={16} />
-                      Retake (₹99)
-                    </button>
-                  </div>
-                </Card>
-              ))}
+                      {/* Buttons */}
+                      <div className="flex flex-col xs:flex-row sm:flex-row items-center gap-3 w-full md:w-auto">
+                        <button
+                          onClick={handleToggleInsights}
+                          className={cn(
+                            "w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border font-bold text-[13px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm",
+                            isExpanded
+                              ? "border-[#0ea5e9] bg-[#f0fdfa] text-[#0ea5e9]"
+                              : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                          )}
+                        >
+                          <LineChart size={16} className={isExpanded ? "text-[#0ea5e9]" : "text-slate-400"} />
+                          View Insights
+                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </button>
+                        <button
+                          onClick={() => navigate(`/contractor/tests/report?id=${res.id}`)}
+                          className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm"
+                        >
+                          <ExternalLink size={16} />
+                          Full Report
+                        </button>
+                      </div>
+                    </Card>
+
+                    {/* Expandable Insights Panel */}
+                    {isExpanded && (
+                      <div className="bg-white border border-t-0 border-slate-100 rounded-b-2xl shadow-sm overflow-hidden animate-in slide-in-from-top-2 fade-in duration-300">
+                        {isLoadingInsights ? (
+                          <div className="flex items-center justify-center py-10 gap-3">
+                            <Loader2 className="w-5 h-5 animate-spin text-[#0ea5e9]" />
+                            <span className="text-sm text-slate-400 font-medium">Loading insights...</span>
+                          </div>
+                        ) : status ? (
+                          <div className="p-5 md:p-6 space-y-6">
+                            {/* Progress Overview */}
+                            {status.progress && (
+                              <div className="flex flex-col gap-3">
+                                <h5 className="text-[13px] font-bold text-slate-800 tracking-wide uppercase flex items-center gap-2">
+                                  <Target size={14} className="text-[#0ea5e9]" />
+                                  Progress
+                                </h5>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                    <div className="text-[11px] font-bold text-slate-400 mb-1">Total Problems</div>
+                                    <div className="text-2xl font-black text-slate-800">{status.progress.totalProblems}</div>
+                                  </div>
+                                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                    <div className="text-[11px] font-bold text-slate-400 mb-1">Completed</div>
+                                    <div className="text-2xl font-black text-[#22c55e]">{status.progress.completedProblems}</div>
+                                  </div>
+                                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                    <div className="text-[11px] font-bold text-slate-400 mb-1">Overall Status</div>
+                                    <div className={cn(
+                                      "text-lg font-black",
+                                      status.progress.overallCompleted ? "text-[#22c55e]" : "text-[#f59e0b]"
+                                    )}>
+                                      {status.progress.overallCompleted ? "Completed" : "In Progress"}
+                                    </div>
+                                  </div>
+                                </div>
+                                {/* Progress Bar */}
+                                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full transition-all duration-700 ease-out"
+                                    style={{
+                                      width: `${status.progress.totalProblems > 0 ? (status.progress.completedProblems / status.progress.totalProblems) * 100 : 0}%`,
+                                      background: "linear-gradient(90deg, #4DD9E8, #0ea5e9)",
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Problem Statuses */}
+                            {status.problemStatuses && status.problemStatuses.length > 0 && (
+                              <div className="flex flex-col gap-3">
+                                <h5 className="text-[13px] font-bold text-slate-800 tracking-wide uppercase flex items-center gap-2">
+                                  <FileCode2 size={14} className="text-[#0ea5e9]" />
+                                  Problem Status
+                                </h5>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                  {status.problemStatuses.map((ps: any, idx: number) => {
+                                    const statusColor = ps.status === "accepted" || ps.status === "passed"
+                                      ? "#22c55e"
+                                      : ps.status === "failed" || ps.status === "wrong_answer"
+                                        ? "#ef4444"
+                                        : ps.submitted
+                                          ? "#f59e0b"
+                                          : "#94a3b8";
+                                    const StatusIcon = ps.status === "accepted" || ps.status === "passed"
+                                      ? CheckCircle2
+                                      : ps.status === "failed" || ps.status === "wrong_answer"
+                                        ? XCircle
+                                        : AlertCircle;
+                                    return (
+                                      <div
+                                        key={ps.problemId || idx}
+                                        className="flex items-center gap-3 p-3.5 bg-white border border-slate-100 rounded-xl hover:border-slate-200 transition-all"
+                                      >
+                                        <StatusIcon size={18} style={{ color: statusColor }} className="shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                          <div className="text-[13px] font-bold text-slate-700 truncate">
+                                            Problem {ps.problemId || idx + 1}
+                                          </div>
+                                          <div className="flex items-center gap-2 mt-0.5">
+                                            <span
+                                              className="text-[11px] font-bold uppercase tracking-wider"
+                                              style={{ color: statusColor }}
+                                            >
+                                              {ps.submitted ? (ps.status || "Submitted") : "Not Submitted"}
+                                            </span>
+                                            {ps.grade && (
+                                              <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">
+                                                Grade: {ps.grade}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Submissions */}
+                            {status.submissions && status.submissions.length > 0 && (
+                              <div className="flex flex-col gap-3">
+                                <h5 className="text-[13px] font-bold text-slate-800 tracking-wide uppercase flex items-center gap-2">
+                                  <CodeIcon size={14} className="text-[#0ea5e9]" />
+                                  Submissions ({status.submissions.length})
+                                </h5>
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-left text-[13px]">
+                                    <thead>
+                                      <tr className="border-b border-slate-100">
+                                        <th className="py-2.5 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Problem</th>
+                                        <th className="py-2.5 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                                        <th className="py-2.5 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Grade</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {status.submissions.map((sub: any, idx: number) => (
+                                        <tr key={sub.id || idx} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
+                                          <td className="py-2.5 px-3 font-bold text-slate-700">
+                                            {sub.problemId || `#${idx + 1}`}
+                                          </td>
+                                          <td className="py-2.5 px-3">
+                                            <span className={cn(
+                                              "px-2 py-0.5 rounded-md text-[11px] font-bold uppercase",
+                                              (sub.status === "accepted" || sub.status === "passed")
+                                                ? "bg-green-50 text-green-600"
+                                                : (sub.status === "failed" || sub.status === "wrong_answer")
+                                                  ? "bg-red-50 text-red-500"
+                                                  : "bg-amber-50 text-amber-600"
+                                            )}>
+                                              {sub.status || "pending"}
+                                            </span>
+                                          </td>
+                                          <td className="py-2.5 px-3 font-bold text-slate-600">
+                                            {sub.grade || "-"}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Test Info */}
+                            {status.test && (
+                              <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-3 text-[12px] font-medium text-slate-400">
+                                <span>Status: <span className="font-bold text-slate-600 capitalize">{status.test.status}</span></span>
+                                {status.test.inviteExpiresAt && (
+                                  <>
+                                    <span className="w-1 h-1 rounded-full bg-slate-300" />
+                                    <span>Expires: {new Date(status.test.inviteExpiresAt).toLocaleDateString()}</span>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center py-10">
+                            <span className="text-sm text-slate-400">No insights data available.</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                  <p className="text-slate-400 font-medium">
+                    No practice tests completed yet.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
-        </div >
+        </div>
       )}
-    </div >
+    </div>
   );
 };
 

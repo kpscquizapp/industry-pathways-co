@@ -60,7 +60,7 @@ const Hero = () => {
         toast.error("Failed to log violation");
       }
     },
-    [addLog, isMonitoringActive],
+    [addLog, isMonitoringActive, sessionId],
   );
 
   const onResize = useDebouncedCallback(() => {
@@ -138,20 +138,9 @@ const Hero = () => {
     };
   }, [checkDevtools, isMonitoringActive]);
 
-  useEffect(() => {
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
-      return;
-    }
-  }, [isMonitoringActive, tabViolationCount]);
 
   const startInterview = useCallback(async () => {
     if (isInterviewActive) return;
-    const hasMultipleMonitors = await detectMultipleMonitors();
-
-    if (hasMultipleMonitors) {
-      handleViolation("Multiple monitors detected");
-    }
 
     try {
       const res = await fetch("/api/session/start", {
@@ -165,13 +154,30 @@ const Hero = () => {
         setSessionId(data.sessionId);
         setIsInterviewActive(true);
         toast.success("Interview started!");
+
+        // Check after monitoring becomes active (onRecordingStart sets isMonitoringActive)
+        // Wrapped in try/catch so failure to log violation doesn't trigger "Failed to start interview"
+        try {
+          const hasMultipleMonitors = await detectMultipleMonitors();
+          if (hasMultipleMonitors) {
+            await fetch("/api/violations/log", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sessionId: data.sessionId, reason: "Multiple monitors detected" }),
+            });
+            setTabViolationCount((prev) => prev + 1);
+            addLog("Violation: Multiple monitors detected");
+          }
+        } catch (violationError) {
+          console.warn("Failed to check/log initial monitor violation:", violationError);
+        }
       } else {
         toast.error("Failed to start interview");
       }
     } catch (error) {
       toast.error("Failed to start interview");
     }
-  }, [isInterviewActive]);
+  }, [isInterviewActive, addLog]);
 
   const stopInterview = useCallback(async () => {
     if (!isInterviewActive) return;
@@ -188,7 +194,7 @@ const Hero = () => {
     } catch (error) {
       toast.error("Failed to stop interview");
     }
-  }, [isInterviewActive]);
+  }, [isInterviewActive, sessionId]);
 
   const handleRecordingStart = useCallback(() => {
     setIsMonitoringActive(true);

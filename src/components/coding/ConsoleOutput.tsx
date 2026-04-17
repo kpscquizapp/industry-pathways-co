@@ -31,18 +31,6 @@ const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
             >
               Test Results
             </TabsTrigger>
-            <TabsTrigger
-              value="output"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4"
-            >
-              Console
-            </TabsTrigger>
-            <TabsTrigger
-              value="performance"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4"
-            >
-              Performance
-            </TabsTrigger>
           </TabsList>
 
           {!isRunning && testCases.length > 0 && (
@@ -159,59 +147,6 @@ const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
               ))}
           </TabsContent>
 
-          <TabsContent value="output" className="p-4 mt-0">
-            <div className="bg-black/90 rounded-lg p-4 font-mono text-sm min-h-[200px]">
-              <pre className="text-green-400">
-                {testCases.length > 0
-                  ? testCases
-                      .map((tc) => `Test ${tc.id}: ${tc.actualOutput || ""}`)
-                      .join("\n")
-                  : "Console output will appear here..."}
-              </pre>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="performance" className="p-4 mt-0 space-y-4">
-            {testCases.length > 0 ? (
-              <div className="space-y-3">
-                <div className="bg-muted/30 rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    <h4 className="font-semibold">Runtime</h4>
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {Math.max(
-                      ...testCases.map((tc) => tc.runtime || 0),
-                    ).toFixed(0)}
-                    ms
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Beats 65% of submissions
-                  </p>
-                </div>
-
-                <div className="bg-muted/30 rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Database className="h-5 w-5 text-primary" />
-                    <h4 className="font-semibold">Memory</h4>
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {(
-                      Math.max(...testCases.map((tc) => tc.memory || 0)) / 1024
-                    ).toFixed(2)}{" "}
-                    MB
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Beats 72% of submissions
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-sm">No performance data available</p>
-              </div>
-            )}
-          </TabsContent>
         </ScrollArea>
       </Tabs>
     </Card>
