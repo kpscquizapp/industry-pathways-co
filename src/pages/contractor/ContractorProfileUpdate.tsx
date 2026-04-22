@@ -2286,7 +2286,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
               <ErrorMessage error={fieldErrors.primaryJobRole} />
             </div>
 
-            <div className="sm:col-span-2">
+            <div>
               <Label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Mobile Number <span className="text-rose-500">*</span>
               </Label>
@@ -2297,7 +2297,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 onChange={handleInputChange}
                 maxLength={20}
                 placeholder="Enter your mobile number"
-                className={`w-full md:w-1/2 px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.mobileNumber
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.mobileNumber
                   ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                   : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
                   } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
@@ -3026,9 +3026,9 @@ const CandidateProfileUpdate = (): JSX.Element => {
           </div>
 
           <div className="mt-8 flex justify-end border-t border-gray-100 dark:border-slate-800 pt-5">
-            <button 
-              type="button" 
-              onClick={() => handleSaveSkillsOnly()} 
+            <button
+              type="button"
+              onClick={() => handleSaveSkillsOnly()}
               disabled={isUpdating}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1a1a2e] dark:bg-[#4DD9E8]/10 hover:bg-[#1a1a2e]/90 dark:hover:bg-[#4DD9E8]/20 text-white dark:text-[#4DD9E8] font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 text-sm"
             >

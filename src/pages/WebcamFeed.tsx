@@ -289,7 +289,11 @@ const WebcamFeed = ({
       try {
         onScreenShareStart?.();
         const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
+          video: {
+            width: { ideal: 854 },
+            height: { ideal: 480 },
+            frameRate: { ideal: 15 },
+          },
           audio: true,
         });
         const [screenTrack] = stream.getVideoTracks();
@@ -320,7 +324,11 @@ const WebcamFeed = ({
             throw new Error("MediaDevices API not available");
           }
           stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 360 },
+              frameRate: { ideal: 12 },
+            },
             audio: true,
           });
         }
@@ -361,10 +369,10 @@ const WebcamFeed = ({
         const mimeType =
           preferredTypes.find((type) => MediaRecorder.isTypeSupported(type)) ||
           "";
-        const recorder = new MediaRecorder(
-          stream,
-          mimeType ? { mimeType } : undefined,
-        );
+        const recorder = new MediaRecorder(stream, {
+          mimeType: mimeType || undefined,
+          videoBitsPerSecond: 200000, // 200kbps for 360p webcam
+        });
 
         recorderRef.current = recorder;
 
@@ -497,10 +505,10 @@ const WebcamFeed = ({
     ];
     const mimeType =
       preferredTypes.find((type) => MediaRecorder.isTypeSupported(type)) || "";
-    const recorder = new MediaRecorder(
-      screenShareStream,
-      mimeType ? { mimeType } : undefined,
-    );
+    const recorder = new MediaRecorder(screenShareStream, {
+      mimeType: mimeType || undefined,
+      videoBitsPerSecond: 500000, // 500kbps for 480p screen share
+    });
 
     screenRecorderRef.current = recorder;
 
@@ -570,7 +578,11 @@ const WebcamFeed = ({
     try {
       onScreenShareStart?.();
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 360 },
+          frameRate: { ideal: 15 },
+        },
         audio: true,
       });
       const [screenTrack] = stream.getVideoTracks();

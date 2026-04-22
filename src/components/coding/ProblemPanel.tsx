@@ -62,14 +62,8 @@ const ProblemPanel: React.FC<ProblemPanelProps> = ({ problem }) => {
             >
               Constraints
             </TabsTrigger>
-            <TabsTrigger
-              value="submissions"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Submissions
-            </TabsTrigger>
           </TabsList>
- 
+
           <ScrollArea className="h-[calc(100vh-280px)]">
             <TabsContent value="description" className="p-6 space-y-4">
               <div
@@ -79,7 +73,7 @@ const ProblemPanel: React.FC<ProblemPanelProps> = ({ problem }) => {
                 }}
               />
             </TabsContent>
- 
+
             <TabsContent value="examples" className="p-6 space-y-6">
               {examples.length > 0 ? (
                 examples.map((example, idx) => (
@@ -123,7 +117,7 @@ const ProblemPanel: React.FC<ProblemPanelProps> = ({ problem }) => {
                 </div>
               )}
             </TabsContent>
- 
+
             <TabsContent value="constraints" className="p-6">
               {constraints.length > 0 ? (
                 <ul className="space-y-2">
@@ -142,16 +136,6 @@ const ProblemPanel: React.FC<ProblemPanelProps> = ({ problem }) => {
                   <p className="text-sm">No constraints specified.</p>
                 </div>
               )}
-            </TabsContent>
- 
-            <TabsContent value="submissions" className="p-6">
-              <div className="text-center py-12 text-muted-foreground">
-                <CheckCircle2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-sm">No submissions yet</p>
-                <p className="text-xs mt-2">
-                  Submit your solution to see your history
-                </p>
-              </div>
             </TabsContent>
           </ScrollArea>
         </Tabs>

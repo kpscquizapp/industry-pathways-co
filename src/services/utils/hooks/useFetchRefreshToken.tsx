@@ -16,9 +16,12 @@ import { RootState } from "@/app/store";
 import { isExpectedLogoutError } from "@/lib/authErrorUtils";
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 min before expiry
-const FALLBACK_REFRESH_MS = 55 * 60 * 1000; // used when token has no exp claim
+const FALLBACK_REFRESH_MS = 15 * 60 * 1000; // fallback when token has no exp claim (15 min access token)
 const TRANSIENT_RETRY_MS = 30_000; // 30s
 const MAX_TRANSIENT_RETRIES = 5; // 5 retries
+
+// Refresh token lifetime as defined by backend (30 days)
+const REFRESH_TOKEN_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const MAX_BACKOFF_MS = 5 * 60 * 1000; // 5 min cap
 
 const isJwtToken = (token: string) => token.split(".").length === 3;

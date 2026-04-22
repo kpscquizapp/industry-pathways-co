@@ -23,6 +23,7 @@ import ProblemPanel from "@/components/coding/ProblemPanel";
 import EditorPanel from "@/components/coding/EditorPanel";
 import ConsoleOutput from "@/components/coding/ConsoleOutput";
 import WebcamFeed from "@/pages/WebcamFeed";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { CodingProblem, SupportedLanguage, TestCase } from "@/types/coding";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "@/hooks/useDebounce";
@@ -149,7 +150,9 @@ const CodingChallenge: React.FC = () => {
 
   const [code, setCode] = useState<string>("");
   const [testCases, setTestCases] = useState<TestCase[]>([]);
-  const [isRunning, setIsRunning] = useState(false);
+  const [isRunningCode, setIsRunningCode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isRunning = isRunningCode || isSubmitting; // combined — disables both buttons simultaneously
   const [error, setError] = useState<string>();
   // Track which problems have been explicitly submitted (ref avoids stale closure in handleEndTest)
   const submittedProblemIdsRef = useRef<Set<string | number>>(new Set());
@@ -185,6 +188,7 @@ const CodingChallenge: React.FC = () => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const popupRef = useRef<HTMLDivElement>(null);
   const [sessionId, setSessionId] = useState<string>("");
+  const sessionIdRef = useRef<string>("");
   const [isMobile, setIsMobile] = useState(false);
 
   // Responsive check
@@ -277,19 +281,44 @@ const CodingChallenge: React.FC = () => {
     suppressViolationsUntilRef.current = Date.now() + 1500;
   }, []);
 
+  const initializeSession = useCallback(async (jobId?: string) => {
+    try {
+      const candidateId = user?.id || user?.uuid;
+      if (!candidateId) {
+        console.error("No candidate ID found");
+        return null;
+      }
+      const sessionData = await startSessionMutation({
+        candidateId: String(candidateId),
+        jobId: jobId ? String(jobId) : undefined,
+      }).unwrap();
+
+      if (sessionData.sessionId) {
+        setSessionId(sessionData.sessionId);
+        sessionIdRef.current = sessionData.sessionId;
+        return sessionData.sessionId;
+      }
+    } catch (err) {
+      console.error("Failed to start session:", err);
+    }
+    return null;
+  }, [user, startSessionMutation]);
+
   const handleViolation = useCallback(
     async (reason: string) => {
       if (!isMonitoringActive) return;
       if (Date.now() < suppressViolationsUntilRef.current) return;
+      const sid = sessionIdRef.current;
+      if (!sid) return;
       try {
-        await logViolationMutation({ sessionId, reason }).unwrap();
+        await logViolationMutation({ sessionId: sid, reason }).unwrap();
         setTotalViolations((prev) => prev + 1);
         addLog(`Violation: ${reason}`);
       } catch {
         // Silent — never disrupt the candidate experience
       }
     },
-    [isMonitoringActive, sessionId, logViolationMutation, addLog],
+    [isMonitoringActive, logViolationMutation, addLog],
   );
 
   const onResize = useDebouncedCallback(() => {
@@ -333,8 +362,9 @@ const CodingChallenge: React.FC = () => {
 
     try {
       await endTestMutation({ testId: testId!, token }).unwrap();
-      if (sessionId) {
-        await endSessionMutation({ sessionId })
+      const sid = sessionIdRef.current;
+      if (sid) {
+        await endSessionMutation({ sessionId: sid })
           .unwrap()
           .catch((err) => console.error("Failed to end session:", err));
       }
@@ -343,7 +373,7 @@ const CodingChallenge: React.FC = () => {
       console.error("Cleanup failed:", err);
       return false;
     }
-  }, [testId, token, sessionId, endTestMutation, endSessionMutation]);
+  }, [testId, token, endTestMutation, endSessionMutation]);
 
   const handleEndTest = useCallback(async () => {
     // Auto-submit any problems the candidate hasn't explicitly submitted yet.
@@ -522,6 +552,10 @@ const CodingChallenge: React.FC = () => {
             setTestStatus("active");
             setIsInterviewActive(true);
             setIsMonitoringActive(true);
+            // Re-initialize session for active test if not already present
+            if (!sessionIdRef.current) {
+              initializeSession(String(testMeta.id));
+            }
           } else {
             setTestStatus("instructions");
           }
@@ -543,29 +577,8 @@ const CodingChallenge: React.FC = () => {
       if (data.success) {
         setMetadata(data.data);
         // Start session
-        try {
-          const candidateId = user?.id || user?.uuid;
-          const actualJobId = metadata?.id || data.data?.id;
+        const sid = await initializeSession(data.data?.id ? String(data.data.id) : undefined);
 
-          if (!candidateId) {
-            console.error("No candidate ID found in session state");
-            toast.error("Authentication error. Please re-login.");
-            return;
-          }
-
-          const sessionData = await startSessionMutation({
-            candidateId: String(candidateId),
-            jobId: actualJobId ? String(actualJobId) : undefined,
-          }).unwrap();
-
-          if (sessionData.sessionId) {
-            setSessionId(sessionData.sessionId);
-          }
-        } catch (sessionErr) {
-          console.error("Failed to start session:", sessionErr);
-          // We still allow the test to proceed even if session tracking fails,
-          // but we log it. Depending on strictness, we might want to return here.
-        }
         setTestStatus("active");
         setIsInterviewActive(true);
         setIsMonitoringActive(true);
@@ -573,10 +586,10 @@ const CodingChallenge: React.FC = () => {
 
         // Multiple monitor check
         const hasMultipleMonitors = await detectMultipleMonitors();
-        if (hasMultipleMonitors && sessionId) {
+        if (hasMultipleMonitors && sid) {
           try {
             await logViolationMutation({
-              sessionId: sessionId,
+              sessionId: sid,
               reason: "Multiple monitors detected",
             }).unwrap();
             setTotalViolations((prev) => prev + 1);
@@ -696,7 +709,7 @@ const CodingChallenge: React.FC = () => {
   const handleRunCode = async () => {
     if (!currentProblem) return;
 
-    setIsRunning(true);
+    setIsRunningCode(true);
     setError(undefined);
     const knownTCs: TestCase[] = currentProblem.testcases || currentProblem.testCases || [];
     setTestCases(knownTCs.map(tc => ({ ...tc, passed: undefined, actualOutput: undefined })));
@@ -721,14 +734,14 @@ const CodingChallenge: React.FC = () => {
         "An error occurred during execution",
       );
     } finally {
-      setIsRunning(false);
+      setIsRunningCode(false);
     }
   };
 
   const handleSubmitProblem = async (autoAdvance = false) => {
     if (!currentProblem) return;
 
-    setIsRunning(true);
+    setIsSubmitting(true);
     setError(undefined);
 
     // Save current code before submitting
@@ -781,14 +794,14 @@ const CodingChallenge: React.FC = () => {
         "An error occurred during submission",
       );
     } finally {
-      setIsRunning(false);
+      setIsSubmitting(false);
     }
   };
 
   const handleSubmitAndEndTest = async () => {
     if (!currentProblem) return;
 
-    setIsRunning(true);
+    setIsSubmitting(true);
     setError(undefined);
 
     try {
@@ -805,7 +818,7 @@ const CodingChallenge: React.FC = () => {
       // Even if submission fails, still end the test
       toast.warning("Submission had issues, but ending test...");
     } finally {
-      setIsRunning(false);
+      setIsSubmitting(false);
     }
 
     // End the test after submission
@@ -1191,8 +1204,12 @@ const CodingChallenge: React.FC = () => {
                 "bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none",
               )}
             >
-              <Play className={cn("h-4 w-4", !isMobile && "text-white")} />
-              {!isMobile && "Run Code"}
+              {isRunningCode ? (
+                <SpinnerLoader className="text-white" />
+              ) : (
+                <Play className={cn("h-4 w-4", !isMobile && "text-white")} />
+              )}
+              {!isMobile && (isRunningCode ? "Running..." : "Run Code")}
             </Button>
             {isLastProblem ? (
               <Button
@@ -1202,8 +1219,8 @@ const CodingChallenge: React.FC = () => {
                 size={isMobile ? "icon" : "default"}
                 className="gap-2 shrink-0"
               >
-                <Send className="h-4 w-4" />
-                {!isMobile && "Submit & End Test"}
+                {isSubmitting ? <SpinnerLoader /> : <Send className="h-4 w-4" />}
+                {!isMobile && (isSubmitting ? "Submitting..." : "Submit & End Test")}
               </Button>
             ) : (
               <Button
@@ -1212,8 +1229,8 @@ const CodingChallenge: React.FC = () => {
                 size={isMobile ? "icon" : "default"}
                 className="gap-2 shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                <Send className="h-4 w-4" />
-                {!isMobile && "Submit Code"}
+                {isSubmitting ? <SpinnerLoader /> : <Send className="h-4 w-4" />}
+                {!isMobile && (isSubmitting ? "Submitting..." : "Submit Code")}
               </Button>
             )}
           </div>

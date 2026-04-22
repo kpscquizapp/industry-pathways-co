@@ -6,11 +6,13 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  Video,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useGetTestReportQuery } from "@/app/queries/contractorSkillTest";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
+import LiveReviewTab from "@/pages/contractor/LiveReviewTab";
 
 const MockTestReport = () => {
   const navigate = useNavigate();
@@ -34,6 +36,7 @@ const MockTestReport = () => {
   const tabs = [
     { id: "overview", label: "Overview", icon: LayoutGrid },
     { id: "detailed", label: "Detailed Review", icon: ListChecks },
+    { id: "liveReview", label: "Live Review", icon: Video },
   ];
 
   if (isLoading) {
@@ -69,8 +72,8 @@ const MockTestReport = () => {
   const questions = Array.isArray(report?.questions) ? report.questions : [];
   const currentQuestion =
     questions.length > 0 &&
-    activeQuestionIndex >= 0 &&
-    activeQuestionIndex < questions.length
+      activeQuestionIndex >= 0 &&
+      activeQuestionIndex < questions.length
       ? questions[activeQuestionIndex]
       : null;
 
@@ -91,10 +94,6 @@ const MockTestReport = () => {
           <div className="flex flex-wrap items-center gap-3 mt-3 text-[13px] font-medium text-slate-400">
             <span className="px-2 py-0.5 rounded-md border border-slate-200 text-slate-600 font-bold text-[11px]">
               {report.test.difficulty}
-            </span>
-            <span>
-              Completed on{" "}
-              {new Date(report.test.createdAt).toLocaleDateString()}
             </span>
             <span className="hidden sm:inline">•</span>
             <span>Duration: {report.test.duration} mins</span>
@@ -172,8 +171,8 @@ const MockTestReport = () => {
                           Target Set
                         </span>
                       ) : (
-                        <span className="text-[11px] font-bold text-slate-300">
-                          --
+                        <span className="px-3 py-1 bg-slate-50 border border-slate-100 text-slate-300 text-[11px] font-bold rounded-lg cursor-default">
+                          N/A
                         </span>
                       )}
                     </div>
@@ -353,7 +352,7 @@ const MockTestReport = () => {
                         currentQuestion.status === "Correct"
                           ? "bg-[#f0fdfa] border-[#ccfbf1]"
                           : currentQuestion.status === "Incorrect" ||
-                              currentQuestion.status === "Failed"
+                            currentQuestion.status === "Failed"
                             ? "bg-red-50 border-red-100"
                             : "bg-slate-50 border-slate-200",
                       )}
@@ -385,6 +384,20 @@ const MockTestReport = () => {
                   </div>
 
                   <div className="space-y-8">
+                    <div>
+                      {
+                        currentQuestion.explanation && (
+                          <div className="bg-[#f0f9ff] rounded-xl p-5 border border-[#bae6fd]">
+                            <div className="text-[10px] font-bold text-[#0ea5e9] mb-4 tracking-wider uppercase border-b border-[#bae6fd] pb-2">
+                              Explanation
+                            </div>
+                            <p className="text-slate-700 text-[13px] leading-relaxed p-2">
+                              {currentQuestion.explanation}
+                            </p>
+                          </div>
+                        )
+                      }
+                    </div>
                     {currentQuestion.submittedCode && (
                       <div className="bg-[#0F172A] rounded-xl p-5 overflow-hidden border border-slate-800">
                         <div className="text-[10px] font-bold text-slate-400 mb-4 tracking-wider uppercase border-b border-slate-800 pb-2">
@@ -409,7 +422,7 @@ const MockTestReport = () => {
 
                     <div className="bg-slate-50 rounded-2xl p-6 md:p-8 border border-slate-100">
                       {currentQuestion.aiFeedback && (
-                        <div className="bg-slate-50 rounded-2xl p-6 md:p-8 border border-slate-100">
+                        <div className="bg-slate-50 rounded-2xl p-6 md:p-5 border border-slate-100">
                           <h5 className="text-[14px] font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <LayoutGrid size={16} className="text-[#0ea5e9]" />
                             AI Evaluation Feedback
@@ -426,6 +439,10 @@ const MockTestReport = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {activeTab === "liveReview" && (
+        <LiveReviewTab sessionId={report.session?.id || report.sessionId} />
       )}
     </div>
   );
