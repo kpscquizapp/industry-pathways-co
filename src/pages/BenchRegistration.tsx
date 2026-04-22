@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import HirionLogo from "../assets/White Option.png";
+import { CircleCheck } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Building2,
@@ -147,19 +149,19 @@ const BenchRegistration = () => {
       const emailError = VALIDATION.email.validate(formData.email);
       if (emailError) errors.email = emailError;
       // Check email availability only when format is valid
-      if (!emailError && formData.email) {
-        try {
-          await checkExistingEmail({ email: formData.email }).unwrap();
-        } catch (error) {
-          if (isFetchBaseQueryError(error) && error.status === 409) {
-            errors.email =
-              "Email already registered, please use a different email.";
-          } else {
-            errors.email =
-              "Could not verify email right now. Please try again.";
-          }
-        }
-      }
+      // if (!emailError && formData.email) {
+      //   try {
+      //     await checkExistingEmail({ email: formData.email }).unwrap();
+      //   } catch (error) {
+      //     if (isFetchBaseQueryError(error) && error.status === 409) {
+      //       errors.email =
+      //         "Email already registered, please use a different email.";
+      //     } else {
+      //       errors.email =
+      //         "Could not verify email right now. Please try again.";
+      //     }
+      //   }
+      // }
 
       // Validate password
       const passwordError = VALIDATION.password.validate(formData.password);
@@ -298,440 +300,402 @@ const BenchRegistration = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
       {/* Left Panel - Immersive Branding */}
-      <div className="hidden lg:flex lg:w-[50%] bg-[#080b14] p-12 flex-col justify-between relative overflow-hidden shrink-0 border-r border-white/5">
-        <div className="absolute top-[-10%] right-[-10%] w-[80%] h-[80%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-500/10 rounded-full blur-[100px]" />
+<div className="hidden lg:flex lg:w-[50%] px-16 py-8 flex-col justify-center relative overflow-hidden shrink-0 border-r border-white/5" style={{background: "linear-gradient(160deg, rgb(13, 17, 23) 0%, rgb(17, 24, 39) 40%, rgb(12, 26, 42) 100%)"}}>
+{[
+  { left: "29.1%", top: "19.3%", size: 6 , delay: "2.7s", dur: "13.5s" },
+  { left: "95.8%", top: "27.1%", size: 5.2, delay: "1.3s", dur: "14.7s" },
+  { left: "27.4%", top: "14.6%", size: 4.4, delay: "1.8s", dur: "9.8s"  },
+  { left: "69.5%", top: "10.7%", size: 6.1, delay: "3.6s", dur: "9.4s"  },
+  { left: "1.7%",  top: "8.8%",  size: 3  , delay: "4.9s", dur: "11.6s" },
+  { left: "31.5%", top: "30.7%", size: 5.5, delay: "3.1s", dur: "17.2s" },
+  { left: "32.1%", top: "93%",   size: 3.3, delay: "4.2s", dur: "10.7s" },
+  { left: "95.6%", top: "7.5%",  size: 5.6, delay: "5.2s", dur: "10s"   },
+  { left: "43.8%", top: "50.9%", size: 3.7, delay: "3.8s", dur: "14.7s" },
+  { left: "27.1%", top: "57.1%", size: 6.9, delay: "3s",   dur: "11.4s" },
+  { left: "76.8%", top: "5.6%",  size: 4.1, delay: "5s",   dur: "17.7s" },
+  { left: "69.1%", top: "34.6%", size: 7,   delay: "5.6s", dur: "8.8s"  },
+  { left: "43.3%", top: "9%",    size: 4.6, delay: "0.07s",dur: "17.4s" },
+  { left: "47.8%", top: "10.1%", size: 6.4, delay: "4.8s", dur: "10.4s" },
+  { left: "20.9%", top: "63.5%", size: 5,   delay: "2.9s", dur: "14.4s" },
+  { left: "27.4%", top: "59.5%", size: 7.9, delay: "3.1s", dur: "8s"    },
+  { left: "94.7%", top: "72.1%", size: 5.5, delay: "2.9s", dur: "16.6s" },
+  { left: "75.6%", top: "52.1%", size: 4.1, delay: "4s",   dur: "16.4s" },
+].map((b, i) => (
+  <div key={i} style={{
+    position: "absolute",
+    left: b.left,
+    top: b.top,
+    width: `${b.size}px`,
+    height: `${b.size}px`,
+    borderRadius: "50%",
+    background: "rgba(77, 217, 232, 0.15)",
+    animation: `floatY ${b.dur} ease-in-out ${b.delay} infinite, pulse ${b.dur} ease-in-out ${b.delay} infinite`
+  }} />
+))}
 
-        <div className="relative z-10">
-          <Link to="/" className="flex items-center gap-3 mb-20 group">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white tracking-tight">
-              HIRION
-            </span>
-          </Link>
+<div style={{
+  position: "absolute",
+  bottom: "-80px",
+  right: "-80px",
+  width: "260px",
+  height: "260px",
+  borderRadius: "50%",
+  border: "1px solid rgba(77, 217, 232, 0.08)",
+  background: "radial-gradient(circle, rgba(77, 217, 232, 0.04) 0%, transparent 70%)"
+}} />
+        <div className="absolute z-10 top-8 left-16 animate-fade-up">
+  <div className="relative z-10" style={{marginBottom: "5rem",marginTop:"0.5rem",marginLeft:"-14px"}}>
+    
+  <Link to="/" className="flex items-center gap-3 group" >
+    <img src={HirionLogo} alt="Hirion Logo" className="w-44 h-auto" />
+  </Link>
+</div>
 
-          <div className="space-y-8 max-w-lg">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-              <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">
-                Staffing Partner Hub
-              </span>
-            </div>
 
-            <h1 className="text-5xl xl:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
-              Scale Your <br />
-              <span className="bg-gradient-to-r from-primary via-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Partner Business
-              </span>
-            </h1>
 
-            <p className="text-xl text-white/50 leading-relaxed font-light">
-              Join the ecosystem where staffing leaders automate resource
-              monetization and drive recurring revenue.
-            </p>
-          </div>
+
+<div className="space-y-8 max-w-lg" style={{marginTop:"5rem"}}>
+  <div className="inline-flex items-center gap-2">
+    <span className="text-[#4DD9E8] text-[11.5px] font-semibold tracking-[0.15em] uppercase">
+
+HIRING PARTNER REGISTRATION</span></div>
+
+<h1 className="text-[44px] font-bold text-white leading-[1.1] tracking-tight">
+  Ready to build your<br />
+  <span className="text-[#4DD9E8]">dream team?</span>
+</h1>
+
+<p className="text-[16px] text-white/50 leading-relaxed max-w-sm">Join the ecosystem of elite companies and find the perfect match for your company's growth trajectory.</p>
+
+  <div className="space-y-4 pt-4">
+  <div className="flex items-center gap-3">
+    <div className="flex items-center justify-center w-5 h-5 rounded-md bg-[#4DD9E8]/10 border border-[#4DD9E8]/20">
+      <CircleCheck className="w-3.5 h-3.5 text-[#4DD9E8]" />
+    </div>
+    <span className="text-white/80 text-[15px] font-medium">Access to top-tier candidates</span>
+  </div>
+  <div className="flex items-center gap-3">
+    <div className="flex items-center justify-center w-5 h-5 rounded-md bg-[#4DD9E8]/10 border border-[#4DD9E8]/20">
+      <CircleCheck className="w-3.5 h-3.5 text-[#4DD9E8]" />
+    </div>
+    <span className="text-white/80 text-[15px] font-medium">Build your talent pipeline</span>
+  </div>
+  <div className="flex items-center gap-3">
+    <div className="flex items-center justify-center w-5 h-5 rounded-md bg-[#4DD9E8]/10 border border-[#4DD9E8]/20">
+      <CircleCheck className="w-3.5 h-3.5 text-[#4DD9E8]" />
+    </div>
+    <span className="text-white/80 text-[15px] font-medium">Streamlined hiring process</span>
+  </div>
+</div>
+
+</div>
         </div>
 
-        <div className="relative z-10 space-y-6">
-          <div className="grid gap-4">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="group flex items-start gap-4 p-5 bg-white/[0.02] backdrop-blur-sm border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300"
-              >
-                <div
-                  className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
-                >
-                  <feature.icon className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-white text-lg mb-1">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-white/40 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Right Panel - Premium Form Section */}
-      <div className="flex-1 flex flex-col bg-[#fafafa] dark:bg-[#030303] overflow-y-auto">
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 xl:p-16">
-          <div className="w-full max-w-[600px]">
-            <div className="lg:hidden mb-12 flex flex-col items-center">
-              <Link to="/" className="flex items-center gap-2 mb-6">
-                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-xl shadow-primary/20">
-                  <Sparkles className="h-5 w-5 text-white" />
+    {/* Right Panel */}
+<div className="flex-1 flex flex-col overflow-y-auto bg-white">
+<div className="flex-1 flex flex-col items-center justify-center sm:py-6 px-6 lg:px-12">
+      <div className="w-full max-w-[540px] px-2 md:px-0 animate-fade-up">
+
+      <div className="lg:hidden mb-12 flex flex-col items-center">
+        <Link to="/" className="flex items-center gap-2 mb-2">
+          <img src={HirionLogo} alt="Hirion Logo" className="w-[180px] h-12 object-contain invert" />
+        </Link>
+        <p className="text-xs text-gray-400 uppercase tracking-widest">Hiring Partner Onboarding</p>
+      </div>
+
+      <div className="relative py-8 px-4 md:px-0">
+        <RegistrationStepIndicator
+          currentStep={currentStep}
+          steps={stepInfo}
+          totalSteps={totalSteps}
+        />
+
+        <div className="mb-8 lg:text-left text-center" >
+          <h3 className="text-3xl sm:text-4xl font-bold text-[#1a1a2e] mb-2 sm:mb-3">
+            {currentStep === 1
+              ? "Bench Signup"
+              : currentStep === 2
+                ? "Company Details"
+                : "Verification"}
+          </h3>
+          <p className="text-slate-400 text-sm sm:text-[15px]">
+            {currentStep === 1
+              ? "Start your enterprise journey here."
+              : currentStep === 2
+                ? "Tell us more about your staffing company."
+                : "Upload documents for account verification."}
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
+          {currentStep === 1 && (
+            <div className="space-y-5 ">
+              <div className="grid md:grid-cols-2 gap-5">
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                    First Name <span className="text-[#4DD9E8]">*</span>
+                  </Label>
+                  <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.firstName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                    <User className="w-4 h-4 text-[#aaa] shrink-0" />
+                    <input
+                      name="firstName"
+                      placeholder="John"
+                      className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <ErrorMessage error={fieldErrors.firstName} />
                 </div>
-                <span className="text-xl font-bold tracking-tighter text-slate-900 dark:text-white">
-                  HIRION
-                </span>
-              </Link>
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                    Last Name <span className="text-[#4DD9E8]">*</span>
+                  </Label>
+                  <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.lastName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                    <User className="w-4 h-4 text-[#aaa] shrink-0" />
+                    <input
+                      name="lastName"
+                      placeholder="Smith"
+                      className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <ErrorMessage error={fieldErrors.lastName} />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                  Work Email <span className="text-[#4DD9E8]">*</span>
+                </Label>
+                <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.email ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                  <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
+                  <input
+                    name="email"
+                    type="email"
+                    placeholder="bench@example.com"
+                    className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                {isCheckingEmail && (
+                  <div className="text-sm text-slate-500 flex items-center gap-2">
+                    <SpinnerLoader />
+                    <span>Checking availability...</span>
+                  </div>
+                )}
+                <ErrorMessage error={fieldErrors.email} />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-5">
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                    Password <span className="text-[#4DD9E8]">*</span>
+                  </Label>
+                  <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.password ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                    <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                    <input
+                      name="password"
+                      type="password"
+                      placeholder="••••••••"
+                      className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <ErrorMessage error={fieldErrors.password} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                    Confirm Password <span className="text-[#4DD9E8]">*</span>
+                  </Label>
+                  <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.confirmPassword ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                    <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                    <input
+                      name="confirmPassword"
+                      type="password"
+                      placeholder="••••••••"
+                      className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <ErrorMessage error={fieldErrors.confirmPassword} />
+                </div>
+              </div>
+
+          
             </div>
+          )}
 
-            <div className="relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 to-emerald-500/10 rounded-[36px] blur-xl opacity-50 dark:opacity-20" />
-
-              <div className="relative bg-white dark:bg-[#0a0a0a] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-white/[0.05] p-8 md:p-10">
-                <RegistrationStepIndicator
-                  currentStep={currentStep}
-                  steps={stepInfo}
-                  totalSteps={totalSteps}
-                />
-
-                <div className="mb-6">
-                  <h3 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
-                    {currentStep === 1
-                      ? "Bench Signup"
-                      : currentStep === 2
-                        ? "Company Details"
-                        : "Verification"}
-                  </h3>
-                  <p className="text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
-                    {currentStep === 1
-                      ? "Start your enterprise journey here."
-                      : currentStep === 2
-                        ? "Tell us more about your staffing company."
-                        : "Upload documents for account verification."}
-                  </p>
+          {currentStep === 2 && (
+            <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                  ORGANIZATION NAME<span className="text-[#4DD9E8]">*</span>
+                </Label>
+                <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.companyName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                  <Building2 className="w-4 h-4 text-[#aaa] shrink-0" />
+                  <input
+                    name="companyName"
+                    placeholder="Company Co."
+                    className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                    value={formData.companyName}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
+                <ErrorMessage error={fieldErrors.companyName} />
+              </div>
 
-                <form onSubmit={handleSubmit} noValidate className="space-y-6">
-                  {currentStep === 1 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                      <div className="grid md:grid-cols-2 gap-5">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                            First Name{" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <div className="relative group">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                            <Input
-                              name="firstName"
-                              placeholder="John"
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.firstName
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                  : ""
-                              }`}
-                              value={formData.firstName}
-                              onChange={handleInputChange}
-                              required
-                            />
-                          </div>
-                          <ErrorMessage error={fieldErrors.firstName} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                            Last Name{" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <div className="relative group">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                            <Input
-                              name="lastName"
-                              placeholder="Smith"
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.lastName
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                  : ""
-                              }`}
-                              value={formData.lastName}
-                              onChange={handleInputChange}
-                              required
-                            />
-                          </div>
-                          <ErrorMessage error={fieldErrors.lastName} />
-                        </div>
-                      </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                 ORGANIZATION DETAILS (OPTIONAL)
+                </Label>
+                <Textarea
+                  name="companyDetails"
+                  placeholder="Tell us about your staffing capabilities..."
+                  maxLength={1000}
+                  className={`min-h-[150px] bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 transition-all duration-200 text-sm ${fieldErrors.companyDetails ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8]"}`}
+                  value={formData.companyDetails}
+                  onChange={handleInputChange}
+                />
+                <p className="text-xs text-slate-500 mt-2 ml-1">
+                  {formData.companyDetails.length}/1000 characters
+                </p>
+              </div>
+            </div>
+          )}
 
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                          Work Email <span className="text-destructive">*</span>
-                        </Label>
-                        <div className="relative group">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                          <Input
-                            name="email"
-                            type="email"
-                            placeholder="hr@agency.com"
-                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                              fieldErrors.email
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                : ""
-                            }`}
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            required
-                          />
-                        </div>
-                        {isCheckingEmail && (
-                          <div className="text-sm text-slate-500 flex items-center gap-2">
-                            <SpinnerLoader />{" "}
-                            <span>Checking availability...</span>
-                          </div>
-                        )}
-                        <ErrorMessage error={fieldErrors.email} />
-                      </div>
-
-                      <div className="grid md:grid-cols-2 gap-5">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                            Password <span className="text-destructive">*</span>
-                          </Label>
-                          <div className="relative group">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                            <Input
-                              name="password"
-                              type="password"
-                              placeholder="Enter your password"
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.password
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                  : ""
-                              }`}
-                              value={formData.password}
-                              onChange={handleInputChange}
-                              required
-                            />
-                          </div>
-                          <ErrorMessage error={fieldErrors.password} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                            Confirm Password
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <div className="relative group">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                            <Input
-                              name="confirmPassword"
-                              type="password"
-                              placeholder="Confirm your password"
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.confirmPassword
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                  : ""
-                              }`}
-                              value={formData.confirmPassword}
-                              onChange={handleInputChange}
-                              required
-                            />
-                          </div>
-                          <ErrorMessage error={fieldErrors.confirmPassword} />
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 ml-1">
-                        Password must contain: 8+ characters, uppercase,
-                        lowercase, number, special character
-                      </p>
+          {currentStep === 3 && (
+            <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                  COMPANY DOCUMENT (ID/VERIFICATION) <span className="text-[#4DD9E8]">*</span>
+                </Label>
+                {!companyDocument ? (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        fileInputRef.current?.click();
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Upload company document"
+                    className={`group relative border-2 border-dashed rounded-[10px] p-12 transition-all hover:bg-slate-50 cursor-pointer flex flex-col items-center justify-center gap-4 ${fieldErrors.companyDocument ? "border-red-500" : "border-[#e8eaef] hover:border-[#4DD9E8]"}`}
+                  >
+                    <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                      <Upload className={`w-8 h-8 ${fieldErrors.companyDocument ? "text-red-500" : "text-slate-400 group-hover:text-[#4DD9E8]"}`} />
                     </div>
-                  )}
-
-                  {currentStep === 2 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                          Organization Name{" "}
-                          <span className="text-destructive">*</span>
-                        </Label>
-                        <div className="relative group">
-                          <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
-                          <Input
-                            name="companyName"
-                            placeholder="Company Co."
-                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                              fieldErrors.companyName
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                                : ""
-                            }`}
-                            value={formData.companyName}
-                            onChange={handleInputChange}
-                            required
-                          />
-                        </div>
-                        <ErrorMessage error={fieldErrors.companyName} />
+                    <div className="text-center">
+                      <p className="text-sm font-extrabold text-slate-600">Select business document</p>
+                      <p className="text-[11px] text-slate-400 mt-1 uppercase tracking-widest">PDF, DOC, DOCX up to 10MB</p>
+                    </div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      accept=".pdf,.doc,.docx"
+                      className="hidden"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-6 bg-[#4DD9E8]/5 border border-[#4DD9E8]/20 rounded-[10px] relative overflow-hidden group">
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#4DD9E8]" />
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-[#4DD9E8]/10 rounded-xl flex items-center justify-center">
+                        <FileIcon className="w-6 h-6 text-[#4DD9E8]" />
                       </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                          Organization Details (Optional)
-                        </Label>
-                        <Textarea
-                          name="companyDetails"
-                          placeholder="Tell us about your staffing capabilities..."
-                          maxLength={1000}
-                          className={`min-h-[150px] bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                            fieldErrors.companyDetails
-                              ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                              : ""
-                          }`}
-                          value={formData.companyDetails}
-                          onChange={handleInputChange}
-                        />
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 ml-1">
-                          {formData.companyDetails.length}/1000 characters
+                      <div>
+                        <p className="text-sm font-bold text-slate-700 truncate max-w-[250px]">{companyDocument.name}</p>
+                        <p className="text-[11px] font-bold text-[#4DD9E8]/60 uppercase">
+                          {(companyDocument.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
                     </div>
-                  )}
-
-                  {currentStep === 3 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                          Company Document (ID/Verification){" "}
-                          <span className="text-destructive">*</span>
-                        </Label>
-                        {!companyDocument ? (
-                          <div
-                            onClick={() => fileInputRef.current?.click()}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                fileInputRef.current?.click();
-                              }
-                            }}
-                            role="button"
-                            tabIndex={0}
-                            aria-label="Upload company document"
-                            className={`group relative border-2 border-dashed rounded-2xl p-12 transition-all hover:bg-slate-50 dark:hover:bg-white/[0.02] cursor-pointer flex flex-col items-center justify-center gap-4 ${
-                              fieldErrors.companyDocument
-                                ? "border-red-500 hover:border-red-500"
-                                : "border-slate-200 dark:border-white/10 hover:border-primary/50"
-                            }`}
-                          >
-                            <div className="w-16 h-16 bg-slate-100 dark:bg-white/5 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
-                              <Upload
-                                className={`w-8 h-8 ${
-                                  fieldErrors.companyDocument
-                                    ? "text-red-500"
-                                    : "text-slate-400 group-hover:text-primary"
-                                }`}
-                              />
-                            </div>
-                            <div className="text-center">
-                              <p className="text-sm font-extrabold text-slate-600 dark:text-slate-200">
-                                Select business document
-                              </p>
-                              <p className="text-[11px] text-slate-400 mt-1 uppercase tracking-widest">
-                                PDF, DOC, DOCX up to 10MB
-                              </p>
-                            </div>
-                            <input
-                              type="file"
-                              ref={fileInputRef}
-                              onChange={handleFileChange}
-                              accept=".pdf,.doc,.docx"
-                              className="hidden"
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-between p-6 bg-primary/5 border border-primary/20 rounded-2xl relative overflow-hidden group">
-                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary" />
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                                <FileIcon className="w-6 h-6 text-primary" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[250px]">
-                                  {companyDocument.name}
-                                </p>
-                                <p className="text-[11px] font-bold text-primary/60 uppercase">
-                                  {(companyDocument.size / 1024 / 1024).toFixed(
-                                    2,
-                                  )}{" "}
-                                  MB
-                                </p>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={removeFile}
-                              aria-label="Remove uploaded document"
-                              className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
-                            >
-                              <X className="w-5 h-5" />
-                            </button>
-                          </div>
-                        )}
-                        <ErrorMessage error={fieldErrors.companyDocument} />
-                      </div>
-
-                      <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/10">
-                        By submitting this application, you agree to Hirion's
-                        staffing partner terms and permit us to verify your
-                        company credentials.
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-4 mt-8 pt-8 border-t border-slate-100 dark:border-white/[0.03]">
-                    {currentStep > 1 && (
-                      <Button
-                        type="button"
-                        onClick={prevStep}
-                        variant="outline"
-                        className="flex-1 h-14 text-lg font-bold rounded-2xl border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-50"
-                      >
-                        <ChevronLeft className="w-5 h-5 mr-1" />
-                        Back
-                      </Button>
-                    )}
-
-                    <Button
-                      type="submit"
-                      className="flex-[2] h-14 text-lg font-bold rounded-2xl bg-primary text-white hover:opacity-90 shadow-2xl shadow-primary/20 transition-all active:scale-[0.98] group"
-                      disabled={isLoading}
+                    <button
+                      type="button"
+                      onClick={removeFile}
+                      aria-label="Remove uploaded document"
+                      className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
                     >
-                      {isLoading ? (
-                        <div className="flex items-center gap-3">
-                          <SpinnerLoader className="w-5 h-5 text-current" />
-                          <span>Processing...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <span>
-                            {currentStep === totalSteps
-                              ? "Sign Up"
-                              : "Next Step"}
-                          </span>
-                          {currentStep < totalSteps ? (
-                            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                          ) : (
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                          )}
-                        </div>
-                      )}
-                    </Button>
+                      <X className="w-5 h-5" />
+                    </button>
                   </div>
-                </form>
+                )}
+                <ErrorMessage error={fieldErrors.companyDocument} />
+              </div>
 
-                <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/[0.03] flex flex-col items-center gap-4">
-                  <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
-                    Already a partner?{" "}
-                    <Link
-                      to="/bench-login"
-                      className="text-primary hover:text-primary/80 transition-colors underline-offset-8 underline decoration-primary/30"
-                    >
-                      Sign In to Dashboard
-                    </Link>
-                  </p>
-                </div>
+              <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                By submitting this application, you agree to Hirion's staffing partner terms and permit us to verify your company credentials.
               </div>
             </div>
+          )}
+
+          <div className="flex items-center gap-3 pt-4">
+            {currentStep > 1 && (
+              <Button
+                type="button"
+                onClick={prevStep}
+                variant="outline"
+                className="flex-1 h-[52px] font-bold rounded-xl border-slate-200 hover:bg-slate-50 transition-all text-slate-600 hover:text-slate-900"
+              >
+                <ChevronLeft className="w-5 h-5 mr-1" />
+                Back
+              </Button>
+            )}
+            <Button
+              type="submit"
+              className="flex-1 h-[52px] bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-3">
+                  <SpinnerLoader className="w-5 h-5 text-current" />
+                  <span>Processing...</span>
+                </div>
+              ) : (
+                <>
+                  <span>{currentStep === totalSteps ? "Sign Up" : "Next Step"}</span>
+                  {currentStep < totalSteps ? (
+                    <ChevronRight className="w-5 h-5" />
+                  ) : (
+                    <ArrowRight className="w-5 h-5" />
+                  )}
+                </>
+              )}
+            </Button>
           </div>
+        </form>
+
+        <div className="mt-10 text-center text-[14px] sm:text-sm font-medium text-slate-400">
+          Already have an account?{" "}
+          <Link
+            to="/bench-login"
+            className="text-teal-600 font-semibold hover:underline"
+          >
+            Sign In to Dashboard
+          </Link>
         </div>
       </div>
     </div>
+  </div>
+</div>
+      </div>
+   
   );
 };
 

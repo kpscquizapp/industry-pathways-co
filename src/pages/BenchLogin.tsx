@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import HirionLogo from "../assets/White Option.png";
 import { Label } from "@/components/ui/label";
 import {
   Sparkles,
@@ -162,115 +163,90 @@ const BenchLogin = () => {
   };
 
   return (
+    
     <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
       {/* Left Panel - Immersive Branding */}
-      <div className="hidden lg:flex lg:w-[50%] bg-[#080b14] p-12 flex-col justify-between relative overflow-hidden shrink-0 border-r border-white/5">
-        <div className="absolute top-[-10%] right-[-10%] w-[80%] h-[80%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-500/10 rounded-full blur-[100px]" />
+     <div className="hidden lg:flex lg:w-[50%] bg-[#080b20] px-16 py-8 flex-col justify-center relative overflow-hidden shrink-0 border-r border-white/5">
+  <div className="absolute top-0 left-0 w-full h-full opacity-[0.15] pointer-events-none animate-pulse-slow">
+    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="dotGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1" fill="#fff" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#dotGrid)" opacity="0.4" />
+    </svg>
+  </div>
+        <div className="absolute z-10 top-8 left-16 animate-fade-up">
+  <div className="relative z-10" style={{marginBottom: "4rem",marginTop:"1rem"}}>
+  <Link to="/" className="flex items-center gap-3 group" >
+    <img src={HirionLogo} alt="Hirion Logo" className="w-44 h-auto" />
+  </Link>
+</div>
 
-        <div className="relative z-10">
-          <Link to="/" className="flex items-center gap-3 mb-20 group">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white tracking-tight">
-              HIRION
-            </span>
-          </Link>
 
-          <div className="space-y-8 max-w-lg">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-              <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">
-                Staffing Partner Hub
-              </span>
-            </div>
 
-            <h1 className="text-5xl xl:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
-              Welcome Back,
-              <br />
-              <span className="bg-gradient-to-r from-primary via-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Partner
-              </span>
-            </h1>
 
-            <p className="text-xl text-white/50 leading-relaxed font-light">
-              Access your bench talent dashboard and manage your resource
-              listings.
-            </p>
-          </div>
+<div className="space-y-8 max-w-lg" style={{marginTop:"10rem"}}>
+  <div className="inline-flex items-center gap-2">
+    <span className="text-[#4DD9E8] text-[11px] font-semibold tracking-[0.15em] uppercase">
+      BENCH DASHBOARD</span></div>
+
+  <h1 className="text-[44px] font-bold text-white leading-[1.2] tracking-tight">
+    Welcome back,<br />
+    <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+      let's build.
+    </span>
+  </h1>
+
+  <p className="text-[16px] text-white/40 leading-relaxed max-w-sm">
+    Access your projects, track interviews, and manage your bench profile — all in one place.
+  </p>
+
+</div>
         </div>
 
-        <div className="relative z-10 space-y-6">
-          <div className="grid gap-4">
-            {FEATURES.map((feature, index) => (
-              <div
-                key={index}
-                className="group flex items-start gap-4 p-5 bg-white/[0.02] backdrop-blur-sm border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300"
-              >
-                <div
-                  className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
-                >
-                  <feature.icon className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-white text-lg mb-1">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-white/40 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Right Panel - Premium Login Section */}
-      <div className="flex-1 flex flex-col bg-[#fafafa] dark:bg-[#030303] overflow-y-auto">
+      <div className="flex-1 flex flex-col bg-white overflow-y-auto animate-fade-up">
         <div className="flex-1 flex items-center justify-center p-6 lg:p-12 xl:p-16">
           <div className="w-full max-w-[500px]">
-            <div className="lg:hidden mb-12 flex flex-col items-center">
-              <Link to="/" className="flex items-center gap-2 mb-6">
-                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-xl shadow-primary/20">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-xl font-bold tracking-tighter text-slate-900 dark:text-white">
-                  HIRION
-                </span>
-              </Link>
-            </div>
+           <div className="lg:hidden mb-12 flex flex-col items-center">
+  <Link to="/" className="flex items-center gap-2 mb-2">
+   <img src={HirionLogo} alt="Hirion Logo" className="w-32 h-12 object-contain invert" />
+  </Link>
+  <p className="text-xs text-gray-400 uppercase tracking-widest">Bench Dashboard</p>
+</div>
 
             <div className="relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 to-emerald-500/10 rounded-[36px] blur-xl opacity-50 dark:opacity-20" />
+             <div className="p-8 md:p-10">
 
-              <div className="relative bg-white dark:bg-[#0a0a0a] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-white/[0.05] p-8 md:p-10">
                 <div className="mb-10 text-center lg:text-left">
-                  <h3 className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
+                  <h3 className="text-4xl font-bold text-[#1a1a2e] mb-3 lg:text-left text-center">
                     Sign In
                   </h3>
-                  <p className="text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
-                    Enter your partner credentials below.
+                  <p className="text-slate-400 font-medium lg:text-left text-center text-sm">
+                   Enter your partner credentials below.
                   </p>
                 </div>
 
                 <form onSubmit={handleSubmit} noValidate className="space-y-6">
                   {/* Email Field */}
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                      Work Email
-                    </Label>
+                  <div className="flex flex-col gap-1.5 min-w-0">
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-1" htmlFor="email" style={{fontSize: "13px", fontWeight: "600", color: "rgb(26, 26, 46)", letterSpacing: "0.02em"}}>
+                    Email Address
+                      </label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300 z-10" />
                       <Input
                         name="email"
                         type="email"
-                        placeholder="hr@agency.com"
+                        placeholder="bench@example.com"
                         autoComplete="email"
-                        className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                        className={`h-12 w-full pl-12 pr-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700 transition-all duration-300 font-medium ${
                           fieldErrors.email && touched.email
-                            ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                            ? "ring-2 ring-red-500 focus:ring-red-500 focus-visible:ring-red-500"
                             : ""
                         }`}
                         value={formData.email}
@@ -287,13 +263,13 @@ const BenchLogin = () => {
                   {/* Password Field */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                        Password
-                      </Label>
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-1" htmlFor="password" style={{fontSize: "13px", fontWeight: "600", color: "rgb(26, 26, 46)", letterSpacing: "0.02em"}}>
+  Password
+</label>
                       <Link
                         to="/forgot-password"
                         title="Forgot Password"
-                        className="text-xs font-bold text-primary dark:text-emerald-400 hover:opacity-80 transition-opacity uppercase"
+                        className="text-xs font-semibold text-slate-400 hover:text-teal-600 transition-colors"
                       >
                         Forgot password?
                       </Link>
@@ -305,9 +281,9 @@ const BenchLogin = () => {
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
                         autoComplete="current-password"
-                        className={`h-12 pl-12 pr-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
+                        className={`h-12 w-full pl-12 pr-12 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700 transition-all duration-300 font-medium ${
                           fieldErrors.password && touched.password
-                            ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
+                            ? "ring-2 ring-red-500 focus:ring-red-500 focus-visible:ring-red-500"
                             : ""
                         }`}
                         value={formData.password}
@@ -336,31 +312,32 @@ const BenchLogin = () => {
                   </div>
 
                   {/* Submit Button */}
-                  <Button
-                    type="submit"
-                    className="w-full h-14 text-lg font-bold mt-4 rounded-2xl bg-primary dark:bg-primary text-white hover:opacity-90 shadow-2xl shadow-primary/10 transition-all active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center gap-3">
-                        <SpinnerLoader className="w-5 h-5 text-current" />
-                        <span>Logging you in...</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span>Sign In to Dashboard</span>
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    )}
-                  </Button>
+          <Button
+  type="submit"
+  className="w-full h-[52px] text-[15px] font-bold mt-4 rounded-xl text-white hover:opacity-90 transition-all active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+  style={{background: "linear-gradient(135deg, rgb(77, 217, 232), rgb(14, 165, 233))", boxShadow: "rgba(77, 217, 232, 0.35) 0px 4px 20px"}}
+  disabled={isLoading}
+>
+  {isLoading ? (
+    <div className="flex items-center gap-3">
+      <SpinnerLoader className="w-5 h-5 text-current" />
+      <span>Logging you in...</span>
+    </div>
+  ) : (
+    <div className="flex items-center justify-center gap-3">
+      <span>Sign In to Dashboard</span>
+      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+    </div>
+  )}
+</Button>
                 </form>
 
-                <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/[0.03] flex flex-col items-center gap-4">
-                  <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
-                    New to Hirion?{" "}
+                <div className="mt-12 text-center text-sm font-medium text-slate-400">
+                  <p className="mt-12 text-center text-sm font-medium text-slate-400">
+                    New to QuickRekruit?{" "}
                     <Link
                       to="/bench-registration"
-                      className="text-primary hover:text-primary/80 transition-colors underline-offset-8 underline decoration-primary/30"
+                      className="text-teal-500 font-bold hover:underline"
                     >
                       Bench Signup
                     </Link>

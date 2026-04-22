@@ -79,23 +79,25 @@ const getMenuItems = (role: DashboardRole) => {
       ];
     case "bench":
       return [
-        { icon: LayoutGrid, label: "Dashboard", href: "/bench/dashboard" },
-        { icon: PlusCircle, label: "Post Job", href: "/bench/post-job" },
-        {
-          icon: Users,
-          label: "AI Shortlists",
-          href: "/bench/ai-shortlists",
-          isAI: true,
-        },
-        { icon: Code, label: "Skill Test", href: "/bench/skill-tests" },
-        {
-          icon: Video,
-          label: "AI Interviews",
-          href: "/bench/ai-interviews",
-          isAI: true,
-        },
-        { icon: FileText, label: "Contracts", href: "/bench/contracts" },
-        { icon: Settings, label: "Settings", href: "/bench/settings" },
+        { icon: LayoutGrid, label: "Dashboard", href: "/bench-dashboard" },
+        { icon: PlusCircle, label: "Post Job", href: "/bench-dashboard/post-bench-resource" },
+        { icon: Users, label: "Active Resources", href: "/bench-dashboard/active-resources"},
+        { icon: Settings, label: "Visibility Settings", href: "/bench-dashboard/visibility-settings" },
+        // {
+        //   icon: Users,
+        //   label: "AI Shortlists",
+        //   href: "/bench/ai-shortlists",
+        //   isAI: true,
+        // },
+        // // { icon: Code, label: "Skill Test", href: "/bench/skill-tests" },
+        // {
+        //   icon: Video,
+        //   label: "AI Interviews",
+        //   href: "/bench/ai-interviews",
+        //   isAI: true,
+        // },
+        // { icon: FileText, label: "Contracts", href: "/bench/contracts" },
+        // { icon: Settings, label: "Settings", href: "/bench/settings" },
         // { icon: CreditCard, label: "Billing", href: "/bench/billing" },
       ];
     case "hire-talent":

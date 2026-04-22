@@ -9,6 +9,9 @@ interface UpdateEmployerProfile {
   companySize?: string;
   website?: string;
   description?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
 }
 
 export interface CandidateWorkExperience {
@@ -177,6 +180,13 @@ export const employerApi = createApi({
       transformResponse: (blob: Blob) => URL.createObjectURL(blob),
       keepUnusedDataFor: 0,
     }),
+    // changePassword: builder.mutation<void, { currentPassword: string; newPassword: string }>({
+    //   query: (data) => ({
+    //     url: "users/change-password",
+    //     method: "POST",
+    //     body: data,
+    //   }),
+    // }),
   }),
 });
 
@@ -188,4 +198,5 @@ export const {
   useGetEmployerProfileQuery,
   useGetCandidateByIdQuery,
   useLazyViewCandidateResumeQuery,
+  // useChangePasswordMutation,
 } = employerApi;

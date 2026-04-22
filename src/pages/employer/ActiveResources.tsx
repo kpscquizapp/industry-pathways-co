@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Calendar ,CheckCircle , Briefcase} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -176,7 +177,10 @@ const ActiveResources = () => {
     error,
     refetch,
   } = useGetBenchResourcesQuery(queryParams);
-  const resources: BenchResource[] = apiData?.data || [];
+const resources = apiData?.data ?? [
+  { id: 1, resourceName: "Rahul Verma", employeeId: "EMP-824", currentRole: "Senior Backend Developer", technicalSkills: ["Node.js", "AWS", "MongoDB"], totalExperience: 7, hourlyRate: 50, isActive: true },
+  { id: 2, resourceName: "Sarah Chen", employeeId: "EMP-912", currentRole: "UI/UX Designer", technicalSkills: ["Figma", "Prototyping", "User Research"], totalExperience: 5, hourlyRate: 45, isActive: true },
+]
   const pagination = apiData?.pagination || {
     total: 0,
     page: 1,
@@ -209,197 +213,217 @@ const ActiveResources = () => {
   const inactiveCount = resources.filter((r: any) => !r.isActive).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto p-6 space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">
-              Active Resources
-            </h1>
-            <p className="text-slate-500">
-              Manage your bench talent and assignments
-            </p>
-          </div>
-        </div>
+       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+  <div>
+    <h1 className="text-2xl font-bold text-slate-800">
+      Active Resources
+    </h1>
+    <p className="text-slate-500">
+      Manage and track your published bench talent, monitor their availability, and handle requests.
+    </p>
+  </div>
+  <Button
+    onClick={() => navigate("/bench-dashboard/post-bench-resource")}
+    className="h-10 px-4 rounded-xl bg-[#0f172a] hover:bg-[#1e293b] text-white font-medium shrink-0"
+  >
+    + Add Resource
+  </Button>
+</div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-0 shadow-lg rounded-2xl bg-white overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                  <Users className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Total Resources</p>
-                  <p className="text-2xl font-bold text-slate-800">
-                    {pagination.total}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-lg rounded-2xl bg-white overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-                  <CheckCircle2 className="h-6 w-6 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Active</p>
-                  <p className="text-2xl font-bold text-emerald-600">
-                    {activeCount}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-lg rounded-2xl bg-white overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Page</p>
-                  <p className="text-2xl font-bold text-amber-600">
-                    {pagination.page} / {pagination.totalPages}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <Card className="border border-slate-200 shadow-sm rounded-xl bg-white">
+    <CardContent className="p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-slate-500">Total Resources</p>
+          <p className="text-3xl font-bold text-slate-800 mt-1">
+            {pagination.total}
+          </p>
         </div>
+        <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center shadow-sm">
+  <Users className="h-5 w-5 text-blue-500" />
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+  <Card className="border border-slate-200 shadow-sm rounded-xl bg-white">
+    <CardContent className="p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-slate-500">Active on Bench</p>
+          <p className="text-3xl font-bold text-slate-800 mt-1">
+            {activeCount}
+          </p>
+        </div>
+    <div className="h-9 w-9 rounded-md bg-green-100/60 flex items-center justify-center shadow-sm">
+  <CheckCircle className="h-4 w-4 text-green-500" />
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+  <Card className="border bg-slate-50 shadow-sm rounded-xl bg-white">
+    <CardContent className="p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-slate-500">Currently Contracted</p>
+          <p className="text-3xl font-bold text-slate-800 mt-1">
+            {pagination.page} / {pagination.totalPages}
+          </p>
+        </div>
+  
+<div className="h-9 w-9 rounded-md bg-amber-50 flex items-center justify-center shadow-sm">
+  <Briefcase className="h-4 w-4 text-amber-500" />
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+</div>
 
         {/* Search and Advanced Filters */}
-        <Card className="border-0 shadow-lg rounded-2xl bg-white overflow-hidden">
-          <CardContent className="p-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="Search name, role..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-10 rounded-xl border-slate-200"
-                />
-              </div>
-              <div className="relative">
-                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="Skills (react, node...)"
-                  value={filterSkills}
-                  onChange={(e) => setFilterSkills(e.target.value)}
-                  className="pl-9 h-10 rounded-xl border-slate-200"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Min Exp (at least)"
-                  type="number"
-                  value={minExperience}
-                  onChange={(e) => setMinExperience(e.target.value)}
-                  className="h-10 rounded-xl border-slate-200"
-                />
-                <Input
-                  placeholder="Max Exp (up to)"
-                  type="number"
-                  value={maxExperience}
-                  onChange={(e) => setMaxExperience(e.target.value)}
-                  className="h-10 rounded-xl border-slate-200"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Min Rate"
-                  type="number"
-                  value={minRate}
-                  onChange={(e) => setMinRate(e.target.value)}
-                  className="h-10 rounded-xl border-slate-200"
-                />
-                <Input
-                  placeholder="Max Rate"
-                  type="number"
-                  value={maxRate}
-                  onChange={(e) => setMaxRate(e.target.value)}
-                  className="h-10 rounded-xl border-slate-200"
-                />
-              </div>
-            </div>
+<Card className="border border-slate-200 shadow-sm rounded-xl bg-white">
+  <CardContent className="p-6 space-y-4">
+    {/* Search */}
+    <div>
+      <p className="text-sm font-medium text-slate-700 mb-2">Search</p>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Input
+          placeholder="Search by name, employee ID, or role..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 h-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none w-full"
+        />
+      </div>
+    </div>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-500">
-                  Status:
-                </span>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant={isActive === "true" ? "default" : "outline"}
-                    onClick={() => setIsActive("true")}
-                    className="rounded-lg h-8 px-3 text-xs"
-                  >
-                    Active
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={isActive === "false" ? "default" : "outline"}
-                    onClick={() => setIsActive("false")}
-                    className="rounded-lg h-8 px-3 text-xs"
-                  >
-                    Inactive
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={isActive === "all" ? "default" : "outline"}
-                    onClick={() => setIsActive("all")}
-                    className="rounded-lg h-8 px-3 text-xs"
-                  >
-                    All
-                  </Button>
-                </div>
-              </div>
+    {/* Filter Row */}
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Skills */}
+      <div className="space-y-1">
+        <p className="text-xs font-medium text-slate-500">Skills</p>
+        <div className="relative">
+          <Input
+            placeholder="Select skills..."
+            value={filterSkills}
+            onChange={(e) => setFilterSkills(e.target.value)}
+            className="h-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
+          />
+        </div>
+      </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-500">
-                  Preference:
-                </span>
-                <select
-                  value={deploymentPreference}
-                  onChange={(e) => setDeploymentPreference(e.target.value)}
-                  className="h-8 rounded-lg border-slate-200 text-xs px-2 bg-[#f7f6f2] border border-slate-200 outline-none"
-                >
-                  <option value="">All</option>
-                  <option value="remote">Remote</option>
-                  <option value="onsite">On-site</option>
-                  <option value="hybrid">Hybrid</option>
-                </select>
-              </div>
+      {/* Experience */}
+      <div className="space-y-1">
+        <p className="text-xs font-medium text-slate-500">Experience (Years)</p>
+        <div className="flex gap-2">
+          <Input
+            placeholder="Min"
+            type="number"
+            value={minExperience}
+            onChange={(e) => setMinExperience(e.target.value)}
+            className="h-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+          <Input
+            placeholder="Max"
+            type="number"
+            value={maxExperience}
+            onChange={(e) => setMaxExperience(e.target.value)}
+            className="h-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+        </div>
+      </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-500">
-                  Available Before:
-                </span>
-                <Input
-                  type="date"
-                  value={availableFrom}
-                  onChange={(e) => setAvailableFrom(e.target.value)}
-                  className="h-8 rounded-lg border-slate-200 text-xs px-2 w-fit"
-                />
-              </div>
+      {/* Hourly Rate */}
+      <div className="space-y-1">
+        <p className="text-xs font-medium text-slate-500">Hourly Rate ($)</p>
+        <div className="flex gap-2">
+          <Input
+            placeholder="Min"
+            type="number"
+            value={minRate}
+            onChange={(e) => setMinRate(e.target.value)}
+            className="h-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+          <Input
+            placeholder="Max"
+            type="number"
+            value={maxRate}
+            onChange={(e) => setMaxRate(e.target.value)}
+            className="h-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+        </div>
+      </div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAllFilters}
-                className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 font-medium ml-auto"
-              >
-                Clear all filters
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Availability Date */}
+      <div className="space-y-1">
+        <p className="text-xs font-medium text-slate-500">Availability Date</p>
+        <div className="relative">
+          <Input
+            type="date"
+            value={availableFrom}
+            onChange={(e) => setAvailableFrom(e.target.value)}
+            className="h-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-transparent [&::-webkit-calendar-picker-indicator]:hidden"
+          />
+          <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+        </div>
+      </div>
+    </div>
+
+    {/* Status + Deployment + Buttons */}
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      {/* Status */}
+      <div className="space-y-1">
+        <p className="text-xs font-medium text-slate-500">Status</p>
+        <select
+          value={isActive}
+          onChange={(e) => setIsActive(e.target.value)}
+          className="w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none rounded-xl text-sm text-slate-600"
+        >
+          <option value="all">All Statuses</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+      </div>
+
+      {/* Deployment Type */}
+      <div className="space-y-1">
+        <p className="text-xs font-medium text-slate-500">Deployment Type</p>
+        <select
+          value={deploymentPreference}
+          onChange={(e) => setDeploymentPreference(e.target.value)}
+          className="w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none rounded-xl text-sm text-slate-600"
+        >
+          <option value="">All Preferences</option>
+          <option value="remote">Remote</option>
+          <option value="onsite">On-site</option>
+          <option value="hybrid">Hybrid</option>
+        </select>
+      </div>
+
+      {/* Buttons */}
+      <div className="md:col-span-2 flex justify-end gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clearAllFilters}
+          className="text-sm text-slate-500 hover:bg-[#1e293b] h-10 px-4"
+        >
+          ✕ Clear All Filters
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-sm h-10 px-4 rounded-xl hover:bg-[#1e293b]"
+        >
+          ⊞ More Filters
+        </Button>
+      </div>
+    </div>
+  </CardContent>
+</Card>
 
         {/* Resources Table */}
         <Card className="border-0 shadow-lg rounded-2xl bg-white overflow-hidden">
@@ -451,138 +475,138 @@ const ActiveResources = () => {
               </div>
             ) : (
               <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50 hover:bg-slate-50">
-                    <TableHead className="font-semibold text-slate-700">
-                      Resource
-                    </TableHead>
-                    <TableHead className="font-semibold text-slate-700">
-                      Skills
-                    </TableHead>
-                    <TableHead className="font-semibold text-slate-700">
-                      Experience
-                    </TableHead>
-                    <TableHead className="font-semibold text-slate-700">
-                      Rate
-                    </TableHead>
-                    <TableHead className="font-semibold text-slate-700">
-                      Status
-                    </TableHead>
-                    <TableHead className="font-semibold text-slate-700 text-right">
-                      Actions
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {resources.map((resource: any) => (
-                    <TableRow
-                      key={resource.id}
-                      className="hover:bg-blue-50/50 cursor-pointer transition-colors"
-                      onClick={() => handleViewResource(resource)}
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">
-                            {resource.resourceName.charAt(0)}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-slate-800">
-                              {resource.resourceName}
-                            </p>
-                            <p className="text-sm text-slate-500">
-                              {resource.currentRole}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {resource.technicalSkills
-                            ?.slice(0, 2)
-                            .map((skill: string) => (
-                              <Badge
-                                key={skill}
-                                className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs"
-                              >
-                                {skill}
-                              </Badge>
-                            ))}
-                          {resource.technicalSkills?.length > 2 && (
-                            <Badge className="bg-slate-100 text-slate-600 text-xs">
-                              +{resource.technicalSkills.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-slate-600">
-                        {Number(resource.totalExperience)} years
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-semibold text-slate-800">
-                          {resource.hourlyRate}
-                        </span>
-                        <span className="text-slate-500">/hr</span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={`${
-                            resource.isActive
-                              ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                              : "bg-red-100 text-red-700 hover:bg-red-200"
-                          }`}
-                        >
-                          {resource.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu modal={false}>
-                          <DropdownMenuTrigger
-                            asChild
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleViewResource(resource);
-                              }}
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditResource(resource.id);
-                              }}
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteResource(resource.id);
-                              }}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+<TableHeader>
+  <TableRow className="bg-slate-50 hover:bg-slate-50">
+    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+      Resource Name & Role
+    </TableHead>
+    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+      Top Skills
+    </TableHead>
+    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+      Exp.
+    </TableHead>
+    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+      Rate
+    </TableHead>
+    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+      Status
+    </TableHead>
+    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide text-right">
+      Actions
+    </TableHead>
+  </TableRow>
+</TableHeader>
+ <TableBody>
+  {resources.map((resource: any) => (
+    <TableRow
+      key={resource.id}
+      className="hover:bg-slate-50 cursor-pointer transition-colors"
+      onClick={() => handleViewResource(resource)}
+    >
+      <TableCell>
+        <div>
+          <p className="font-semibold text-slate-800">
+            {resource.resourceName} {resource.employeeId ? `(${resource.employeeId})` : ""}
+          </p>
+          <p className="text-sm text-slate-500">
+            {resource.currentRole}
+          </p>
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="flex flex-wrap gap-1">
+          {resource.technicalSkills
+            ?.slice(0, 2)
+            .map((skill: string) => (
+              <Badge
+                key={skill}
+                className="bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-normal"
+              >
+                {skill}
+              </Badge>
+            ))}
+          {resource.technicalSkills?.length > 2 && (
+            <Badge className="bg-slate-100 text-slate-600 text-xs font-normal">
+              +{resource.technicalSkills.length - 2}
+            </Badge>
+          )}
+        </div>
+      </TableCell>
+      <TableCell className="text-slate-600">
+        {Number(resource.totalExperience)} Yrs
+      </TableCell>
+      <TableCell>
+        <span className="font-semibold text-slate-800">
+          ${resource.hourlyRate}/hr
+        </span>
+      </TableCell>
+      <TableCell>
+        <Badge
+          className={`${
+            resource.isActive
+              ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+              : "bg-red-100 text-red-700 hover:bg-red-200"
+          }`}
+        >
+          {resource.isActive ? "Active" : "Inactive"}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-slate-400 hover:text-slate-600"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewResource(resource);
+            }}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-slate-400 hover:text-slate-600"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditResource(resource.id);
+            }}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-slate-400 hover:text-slate-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="text-red-600 focus:text-red-600"
+                onSelect={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDeleteResource(resource.id);
+                }}
+              >
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
               </Table>
             )}
 

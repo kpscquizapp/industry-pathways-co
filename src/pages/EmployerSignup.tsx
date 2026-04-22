@@ -20,7 +20,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import {
-  useCheckExistingEmailMutation,
+  // useCheckExistingEmailMutation,
   useRegisterEmployerMutation,
 } from "@/app/queries/loginApi";
 import { toast } from "sonner";
@@ -68,8 +68,8 @@ const EmployerSignup = () => {
   >({});
 
   const [registerEmployer] = useRegisterEmployerMutation();
-  const [checkExistingEmail, { isLoading: isCheckingEmail }] =
-    useCheckExistingEmailMutation();
+  // const [checkExistingEmail, { isLoading: isCheckingEmail }] =
+    // useCheckExistingEmailMutation();
   const navigate = useNavigate();
 
   const handleInputChange = (
@@ -158,19 +158,19 @@ const EmployerSignup = () => {
       const emailError = VALIDATION.email.validate(formData.email);
       if (emailError) errors.email = emailError;
       // Check email availability only when format is valid
-      if (!emailError && formData.email) {
-        try {
-          await checkExistingEmail({ email: formData.email }).unwrap();
-        } catch (error) {
-          if (isFetchBaseQueryError(error) && error.status === 409) {
-            errors.email =
-              "Email already registered, please use a different email.";
-          } else {
-            errors.email =
-              "Could not verify email right now. Please try again.";
-          }
-        }
-      }
+      //  if (!emailError && formData.email) {
+      //   try {
+      //     await checkExistingEmail({ email: formData.email }).unwrap();
+      //   } catch (error) {
+      //     if (isFetchBaseQueryError(error) && error.status === 409) {
+      //       errors.email =
+      //         "Email already registered, please use a different email.";
+      //     } else {
+      //       errors.email =
+      //         "Could not verify email right now. Please try again.";
+      //     }
+      //   }
+      // }
 
       // Validate password
       const passwordError = VALIDATION.password.validate(formData.password);
@@ -605,12 +605,12 @@ const EmployerSignup = () => {
                             />
                           </div>
                           <ErrorMessage error={fieldErrors.email} />
-                          {isCheckingEmail && (
+                          {/* {isCheckingEmail && (
                             <div className="text-sm text-slate-500 flex items-center gap-2">
                               <SpinnerLoader />{" "}
                               <span>Checking availability...</span>
                             </div>
-                          )}
+                          )} */}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -813,9 +813,9 @@ const EmployerSignup = () => {
                       <Button
                         type="submit"
                         className="flex-1 h-[52px] bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
-                        disabled={isLoading || isCheckingEmail}
+                        // disabled={isLoading || isCheckingEmail}
                       >
-                        {isLoading || isCheckingEmail ? (
+                        {isLoading  ? (
                           <span className="flex items-center justify-center gap-2">
                             <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             Processing...
@@ -840,7 +840,7 @@ const EmployerSignup = () => {
                 >
                   Sign In to Dashboard
                 </Link>
-              </div>
+              </div> 
             </div>
           </div>
         </div>
