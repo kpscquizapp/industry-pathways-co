@@ -136,11 +136,12 @@ const VALIDATION = {
   },
   phone: {
     regex: /^\+?[1-9]\d{6,14}$/,
-    validate: (phone: string) => {
-      if (!phone) return "Mobile number is required";
-      const cleaned = phone.replace(/[\s\-()]/g, "");
+    validate: (phone: string | number) => {
+      if (phone === null || phone === undefined || phone === "") return "Mobile number is required";
+      const phoneStr = String(phone);
+      const cleaned = phoneStr.replace(/[\s\-()]/g, "");
       if (!VALIDATION.phone.regex.test(cleaned)) {
-        return "Please enter a valid mobile number (e.g., +14155551234 or +919876543210)";
+        return "Please enter a valid mobile number";
       }
       return null;
     },
@@ -1124,7 +1125,8 @@ export default function ContractorSignup(): JSX.Element {
     });
     setForm((prev) => ({
       ...prev,
-      [name]: type === "number" ? (value === "" ? null : Number(value)) : value,
+      // Special case: mobileNumber should remain a string to preserve leading zeros
+      [name]: (type === "number" && name !== "mobileNumber") ? (value === "" ? null : Number(value)) : value,
     }));
   }, []);
 
@@ -1278,7 +1280,7 @@ export default function ContractorSignup(): JSX.Element {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       email: form.email.toLowerCase().trim(),
-      mobileNumber: form.mobileNumber.replace(/[\s\-()]/g, ""),
+      mobileNumber: String(form.mobileNumber || "").replace(/[\s\-()]/g, ""),
       password: form.password,
       candidateType: form.candidateType,
       yearsExperience: form.yearsExperience,
@@ -1893,6 +1895,7 @@ export default function ContractorSignup(): JSX.Element {
               )}
               <Input
                 label="Mobile Number"
+                type="number"
                 required
                 name="mobileNumber"
                 placeholder="+1 (555) 000-0000"

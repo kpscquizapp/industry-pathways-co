@@ -60,14 +60,42 @@ export const contractorSkillTestApi = createApi({
                 params: token ? { token } : undefined,
             }),
         }),
+        // New endpoint to fetch webcam and screen‑share URLs for a session
+        getWebcamMetadata: builder.query<any, string>({
+            query: (sessionId) => ({
+                method: "GET",
+                url: `recordings/chunks/${sessionId}/metadata`,
+            }),
+        }),
+        // New endpoint to fetch violation logs (JSON) for a session
+        getSessionViolations: builder.query<any, string>({
+            query: (sessionId) => ({
+                method: "GET",
+                url: `session/${sessionId}`,
+            }),
+        }),
+        // Fetches a recorded video and returns a blob object URL for <video> src
+        getRecordingPlay: builder.query<string, { sessionId: string; type: "webcam" | "screen" }>({
+            query: ({ sessionId, type }) => ({
+                method: "GET",
+                url: `recordings/play/${sessionId}/${type}`,
+                responseHandler: async (response: Response) => {
+                    const blob = await response.blob();
+                    return URL.createObjectURL(blob);
+                },
+                cache: "no-cache",
+            }),
+        }),
     }),
 })
 
-export const { 
-    useCreateSkillTestMutation, 
-    useGetMyTestResultsQuery, 
+export const {
+    useCreateSkillTestMutation,
+    useGetMyTestResultsQuery,
     useGetTestReportQuery,
     useGetProblemTagsQuery,
     useLazyGetTestStatusByIdQuery,
+    useGetWebcamMetadataQuery,
+    useGetSessionViolationsQuery,
+    useGetRecordingPlayQuery,
 } = contractorSkillTestApi;
-

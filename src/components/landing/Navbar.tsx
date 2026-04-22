@@ -1,10 +1,16 @@
 import { useState, useEffect, type MouseEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import logo from "@/assets/Dark Option.png";
-import { Equal, X } from "lucide-react";
+import { Building2, Equal, User, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 const NAV_LINKS = [
   { label: "About", target: "#" },
@@ -21,9 +27,22 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const userDetails = useSelector((state: RootState) => state.user.userDetails);
-  const isCandidate = userDetails?.role === "candidate";
-  const loginPath = isCandidate ? "/contractor/dashboard" : "/contractor-login";
-  const loginLabel = isCandidate ? "Dashboard" : "Login";
+  const isLoggedIn = !!userDetails;
+
+  const getDashboardPath = (role?: string) => {
+    switch (role) {
+      case "candidate":
+        return "/contractor/dashboard";
+      case "employer":
+        return "/hire-talent/dashboard";
+      case "hr":
+        return "/bench-dashboard/dashboard";
+      default:
+        return "/";
+    }
+  };
+
+  const dashboardPath = getDashboardPath(userDetails?.role);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 30);
@@ -50,10 +69,10 @@ export default function Navbar() {
     }, 0);
   };
 
-  const handleMobileLoginClick = (event: MouseEvent<HTMLAnchorElement>) => {
+  const handleMobileDashboardClick = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     closeMobileMenu();
-    window.setTimeout(() => navigate(loginPath), 0);
+    window.setTimeout(() => navigate(dashboardPath), 0);
   };
 
   return (
@@ -90,22 +109,44 @@ export default function Navbar() {
 
           {/* CTA button */}
           <div className="nav-desktop flex items-center gap-4">
-            <Link
-              className="nav-desktop bg-gray-900 text-white border-none rounded-full px-6 py-2.5 text-sm font-semibold cursor-pointer font-body transition-colors hover:text-[#38BDF8]/80"
-              to={loginPath}
-            >
-              {loginLabel}
-            </Link>
-            {
-              !isCandidate && (
-                <Link
-                  className="nav-desktop bg-gray-900 text-white border-none rounded-full px-6 py-2.5 text-sm font-semibold cursor-pointer font-body transition-colors hover:text-[#38BDF8]/80"
-                  to="/contractor-signup"
-                >
-                  Sign Up
-                </Link>
-              )
-            }
+            {isLoggedIn ? (
+              <Link
+                className="nav-desktop bg-gray-900 text-white border-none rounded-full px-6 py-2.5 text-sm font-semibold cursor-pointer font-body transition-colors hover:text-[#38BDF8]/80"
+                to={dashboardPath}
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="nav-desktop bg-gray-900 text-white border-none rounded-full px-6 py-2.5 text-sm font-semibold cursor-pointer font-body transition-colors hover:text-[#38BDF8]/80 outline-none">
+                    Login
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 bg-white border border-gray-100 shadow-md rounded-xl p-2 z-[1001]">
+                    <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-2 transition-colors">
+                      <Link to="/contractor-login" className="w-full flex items-center gap-2 text-gray-700 font-medium whitespace-nowrap"><User className="w-4 h-4 text-gray-500" /> For Contractor</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-2 transition-colors mt-1">
+                      <Link to="/hire-talent-login" className="w-full flex items-center gap-2 text-gray-700 font-medium whitespace-nowrap"><Building2 className="w-4 h-4 text-gray-500" /> For Hiring</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="nav-desktop bg-gray-900 text-white border-none rounded-full px-6 py-2.5 text-sm font-semibold cursor-pointer font-body transition-colors hover:text-[#38BDF8]/80 outline-none">
+                    Sign Up
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 bg-white border border-gray-100 shadow-md rounded-xl p-2 z-[1001]">
+                    <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-2 transition-colors">
+                      <Link to="/contractor-signup" className="w-full flex items-center gap-2 text-gray-700 font-medium whitespace-nowrap"><User className="w-4 h-4 text-gray-500" /> For Contractor</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-2 transition-colors mt-1">
+                      <Link to="/hire-talent-signup" className="w-full flex items-center gap-2 text-gray-700 font-medium whitespace-nowrap"><Building2 className="w-4 h-4 text-gray-500" /> For Hiring</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -138,23 +179,45 @@ export default function Navbar() {
                   {label}
                 </a>
               ))}
-              <Link
-                className="bg-gray-900 text-white border-none rounded-full px-6 py-3 text-sm font-semibold cursor-pointer font-body text-center"
-                to={loginPath}
-                onClick={handleMobileLoginClick}
-              >
-                {loginLabel}
-              </Link>
-              {
-                !isCandidate && (
-                  <Link
-                    className="bg-gray-900 text-white border-none rounded-full px-6 py-3 text-sm font-semibold cursor-pointer font-body text-center"
-                    to="/contractor-signup"
-                  >
-                    Sign Up
-                  </Link>
-                )
-              }
+              {isLoggedIn ? (
+                <Link
+                  className="bg-gray-900 text-white border-none rounded-full px-6 py-3 text-sm font-semibold cursor-pointer font-body text-center"
+                  to={dashboardPath}
+                  onClick={handleMobileDashboardClick}
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="w-full bg-gray-900 text-white border-none rounded-full px-6 py-3 text-sm font-semibold cursor-pointer font-body text-center outline-none">
+                      Login
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[calc(100vw-4rem)] sm:w-[calc(100vw-6rem)] bg-white border border-gray-100 shadow-md rounded-xl p-2 z-[1001]">
+                      <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-3 transition-colors">
+                        <Link to="/contractor-login" onClick={closeMobileMenu} className="w-full flex items-center gap-2 text-gray-700 font-medium text-base"><User className="w-5 h-5 text-gray-500" /> For Contractor</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-3 transition-colors mt-1">
+                        <Link to="/hire-talent-login" onClick={closeMobileMenu} className="w-full flex items-center gap-2 text-gray-700 font-medium text-base"><Building2 className="w-5 h-5 text-gray-500" /> For Hiring</Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="w-full bg-gray-900 text-white border-none rounded-full px-6 py-3 text-sm font-semibold cursor-pointer font-body text-center outline-none">
+                      Sign Up
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[calc(100vw-4rem)] sm:w-[calc(100vw-6rem)] bg-white border border-gray-100 shadow-md rounded-xl p-2 z-[1001]">
+                      <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-3 transition-colors">
+                        <Link to="/contractor-signup" onClick={closeMobileMenu} className="w-full flex items-center gap-2 text-gray-700 font-medium text-base"><User className="w-5 h-5 text-gray-500" /> For Contractor</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-3 transition-colors mt-1">
+                        <Link to="/hire-talent-signup" onClick={closeMobileMenu} className="w-full flex items-center gap-2 text-gray-700 font-medium text-base"><Building2 className="w-5 h-5 text-gray-500" /> For Hiring</Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

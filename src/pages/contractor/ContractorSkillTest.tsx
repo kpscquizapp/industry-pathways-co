@@ -567,244 +567,67 @@ const ContractorSkillTest = () => {
 
                   return (
                     <div key={i} className="flex flex-col">
-                    <Card
-                      className={cn(
-                        "p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200",
-                        isExpanded && "rounded-b-none border-b-0"
-                      )}
-                    >
-                      <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
-                        {/* Score Circle */}
-                        <div
-                          className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
-                          style={{ borderColor: scoreColor }}
-                        >
-                          <div
-                            className="text-[14px] md:text-[17px] font-black"
-                            style={{ color: scoreColor }}
-                          >
-                            {res.score || 0}%
-                          </div>
-                        </div>
-
-                        {/* Info */}
-                        <div className="flex flex-col gap-1.5 md:gap-1">
-                          <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">
-                            {res.title}
-                          </h4>
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
-                            <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100">
-                              {Object.entries(
-                                res.difficultyDistribution || {},
-                              ).find(([_, v]) => (v as any) > 0)?.[0] ||
-                                "Mixed"}
-                            </span>
-                            <span className="text-slate-400">
-                              Completed on{" "}
-                              {res.completedAt || res.completed_at || res.createdAt || res.created_at || res.updatedAt || res.updated_at
-                                ? new Date(res.completedAt || res.completed_at || res.createdAt || res.created_at || res.updatedAt || res.updated_at).toLocaleDateString()
-                                : "N/A"}
-                            </span>
-                            <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
-                            <span className="flex items-center gap-1 font-semibold text-purple-600">
-                              <WandSparkles size={12} />
-                              AI Generated
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Buttons */}
-                      <div className="flex flex-col xs:flex-row sm:flex-row items-center gap-3 w-full md:w-auto">
-                        <button
-                          onClick={handleToggleInsights}
-                          className={cn(
-                            "w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border font-bold text-[13px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm",
-                            isExpanded
-                              ? "border-[#0ea5e9] bg-[#f0fdfa] text-[#0ea5e9]"
-                              : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                          )}
-                        >
-                          <LineChart size={16} className={isExpanded ? "text-[#0ea5e9]" : "text-slate-400"} />
-                          View Insights
-                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                        </button>
-                        <button
-                          onClick={() => navigate(`/contractor/tests/report?id=${res.id}`)}
-                          className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm"
-                        >
-                          <ExternalLink size={16} />
-                          Full Report
-                        </button>
-                      </div>
-                    </Card>
-
-                    {/* Expandable Insights Panel */}
-                    {isExpanded && (
-                      <div className="bg-white border border-t-0 border-slate-100 rounded-b-2xl shadow-sm overflow-hidden animate-in slide-in-from-top-2 fade-in duration-300">
-                        {isLoadingInsights ? (
-                          <div className="flex items-center justify-center py-10 gap-3">
-                            <Loader2 className="w-5 h-5 animate-spin text-[#0ea5e9]" />
-                            <span className="text-sm text-slate-400 font-medium">Loading insights...</span>
-                          </div>
-                        ) : status ? (
-                          <div className="p-5 md:p-6 space-y-6">
-                            {/* Progress Overview */}
-                            {status.progress && (
-                              <div className="flex flex-col gap-3">
-                                <h5 className="text-[13px] font-bold text-slate-800 tracking-wide uppercase flex items-center gap-2">
-                                  <Target size={14} className="text-[#0ea5e9]" />
-                                  Progress
-                                </h5>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                    <div className="text-[11px] font-bold text-slate-400 mb-1">Total Problems</div>
-                                    <div className="text-2xl font-black text-slate-800">{status.progress.totalProblems}</div>
-                                  </div>
-                                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                    <div className="text-[11px] font-bold text-slate-400 mb-1">Completed</div>
-                                    <div className="text-2xl font-black text-[#22c55e]">{status.progress.completedProblems}</div>
-                                  </div>
-                                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                    <div className="text-[11px] font-bold text-slate-400 mb-1">Overall Status</div>
-                                    <div className={cn(
-                                      "text-lg font-black",
-                                      status.progress.overallCompleted ? "text-[#22c55e]" : "text-[#f59e0b]"
-                                    )}>
-                                      {status.progress.overallCompleted ? "Completed" : "In Progress"}
-                                    </div>
-                                  </div>
-                                </div>
-                                {/* Progress Bar */}
-                                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                                  <div
-                                    className="h-full rounded-full transition-all duration-700 ease-out"
-                                    style={{
-                                      width: `${status.progress.totalProblems > 0 ? (status.progress.completedProblems / status.progress.totalProblems) * 100 : 0}%`,
-                                      background: "linear-gradient(90deg, #4DD9E8, #0ea5e9)",
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Problem Statuses */}
-                            {status.problemStatuses && status.problemStatuses.length > 0 && (
-                              <div className="flex flex-col gap-3">
-                                <h5 className="text-[13px] font-bold text-slate-800 tracking-wide uppercase flex items-center gap-2">
-                                  <FileCode2 size={14} className="text-[#0ea5e9]" />
-                                  Problem Status
-                                </h5>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                  {status.problemStatuses.map((ps: any, idx: number) => {
-                                    const statusColor = ps.status === "accepted" || ps.status === "passed"
-                                      ? "#22c55e"
-                                      : ps.status === "failed" || ps.status === "wrong_answer"
-                                        ? "#ef4444"
-                                        : ps.submitted
-                                          ? "#f59e0b"
-                                          : "#94a3b8";
-                                    const StatusIcon = ps.status === "accepted" || ps.status === "passed"
-                                      ? CheckCircle2
-                                      : ps.status === "failed" || ps.status === "wrong_answer"
-                                        ? XCircle
-                                        : AlertCircle;
-                                    return (
-                                      <div
-                                        key={ps.problemId || idx}
-                                        className="flex items-center gap-3 p-3.5 bg-white border border-slate-100 rounded-xl hover:border-slate-200 transition-all"
-                                      >
-                                        <StatusIcon size={18} style={{ color: statusColor }} className="shrink-0" />
-                                        <div className="flex-1 min-w-0">
-                                          <div className="text-[13px] font-bold text-slate-700 truncate">
-                                            Problem {ps.problemId || idx + 1}
-                                          </div>
-                                          <div className="flex items-center gap-2 mt-0.5">
-                                            <span
-                                              className="text-[11px] font-bold uppercase tracking-wider"
-                                              style={{ color: statusColor }}
-                                            >
-                                              {ps.submitted ? (ps.status || "Submitted") : "Not Submitted"}
-                                            </span>
-                                            {ps.grade && (
-                                              <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">
-                                                Grade: {ps.grade}
-                                              </span>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Submissions */}
-                            {status.submissions && status.submissions.length > 0 && (
-                              <div className="flex flex-col gap-3">
-                                <h5 className="text-[13px] font-bold text-slate-800 tracking-wide uppercase flex items-center gap-2">
-                                  <CodeIcon size={14} className="text-[#0ea5e9]" />
-                                  Submissions ({status.submissions.length})
-                                </h5>
-                                <div className="overflow-x-auto">
-                                  <table className="w-full text-left text-[13px]">
-                                    <thead>
-                                      <tr className="border-b border-slate-100">
-                                        <th className="py-2.5 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Problem</th>
-                                        <th className="py-2.5 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                                        <th className="py-2.5 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Grade</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {status.submissions.map((sub: any, idx: number) => (
-                                        <tr key={sub.id || idx} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
-                                          <td className="py-2.5 px-3 font-bold text-slate-700">
-                                            {sub.problemId || `#${idx + 1}`}
-                                          </td>
-                                          <td className="py-2.5 px-3">
-                                            <span className={cn(
-                                              "px-2 py-0.5 rounded-md text-[11px] font-bold uppercase",
-                                              (sub.status === "accepted" || sub.status === "passed")
-                                                ? "bg-green-50 text-green-600"
-                                                : (sub.status === "failed" || sub.status === "wrong_answer")
-                                                  ? "bg-red-50 text-red-500"
-                                                  : "bg-amber-50 text-amber-600"
-                                            )}>
-                                              {sub.status || "pending"}
-                                            </span>
-                                          </td>
-                                          <td className="py-2.5 px-3 font-bold text-slate-600">
-                                            {sub.grade || "-"}
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Test Info */}
-                            {status.test && (
-                              <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-3 text-[12px] font-medium text-slate-400">
-                                <span>Status: <span className="font-bold text-slate-600 capitalize">{status.test.status}</span></span>
-                                {status.test.inviteExpiresAt && (
-                                  <>
-                                    <span className="w-1 h-1 rounded-full bg-slate-300" />
-                                    <span>Expires: {new Date(status.test.inviteExpiresAt).toLocaleDateString()}</span>
-                                  </>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-center py-10">
-                            <span className="text-sm text-slate-400">No insights data available.</span>
-                          </div>
+                      <Card
+                        className={cn(
+                          "p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200",
+                          isExpanded && "rounded-b-none border-b-0"
                         )}
-                      </div>
-                    )}
+                      >
+                        <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
+                          {/* Score Circle */}
+                          <div
+                            className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
+                            style={{ borderColor: scoreColor }}
+                          >
+                            <div
+                              className="text-[14px] md:text-[17px] font-black"
+                              style={{ color: scoreColor }}
+                            >
+                              {res.score || 0}%
+                            </div>
+                          </div>
+
+                          {/* Info */}
+                          <div className="flex flex-col gap-1.5 md:gap-1">
+                            <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">
+                              {res.title}
+                            </h4>
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
+                              <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100">
+                                {Object.entries(
+                                  res.difficultyDistribution || {},
+                                ).find(([_, v]) => (v as any) > 0)?.[0] ||
+                                  "Mixed"}
+                              </span>
+                              <span className="text-slate-400">
+                                Status: {res.status}
+                              </span>
+                              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                              <span className="flex items-center gap-1 font-semibold text-purple-600">
+                                <WandSparkles size={12} />
+                                AI Generated
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="flex flex-col xs:flex-row sm:flex-row items-center gap-3 w-full md:w-auto">
+                          <button
+                            onClick={() => navigate(`/contractor/tests/report?id=${res.id}`)}
+                            className={cn(
+                              "w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border font-bold text-[13px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm")}
+                          >
+                            <LineChart size={16} className={isExpanded ? "text-[#0ea5e9]" : "text-slate-400"} />
+                            View Insights
+                          </button>
+                          <button
+                            className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm"
+                          >
+                            Retake ₹99
+                          </button>
+                        </div>
+                      </Card>
                     </div>
                   );
                 })
