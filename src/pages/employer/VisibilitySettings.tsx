@@ -246,11 +246,12 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useChangePasswordMutation, useDeleteMyAccountMutation } from "@/app/queries/profileApi";
 import Cookies from "js-cookie";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const VisibilitySettings = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("general");
+  const [searchParams] = useSearchParams();
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
   const [deleteMyAccount, { isLoading: isDeletingAccount }] =
@@ -318,6 +319,15 @@ const VisibilitySettings = () => {
       });
     }
   }, [employerProfileData]);
+
+  React.useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "account") {
+      setActiveTab("security");
+    } else if (tab === "general") {
+      setActiveTab("general");
+    }
+  }, [searchParams]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -450,8 +460,8 @@ const VisibilitySettings = () => {
     <div className="min-h-screen bg-[#f0f2f5] flex flex-col">
 
       {/* Top Header Bar */}
-      <div className="bg-white border-b border-slate-200 py-4 flex items-center gap-3">
-        <div className="ml-8">
+      <div className="bg-white border-b border-slate-200 py-4 flex items-center gap-3 px-4">
+        <div className="ml-2 sm:ml-8 w-full">
           <div className="flex items-center gap-2">
             <SidebarTrigger
               className="text-muted-foreground hover:bg-[#0b1221]/10"
@@ -459,17 +469,17 @@ const VisibilitySettings = () => {
             />
             <h1 className="text-lg font-bold text-slate-800 leading-tight">Settings</h1>
           </div>
-          <p className="text-slate-400 text-sm ml-8">Manage your account preferences, company profile, and team settings.</p>
+          <p className="text-slate-400 text-sm ml-6 sm:ml-8">Manage your account preferences, company profile, and team settings.</p>
         </div>
       </div>
 
       {/* Page Content */}
       <div className="flex-1 mb-3">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row gap-6 mt-5">
 
             {/* Left Navigation */}
-            <div className="w-full md:w-56 flex-shrink-0">
+            <div className="w-full md:w-56 flex-shrink-0 px-1">
               <nav className="space-y-1">
                 <button
                   onClick={() => setActiveTab("general")}
@@ -518,7 +528,7 @@ const VisibilitySettings = () => {
                     {/* Personal Information */}
                     <div>
                       <Card className="border border-slate-200 shadow-sm rounded-xl bg-white overflow-hidden">
-                        <CardContent className="p-7 space-y-6">
+                        <CardContent className="p-4 sm:p-7 space-y-6">
 
                           {/* Header */}
                           <div>
@@ -527,7 +537,7 @@ const VisibilitySettings = () => {
                           </div>
 
                           {/* Avatar Upload */}
-                          <div className="flex items-center gap-5">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                             <div className="h-[76px] w-[76px] bg-[#0b1b33] rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center shadow-md relative">
                               {(profileImage || employerProfileImage) ? (
                                 <img
@@ -556,7 +566,7 @@ const VisibilitySettings = () => {
                             </div>
 
                             <div className="flex flex-col gap-2">
-                              <div className="flex items-center gap-4">
+                              <div className="flex flex-wrap items-center gap-3">
                                 <input
                                   type="file"
                                   accept="image/*"
@@ -634,7 +644,7 @@ const VisibilitySettings = () => {
                     <div>
 
                       <Card className="border border-slate-200 shadow-sm rounded-xl bg-white overflow-hidden">
-                        <CardContent className="p-7 space-y-5">
+                        <CardContent className="p-4 sm:p-7 space-y-5">
                           <div>
                             <h2 className="text-[15px] font-bold text-slate-800 uppercase mb-1">COMPANY DETAILS</h2>
                             <p className="text-[13px] text-slate-400 mb-6">These details will be visible to candidates during the interview process.</p>
@@ -724,7 +734,7 @@ const VisibilitySettings = () => {
 
                   {/* Account Security */}
                   <Card className="border-none shadow-sm rounded-2xl bg-white overflow-hidden">
-                    <CardContent className="p-8 space-y-6">
+                    <CardContent className="p-5 sm:p-8 space-y-6">
                       <div className="flex items-start gap-4">
                         <div className="h-12 w-12 rounded-xl bg-[#e6f7f8] text-[#0eb5b9] flex items-center justify-center shrink-0">
                           <Shield className="h-6 w-6 text-[#0eb5b9]" strokeWidth={2} />
@@ -765,7 +775,7 @@ const VisibilitySettings = () => {
 
                   {/* Danger Zone */}
                   <Card className="border-none shadow-sm rounded-2xl bg-red-50/60 overflow-hidden">
-                    <CardContent className="p-8 space-y-5">
+                    <CardContent className="p-5 sm:p-8 space-y-5">
                       <div className="flex items-start gap-4">
                         <div className="h-10 w-10 rounded-full bg-white text-red-500 border border-red-100 flex items-center justify-center shrink-0">
                           <Trash2 className="h-5 w-5 text-red-500/80" strokeWidth={2} />

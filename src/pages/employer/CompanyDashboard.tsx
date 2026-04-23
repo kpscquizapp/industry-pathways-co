@@ -2,7 +2,8 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { useGetBenchResourcesQuery } from "@/app/queries/benchApi";
+import { useGetBenchDashboardQuery } from "@/app/queries/employerApi";
+ import { useGetBenchResourcesQuery } from "@/app/queries/benchApi";
 import {
   Users,
   TrendingUp,
@@ -27,11 +28,13 @@ import {
 
 const CompanyDashboard = () => {
   const { data: benchData } = useGetBenchResourcesQuery({ page: 1, limit: 1 });
-  const totalResources = benchData?.pagination?.total ?? 0;
+const totalResources = benchData?.pagination?.total ?? 0;
+  const { data: dashboardData } = useGetBenchDashboardQuery();
   const kpiData = [
-    {
+    
+     {
       title: "Bench Utilization",
-      value: "72%",
+      value: dashboardData?.data?.benchUtilization ?? "0%",
       description: "Posted bench resources contracted",
       change: "+15%",
       trend: "up",
@@ -51,7 +54,7 @@ const CompanyDashboard = () => {
     },
     {
       title: "Profile Views",
-      value: "156",
+      value: String(dashboardData?.data?.profileViews ?? 0),
       description: "Views this week",
       change: "+28",
       trend: "up",

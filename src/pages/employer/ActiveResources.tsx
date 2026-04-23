@@ -301,7 +301,7 @@ const resources = apiData?.data ?? [
     </div>
 
     {/* Filter Row */}
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
       {/* Skills */}
       <div className="space-y-1">
         <p className="text-xs font-medium text-slate-500">Skills</p>
@@ -373,7 +373,7 @@ const resources = apiData?.data ?? [
     </div>
 
     {/* Status + Deployment + Buttons */}
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
       {/* Status */}
       <div className="space-y-1">
         <p className="text-xs font-medium text-slate-500">Status</p>
@@ -404,7 +404,7 @@ const resources = apiData?.data ?? [
       </div>
 
       {/* Buttons */}
-      <div className="md:col-span-2 flex justify-end gap-3">
+      <div className="md:col-span-2 flex flex-wrap justify-end gap-3">
         <Button
           variant="ghost"
           size="sm"
@@ -474,7 +474,7 @@ const resources = apiData?.data ?? [
                 </Alert>
               </div>
             ) : (
-              <Table>
+              <div className="overflow-x-auto"><Table>
 <TableHeader>
   <TableRow className="bg-slate-50 hover:bg-slate-50">
     <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
@@ -607,7 +607,7 @@ const resources = apiData?.data ?? [
     </TableRow>
   ))}
 </TableBody>
-              </Table>
+              </Table></div>
             )}
 
             {/* Pagination Controls */}

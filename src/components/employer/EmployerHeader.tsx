@@ -1,4 +1,4 @@
-import { Bell, Search, FileText } from "lucide-react";
+import { Search, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ProfileMenu from "../ProfileMenu";
@@ -26,7 +26,7 @@ const EmployerHeader = () => {
       )} */}
 
       {/* Actions */}
-      {/* <div className="flex items-center gap-4"> */}
+      <div className="flex items-center gap-4">
         {/* Notifications */}
 
 
@@ -42,9 +42,9 @@ const EmployerHeader = () => {
             <FileText className="h-4 w-4" />
             Generate Report
           </Button>
-        )}
+        )} */}
 
-      </div> */}
+      </div>
     </header>
 
 
@@ -69,3 +69,5 @@ export default EmployerHeader;
 // btnClass="flex items-center gap-2 px-2 bg-transparent hover:bg-gray-100 hover:text-black"
 // avatarFallback="bg-navy-800 text-white"
 // />
+
+

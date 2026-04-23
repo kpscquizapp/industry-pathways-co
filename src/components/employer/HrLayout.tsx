@@ -1,9 +1,6 @@
 import React, { Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import HrSidebarContent from "./HrSidebar";
-import { Bell, FileText, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   SidebarProvider,
   SidebarTrigger,
@@ -34,7 +31,7 @@ const HrLayout = () => {
                   className="text-muted-foreground hover:bg-[#0b1221]/10"
                   title="Toggle Sidebar"
                 />
-                {!hideHeader && (
+                {/* {!hideHeader && (
                   <div className="relative max-w-xs w-full hidden sm:block">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
                     <Input
@@ -42,11 +39,11 @@ const HrLayout = () => {
                       className="pl-10 h-9 bg-neutral-50 border-neutral-200 focus:bg-white w-64"
                     />
                   </div>
-                )}
+                )} */}
               </div>
 
               {/* Right: actions */}
-              <div className="flex items-center gap-3">
+              {/* <div className="flex items-center gap-3">
                 <Button
                   size="icon"
                   className="relative bg-transparent hover:bg-[#0b1221]/10 shadow-none"
@@ -60,7 +57,7 @@ const HrLayout = () => {
                     <span className="hidden sm:inline">Generate Report</span>
                   </Button>
                 )}
-              </div>
+              </div> */}
             </header>
           )}
 

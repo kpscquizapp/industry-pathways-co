@@ -165,6 +165,23 @@ export const employerApi = createApi({
         url: `employers/candidates/${id}`,
       }),
     }),
+    getBenchDashboard: builder.query<
+      {
+        success: boolean;
+        data: {
+          totalResources: number;
+          activeResources: number;
+          profileViews: number;
+          benchUtilization: string;
+        };
+      },
+      void
+    >({
+      query: () => ({
+        method: "GET",
+        url: "employers/bench-dashboard",
+      }),
+    }),
     viewCandidateResume: builder.query<
       string,
       { candidateId: string | number; resumeId: number }
@@ -198,5 +215,6 @@ export const {
   useGetEmployerProfileQuery,
   useGetCandidateByIdQuery,
   useLazyViewCandidateResumeQuery,
+  useGetBenchDashboardQuery,
   // useChangePasswordMutation,
 } = employerApi;

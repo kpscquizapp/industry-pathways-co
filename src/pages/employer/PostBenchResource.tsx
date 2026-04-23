@@ -820,7 +820,7 @@ className="h-4 w-4 rounded-full bg-slate-50 data-[state=checked]:bg-blue-500 dat
                   <strong>Compliance Notice:</strong> By publishing this resource, you confirm they are currently on your payroll and you adhere to the bench marketplace guidelines.
                 </p>
               </div>
-              <div className="flex w-full md:w-auto items-center gap-3 md:ml-6 shrink-0">
+              <div className="flex w-full md:w-auto items-center justify-end gap-3 md:ml-6 shrink-0">
                 {/* <Button
                   variant="outline"
                   onClick={handleSaveDraft}
@@ -832,8 +832,8 @@ className="h-4 w-4 rounded-full bg-slate-50 data-[state=checked]:bg-blue-500 dat
                 <Button
                   onClick={handleProceed}
                   disabled={isProcessing}
-                  className="flex-1 md:flex-none w-full md:w-auto px-6 h-10 rounded-xl bg-[#0f172a] hover:bg-[#1e293b] text-white font-medium"
-                >
+                  className="md:flex-none w-auto px-6 h-10 rounded-xl bg-[#0f172a] hover:bg-[#1e293b] text-white font-medium"
+                  >
                   {isProcessing ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

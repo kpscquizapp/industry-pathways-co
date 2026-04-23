@@ -200,7 +200,9 @@ const HrSidebarContent = () => {
             className="w-56 bg-[#0B1221] border-[#1c2e3d] text-slate-300 shadow-2xl shadow-black/50"
           >
             <DropdownMenuItem
-              onClick={() => navigate("/bench-dashboard")}
+              onClick={() =>
+                navigate("/bench-dashboard/visibility-settings?tab=general")
+              }
               className="focus:bg-[#112433] focus:text-[#00e5ff] cursor-pointer transition-colors"
             >
               <User className="h-4 w-4 mr-2" />
@@ -210,7 +212,10 @@ const HrSidebarContent = () => {
               asChild
               className="focus:bg-[#112433] focus:text-[#00e5ff] cursor-pointer transition-colors"
             >
-              <Link to="/bench-dashboard/visibility-settings" className="w-full">
+              <Link
+                to="/bench-dashboard/visibility-settings?tab=account"
+                className="w-full"
+              >
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </Link>
