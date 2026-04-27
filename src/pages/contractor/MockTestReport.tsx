@@ -96,18 +96,37 @@ const MockTestReport = () => {
               {report.test.difficulty}
             </span>
             <span className="hidden sm:inline">•</span>
+            <span>Completed On : {new Date(report.test.startedAt).toLocaleDateString()}</span>
+            <span className="hidden sm:inline">•</span>
             <span>Duration: {report.test.duration} mins</span>
           </div>
         </div>
 
         {/* Score Circle */}
-        <div className="flex items-center justify-center shrink-0">
-          <div className="w-[84px] h-[84px] rounded-full border-[4px] border-[#22c55e] flex items-center justify-center bg-white shadow-sm">
-            <div className="w-full h-full rounded-full border-4 border-transparent flex items-center justify-center text-[22px] font-black text-[#22c55e]">
-              {report.test.overallScore}%
+        {(() => {
+          const scoreVal = Number(report.test.overallScore ?? 0);
+          const scoreColor =
+            scoreVal >= 70
+              ? "#22c55e"   // green  70–100
+              : scoreVal >= 40
+                ? "#f59e0b" // yellow 40–69
+                : "#ef4444"; // red   0–39
+          return (
+            <div className="flex items-center justify-center shrink-0">
+              <div
+                className="w-[84px] h-[84px] rounded-full border-[4px] flex items-center justify-center bg-white shadow-sm"
+                style={{ borderColor: scoreColor }}
+              >
+                <div
+                  className="text-[22px] font-black"
+                  style={{ color: scoreColor }}
+                >
+                  {report.test.overallScore}%
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
       </div>
 
       {/* Tabs */}
@@ -238,7 +257,7 @@ const MockTestReport = () => {
                 Questions Reviewed
               </div>
               <div className="text-3xl font-black text-slate-800 mb-2">
-                {report.stats.questionsReviewed}
+                {report.stats.totalProblems}
               </div>
               <div className="text-[12px] font-medium text-slate-400 leading-snug">
                 MCQs, short answers, and coding tasks

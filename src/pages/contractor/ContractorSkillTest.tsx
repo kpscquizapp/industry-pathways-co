@@ -19,6 +19,7 @@ import {
   XCircle,
   AlertCircle,
   FileCode2,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -536,12 +537,13 @@ const ContractorSkillTest = () => {
                 </div>
               ) : testResults.length > 0 ? (
                 testResults.map((res: any, i: number) => {
+                  const scoreVal = Number(res.overallScore ?? res.score ?? 0);
                   const scoreColor =
-                    (res.score || 0) >= 80
-                      ? "#22c55e"
-                      : (res.score || 0) >= 60
-                        ? "#f59e0b"
-                        : "#ef4444";
+                    scoreVal >= 70
+                      ? "#22c55e"   // green  ≥ 70
+                      : scoreVal >= 40
+                        ? "#f59e0b" // yellow 40–69
+                        : "#ef4444"; // red   < 40
                   const isExpanded = expandedTestId === res.id;
                   const status = insightsData[res.id];
                   const isLoadingInsights = insightsLoading[res.id];
@@ -583,7 +585,7 @@ const ContractorSkillTest = () => {
                               className="text-[14px] md:text-[17px] font-black"
                               style={{ color: scoreColor }}
                             >
-                              {res.score || 0}%
+                              {res.overallScore || 0}%
                             </div>
                           </div>
 
@@ -603,6 +605,8 @@ const ContractorSkillTest = () => {
                                 Status: {res.status}
                               </span>
                               <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                              <span className="text-slate-400">Completed on: {new Date(res.submittedAt).toLocaleDateString()}</span>
+                              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
                               <span className="flex items-center gap-1 font-semibold text-purple-600">
                                 <WandSparkles size={12} />
                                 AI Generated
@@ -618,13 +622,8 @@ const ContractorSkillTest = () => {
                             className={cn(
                               "w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border font-bold text-[13px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm")}
                           >
-                            <LineChart size={16} className={isExpanded ? "text-[#0ea5e9]" : "text-slate-400"} />
+                            <Eye size={16} className={isExpanded ? "text-[#0ea5e9]" : "text-slate-400"} />
                             View Insights
-                          </button>
-                          <button
-                            className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm"
-                          >
-                            Retake ₹99
                           </button>
                         </div>
                       </Card>

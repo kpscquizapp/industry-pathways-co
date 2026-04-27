@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import ProblemPanel from "@/components/coding/ProblemPanel";
 import EditorPanel from "@/components/coding/EditorPanel";
 import ConsoleOutput from "@/components/coding/ConsoleOutput";
-import WebcamFeed from "@/pages/WebcamFeed";
+// import WebcamFeed from "@/pages/WebcamFeed";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { CodingProblem, SupportedLanguage, TestCase } from "@/types/coding";
 import { toast } from "sonner";
@@ -42,6 +42,7 @@ import {
   useGetAllLanguagesQuery,
   Language,
 } from "@/app/queries/assessmentApi";
+import WebcamFeed from "./WebcamFeed";
 
 type TestStatus =
   | "loading"
@@ -100,34 +101,40 @@ const getLanguageKey = (name?: string): string => {
   return n;
 };
 
-// Merge raw API result with known problem test cases by index/id.
-const mergeTestCaseResults = (raw: any[], knownTCs: TestCase[]): TestCase[] => {
-  // Map over known (visible) test cases so we never show hidden ones
-  return knownTCs.map((known, idx) => {
-    // Find matching result in raw by id, fall back to positional index
-    const tc = raw.find((r: any) => String(r.id ?? r.testCaseId ?? r.testcase_id) === String(known.id)) ?? raw[idx] ?? {};
+// Map API results directly to TestCase[] — pass/fail is determined solely by the backend.
+// No frontend string comparison is performed.
+const mapApiResults = (raw: any[], knownTCs: TestCase[]): TestCase[] => {
+  return raw.map((tc: any, idx: number) => {
+    const known = knownTCs[idx]; // positional match (same order the backend returns)
 
-    const statusId = tc.status_id ?? tc.status?.id ?? tc.statusId;
-    const stdout = (tc.stdout ?? tc.actual_output ?? tc.actualOutput ?? "").toString().trim();
-    const expected = (known.expectedOutput ?? tc.expected_output ?? tc.expectedOutput ?? tc.expected ?? "").toString().trim();
-    const input = known.input ?? tc.input ?? tc.stdin ?? "";
-
+    // Determine pass from backend fields — never re-derive from string comparison
     let passed: boolean;
-    if (typeof tc.passed === "boolean") {
+    if (typeof tc.pass === "boolean") {
+      passed = tc.pass;
+    } else if (typeof tc.passed === "boolean") {
       passed = tc.passed;
-    } else if (statusId !== undefined) {
-      passed = statusId === 3; // Judge0: 3 = Accepted
-    } else if (tc.id !== undefined || raw[idx] !== undefined) {
-      passed = stdout === expected;
     } else {
-      passed = false; // no API result available yet
+      // Fall back: status string "Accepted" or status_id === 3 (Judge0)
+      const statusStr = tc.status ?? tc.status_description ?? "";
+      const statusId = tc.status_id ?? tc.statusId;
+      if (statusId !== undefined) {
+        passed = statusId === 3;
+      } else {
+        passed = typeof statusStr === "string" && statusStr.toLowerCase() === "accepted";
+      }
     }
 
+    const stdout = (tc.stdout ?? tc.actual_output ?? tc.actualOutput ?? "").toString();
+    const stderr = (tc.stderr ?? tc.error ?? "").toString();
+    const input = known?.input ?? tc.input ?? tc.stdin ?? "";
+    const expectedOutput = known?.expectedOutput ?? tc.expected_output ?? tc.expectedOutput ?? tc.expected ?? "";
+
     return {
-      id: known.id,
+      id: known?.id ?? idx + 1,
       input,
-      expectedOutput: known.expectedOutput ?? expected,
+      expectedOutput,
       actualOutput: stdout,
+      stderr: stderr || undefined,
       passed,
       runtime: tc.time !== undefined ? Math.round(Number(tc.time) * 1000) : tc.runtime,
       memory: tc.memory,
@@ -236,11 +243,24 @@ const CodingChallenge: React.FC = () => {
     const supportedKeys = ["c", "cpp", "go", "java", "javascript", "python", "typescript"];
     const uniqueLangs = new Map<string, Language>();
 
+    const preferredIds: Record<string, number> = {
+      python: 71, // Python 3.8.1
+      c: 50,      // C (GCC 9.2.0)
+      cpp: 54     // C++ (GCC 9.2.0)
+    };
+
     languagesData.forEach(lang => {
       const key = getLangKey(lang.name);
       if (supportedKeys.includes(key)) {
-        // Keeps the first version of the language found
-        if (!uniqueLangs.has(key)) {
+        const existing = uniqueLangs.get(key);
+
+        if (preferredIds[key] === lang.id) {
+          // Always prioritize the explicitly preferred ID
+          uniqueLangs.set(key, lang);
+        } else if (!existing) {
+          uniqueLangs.set(key, lang);
+        } else if (existing.id !== preferredIds[key] && lang.id > existing.id) {
+          // Keep the highest ID, unless we already have the preferred one
           uniqueLangs.set(key, lang);
         }
       }
@@ -711,8 +731,9 @@ const CodingChallenge: React.FC = () => {
 
     setIsRunningCode(true);
     setError(undefined);
-    const knownTCs: TestCase[] = currentProblem.testcases || currentProblem.testCases || [];
-    setTestCases(knownTCs.map(tc => ({ ...tc, passed: undefined, actualOutput: undefined })));
+    setTestCases([]); // Clear previous results while running
+
+    const knownTCs: TestCase[] = currentProblem.test_cases || currentProblem.testcases || currentProblem.testCases || [];
 
     try {
       const result = await runTestCases({
@@ -722,8 +743,9 @@ const CodingChallenge: React.FC = () => {
       }).unwrap();
 
       if (result.success) {
-        const raw = result.data?.testCases ?? result.data?.testcases ?? result.data?.results ?? [];
-        setTestCases(mergeTestCaseResults(raw, knownTCs));
+        // Use results directly from the backend — no frontend comparison
+        const raw: any[] = result.data?.results ?? result.data?.testCases ?? result.data?.testcases ?? [];
+        setTestCases(mapApiResults(raw, knownTCs));
       } else {
         setError(result.message || "Execution failed");
       }
@@ -749,8 +771,8 @@ const CodingChallenge: React.FC = () => {
       localStorage.setItem(`code_${currentProblem.id}_${language.name}`, code);
     }
 
-    const knownTCs: TestCase[] = currentProblem.testcases || currentProblem.testCases || [];
-    setTestCases(knownTCs.map(tc => ({ ...tc, passed: undefined, actualOutput: undefined })));
+    const knownTCs: TestCase[] = currentProblem.test_cases || currentProblem.testcases || currentProblem.testCases || [];
+    setTestCases([]); // Clear previous results while submitting
 
     try {
       const result = await submitSolution({
@@ -761,8 +783,9 @@ const CodingChallenge: React.FC = () => {
       }).unwrap();
 
       if (result.success) {
-        const raw = result.data?.testCases ?? result.data?.testcases ?? result.data?.results ?? [];
-        const results = mergeTestCaseResults(raw, knownTCs);
+        // Use results directly from the backend — no frontend comparison
+        const raw: any[] = result.data?.results ?? result.data?.testCases ?? result.data?.testcases ?? [];
+        const results = mapApiResults(raw, knownTCs);
         setTestCases(results);
 
         // Mark this problem as submitted
@@ -1289,7 +1312,7 @@ const CodingChallenge: React.FC = () => {
       {/* Camera monitoring floating window */}
       <div
         ref={popupRef}
-        className="fixed z-50 cursor-move select-none"
+        className="fixed z-50 cursor-move select-none hidden"
         style={{
           left: popupPosition.x,
           top: popupPosition.y,

@@ -274,9 +274,8 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
       {/* ── Video Player ── */}
       <div
         ref={containerRef}
-        className={`relative w-full bg-slate-900 overflow-hidden shadow-xl group ${
-          isFullscreen ? "rounded-none" : "rounded-2xl"
-        }`}
+        className={`relative w-full bg-slate-900 overflow-hidden shadow-xl group ${isFullscreen ? "rounded-none" : "rounded-2xl"
+          }`}
         style={isFullscreen ? { width: "100%", height: "100%" } : { aspectRatio: "16/9" }}
         onMouseMove={resetHideTimer}
         onMouseEnter={() => setShowControls(true)}
@@ -435,6 +434,8 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
           <span className="capitalize">
             <span className="font-semibold text-slate-700">Status:</span>{" "}
             {session.status}
+            <span className="font-semibold text-slate-700 ml-4">Completed on:</span>{" "}
+            {session.ended_at.split("T")[0]}
           </span>
         </div>
       )}
@@ -473,10 +474,10 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
                 >
                   {v.type}
                 </span>
-                <span className="flex items-center gap-1 text-[12px] text-slate-400 ml-auto whitespace-nowrap">
+                {/* <span className="flex items-center gap-1 text-[12px] text-slate-400 ml-auto whitespace-nowrap">
                   <Clock size={11} />
                   {new Date(v.timestamp).toLocaleTimeString()}
-                </span>
+                </span> */}
                 {v.question_id && (
                   <span className="text-[11px] text-slate-400">
                     Q#{v.question_id}

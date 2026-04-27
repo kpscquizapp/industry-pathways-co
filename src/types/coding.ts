@@ -19,6 +19,7 @@ export interface TestCase {
   input: string;
   expectedOutput: string;
   actualOutput?: string;
+  stderr?: string;
   passed?: boolean;
   runtime?: number;
   memory?: number;
@@ -37,6 +38,7 @@ export interface CodingProblem {
   constraints?: string[];
   baseCode?: Record<string, string>;
   starterCode?: Record<SupportedLanguage, string>;
+  test_cases?: TestCase[];
   testcases?: TestCase[];
   testCases?: TestCase[];
 }
