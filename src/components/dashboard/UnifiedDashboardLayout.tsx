@@ -381,7 +381,7 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
             </div>
 
             <div className="flex items-center gap-3">
-              {role === "hire-talent" && (
+              {/* {role === "hire-talent" && (
                 <Link
                   to="/hire-talent/post-job"
                   className="h-10 px-5 bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-sm font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm"
@@ -389,7 +389,7 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
                   <Plus className="w-4 h-4" />
                   Post New Job
                 </Link>
-              )}
+              )} */}
               <Button size="icon" className="relative bg-transparent hover:bg-gray-100 rounded-xl">
                 <Bell className="h-5 w-5 text-gray-500" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />

@@ -236,10 +236,25 @@ const EmployerPostJob = () => {
     return fallback;
   };
 
+  const validateForm = (): boolean => {
+    const errors: Record<string, boolean> = {};
+    if (!formData.title.trim()) errors.title = true;
+    if (!formData.description.trim()) errors.description = true;
+    if (!formData.employmentType.trim()) errors.employmentType = true;
+    if (!formData.workMode.trim()) errors.workMode = true;
+    if (skills.length === 0) errors.skills = true;
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors((prev) => ({ ...prev, ...errors }));
+      toast.error("Please fill in all required fields.");
+      return false;
+    }
+    return true;
+  };
+
   const handleSaveDraft = async () => {
+    if (!validateForm()) return;
     try {
       const payload = buildCreateJobPayload(false);
-      if (!payload.title?.trim() || !payload.description?.trim()) { toast.error("Job title and description are required."); return; }
       await saveJobAsDraft(payload).unwrap();
       toast.success("Job saved as draft successfully!"); navigate("/hire-talent/jobs");
     } catch (error: unknown) { toast.error(getErrorMessage(error, "Failed to save draft")); }
@@ -249,9 +264,9 @@ const EmployerPostJob = () => {
     response?.data?.id ?? response?.data?.job?.id ?? response?.id;
 
   const submitJob = async (enableAiMatching: boolean, redirectPath: string) => {
+    if (!validateForm()) return;
     try {
       const payload = buildCreateJobPayload(enableAiMatching);
-      if (!payload.title?.trim() || !payload.description?.trim()) { toast.error("Job title and description are required."); return; }
       if (isEditing && jobId) {
         const job = jobDetailsData?.data?.[0]; const currentStatus = job?.status ?? formData.status;
         const nextStatus = currentStatus === "draft" ? "published" : currentStatus;
@@ -378,10 +393,12 @@ const EmployerPostJob = () => {
                 <div className="space-y-6">
                   <div className="grid sm:grid-cols-2 gap-5">
                     <div>
-                      <Label className="text-xs font-bold text-foreground mb-2 block">Job Type</Label>
-                      <Select value={formData.employmentType} onValueChange={(v) => setFormData({ ...formData, employmentType: v })}>
-                        <SelectTrigger className="h-11 rounded-xl border-transparent bg-[#f2f5fa] text-sm font-medium"><SelectValue placeholder="Select type" /></SelectTrigger>
-                        <SelectContent className="rounded-xl shadow-xl border-border">
+                      <Label className="text-xs font-bold text-foreground mb-2 block">
+                        Job Type <span className="text-destructive">*</span>
+                      </Label>
+                      <Select value={formData.employmentType} onValueChange={(v) => { setFormData({ ...formData, employmentType: v }); if (fieldErrors.employmentType) setFieldErrors((p) => ({ ...p, employmentType: false })); }}>
+                        <SelectTrigger className={`h-11 rounded-xl border-transparent bg-[#f2f5fa] text-sm font-medium ${fieldErrors.employmentType ? "border-destructive ring-1 ring-destructive" : ""}`}><SelectValue placeholder="Select type" /></SelectTrigger>
+                        <SelectContent>
                           <SelectItem value="full-time">Full-time</SelectItem><SelectItem value="part-time">Part-time</SelectItem>
                           <SelectItem value="contract">Contract</SelectItem><SelectItem value="internship">Internship</SelectItem>
                           <SelectItem value="freelance">Freelance</SelectItem>
@@ -395,7 +412,7 @@ const EmployerPostJob = () => {
                         setFormData({ ...formData, experienceLevel: v, minExperience: range ? String(range.minExperience) : "", maxExperience: range?.maxExperience !== null && range?.maxExperience !== undefined ? String(range.maxExperience) : "" });
                       }}>
                         <SelectTrigger className="h-11 rounded-xl border-transparent bg-[#f2f5fa] text-sm font-medium"><SelectValue placeholder="Select level" /></SelectTrigger>
-                        <SelectContent className="rounded-xl shadow-xl border-border">
+                        <SelectContent>
                           <SelectItem value="junior">0-2 years</SelectItem><SelectItem value="mid">3-5 years</SelectItem>
                           <SelectItem value="mid-senior">6-9 years</SelectItem><SelectItem value="senior">10+ years</SelectItem>
                           <SelectItem value="lead">15+ years</SelectItem>
@@ -421,7 +438,9 @@ const EmployerPostJob = () => {
 
               {/* ── Section: Job Description ── */}
               <div>
-                <h2 className="text-lg font-bold text-foreground mb-4">Job Description</h2>
+                <h2 className="text-lg font-bold text-foreground mb-4">
+                  Job Description <span className="text-destructive">*</span>
+                </h2>
                 <div className={`mt-2 rounded-xl overflow-hidden transition-all border ${fieldErrors.description ? "border-destructive" : "border-border/50"}`}>
                   <div className="flex items-center gap-1 px-4 py-2 border-b border-border/50 bg-white">
                     <ToolbarBtn icon={Bold} label="Bold" onClick={() => execCommand("bold")} />
@@ -497,7 +516,7 @@ const EmployerPostJob = () => {
                       <Label className="text-xs font-bold text-foreground mb-2 block">Job Category</Label>
                       <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
                         <SelectTrigger className="h-11 rounded-xl border-transparent bg-[#f2f5fa] text-sm font-medium"><SelectValue placeholder="Select category" /></SelectTrigger>
-                        <SelectContent className="rounded-xl shadow-xl border-border">
+                        <SelectContent>
                           <SelectItem value="engineering">Engineering</SelectItem><SelectItem value="design">Design</SelectItem>
                           <SelectItem value="product">Product</SelectItem><SelectItem value="data">Data Science</SelectItem>
                           <SelectItem value="devops">DevOps</SelectItem><SelectItem value="qa">Quality Assurance</SelectItem>
@@ -520,7 +539,7 @@ const EmployerPostJob = () => {
                         <SelectTrigger className={`h-11 rounded-xl border-transparent bg-[#f2f5fa] text-sm font-medium ${fieldErrors.workMode ? "border-destructive ring-1 ring-destructive" : ""}`}>
                           <SelectValue placeholder="Select work mode" />
                         </SelectTrigger>
-                        <SelectContent className="rounded-xl shadow-xl border-border">
+                        <SelectContent>
                           <SelectItem value="remote">Remote</SelectItem><SelectItem value="onsite">On-site</SelectItem><SelectItem value="hybrid">Hybrid</SelectItem>
                         </SelectContent>
                       </Select>
@@ -559,7 +578,7 @@ const EmployerPostJob = () => {
                           className="flex-1 h-11 rounded-xl border-transparent bg-[#f2f5fa] text-sm font-medium focus-visible:ring-1 focus-visible:ring-ring" />
                         <Select value={formData.durationUnit} onValueChange={(v) => setFormData({ ...formData, durationUnit: v })}>
                           <SelectTrigger className="w-32 h-11 rounded-xl border-transparent bg-[#f2f5fa] text-sm font-medium"><SelectValue placeholder="Unit" /></SelectTrigger>
-                          <SelectContent className="rounded-xl shadow-xl"><SelectItem value="week">Weeks</SelectItem><SelectItem value="month">Months</SelectItem><SelectItem value="year">Years</SelectItem></SelectContent>
+                          <SelectContent><SelectItem value="week">Weeks</SelectItem><SelectItem value="month">Months</SelectItem><SelectItem value="year">Years</SelectItem></SelectContent>
                         </Select>
                       </div>
                     </div>
@@ -574,14 +593,14 @@ const EmployerPostJob = () => {
                       <Label className="text-xs font-bold text-foreground mb-2 block">Payment Type</Label>
                       <Select value={formData.paymentType} onValueChange={(v) => setFormData({ ...formData, paymentType: v })}>
                         <SelectTrigger className="h-11 rounded-xl border-transparent bg-[#f2f5fa] text-sm font-medium"><SelectValue placeholder="Type" /></SelectTrigger>
-                        <SelectContent className="rounded-xl shadow-xl"><SelectItem value="hourly">Hourly Rate</SelectItem><SelectItem value="monthly">Monthly</SelectItem><SelectItem value="fixed">Fixed Price</SelectItem></SelectContent>
+                        <SelectContent><SelectItem value="hourly">Hourly Rate</SelectItem><SelectItem value="monthly">Monthly</SelectItem><SelectItem value="fixed">Fixed Price</SelectItem></SelectContent>
                       </Select>
                     </div>
                     <div>
                       <Label className="text-xs font-bold text-foreground mb-2 block">Currency</Label>
                       <Select value={formData.currency} onValueChange={(v) => setFormData({ ...formData, currency: v })}>
                         <SelectTrigger className="h-11 rounded-xl border-transparent bg-[#f2f5fa] text-sm font-medium"><SelectValue placeholder="Currency" /></SelectTrigger>
-                        <SelectContent className="rounded-xl shadow-xl"><SelectItem value="USD">USD ($)</SelectItem><SelectItem value="EUR">EUR (€)</SelectItem><SelectItem value="GBP">GBP (£)</SelectItem><SelectItem value="INR">INR (₹)</SelectItem></SelectContent>
+                        <SelectContent><SelectItem value="USD">USD ($)</SelectItem><SelectItem value="EUR">EUR (€)</SelectItem><SelectItem value="GBP">GBP (£)</SelectItem><SelectItem value="INR">INR (₹)</SelectItem></SelectContent>
                       </Select>
                     </div>
                     <div>
