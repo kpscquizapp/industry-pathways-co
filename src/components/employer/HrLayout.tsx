@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import HrSidebarContent from "./HrSidebar";
 import {
@@ -14,8 +14,29 @@ const HrLayout = () => {
     location.pathname === "/bench-dashboard" ||
     location.pathname === "/bench-dashboard/";
 
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 900);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 900) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Check on mount
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
-    <SidebarProvider style={{ "--sidebar-width": "17rem" } as React.CSSProperties}>
+    <SidebarProvider 
+      open={sidebarOpen} 
+      onOpenChange={setSidebarOpen} 
+      style={{ "--sidebar-width": "17rem" } as React.CSSProperties}
+    >
       <div className="min-h-screen flex w-full bg-neutral-50 font-sans">
         {/* Sidebar */}
         <HrSidebarContent />

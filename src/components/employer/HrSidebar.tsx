@@ -64,8 +64,14 @@ const menuItems = [
 const HrSidebarContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
+
+  const handleMobileClose = () => {
+    if (isMobile && setOpenMobile) {
+      setOpenMobile(false);
+    }
+  };
   const currentPath = location.pathname;
 
   const [handleLogout, isLoggingOut] = useLogout();
@@ -131,7 +137,11 @@ const HrSidebarContent = () => {
                       : "!text-slate-400 hover:!bg-[rgba(0,229,255,0.05)] hover:!text-white"
                   )}
                 >
-                  <Link to={item.path} className="flex items-center w-full">
+                  <Link 
+                    to={item.path} 
+                    className="flex items-center w-full"
+                    onClick={handleMobileClose}
+                  >
                     {isActive && (
                       <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-[#00e5ff] rounded-r-md z-10 shadow-[0_0_10px_rgba(0,229,255,0.4)]" />
                     )}
@@ -200,9 +210,10 @@ const HrSidebarContent = () => {
             className="w-56 bg-[#0B1221] border-[#1c2e3d] text-slate-300 shadow-2xl shadow-black/50"
           >
             <DropdownMenuItem
-              onClick={() =>
-                navigate("/bench-dashboard/visibility-settings?tab=general")
-              }
+              onClick={() => {
+                navigate("/bench-dashboard/visibility-settings?tab=general");
+                handleMobileClose();
+              }}
               className="focus:bg-[#112433] focus:text-[#00e5ff] cursor-pointer transition-colors"
             >
               <User className="h-4 w-4 mr-2" />
@@ -215,6 +226,7 @@ const HrSidebarContent = () => {
               <Link
                 to="/bench-dashboard/visibility-settings?tab=account"
                 className="w-full"
+                onClick={handleMobileClose}
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Settings

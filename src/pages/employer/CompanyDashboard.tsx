@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useGetBenchDashboardQuery } from "@/app/queries/employerApi";
- import { useGetBenchResourcesQuery } from "@/app/queries/benchApi";
+import { useGetBenchResourcesQuery } from "@/app/queries/benchApi";
 import {
   Users,
   TrendingUp,
@@ -28,11 +28,11 @@ import {
 
 const CompanyDashboard = () => {
   const { data: benchData } = useGetBenchResourcesQuery({ page: 1, limit: 1 });
-const totalResources = benchData?.pagination?.total ?? 0;
+  const totalResources = benchData?.pagination?.total ?? 0;
   const { data: dashboardData } = useGetBenchDashboardQuery();
   const kpiData = [
-    
-     {
+
+    {
       title: "Bench Utilization",
       value: dashboardData?.data?.benchUtilization ?? "0%",
       description: "Posted bench resources contracted",
@@ -64,9 +64,9 @@ const totalResources = benchData?.pagination?.total ?? 0;
     },
     {
       title: "Contract Requests",
-      value: "8",
+      value: "0",
       description: "Pending review",
-      change: "+2",
+      change: "+0",
       trend: "up",
       icon: Handshake,
       gradient: "from-orange-500 to-amber-600",
