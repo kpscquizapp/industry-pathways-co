@@ -136,11 +136,12 @@ const VALIDATION = {
   },
   phone: {
     regex: /^\+?[1-9]\d{6,14}$/,
-    validate: (phone: string) => {
-      if (!phone) return "Mobile number is required";
-      const cleaned = phone.replace(/[\s\-()]/g, "");
+    validate: (phone: string | number) => {
+      if (phone === null || phone === undefined || phone === "") return "Mobile number is required";
+      const phoneStr = String(phone);
+      const cleaned = phoneStr.replace(/[\s\-()]/g, "");
       if (!VALIDATION.phone.regex.test(cleaned)) {
-        return "Please enter a valid mobile number (e.g., +14155551234 or +919876543210)";
+        return "Please enter a valid mobile number";
       }
       return null;
     },
@@ -1124,7 +1125,8 @@ export default function ContractorSignup(): JSX.Element {
     });
     setForm((prev) => ({
       ...prev,
-      [name]: type === "number" ? (value === "" ? null : Number(value)) : value,
+      // Special case: mobileNumber should remain a string to preserve leading zeros
+      [name]: (type === "number" && name !== "mobileNumber") ? (value === "" ? null : Number(value)) : value,
     }));
   }, []);
 
@@ -1278,7 +1280,7 @@ export default function ContractorSignup(): JSX.Element {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       email: form.email.toLowerCase().trim(),
-      mobileNumber: form.mobileNumber.replace(/[\s\-()]/g, ""),
+      mobileNumber: String(form.mobileNumber || "").replace(/[\s\-()]/g, ""),
       password: form.password,
       candidateType: form.candidateType,
       yearsExperience: form.yearsExperience,
@@ -1886,13 +1888,14 @@ export default function ContractorSignup(): JSX.Element {
                 error={fieldErrors.email}
               />
               {isCheckingEmail && (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: TEXT_MUTED }}>
-                  <SpinnerLoader />
-                  Checking availability...
+                <div className="text-sm text-slate-500 flex items-center gap-2">
+                  <SpinnerLoader />{" "}
+                  <span>Checking availability...</span>
                 </div>
               )}
               <Input
                 label="Mobile Number"
+                type="number"
                 required
                 name="mobileNumber"
                 placeholder="+1 (555) 000-0000"
@@ -2168,11 +2171,17 @@ export default function ContractorSignup(): JSX.Element {
               disabled={isLoading || isCheckingEmail}
               style={btnPrimary}
               onMouseEnter={(e) => {
-                if (!isLoading && !isCheckingEmail)
-                  e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.backgroundColor = 'rgba(15, 23, 41, 0.9)';
+                e.currentTarget.style.backgroundImage = 'none';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
+                if (isLast) {
+                  e.currentTarget.style.backgroundImage = `linear-gradient(135deg, ${ACCENT} 0%, #06b6d4 100%)`;
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                } else {
+                  e.currentTarget.style.backgroundColor = TEXT_PRIMARY;
+                  e.currentTarget.style.backgroundImage = 'none';
+                }
               }}
             >
               {isLoading || isCheckingEmail ? (

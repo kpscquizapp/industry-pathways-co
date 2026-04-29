@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+  useStartRecordingMutation,
+  useUploadChunkMutation,
+  useEndRecordingMutation,
+  useRecordingPingMutation,
+} from "@/app/queries/assessmentApi";
 
 type WebcamFeedProps = {
   apiBaseUrl?: string;
@@ -10,6 +16,8 @@ type WebcamFeedProps = {
   onRecordingStop?: () => void;
   onCameraError?: () => void;
   sessionId: string;
+  initialStream?: MediaStream | null;
+  initialScreenStream?: MediaStream | null;
 };
 
 type StreamingInitResponse = {
@@ -35,7 +43,6 @@ const stopTracks = (stream: MediaStream | null): void => {
 };
 
 const WebcamFeed = ({
-  apiBaseUrl,
   isInterviewActive,
   totalViolations,
   onScreenShareStart,
@@ -43,6 +50,8 @@ const WebcamFeed = ({
   onRecordingStop,
   onCameraError,
   sessionId,
+  initialStream,
+  initialScreenStream,
 }: WebcamFeedProps) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const screenVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -63,10 +72,19 @@ const WebcamFeed = ({
   const isStreamingRef = useRef(false);
   const activeSessionIdRef = useRef(sessionId);
   const uploadIssueToastShownRef = useRef(false);
+  const cleanupMountedRef = useRef(false); // prevents cleanup running before first recording starts
 
+  // RTK Query mutation triggers
+  const [startRecording] = useStartRecordingMutation();
+  const [uploadChunkMutation] = useUploadChunkMutation();
+  const [endRecording] = useEndRecordingMutation();
+  const [recordingPing] = useRecordingPingMutation();
+
+  const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [screenShareStream, setScreenShareStream] =
     useState<MediaStream | null>(null);
+
   const canScreenShare = useMemo(
     () =>
       typeof navigator !== "undefined" &&
@@ -74,6 +92,30 @@ const WebcamFeed = ({
     [],
   );
   const isScreenSharing = !!screenShareStream;
+
+  useEffect(() => {
+    if (initialStream && !webcamStream) {
+      setWebcamStream(initialStream);
+    }
+  }, [initialStream, webcamStream]);
+
+  useEffect(() => {
+    if (initialScreenStream && !screenShareStream) {
+      setScreenShareStream(initialScreenStream);
+    }
+  }, [initialScreenStream, screenShareStream]);
+
+  useLayoutEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = webcamStream;
+    }
+  }, [webcamStream]);
+
+  useLayoutEffect(() => {
+    if (screenVideoRef.current) {
+      screenVideoRef.current.srcObject = screenShareStream;
+    }
+  }, [screenShareStream]);
 
   useEffect(() => {
     if (sessionId) {
@@ -93,29 +135,13 @@ const WebcamFeed = ({
   const initializeStreaming = useCallback(
     async (type: "webcam" | "screen") => {
       const activeSessionId = activeSessionIdRef.current;
-
       if (!activeSessionId) {
         throw new Error("No active session ID is available.");
       }
-
-      const response = await fetch(`${apiBaseUrl || ""}/api/recordings/start`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: activeSessionId, type }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to initialize streaming");
-      }
-
-      const data: StreamingInitResponse = await response.json();
-
-      return {
-        recordingId: data.recordingId,
-        nextChunkIndex: data.nextChunkIndex,
-      };
+      const data = await startRecording({ sessionId: activeSessionId, type }).unwrap();
+      return { recordingId: data.recordingId, nextChunkIndex: data.nextChunkIndex };
     },
-    [apiBaseUrl],
+    [startRecording],
   );
 
   const streamChunk = useCallback(
@@ -127,127 +153,71 @@ const WebcamFeed = ({
       retryCount = 0,
     ): Promise<boolean> => {
       const activeSessionId = activeSessionIdRef.current;
-
       if (!activeSessionId) {
         throw new Error("No active session ID is available.");
       }
-
-      const formData = new FormData();
-      formData.append("sessionId", activeSessionId);
-      formData.append("chunkIndex", String(chunkIndex));
-      formData.append("type", type);
-      formData.append("timestamp", String(Date.now()));
-      formData.append("recordingId", String(recordingId));
-      formData.append(
-        "chunk",
-        new Blob([blob], { type: "video/webm" }),
-        `chunk-${chunkIndex}.webm`,
-      );
-
       try {
-        const response = await fetch(
-          `${apiBaseUrl || ""}/api/recordings/chunk`,
-          {
-            method: "POST",
-            body: formData,
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error("Chunk upload failed");
-        }
-
+        await uploadChunkMutation({
+          sessionId: activeSessionId,
+          chunkIndex,
+          type,
+          timestamp: Date.now(),
+          recordingId,
+          chunk: blob,
+        }).unwrap();
         pendingChunksRef.current[type].delete(chunkIndex);
         return true;
       } catch (error) {
         pendingChunksRef.current[type].add(chunkIndex);
-
         if (retryCount < MAX_RETRIES_PER_CHUNK) {
           const delay = RETRY_DELAY_MS * Math.pow(2, retryCount);
           await new Promise((resolve) => setTimeout(resolve, delay));
-          return streamChunk(
-            blob,
-            type,
-            chunkIndex,
-            recordingId,
-            retryCount + 1,
-          );
+          return streamChunk(blob, type, chunkIndex, recordingId, retryCount + 1);
         }
-
-        console.warn(`Chunk upload exhausted retries for ${type}`, {
-          chunkIndex,
-          error,
-        });
-        notifyUploadIssue(
-          "Recording upload is unstable. Review the network connection.",
-        );
+        console.warn(`Chunk upload exhausted retries for ${type}`, { chunkIndex, error });
+        notifyUploadIssue("Recording upload is unstable. Review the network connection.");
         return false;
       }
     },
-    [apiBaseUrl, notifyUploadIssue],
+    [uploadChunkMutation, notifyUploadIssue],
   );
 
   const endStreaming = useCallback(
     async (type: "webcam" | "screen") => {
       const activeSessionId = activeSessionIdRef.current;
-
       if (!activeSessionId) {
         throw new Error("No active session ID is available.");
       }
-
-      const response = await fetch(`${apiBaseUrl || ""}/api/recordings/end`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: activeSessionId, type }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to end streaming");
-      }
-
-      const result: StreamingEndResponse = await response.json();
-
+      const result = await endRecording({ sessionId: activeSessionId, type }).unwrap();
       if (result.integrity && result.integrity.isValid === false) {
         console.warn(`Recording integrity check failed for ${type}`, {
           duplicateChunks: result.integrity.duplicateChunks || [],
           missingChunks: result.integrity.missingChunks || [],
         });
-        toast.error(
-          "Recording integrity check found issues and was flagged for review.",
-        );
+        toast.error("Recording integrity check found issues and was flagged for review.");
       }
-
       return result;
     },
-    [apiBaseUrl],
+    [endRecording],
   );
 
   const sendKeepalive = useCallback(async () => {
     const activeSessionId = activeSessionIdRef.current;
-
-    if (!activeSessionId) {
-      return false;
-    }
-
+    if (!activeSessionId) return false;
     try {
-      const response = await fetch(`${apiBaseUrl || ""}/api/recordings/ping`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: activeSessionId }),
-      });
-      return response.ok;
+      await recordingPing({ sessionId: activeSessionId }).unwrap();
+      return true;
     } catch {
       return false;
     }
-  }, [apiBaseUrl]);
+  }, [recordingPing]);
 
+  // Cleanup when interview ends — guarded to avoid running on mount before any recording started
   useEffect(() => {
-    if (screenVideoRef.current) {
-      screenVideoRef.current.srcObject = screenShareStream;
+    if (!cleanupMountedRef.current) {
+      cleanupMountedRef.current = true;
+      return;
     }
-  }, [screenShareStream]);
-
-  useEffect(() => {
     if (isInterviewActive) {
       uploadIssueToastShownRef.current = false;
       return;
@@ -278,29 +248,26 @@ const WebcamFeed = ({
       recorderRef.current.stop();
     }
 
-    if (
-      screenRecorderRef.current &&
-      screenRecorderRef.current.state !== "inactive"
-    ) {
+    if (screenRecorderRef.current && screenRecorderRef.current.state !== "inactive") {
       screenRecorderRef.current.stop();
     }
 
-    stopTracks(streamRef.current);
+    // Only stop tracks if we own them (not an initialStream passed from parent)
+    if (streamRef.current && streamRef.current !== initialStream) {
+      stopTracks(streamRef.current);
+    }
     streamRef.current = null;
     setScreenShareStream((prev) => {
-      stopTracks(prev);
+      if (prev && prev !== initialScreenStream) {
+        stopTracks(prev);
+      }
       return null;
     });
     pendingChunksRef.current.webcam.clear();
     pendingChunksRef.current.screen.clear();
 
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-
-    if (screenVideoRef.current) {
-      screenVideoRef.current.srcObject = null;
-    }
+    if (videoRef.current) videoRef.current.srcObject = null;
+    if (screenVideoRef.current) screenVideoRef.current.srcObject = null;
   }, [endStreaming, isInterviewActive]);
 
   useEffect(() => {
@@ -313,6 +280,7 @@ const WebcamFeed = ({
 
     // Auto start screen sharing when interview becomes active
     const startScreenSharing = async () => {
+      if (!isInterviewActive || screenShareStream || initialScreenStream) return;
       if (!canScreenShare) {
         toast.error("Screen capture is not supported.");
         return;
@@ -321,7 +289,11 @@ const WebcamFeed = ({
       try {
         onScreenShareStart?.();
         const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
+          video: {
+            width: { ideal: 854 },
+            height: { ideal: 480 },
+            frameRate: { ideal: 15 },
+          },
           audio: true,
         });
         const [screenTrack] = stream.getVideoTracks();
@@ -344,19 +316,35 @@ const WebcamFeed = ({
 
     const getStream = async () => {
       try {
-        if (!navigator.mediaDevices?.getUserMedia) {
-          throw new Error("MediaDevices API not available");
+        let stream: MediaStream;
+        if (initialStream) {
+          stream = initialStream;
+        } else {
+          if (!navigator.mediaDevices?.getUserMedia) {
+            throw new Error("MediaDevices API not available");
+          }
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 360 },
+              frameRate: { ideal: 12 },
+            },
+            audio: true,
+          });
         }
-
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
 
         if (!isActive) {
-          stopTracks(stream);
+          // Don't stop tracks if this is the initialStream owned by the parent
+          if (stream !== initialStream) stopTracks(stream);
           return;
         }
+
+        // Assign srcObject and refs immediately so video shows without waiting for the API
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        setWebcamStream(stream);
 
         let recordingId: number | null = null;
 
@@ -381,17 +369,12 @@ const WebcamFeed = ({
         const mimeType =
           preferredTypes.find((type) => MediaRecorder.isTypeSupported(type)) ||
           "";
-        const recorder = new MediaRecorder(
-          stream,
-          mimeType ? { mimeType } : undefined,
-        );
+        const recorder = new MediaRecorder(stream, {
+          mimeType: mimeType || undefined,
+          videoBitsPerSecond: 200000, // 200kbps for 360p webcam
+        });
 
         recorderRef.current = recorder;
-        streamRef.current = stream;
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
 
         recorder.onstart = () => {
           setIsRecording(true);
@@ -428,21 +411,10 @@ const WebcamFeed = ({
             keepaliveInterval = null;
           }
 
-          const activeRecordingId = recordingIdRef.current.webcam;
-          recordingIdRef.current.webcam = null;
-          isStreamingRef.current = false;
-
-          if (activeRecordingId) {
-            void endStreaming("webcam").catch((error) => {
-              console.warn("Failed to finalize webcam recording", error);
-              notifyUploadIssue("Failed to finalize webcam recording.");
-            });
-          }
-
+          // NOTE: endStreaming for webcam is handled by the isInterviewActive
+          // cleanup effect to prevent double-calling /recordings/end
           if (pendingChunksRef.current.webcam.size > 0) {
-            notifyUploadIssue(
-              "Some webcam recording chunks could not be uploaded.",
-            );
+            notifyUploadIssue("Some webcam recording chunks could not be uploaded.");
           }
         };
 
@@ -467,7 +439,10 @@ const WebcamFeed = ({
         recorderRef.current.stop();
       }
 
-      stopTracks(streamRef.current);
+      // Only stop tracks if not the initialStream (owned by parent)
+      if (streamRef.current && streamRef.current !== initialStream) {
+        stopTracks(streamRef.current);
+      }
     };
   }, [
     canScreenShare,
@@ -481,6 +456,9 @@ const WebcamFeed = ({
     onScreenShareStart,
     sendKeepalive,
     streamChunk,
+    // NOTE: initialStream and initialScreenStream intentionally excluded —
+    // they are stable refs passed from the parent. Including them caused the
+    // effect to re-run mid-async and stop the camera tracks prematurely.
   ]);
 
   useEffect(() => {
@@ -527,10 +505,10 @@ const WebcamFeed = ({
     ];
     const mimeType =
       preferredTypes.find((type) => MediaRecorder.isTypeSupported(type)) || "";
-    const recorder = new MediaRecorder(
-      screenShareStream,
-      mimeType ? { mimeType } : undefined,
-    );
+    const recorder = new MediaRecorder(screenShareStream, {
+      mimeType: mimeType || undefined,
+      videoBitsPerSecond: 500000, // 500kbps for 480p screen share
+    });
 
     screenRecorderRef.current = recorder;
 
@@ -600,7 +578,11 @@ const WebcamFeed = ({
     try {
       onScreenShareStart?.();
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 360 },
+          frameRate: { ideal: 15 },
+        },
         audio: true,
       });
       const [screenTrack] = stream.getVideoTracks();
@@ -615,68 +597,7 @@ const WebcamFeed = ({
     }
   }, [canScreenShare, onScreenShareStart, stopScreenShare]);
 
-  return (
-    <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-2xl bg-[#0b1220] shadow-[0_20px_50px_rgba(0,0,0,0.35)] border border-white/10 sm:p-2">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 p-2 text-[10px] sm:text-xs">
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={`rounded-full px-2 py-1 font-semibold uppercase tracking-widest ${isRecording ? "bg-red-600 text-white" : "bg-white/10 text-white/80"}`}
-          >
-            {isRecording ? "Recording" : "Idle"}
-          </span>
-          <span className="rounded-full bg-white/15 px-2 py-1 text-xs font-semibold uppercase tracking-widest text-white/80">
-            Violations: {totalViolations}
-          </span>
-        </div>
-
-        <button
-          className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-white/80 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
-          onClick={() => {
-            if (!isScreenSharing) startScreenShare();
-          }}
-          disabled={!isInterviewActive || !canScreenShare || isScreenSharing}
-        >
-          {isScreenSharing ? "Screen Sharing" : "Share Screen"}
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 p-2">
-        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/40">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="aspect-video w-full object-cover min-h-[4rem]"
-          />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/20" />
-          <div className="absolute bottom-2 left-2 rounded-full bg-white/80 px-2 py-1 text-xs text-black">
-            Webcam
-          </div>
-        </div>
-
-        {isScreenSharing ? (
-          <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/40">
-            <video
-              ref={screenVideoRef}
-              autoPlay
-              playsInline
-              muted
-              className="aspect-video w-full object-cover"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/20" />
-            <div className="absolute bottom-2 left-2 rounded-full bg-white/80 px-2 py-1 text-xs text-black">
-              Screen
-            </div>
-          </div>
-        ) : (
-          <div className="relative flex min-h-[4rem] items-center justify-center rounded-xl border border-dashed border-white/30 bg-black/20 text-xs text-white/70 text-center">
-            Start screen share to display here
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  return null;
 };
 
 export default WebcamFeed;

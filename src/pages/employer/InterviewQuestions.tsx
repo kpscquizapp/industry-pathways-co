@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   useCreateCustomTestMutation,
@@ -174,19 +174,17 @@ export default function InterviewQuestions() {
   }, [employerTestData]);
 
   return (
-    <div className="min-h-screen bg-[#f2f5fa] font-sans flex flex-col">
-      {/* Page Header — replacing dashboard layout header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 py-2.5 sm:py-3.5 shrink-0">
-        <div className="flex items-center gap-4">
-          <SidebarTrigger
-            className="text-muted-foreground hover:bg-gray-100"
-            title="Toggle Sidebar"
-          />
-          <div className="space-y-0.5">
-            <h1 className="text-lg md:text-xl font-bold tracking-tight text-[#112433]">
+    <div className="min-h-full bg-[#f2f5fa] font-sans">
+      <div className="flex flex-1 w-full mx-auto relative items-stretch">
+        {/* Left Column - Forms & Lists */}
+        <div className="flex-1 flex flex-col gap-8 p-6 lg:p-8 min-w-0 max-w-[1400px] mx-auto w-full">
+          
+          {/* ═══════════════ HEADER ═══════════════ */}
+          <div className="mb-2">
+            <h1 className="text-[26px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
               Interview Questions
             </h1>
-            <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">
+            <p className="text-gray-400 text-[15px] mt-1">
               <span className="flex items-center gap-2">
                 {name
                   ? `Create technical questions for ${name}'s assessment.`
@@ -199,34 +197,6 @@ export default function InterviewQuestions() {
               </span>
             </p>
           </div>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <Button
-            variant="outline"
-            className="rounded-xl h-9 px-4 text-sm font-medium border-gray-200 bg-white"
-            onClick={() => setActiveTab("bulk")}
-          >
-            Bulk Upload
-          </Button>
-          <Button
-            className="rounded-xl bg-[#00A99D] hover:bg-[#00968b] text-white px-5 h-9 text-sm font-semibold shadow-sm transition-all duration-300"
-            onClick={() => {
-              setQuestions((prev) => [
-                ...prev,
-                newQuestion(Date.now(), role, category),
-              ]);
-              setActiveTab("manual");
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          >
-            Add Question
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex flex-1 w-full mx-auto relative items-stretch">
-        {/* Left Column - Forms & Lists */}
-        <div className="flex-1 flex flex-col gap-6 p-6 lg:p-8 min-w-0 max-w-5xl mx-auto w-full">
           {/* Form Content based on Tab (Card) */}
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
             {/* Tabs inside Card */}
@@ -2154,7 +2124,7 @@ function AIInterviewPreview({
   category?: string;
 }) {
   return (
-    <div className="sticky top-[65px] flex flex-col gap-5 p-6 lg:p-8 w-full h-[calc(100vh-65px)] overflow-y-auto">
+    <div className="sticky top-[5px] flex flex-col gap-5 p-6 lg:p-8 w-full h-[calc(100vh-65px)] overflow-y-auto">
       <div className="shrink-0">
         <h2 className="text-[17px] font-bold text-gray-900">
           AI interview preview

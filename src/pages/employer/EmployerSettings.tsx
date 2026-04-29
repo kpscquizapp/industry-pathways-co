@@ -233,17 +233,19 @@ const EmployerSettings = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f2f5fa] font-sans pb-12">
-      {/* Header */}
-      <div className="bg-white px-4 sm:px-8 py-2.5 sm:py-3.5 border-b border-gray-100 flex items-center gap-4 sticky top-0 z-40 mb-8">
-        <SidebarTrigger className="text-muted-foreground hover:bg-gray-100 shrink-0" title="Toggle Sidebar" />
+    <div className="min-h-full bg-[#f2f5fa] font-sans pb-12">
+      <div className="px-4 md:px-8 py-6 md:py-10 max-w-[1400px] mx-auto space-y-8">
+        {/* ═══════════════ HEADER ═══════════════ */}
         <div>
-          <h1 className="text-lg md:text-xl font-bold text-gray-900 leading-tight">Settings</h1>
-          <p className="text-gray-500 text-sm hidden sm:block text-[13px]">Manage your account preferences, company profile, and team settings.</p>
+          <h1 className="text-[26px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
+            Settings
+          </h1>
+          <p className="text-gray-400 text-[15px] mt-1">
+            Manage your account preferences, company profile, and team settings.
+          </p>
         </div>
-      </div>
 
-      <div className="px-8 max-w-[1400px] mx-auto flex flex-col md:flex-row gap-8">
+        <div className="flex flex-col md:flex-row gap-8">
         {/* Sidebar Nav */}
         <div className="w-full md:w-[260px] flex flex-col gap-1 shrink-0">
           {navItems.map((item) => (
@@ -562,6 +564,7 @@ const EmployerSettings = () => {
         </div>
       </div>
     </div>
+  </div>
   );
 };
 

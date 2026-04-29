@@ -321,30 +321,19 @@ const EmployerPostJob = () => {
   const isBusy = createJobLoading || updateJobLoading || saveJobAsDraftLoading || deleteJobLoading;
 
   return (
-    <div className="min-h-screen bg-[#f2f5fa] font-sans flex flex-col">
-      {/* Page Header — replacing dashboard layout header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 py-2.5 sm:py-3.5 shrink-0">
-        <div className="flex items-center gap-4">
-          <SidebarTrigger className="text-muted-foreground hover:bg-gray-100" title="Toggle Sidebar" />
-          <div className="space-y-0.5">
-            <h1 className="text-lg md:text-xl font-bold tracking-tight text-[#112433]">
-              {isEditing ? "Edit Job" : "Post New Job"}
-            </h1>
-            <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">
-              {isEditing ? "Update and republish your job listing." : "Create and publish a new role to get AI-ranked matches instantly."}
-            </p>
-          </div>
+    <div className="min-h-full bg-[#f2f5fa] font-sans">
+      <div className="max-w-[1000px] w-full mx-auto py-6 md:py-10 px-4 md:px-6 space-y-8 flex-1">
+        {/* ═══════════════ HEADER ═══════════════ */}
+        <div>
+          <h1 className="text-[26px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
+            {isEditing ? "Edit Job" : "Post New Job"}
+          </h1>
+          <p className="text-gray-400 text-[15px] mt-1">
+            {isEditing 
+              ? "Update and republish your job listing." 
+              : "Create and publish a new role to get AI-ranked matches instantly."}
+          </p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <Button variant="outline" onClick={() => navigate(-1)} className="rounded-xl h-9 px-4 text-sm font-medium border-gray-200">Cancel</Button>
-          <Button onClick={handlePostAndShowProfiles} disabled={isBusy}
-            className="rounded-xl bg-[#00A99D] hover:bg-[#00968b] text-white px-5 h-9 text-sm font-semibold shadow-sm transition-all duration-300">
-            <SparklesIcon className="h-3.5 w-3.5 mr-1.5" />Publish Job
-          </Button>
-        </div>
-      </div>
-
-      <div className="max-w-[1000px] w-full mx-auto py-6 md:py-8 px-2 md:px-4 flex-1">
 
         {isEditing && jobDetailsLoading && (
           <Card className="border-none shadow-lg bg-card/80 backdrop-blur-sm rounded-2xl mb-6">

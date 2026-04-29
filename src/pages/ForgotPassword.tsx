@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,19 @@ const ForgotPassword = () => {
     Partial<Record<FieldErrorKey, string>>
   >({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | undefined;
+    if (cooldown > 0) {
+      timer = setInterval(() => {
+        setCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [cooldown]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (fieldErrors.email) {
@@ -42,6 +55,10 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Guard: prevent Enter-key or programmatic submits during cooldown
+    if (cooldown > 0) return;
+
     setTouched({ email: true });
 
     const errors: Record<string, string> = {};
@@ -65,6 +82,7 @@ const ForgotPassword = () => {
 
       if (result?.success) {
         toast.success("If the email exists, a reset link will be sent");
+        setCooldown(60);
       } else {
         toast.error(result?.message || "Failed to send password reset email.");
       }
@@ -286,8 +304,8 @@ const ForgotPassword = () => {
                 </Label>
                 <div
                   className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${touched.email && fieldErrors.email
-                      ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
-                      : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                    ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
+                    : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
                     }`}
                 >
                   <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
@@ -311,15 +329,20 @@ const ForgotPassword = () => {
                 type="submit"
                 style={{
                   background: "linear-gradient(135deg, #4DD9E8, #0ea5e9)",
-                  boxShadow: "0 4px 20px rgba(77,217,232,0.35)",
+                  boxShadow: cooldown > 0 ? "none" : "0 4px 20px rgba(77,217,232,0.35)",
                 }}
-                className="w-full h-[52px] text-[15px] font-bold rounded-xl text-white hover:opacity-90 transition-all active:scale-[0.98] group disabled:opacity-50 mt-4"
-                disabled={isLoading}
+                className={`w-full h-[52px] text-[15px] font-bold rounded-xl text-white transition-all active:scale-[0.98] group mt-4 ${cooldown > 0 ? "cursor-not-allowed opacity-60" : "hover:opacity-90 disabled:opacity-50"
+                  }`}
+                disabled={isLoading || cooldown > 0}
               >
                 {isLoading ? (
                   <div className="flex items-center gap-3">
                     <SpinnerLoader className="w-5 h-5 text-current" />
                     <span>Sending Link...</span>
+                  </div>
+                ) : cooldown > 0 ? (
+                  <div className="flex items-center justify-center gap-3">
+                    <span>Send Reset Link ({cooldown}s)</span>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center gap-3">
@@ -329,7 +352,20 @@ const ForgotPassword = () => {
               </Button>
             </form>
 
-            <div className="mt-12 text-center text-sm font-medium text-slate-400">
+            {/* Message */}
+            {cooldown > 0 && (
+              <div className="mt-5 p-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-[13px] text-slate-600 animate-fade-up">
+                <p className="font-semibold text-slate-800 mb-1 flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-[#4DD9E8]" />
+                  Check your Email
+                </p>
+                <p className="leading-relaxed">
+                  If this email exists in our server, a password reset link has been sent to your email address. Didn't receive it? Please check your spam folder, verify the email spelling, or wait for the timer to try again.
+                </p>
+              </div>
+            )}
+
+            <div className="mt-8 text-center text-sm font-medium text-slate-400">
               <Link
                 to="/contractor-login"
                 className="text-[#999] hover:text-[#1a1a2e] transition-colors flex items-center justify-center gap-2 font-semibold"

@@ -1,7 +1,6 @@
 import React, { useState, memo } from "react";
 import { Bell, Shield, Eye, Trash2, Lock, Mail, Smartphone, Globe } from "lucide-react";
 import { toast } from "sonner";
-import BarLoader from "@/components/loader/BarLoader";
 import { cn } from "@/lib/utils";
 import { useChangePasswordMutation, useDeleteMyAccountMutation } from "@/app/queries/profileApi";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -204,10 +204,10 @@ const ContractorSettings = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <BarLoader />
-        <p className="text-muted-foreground animate-pulse font-medium">
-          Loading your preferences...
+      <div className="flex items-center justify-center gap-4 h-full">
+        <SpinnerLoader className="w-10 h-10" />
+        <p className="text-muted-foreground">
+          Loading your settings...
         </p>
       </div>
     );

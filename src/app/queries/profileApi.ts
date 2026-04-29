@@ -157,6 +157,12 @@ export const profileApi = createApi({
         body: data,
       }),
     }),
+    getDashboardStats: builder.query<any, void>({
+      query: () => ({
+        method: "GET",
+        url: "jobboard/dashboard/stats",
+      }),
+    }),
   }),
 });
 
@@ -176,4 +182,5 @@ export const {
   useUploadProfileImageMutation,
   useChangePasswordMutation,
   useDeleteMyAccountMutation,
+  useGetDashboardStatsQuery,
 } = profileApi;

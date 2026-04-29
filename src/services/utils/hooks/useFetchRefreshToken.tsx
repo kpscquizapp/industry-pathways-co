@@ -16,9 +16,12 @@ import { RootState } from "@/app/store";
 import { isExpectedLogoutError } from "@/lib/authErrorUtils";
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 min before expiry
-const FALLBACK_REFRESH_MS = 55 * 60 * 1000; // used when token has no exp claim
+const FALLBACK_REFRESH_MS = 15 * 60 * 1000; // fallback when token has no exp claim (15 min access token)
 const TRANSIENT_RETRY_MS = 30_000; // 30s
 const MAX_TRANSIENT_RETRIES = 5; // 5 retries
+
+// Refresh token lifetime as defined by backend (30 days)
+const REFRESH_TOKEN_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const MAX_BACKOFF_MS = 5 * 60 * 1000; // 5 min cap
 
 const isJwtToken = (token: string) => token.split(".").length === 3;
@@ -39,17 +42,23 @@ export const useFetchRefreshToken = () => {
   const [triggerRefresh] = useGetRefreshTokenMutation();
   const [logout] = useLogoutMutation();
 
-  // Stable refs to avoid effect re-runs
+  // Stable refs to avoid stale closures and unnecessary effect re-runs
   const refreshTokenRef = useRef(userDetails?.refreshToken);
+  const tokenRef = useRef(userDetails?.token);
   const isRefreshingRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const doRefreshRef = useRef<(() => Promise<void>) | null>(null);
   const isMountedRef = useRef(false);
   const retryCountRef = useRef(0);
 
+  // Keep refs in sync with latest Redux values
   useEffect(() => {
     refreshTokenRef.current = userDetails?.refreshToken;
   }, [userDetails?.refreshToken]);
+
+  useEffect(() => {
+    tokenRef.current = userDetails?.token;
+  }, [userDetails?.token]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -100,6 +109,17 @@ export const useFetchRefreshToken = () => {
     if (!refreshToken) return;
 
     isRefreshingRef.current = true;
+
+    // If the access token is already expired / missing, set authInitialized=false
+    // BEFORE the async API call. This tells ProtectedLayout to show BarLoader
+    // instead of redirecting to login while we silently refresh.
+    // (When the token is still valid — i.e. normal scheduled pre-expiry refresh —
+    // we skip this so the user never sees a loader flash.)
+    const currentToken = tokenRef.current;
+    if (!currentToken || isTokenExpired(currentToken)) {
+      dispatch(authInitStart());
+    }
+
     try {
       if (!isMountedRef.current) return;
       if (isRefreshJwtExpired(refreshToken)) {
@@ -204,4 +224,26 @@ export const useFetchRefreshToken = () => {
     //   this effect will not re-run and the existing schedule is kept.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userDetails?.refreshToken]);
+
+  // When the user returns / switches back to the tab,
+  // setTimeout timers may have drifted or not fired. The visibilitychange
+  // event fires reliably on wake, so we use it to check & refresh immediately.
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+      if (!refreshTokenRef.current) return;
+
+      // Read latest token from the ref (always current, no stale closure)
+      const currentToken = tokenRef.current;
+      if (!currentToken || isTokenExpired(currentToken)) {
+        doRefreshRef.current?.();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+    // All values are read from refs — no deps needed, registered once.
+  }, []);
 };
