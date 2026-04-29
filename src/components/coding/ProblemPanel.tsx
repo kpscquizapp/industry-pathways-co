@@ -82,11 +82,11 @@ const ProblemPanel: React.FC<ProblemPanelProps> = ({ problem }) => {
                       Example {idx + 1}:
                     </h4>
                     <div className="space-y-2">
-                      <div className="bg-muted/50 rounded-lg p-4">
+                      <div className="bg-muted/50 rounded-lg p-4 ">
                         <p className="text-sm font-medium text-muted-foreground mb-1">
                           Input:
                         </p>
-                        <code className="text-sm text-foreground">
+                        <code className="text-sm text-foreground max-w-full break-all">
                           {example.input}
                         </code>
                       </div>

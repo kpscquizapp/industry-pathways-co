@@ -380,6 +380,21 @@ const CodingChallenge: React.FC = () => {
     // 2. Give WebcamFeed a window to flush final chunks
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
+    // 3. Clear saved codes from localStorage for all problems in this test
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && problems.some((p) => key.startsWith(`code_${p.id}_`))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+      setCode("");
+    } catch (err) {
+      console.error("Failed to clear localStorage:", err);
+    }
+
     try {
       await endTestMutation({ testId: testId!, token }).unwrap();
       const sid = sessionIdRef.current;
@@ -393,7 +408,14 @@ const CodingChallenge: React.FC = () => {
       console.error("Cleanup failed:", err);
       return false;
     }
-  }, [testId, token, endTestMutation, endSessionMutation]);
+  }, [
+    testId,
+    token,
+    endTestMutation,
+    endSessionMutation,
+    problems,
+    setCode,
+  ]);
 
   const handleEndTest = useCallback(async () => {
     // Auto-submit any problems the candidate hasn't explicitly submitted yet.
@@ -435,20 +457,6 @@ const CodingChallenge: React.FC = () => {
     const success = await performCleanup();
     if (success) {
       setTestStatus("completed");
-
-      // Clear saved codes from localStorage for all problems in this test
-      const keysToRemove: string[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && problems.some(p => key.startsWith(`code_${p.id}_`))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-
-      // Reset IDE code
-      setCode("");
-
       toast.success("Test submitted successfully!");
     } else {
       toast.error("Failed to submit test");
@@ -879,7 +887,7 @@ const CodingChallenge: React.FC = () => {
           </p>
           <Button
             onClick={() => navigate("/contractor/tests")}
-            className="w-full bg-slate-900 hover:bg-slate-900/90"
+            className="w-full bg-slate-900 hover:bg-slate-900/90 text-white hover:text-white"
           >
             Back to Dashboard
           </Button>
@@ -1222,7 +1230,7 @@ const CodingChallenge: React.FC = () => {
               variant="outline"
               size={isMobile ? "icon" : "default"}
               className={cn(
-                "gap-2 border-slate-200 hover:bg-slate-50 shrink-0",
+                "gap-2 bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none shrink-0",
                 !isMobile &&
                 "bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none",
               )}

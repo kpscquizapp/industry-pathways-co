@@ -88,13 +88,12 @@ const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
                 return (
                   <div
                     key={testCase.id}
-                    className={`border rounded-lg p-4 ${
-                      !isResolved
-                        ? "border-border bg-muted/20"
-                        : testCase.passed
+                    className={`border rounded-lg p-4 ${!isResolved
+                      ? "border-border bg-muted/20"
+                      : testCase.passed
                         ? "border-green-500/30 bg-green-500/5"
                         : "border-red-500/30 bg-red-500/5"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
@@ -111,11 +110,10 @@ const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
                         {isResolved && (
                           <Badge
                             variant={testCase.passed ? "default" : "destructive"}
-                            className={`text-[10px] px-1.5 py-0 ${
-                              testCase.passed
-                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0"
-                                : ""
-                            }`}
+                            className={`text-[10px] px-1.5 py-0 ${testCase.passed
+                              ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-600 border-0 hover:bg-green-100 hover:dark:bg-green-900/30 hover:text-green-600 hover:dark:text-green-600"
+                              : ""
+                              }`}
                           >
                             {testCase.passed ? "Accepted" : "Failed"}
                           </Badge>
@@ -153,13 +151,12 @@ const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
                             Your Output:
                           </p>
                           <code
-                            className={`px-2 py-1 rounded whitespace-pre-wrap break-all block ${
-                              !isResolved
-                                ? "bg-muted/50 text-foreground"
-                                : testCase.passed
+                            className={`px-2 py-1 rounded whitespace-pre-wrap break-all block ${!isResolved
+                              ? "bg-muted/50 text-foreground"
+                              : testCase.passed
                                 ? "bg-green-500/10 text-green-700 dark:text-green-400"
                                 : "bg-red-500/10 text-red-700 dark:text-red-400"
-                            }`}
+                              }`}
                           >
                             {testCase.actualOutput || <span className="italic opacity-50">empty</span>}
                           </code>
