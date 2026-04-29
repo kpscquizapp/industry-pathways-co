@@ -2493,7 +2493,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
                   type="button"
                   onClick={addLocation}
                   variant="outline"
-                  className="shrink-0 h-[44px] w-[44px] rounded-xl border-gray-200 bg-[#4DD9E8] text-white hover:bg-[#4DD9E8]/90"
+                  className="shrink-0 h-[44px] w-[44px] rounded-xl border-gray-200 bg-[#4DD9E8] text-white hover:bg-[#4DD9E8]/90 hover:text-white"
                   aria-label="Add preferred job location"
                   title="Add preferred job location"
                 >

@@ -96,7 +96,7 @@ const MockTestReport = () => {
               {report.test.difficulty}
             </span>
             <span className="hidden sm:inline">•</span>
-            <span>Completed On : {new Date(report.test.startedAt).toLocaleDateString()}</span>
+            <span>Completed On : {new Date(report.test.submittedAt).toLocaleDateString()}</span>
             <span className="hidden sm:inline">•</span>
             <span>Duration: {report.test.duration} mins</span>
           </div>
@@ -257,7 +257,7 @@ const MockTestReport = () => {
                 Questions Reviewed
               </div>
               <div className="text-3xl font-black text-slate-800 mb-2">
-                {report.stats.totalProblems}
+                {report.stats.questionsReviewed}
               </div>
               <div className="text-[12px] font-medium text-slate-400 leading-snug">
                 MCQs, short answers, and coding tasks

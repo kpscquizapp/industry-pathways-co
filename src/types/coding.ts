@@ -19,6 +19,7 @@ export interface TestCase {
   input: string;
   expectedOutput: string;
   actualOutput?: string;
+  compile_output?: string;
   stderr?: string;
   passed?: boolean;
   runtime?: number;
