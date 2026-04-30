@@ -289,6 +289,8 @@ const VisibilitySettings = () => {
     confirmPassword: "",
   });
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
 
 
   React.useEffect(() => {
@@ -437,7 +439,9 @@ const VisibilitySettings = () => {
 
   const handleDeleteAccount = async () => {
     try {
-      await deleteMyAccount({ password: passwordData.currentPassword }).unwrap();
+      await deleteMyAccount({ password: deletePassword }).unwrap();
+      setShowDeleteModal(false);
+      setDeletePassword("");
       Cookies.remove("userInfo");
       Cookies.remove("userInfo", { path: "/" });
       localStorage.clear();
@@ -460,8 +464,8 @@ const VisibilitySettings = () => {
     <div className="min-h-screen bg-[#f0f2f5] flex flex-col">
 
       {/* Top Header Bar */}
-      <div className="bg-white border-b border-slate-200 py-4 flex items-center gap-3 px-4">
-        <div className="ml-2 sm:ml-8 w-full">
+      <div className="bg-white border-b border-slate-200 py-4 flex items-center gap-3 px-4 sm:px-6">
+        <div className="w-full">
           <div className="flex items-center gap-2">
             <SidebarTrigger
               className="text-muted-foreground hover:bg-[#0b1221]/10"
@@ -469,13 +473,13 @@ const VisibilitySettings = () => {
             />
             <h1 className="text-lg font-bold text-slate-800 leading-tight">Settings</h1>
           </div>
-          <p className="text-slate-400 text-sm ml-6 sm:ml-8">Manage your account preferences, company profile, and team settings.</p>
+          <p className="text-slate-400 text-sm ml-7">Manage your account preferences, company profile, and team settings.</p>
         </div>
       </div>
 
       {/* Page Content */}
       <div className="flex-1 mb-3">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="max-w-6xl px-4 sm:px-6">
           <div className="flex flex-col md:flex-row gap-6 mt-5">
 
             {/* Left Navigation */}
@@ -793,8 +797,7 @@ const VisibilitySettings = () => {
                       <div className="pt-2">
                         <Button
                           variant="outline"
-                          onClick={handleDeleteAccount}
-                          disabled={isDeletingAccount}
+                          onClick={() => setShowDeleteModal(true)}
                           className="bg-white border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 rounded-lg h-11 px-6 font-semibold shadow-sm transition-all focus:ring-2 focus:ring-red-100 outline-none"
                         >
                           Delete My Account
@@ -810,6 +813,62 @@ const VisibilitySettings = () => {
           </div>
         </div >
       </div >
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/80 z-50">
+          <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-[425px] translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-lg duration-200 animate-in fade-in-0 zoom-in-95 slide-in-from-left-1/2 slide-in-from-top-[48%] sm:rounded-lg">
+
+            <div className="flex flex-col space-y-2 text-center sm:text-left">
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Trash2 className="h-6 w-6 text-red-500" />
+                Confirm Account Deletion
+              </h2>
+              <p className="text-sm text-slate-600 py-4">
+                This action is{" "}
+                <span className="font-bold text-red-600 uppercase tracking-tight">permanent</span>{" "}
+                and cannot be undone. All your professional data will be wiped from our systems.
+              </p>
+            </div>
+
+            <div className="py-4 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">
+                  To confirm, please enter your password:
+                </label>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="Your account password"
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4DD9E8]/30 focus-visible:ring-offset-2"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-3 sm:gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeletePassword("");
+                }}
+                className="h-10 px-4 py-2 mt-2 sm:mt-0 rounded-xl border border-slate-200 font-semibold hover:bg-slate-50 transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={isDeletingAccount}
+                className="h-10 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-all duration-300 shadow-lg shadow-red-200 disabled:opacity-50 text-sm"
+              >
+                {isDeletingAccount ? "Deleting..." : "Confirm Deletion"}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 };

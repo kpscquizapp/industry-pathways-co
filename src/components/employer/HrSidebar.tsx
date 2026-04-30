@@ -7,6 +7,7 @@ import {
   UserPlus,
   Settings,
   LogOut,
+  LayoutGrid,
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -37,7 +38,7 @@ import useLogout from "@/hooks/useLogout";
 const menuItems = [
   {
     title: "Dashboard",
-    icon: LayoutDashboard,
+    icon: LayoutGrid,
     path: "/bench-dashboard",
     isAI: false,
   },
@@ -103,15 +104,13 @@ const HrSidebarContent = () => {
             <img src={HirionLogo} alt="Hirion Logo" className="h-auto w-36" />
           )}
         </Link>
-        {!isCollapsed && (
-          <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase ml-4">
-            Partner Workspace
-          </span>
-        )}
       </SidebarHeader>
 
       {/* Navigation */}
       <SidebarContent className="p-4 pt-2">
+        {!isCollapsed && (
+          <div className="px-3 mb-4 text-[11px] font-bold tracking-wider text-slate-500 uppercase">Menu</div>
+        )}
         <SidebarMenu className="gap-1.5">
           {menuItems.map((item) => {
             const isActive =
@@ -130,15 +129,15 @@ const HrSidebarContent = () => {
                   tooltip={item.title}
                   className={cn(
                     "w-full justify-start transition-all relative overflow-hidden group/menuBtn border border-transparent",
-                    !isCollapsed && "px-4 py-6 rounded-2xl",
-                    isCollapsed && "rounded-xl",
+                    !isCollapsed && "px-4 py-6 rounded-sm",
+                    isCollapsed && "rounded-sm",
                     isActive
                       ? "!bg-[#112433] !text-[#00e5ff]"
                       : "!text-slate-400 hover:!bg-[rgba(0,229,255,0.05)] hover:!text-white"
                   )}
                 >
-                  <Link 
-                    to={item.path} 
+                  <Link
+                    to={item.path}
                     className="flex items-center w-full"
                     onClick={handleMobileClose}
                   >
@@ -147,12 +146,12 @@ const HrSidebarContent = () => {
                     )}
                     <item.icon
                       className={cn(
-                        "!w-[22px] !h-[22px] flex-shrink-0 z-10 transition-colors",
+                        "!w-[20px] !h-[20px] flex-shrink-0 z-10 transition-colors",
                         isActive ? "" : "group-hover/menuBtn:text-[#00e5ff]"
                       )}
                     />
                     {!isCollapsed && (
-                      <span className="font-semibold text-[15px] ml-4 z-10 transition-colors">
+                      <span className="font-semibold text-[14px] ml-4 z-10 transition-colors">
                         {item.title}
                       </span>
                     )}

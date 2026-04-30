@@ -84,6 +84,7 @@ const ActiveResources = () => {
     isActive: boolean;
     technicalSkills?: string[];
     professionalSummary?: string;
+    requireNonSolicitation?: boolean;
   };
 
   const clearAllFilters = () => {
@@ -152,6 +153,7 @@ const ActiveResources = () => {
       location: formatDeploymentPreference(),
       experience: `${Number(resource.totalExperience)} years`,
       type: "bench",
+      requireNonSolicitation: resource.requireNonSolicitation || false,
       skills: resource.technicalSkills || [],
       about: resource.professionalSummary || "",
     };

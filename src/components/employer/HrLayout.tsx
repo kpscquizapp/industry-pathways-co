@@ -32,10 +32,10 @@ const HrLayout = () => {
   }, []);
 
   return (
-    <SidebarProvider 
-      open={sidebarOpen} 
-      onOpenChange={setSidebarOpen} 
-      style={{ "--sidebar-width": "17rem" } as React.CSSProperties}
+    <SidebarProvider
+      open={sidebarOpen}
+      onOpenChange={setSidebarOpen}
+      style={{ "--sidebar-width": "16rem" } as React.CSSProperties}
     >
       <div className="min-h-screen flex w-full bg-neutral-50 font-sans">
         {/* Sidebar */}
@@ -84,9 +84,8 @@ const HrLayout = () => {
 
           {/* Page content */}
           <main
-            className={`flex-1 overflow-auto ${
-              hideHeader ? "p-0 bg-[#f0f2f5]" : "p-4 sm:p-6"
-            }`}
+            className={`flex-1 overflow-auto ${hideHeader ? "p-0 bg-[#f0f2f5]" : "p-4 sm:p-6"
+              }`}
           >
             <Suspense
               fallback={

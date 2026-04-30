@@ -103,6 +103,7 @@ const PostBenchResource = () => {
   });
 
   const [skillInput, setSkillInput] = useState("");
+  const [autoFill, setAutoFill] = useState(true);
 
   // Populate form when editing
   useEffect(() => {
@@ -196,29 +197,35 @@ const PostBenchResource = () => {
 
     setFormData((prev) => ({ ...prev, resumeFile: file }));
 
-    try {
-      const result = await extractResume(file).unwrap();
+    if (autoFill) {
+      try {
+        const result = await extractResume(file).unwrap();
 
-      if (result.success && result.data) {
-        setFormData((prev) => ({
-          ...prev,
-          resourceName: result.data.resourceName || prev.resourceName,
-          professionalSummary:
-            result.data.professionalSummary || prev.professionalSummary,
-          skills: result.data.technicalSkills || prev.skills,
-          totalExperience: result.data.totalExperience ?? prev.totalExperience,
-        }));
-        toast.success("Resume processed successfully!", {
-          description: "Form fields have been populated from your resume.",
-        });
-      } else {
-        toast.error("Failed to extract data from resume");
+        if (result.success && result.data) {
+          setFormData((prev) => ({
+            ...prev,
+            resourceName: result.data.resourceName || prev.resourceName,
+            professionalSummary:
+              result.data.professionalSummary || prev.professionalSummary,
+            skills: result.data.technicalSkills || prev.skills,
+            totalExperience: result.data.totalExperience ?? prev.totalExperience,
+          }));
+          toast.success("Resume processed successfully!", {
+            description: "Form fields have been populated from your resume.",
+          });
+        } else {
+          toast.error("Failed to extract data from resume");
+        }
+      } catch (error) {
+        console.error("OCR API error:", error);
+        toast.error("Error connecting to OCR service");
+        setFormData((prev) => ({ ...prev, resumeFile: null }));
+        input.value = "";
       }
-    } catch (error) {
-      console.error("OCR API error:", error);
-      toast.error("Error connecting to OCR service");
-      setFormData((prev) => ({ ...prev, resumeFile: null }));
-      input.value = "";
+    } else {
+      toast.success("Resume uploaded successfully!", {
+        description: "Auto-fill is disabled. Please fill in the details manually.",
+      });
     }
   };
 
@@ -472,7 +479,8 @@ const PostBenchResource = () => {
                     <p className="text-xs text-slate-500 mt-0.5">Our AI will automatically extract skills, experience, and summary.</p>
                   </div>
                   <Switch
-                    checked={true}
+                    checked={autoFill}
+                    onCheckedChange={setAutoFill}
                     className="data-[state=checked]:bg-blue-500"
                   />
                 </div>
@@ -775,9 +783,9 @@ const PostBenchResource = () => {
                               },
                             })
                           }
-className="h-4 w-4 rounded-full bg-slate-50 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                          className="h-4 w-4 rounded-full bg-slate-50 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
 
-/>
+                        />
                         <label
                           htmlFor={loc.id}
                           className="text-sm cursor-pointer text-slate-600 font-medium whitespace-nowrap"
@@ -833,7 +841,7 @@ className="h-4 w-4 rounded-full bg-slate-50 data-[state=checked]:bg-blue-500 dat
                   onClick={handleProceed}
                   disabled={isProcessing}
                   className="md:flex-none w-auto px-6 h-10 rounded-xl bg-[#0f172a] hover:bg-[#1e293b] text-white font-medium"
-                  >
+                >
                   {isProcessing ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

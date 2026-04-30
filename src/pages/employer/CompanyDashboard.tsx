@@ -254,95 +254,119 @@ const CompanyDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Hiring Funnel */}
-        <Card className="lg:col-span-2 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-800">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
-                <Filter className="h-4 w-4 text-white" />
-              </div>
-              Talent Acquisition Funnel
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="space-y-5">
-              {hiringFunnel.map((stage, index) => (
-                <div key={index} className="space-y-2">
-
-                  <div className="flex items-center justify-between text-sm">
-
-                    {/* Stage Name */}
-                    <span className="font-semibold text-slate-700">
-                      {stage.stage}
-                    </span>
-
-                    {/* Count + Percentage */}
-                    <span className="flex items-center gap-3">
-                      <span className="font-bold text-slate-800">
-                        {stage.count}
-                      </span>
-                      <span className="text-slate-400">
-                        {stage.percentage}%
-                      </span>
-                    </span>
-
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-teal-400 rounded-full transition-all duration-500"
-                      style={{ width: `${stage.percentage}%` }}
-                    />
-                  </div>
-
+        <div className="relative lg:col-span-2">
+          <Card className="lg:col-span-2 border-0 shadow-lg bg-white/80 backdrop-blur-sm h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-800">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
+                  <Filter className="h-4 w-4 text-white" />
                 </div>
-              ))}
+                Talent Acquisition Funnel
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="space-y-5">
+                {hiringFunnel.map((stage, index) => (
+                  <div key={index} className="space-y-2">
+
+                    <div className="flex items-center justify-between text-sm">
+
+                      {/* Stage Name */}
+                      <span className="font-semibold text-slate-700">
+                        {stage.stage}
+                      </span>
+
+                      {/* Count + Percentage */}
+                      <span className="flex items-center gap-3">
+                        <span className="font-bold text-slate-800">
+                          {stage.count}
+                        </span>
+                        <span className="text-slate-400">
+                          {stage.percentage}%
+                        </span>
+                      </span>
+
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-teal-400 rounded-full transition-all duration-500"
+                        style={{ width: `${stage.percentage}%` }}
+                      />
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Coming Soon Overlay */}
+          <div className="absolute inset-0 rounded-xl backdrop-blur-sm bg-white/60 flex flex-col items-center justify-center z-10">
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl px-8 py-5 shadow-lg border border-white/50 text-center">
+              <span className="text-2xl font-bold text-slate-700 tracking-wide">Coming Soon</span>
+              <p className="text-sm text-slate-400 mt-1">
+                This feature is under development
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* AI Recommendations */}
-        <Card className="border border-slate-200 shadow-sm rounded-xl bg-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-800">
-              <div className="p-1.5 rounded-lg bg-teal-50">
-                <Bot className="h-4 w-4 text-teal-500" />
-              </div>
-              AI Recommendations
-            </CardTitle>
-            <p className="text-sm text-slate-500">Actionable insights to boost placements.</p>
-          </CardHeader>
-          <CardContent className="pt-2 space-y-0">
-            {aiRecommendations.map((rec, index) => (
-              <div
-                key={index}
-                className="py-4 border-t border-slate-100 cursor-pointer"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-teal-50 shrink-0">
-                    {index === 0 ? <Users className="h-4 w-4 text-teal-500" />
-                      : index === 1 ? <Eye className="h-4 w-4 text-teal-500" />
-                        : <Calendar className="h-4 w-4 text-teal-500" />}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-slate-800">
-                      {rec.title}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">{rec.description}</p>
-                    <p className="text-xs text-teal-500 font-medium mt-2 flex items-center gap-1">
-                      <div className="p-2 rounded-lg  shrink-0">
-                        {index === 0 && "Review Matches →"}
-                        {index === 1 && "Update Profile →"}
-                        {index === 2 && "Schedule Now →"}
-                      </div>
+        <div className="relative h-full">
+          <Card className="border border-slate-200 shadow-sm rounded-xl bg-white h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-800">
+                <div className="p-1.5 rounded-lg bg-teal-50">
+                  <Bot className="h-4 w-4 text-teal-500" />
+                </div>
+                AI Recommendations
+              </CardTitle>
+              <p className="text-sm text-slate-500">Actionable insights to boost placements.</p>
+            </CardHeader>
+            <CardContent className="pt-2 space-y-0">
+              {aiRecommendations.map((rec, index) => (
+                <div
+                  key={index}
+                  className="py-4 border-t border-slate-100 cursor-pointer"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-teal-50 shrink-0">
+                      {index === 0 ? <Users className="h-4 w-4 text-teal-500" />
+                        : index === 1 ? <Eye className="h-4 w-4 text-teal-500" />
+                          : <Calendar className="h-4 w-4 text-teal-500" />}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-slate-800">
+                        {rec.title}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">{rec.description}</p>
+                      <p className="text-xs text-teal-500 font-medium mt-2 flex items-center gap-1">
+                        <div className="p-2 rounded-lg  shrink-0">
+                          {index === 0 && "Review Matches →"}
+                          {index === 1 && "Update Profile →"}
+                          {index === 2 && "Schedule Now →"}
+                        </div>
 
-                    </p>
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Coming Soon Overlay */}
+          <div className="absolute inset-0 rounded-xl backdrop-blur-sm bg-white/60 flex flex-col items-center justify-center z-10">
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl px-8 py-5 shadow-lg border border-white/50 text-center">
+              <span className="text-2xl font-bold text-slate-700 tracking-wide">Coming Soon</span>
+              <p className="text-sm text-slate-400 mt-1">
+                This feature is under development
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
 
