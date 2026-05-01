@@ -601,6 +601,7 @@ const ContractorSkillTest = () => {
                                 ).find(([_, v]) => (v as any) > 0)?.[0] ||
                                   "Mixed"}
                               </span>
+                              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
                               <span className="text-slate-400">
                                 Status: {res.status}
                               </span>
