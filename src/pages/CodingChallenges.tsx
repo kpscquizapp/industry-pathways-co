@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -120,14 +126,26 @@ const mapApiResults = (raw: any[], knownTCs: TestCase[]): TestCase[] => {
       if (statusId !== undefined) {
         passed = statusId === 3;
       } else {
-        passed = typeof statusStr === "string" && statusStr.toLowerCase() === "accepted";
+        passed =
+          typeof statusStr === "string" &&
+          statusStr.toLowerCase() === "accepted";
       }
     }
 
-    const stdout = (tc.stdout ?? tc.actual_output ?? tc.actualOutput ?? "").toString();
+    const stdout = (
+      tc.stdout ??
+      tc.actual_output ??
+      tc.actualOutput ??
+      ""
+    ).toString();
     const stderr = (tc.stderr ?? tc.error ?? "").toString();
     const input = known?.input ?? tc.input ?? tc.stdin ?? "";
-    const expectedOutput = known?.expectedOutput ?? tc.expected_output ?? tc.expectedOutput ?? tc.expected ?? "";
+    const expectedOutput =
+      known?.expectedOutput ??
+      tc.expected_output ??
+      tc.expectedOutput ??
+      tc.expected ??
+      "";
 
     return {
       id: known?.id ?? idx + 1,
@@ -136,7 +154,8 @@ const mapApiResults = (raw: any[], knownTCs: TestCase[]): TestCase[] => {
       actualOutput: stdout,
       stderr: stderr || undefined,
       passed,
-      runtime: tc.time !== undefined ? Math.round(Number(tc.time) * 1000) : tc.runtime,
+      runtime:
+        tc.time !== undefined ? Math.round(Number(tc.time) * 1000) : tc.runtime,
       memory: tc.memory,
     };
   });
@@ -240,16 +259,24 @@ const CodingChallenge: React.FC = () => {
       return n;
     };
 
-    const supportedKeys = ["c", "cpp", "go", "java", "javascript", "python", "typescript"];
+    const supportedKeys = [
+      "c",
+      "cpp",
+      "go",
+      "java",
+      "javascript",
+      "python",
+      "typescript",
+    ];
     const uniqueLangs = new Map<string, Language>();
 
     const preferredIds: Record<string, number> = {
       python: 71, // Python 3.8.1
-      c: 50,      // C (GCC 9.2.0)
-      cpp: 54     // C++ (GCC 9.2.0)
+      c: 50, // C (GCC 9.2.0)
+      cpp: 54, // C++ (GCC 9.2.0)
     };
 
-    languagesData.forEach(lang => {
+    languagesData.forEach((lang) => {
       const key = getLangKey(lang.name);
       if (supportedKeys.includes(key)) {
         const existing = uniqueLangs.get(key);
@@ -301,28 +328,31 @@ const CodingChallenge: React.FC = () => {
     suppressViolationsUntilRef.current = Date.now() + 1500;
   }, []);
 
-  const initializeSession = useCallback(async (jobId?: string) => {
-    try {
-      const candidateId = user?.id || user?.uuid;
-      if (!candidateId) {
-        console.error("No candidate ID found");
-        return null;
-      }
-      const sessionData = await startSessionMutation({
-        candidateId: String(candidateId),
-        jobId: jobId ? String(jobId) : undefined,
-      }).unwrap();
+  const initializeSession = useCallback(
+    async (jobId?: string) => {
+      try {
+        const candidateId = user?.id || user?.uuid;
+        if (!candidateId) {
+          console.error("No candidate ID found");
+          return null;
+        }
+        const sessionData = await startSessionMutation({
+          candidateId: String(candidateId),
+          jobId: jobId ? String(jobId) : undefined,
+        }).unwrap();
 
-      if (sessionData.sessionId) {
-        setSessionId(sessionData.sessionId);
-        sessionIdRef.current = sessionData.sessionId;
-        return sessionData.sessionId;
+        if (sessionData.sessionId) {
+          setSessionId(sessionData.sessionId);
+          sessionIdRef.current = sessionData.sessionId;
+          return sessionData.sessionId;
+        }
+      } catch (err) {
+        console.error("Failed to start session:", err);
       }
-    } catch (err) {
-      console.error("Failed to start session:", err);
-    }
-    return null;
-  }, [user, startSessionMutation]);
+      return null;
+    },
+    [user, startSessionMutation],
+  );
 
   const handleViolation = useCallback(
     async (reason: string) => {
@@ -408,23 +438,20 @@ const CodingChallenge: React.FC = () => {
       console.error("Cleanup failed:", err);
       return false;
     }
-  }, [
-    testId,
-    token,
-    endTestMutation,
-    endSessionMutation,
-    problems,
-    setCode,
-  ]);
+  }, [testId, token, endTestMutation, endSessionMutation, problems, setCode]);
 
   const handleEndTest = useCallback(async () => {
     // Auto-submit any problems the candidate hasn't explicitly submitted yet.
     // This covers time-up, early exits, and skipped problems.
     // We use `problems` from the outer scope (captured at call time via ref pattern).
-    const unsubmitted = problems.filter(p => !submittedProblemIdsRef.current.has(p.id));
+    const unsubmitted = problems.filter(
+      (p) => !submittedProblemIdsRef.current.has(p.id),
+    );
 
     if (unsubmitted.length > 0) {
-      toast.info(`Auto-submitting ${unsubmitted.length} remaining problem(s)...`);
+      toast.info(
+        `Auto-submitting ${unsubmitted.length} remaining problem(s)...`,
+      );
       await Promise.allSettled(
         unsubmitted.map(async (problem) => {
           // Prefer saved code from localStorage, fall back to empty string
@@ -450,7 +477,7 @@ const CodingChallenge: React.FC = () => {
           } catch {
             // Silently swallow — best-effort, never block test ending
           }
-        })
+        }),
       );
     }
 
@@ -462,7 +489,6 @@ const CodingChallenge: React.FC = () => {
       toast.error("Failed to submit test");
     }
   }, [performCleanup, problems, submitSolution, language, testId]);
-
 
   // Back-button & page-close guard
   useEffect(() => {
@@ -605,7 +631,9 @@ const CodingChallenge: React.FC = () => {
       if (data.success) {
         setMetadata(data.data);
         // Start session
-        const sid = await initializeSession(data.data?.id ? String(data.data.id) : undefined);
+        const sid = await initializeSession(
+          data.data?.id ? String(data.data.id) : undefined,
+        );
 
         setTestStatus("active");
         setIsInterviewActive(true);
@@ -741,7 +769,11 @@ const CodingChallenge: React.FC = () => {
     setError(undefined);
     setTestCases([]); // Clear previous results while running
 
-    const knownTCs: TestCase[] = currentProblem.test_cases || currentProblem.testcases || currentProblem.testCases || [];
+    const knownTCs: TestCase[] =
+      currentProblem.test_cases ||
+      currentProblem.testcases ||
+      currentProblem.testCases ||
+      [];
 
     try {
       const result = await runTestCases({
@@ -752,7 +784,11 @@ const CodingChallenge: React.FC = () => {
 
       if (result.success) {
         // Use results directly from the backend — no frontend comparison
-        const raw: any[] = result.data?.results ?? result.data?.testCases ?? result.data?.testcases ?? [];
+        const raw: any[] =
+          result.data?.results ??
+          result.data?.testCases ??
+          result.data?.testcases ??
+          [];
         setTestCases(mapApiResults(raw, knownTCs));
       } else {
         setError(result.message || "Execution failed");
@@ -760,8 +796,8 @@ const CodingChallenge: React.FC = () => {
     } catch (err: any) {
       setError(
         err?.data?.message ||
-        err.message ||
-        "An error occurred during execution",
+          err.message ||
+          "An error occurred during execution",
       );
     } finally {
       setIsRunningCode(false);
@@ -779,7 +815,11 @@ const CodingChallenge: React.FC = () => {
       localStorage.setItem(`code_${currentProblem.id}_${language.name}`, code);
     }
 
-    const knownTCs: TestCase[] = currentProblem.test_cases || currentProblem.testcases || currentProblem.testCases || [];
+    const knownTCs: TestCase[] =
+      currentProblem.test_cases ||
+      currentProblem.testcases ||
+      currentProblem.testCases ||
+      [];
     setTestCases([]); // Clear previous results while submitting
 
     try {
@@ -792,7 +832,11 @@ const CodingChallenge: React.FC = () => {
 
       if (result.success) {
         // Use results directly from the backend — no frontend comparison
-        const raw: any[] = result.data?.results ?? result.data?.testCases ?? result.data?.testcases ?? [];
+        const raw: any[] =
+          result.data?.results ??
+          result.data?.testCases ??
+          result.data?.testcases ??
+          [];
         const results = mapApiResults(raw, knownTCs);
         setTestCases(results);
 
@@ -821,8 +865,8 @@ const CodingChallenge: React.FC = () => {
     } catch (err: any) {
       setError(
         err?.data?.message ||
-        err.message ||
-        "An error occurred during submission",
+          err.message ||
+          "An error occurred during submission",
       );
     } finally {
       setIsSubmitting(false);
@@ -1003,10 +1047,11 @@ const CodingChallenge: React.FC = () => {
 
             <div className="space-y-4 mb-8">
               <button
-                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${hasWebcamPermission
-                  ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
-                  : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
-                  }`}
+                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${
+                  hasWebcamPermission
+                    ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
+                    : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
+                }`}
                 onClick={async () => {
                   if (hasWebcamPermission) return;
                   try {
@@ -1052,10 +1097,11 @@ const CodingChallenge: React.FC = () => {
               </button>
 
               <button
-                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${isScreenSelected
-                  ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
-                  : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
-                  }`}
+                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${
+                  isScreenSelected
+                    ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
+                    : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
+                }`}
                 onClick={async () => {
                   if (isScreenSelected) return;
                   try {
@@ -1142,10 +1188,11 @@ const CodingChallenge: React.FC = () => {
                       ? "1px solid #e2e8f0"
                       : "none",
                 }}
-                className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${!hasWebcamPermission || !isScreenSelected
-                  ? "cursor-not-allowed opacity-100"
-                  : "hover:opacity-90"
-                  }`}
+                className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${
+                  !hasWebcamPermission || !isScreenSelected
+                    ? "cursor-not-allowed opacity-100"
+                    : "hover:opacity-90"
+                }`}
                 disabled={!hasWebcamPermission || !isScreenSelected}
                 onClick={handleStartTest}
               >
@@ -1232,7 +1279,7 @@ const CodingChallenge: React.FC = () => {
               className={cn(
                 "gap-2 bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none shrink-0",
                 !isMobile &&
-                "bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none",
+                  "bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none",
               )}
             >
               {isRunningCode ? (
@@ -1250,8 +1297,13 @@ const CodingChallenge: React.FC = () => {
                 size={isMobile ? "icon" : "default"}
                 className="gap-2 shrink-0"
               >
-                {isSubmitting ? <SpinnerLoader /> : <Send className="h-4 w-4" />}
-                {!isMobile && (isSubmitting ? "Submitting..." : "Submit & End Test")}
+                {isSubmitting ? (
+                  <SpinnerLoader />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                {!isMobile &&
+                  (isSubmitting ? "Submitting..." : "Submit & End Test")}
               </Button>
             ) : (
               <Button
@@ -1260,7 +1312,11 @@ const CodingChallenge: React.FC = () => {
                 size={isMobile ? "icon" : "default"}
                 className="gap-2 shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                {isSubmitting ? <SpinnerLoader /> : <Send className="h-4 w-4" />}
+                {isSubmitting ? (
+                  <SpinnerLoader />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
                 {!isMobile && (isSubmitting ? "Submitting..." : "Submit Code")}
               </Button>
             )}
@@ -1318,7 +1374,7 @@ const CodingChallenge: React.FC = () => {
       </div>
 
       {/* Camera monitoring floating window */}
-      <div
+      {/* <div
         ref={popupRef}
         className="fixed z-50 cursor-move select-none hidden"
         style={{
@@ -1358,7 +1414,7 @@ const CodingChallenge: React.FC = () => {
             initialScreenStream={initialScreenStream}
           />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

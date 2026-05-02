@@ -16,7 +16,7 @@ import { RootState } from "@/app/store";
 import { isExpectedLogoutError } from "@/lib/authErrorUtils";
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 min before expiry
-const FALLBACK_REFRESH_MS = 60 * 60 * 1000; // fallback when token has no exp claim (1 hour access token)
+const FALLBACK_REFRESH_MS = 55 * 60 * 1000; // refresh 5 min before 1-hour expiry
 const TRANSIENT_RETRY_MS = 30_000; // 30s
 const MAX_TRANSIENT_RETRIES = 5; // 5 retries
 
