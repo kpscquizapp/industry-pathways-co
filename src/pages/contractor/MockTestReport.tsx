@@ -72,8 +72,8 @@ const MockTestReport = () => {
   const questions = Array.isArray(report?.questions) ? report.questions : [];
   const currentQuestion =
     questions.length > 0 &&
-      activeQuestionIndex >= 0 &&
-      activeQuestionIndex < questions.length
+    activeQuestionIndex >= 0 &&
+    activeQuestionIndex < questions.length
       ? questions[activeQuestionIndex]
       : null;
 
@@ -96,7 +96,12 @@ const MockTestReport = () => {
               {report.test.difficulty}
             </span>
             <span className="hidden sm:inline">•</span>
-            <span>Completed On : {new Date(report.test.submittedAt).toLocaleDateString()}</span>
+            <span>
+              Completed On:{" "}
+              {report.test.submittedAt
+                ? new Date(report.test.submittedAt).toLocaleDateString()
+                : "N/A"}
+            </span>
             <span className="hidden sm:inline">•</span>
             <span>Duration: {report.test.duration} mins</span>
           </div>
@@ -107,7 +112,7 @@ const MockTestReport = () => {
           const scoreVal = Number(report.test.overallScore ?? 0);
           const scoreColor =
             scoreVal >= 70
-              ? "#22c55e"   // green  70–100
+              ? "#22c55e" // green  70–100
               : scoreVal >= 40
                 ? "#f59e0b" // yellow 40–69
                 : "#ef4444"; // red   0–39
@@ -371,7 +376,7 @@ const MockTestReport = () => {
                         currentQuestion.status === "Correct"
                           ? "bg-[#f0fdfa] border-[#ccfbf1]"
                           : currentQuestion.status === "Incorrect" ||
-                            currentQuestion.status === "Failed"
+                              currentQuestion.status === "Failed"
                             ? "bg-red-50 border-red-100"
                             : "bg-slate-50 border-slate-200",
                       )}
@@ -404,18 +409,16 @@ const MockTestReport = () => {
 
                   <div className="space-y-8">
                     <div>
-                      {
-                        currentQuestion.explanation && (
-                          <div className="bg-[#f0f9ff] rounded-xl p-5 border border-[#bae6fd]">
-                            <div className="text-[10px] font-bold text-[#0ea5e9] mb-4 tracking-wider uppercase border-b border-[#bae6fd] pb-2">
-                              Explanation
-                            </div>
-                            <p className="text-slate-700 text-[13px] leading-relaxed p-2">
-                              {currentQuestion.explanation}
-                            </p>
+                      {currentQuestion.explanation && (
+                        <div className="bg-[#f0f9ff] rounded-xl p-5 border border-[#bae6fd]">
+                          <div className="text-[10px] font-bold text-[#0ea5e9] mb-4 tracking-wider uppercase border-b border-[#bae6fd] pb-2">
+                            Explanation
                           </div>
-                        )
-                      }
+                          <p className="text-slate-700 text-[13px] leading-relaxed p-2">
+                            {currentQuestion.explanation}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     {currentQuestion.submittedCode && (
                       <div className="bg-[#0F172A] rounded-xl p-5 overflow-hidden border border-slate-800">
