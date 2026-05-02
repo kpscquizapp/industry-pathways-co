@@ -178,7 +178,6 @@ export default function InterviewQuestions() {
       <div className="flex flex-1 w-full mx-auto relative items-stretch">
         {/* Left Column - Forms & Lists */}
         <div className="flex-1 flex flex-col gap-8 p-6 lg:p-8 min-w-0 max-w-[1400px] mx-auto w-full">
-          
           {/* ═══════════════ HEADER ═══════════════ */}
           <div className="mb-2">
             <h1 className="text-[26px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
@@ -191,7 +190,9 @@ export default function InterviewQuestions() {
                   : "Build a reusable question bank with manual, AI-generated, and bulk-upload workflows."}
                 {invitedCount > 0 && (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#0ea5e9]/10 text-[#0ea5e9] text-[10px] font-bold">
-                    {invitedCount} {invitedCount === 1 ? "candidate" : "candidates"} invited for this role
+                    {invitedCount}{" "}
+                    {invitedCount === 1 ? "candidate" : "candidates"} invited
+                    for this role
                   </span>
                 )}
               </span>
@@ -331,7 +332,10 @@ export default function InterviewQuestions() {
                       refetchLibrary();
                     } catch (err) {
                       console.error("Failed to delete question from DB:", err);
-                      showAlert("Delete Failed", "Failed to delete question from library. Please try again.");
+                      showAlert(
+                        "Delete Failed",
+                        "Failed to delete question from library. Please try again.",
+                      );
                       return;
                     }
                   }
@@ -348,7 +352,10 @@ export default function InterviewQuestions() {
 
         {/* Right Column - Preview (Sidebar) */}
         <div className="hidden lg:block w-[360px] xl:w-[420px] shrink-0 bg-white border-l border-gray-200">
-          <AIInterviewPreview role={role} category={category} />
+          <AIInterviewPreview
+            role={role}
+            category={category}
+          />
         </div>
       </div>
       <AlertDialog
@@ -603,7 +610,10 @@ function ManualEntryForm({
       if (!q) return;
 
       if (!q.title.trim() || !q.description.trim()) {
-        showAlert("Incomplete Question", "Please provide both a title and description before saving.");
+        showAlert(
+          "Incomplete Question",
+          "Please provide both a title and description before saving.",
+        );
         return null;
       }
 
@@ -622,7 +632,10 @@ function ManualEntryForm({
         q.constraints.length > 0 &&
         q.constraints.some((c: string) => !c.trim());
       if (q.constraints.length === 0 || hasInvalidConstraints) {
-        showAlert("Missing Constraints", "Please provide valid constraints, and remove empty ones.");
+        showAlert(
+          "Missing Constraints",
+          "Please provide valid constraints, and remove empty ones.",
+        );
         return null;
       }
 
@@ -678,12 +691,18 @@ function ManualEntryForm({
         refetchLibrary();
         return savedTestId as number;
       } else {
-        showAlert("Save Failed", response.message || "Failed to save assessment");
+        showAlert(
+          "Save Failed",
+          response.message || "Failed to save assessment",
+        );
         return null;
       }
     } catch (error: any) {
       console.error("Error saving assessment:", error);
-      showAlert("Network Error", "A network error occurred while saving. Please try again.");
+      showAlert(
+        "Network Error",
+        "A network error occurred while saving. Please try again.",
+      );
       return null;
     }
   };
@@ -691,7 +710,10 @@ function ManualEntryForm({
   // Sends invite after employer manually clicks "Send Invite"
   const handleInvite = async () => {
     if (!defaultEmail) {
-      showAlert("Missing Email", "Please select a candidate with a valid email address first.");
+      showAlert(
+        "Missing Email",
+        "Please select a candidate with a valid email address first.",
+      );
       return;
     }
 
@@ -770,7 +792,10 @@ function ManualEntryForm({
         }).unwrap();
 
         if (!testResponse.success) {
-          showAlert("Assessment Failed", "Failed to create the test assessment for this invite.");
+          showAlert(
+            "Assessment Failed",
+            "Failed to create the test assessment for this invite.",
+          );
           return;
         }
         inviteTestId = testResponse.data.id;
@@ -780,7 +805,10 @@ function ManualEntryForm({
       }
 
       if (!inviteTestId) {
-        showAlert("Configuration Error", "Could not determine the test ID. Please try saving the questions first.");
+        showAlert(
+          "Configuration Error",
+          "Could not determine the test ID. Please try saving the questions first.",
+        );
         return;
       }
 
@@ -812,7 +840,10 @@ function ManualEntryForm({
       }
     } catch (error: any) {
       console.error("Error sending invite:", error);
-      showAlert("Invite Error", "A network error occurred while sending the invite.");
+      showAlert(
+        "Invite Error",
+        "A network error occurred while sending the invite.",
+      );
     }
   };
 
@@ -2180,15 +2211,11 @@ function AIInterviewPreview({
           <span className="text-[#8c9fc4] font-medium">Interview round</span>
           <span className="font-bold text-gray-900">{category}</span>
         </div>
-        <div className="flex justify-between items-center text-[12.5px]">
-          <span className="text-[#8c9fc4] font-medium">
-            Expected answer length
+        {/* <div className="flex justify-between items-center text-[12.5px]">
+          <span className="text-[#8c9fc4] font-medium">Test Duration</span>
+          <span className="font-bold text-gray-900">
+            {testDuration} minutes
           </span>
-          <span className="font-bold text-gray-900">2-4 minutes</span>
-        </div>
-        {/* <div className="flex justify-between items-start text-[12.5px]">
-          <span className="text-[#8c9fc4] font-medium">Scoring focus</span>
-          <span className="font-bold text-gray-900 text-right pl-4 leading-tight">Architecture, tradeoffs,<br/>clarity</span>
         </div> */}
       </div>
     </div>

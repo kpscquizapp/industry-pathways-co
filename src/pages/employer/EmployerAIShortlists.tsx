@@ -73,7 +73,7 @@ type CandidateProfileWithMeta = CandidateProfile & {
 };
 
 type CandidateListItem = CandidateProfileWithMeta & {
-  stage: "matched" | "shortlisted";
+  stage: "matched" | "shortlisted" | "invited";
   matchReasons: string[];
 };
 
@@ -1173,7 +1173,9 @@ const EmployerAIShortlists = () => {
                 const scoreBorder = candidate.matchScore >= 90 ? "border-[#08b8cc]" : candidate.matchScore >= 80 ? "border-[#3b82f6]" : "border-[#f59e0b]";
 
                 let badgeUI;
-                if (candidate.stage === "shortlisted") {
+                if (candidate.stage === "invited") {
+                  badgeUI = <Badge className="bg-[#e0e7ff] text-[#4f46e5] hover:bg-[#e0e7ff] border-none px-2.5 py-0.5 font-semibold text-[11px] rounded-sm">Invited</Badge>;
+                } else if (candidate.stage === "shortlisted") {
                   badgeUI = <Badge className="bg-[#ccfbf1] text-[#0f766e] hover:bg-[#ccfbf1] border-none px-2.5 py-0.5 font-semibold text-[11px] rounded-sm">Shortlisted</Badge>;
                 } else if (candidate.matchScore >= 90) {
                   badgeUI = (
@@ -1236,13 +1238,21 @@ const EmployerAIShortlists = () => {
                     <div className="flex items-center gap-2 ml-auto min-w-[220px] justify-end">
                       <Button
                         variant="outline"
-                        onClick={() => candidate.stage !== "shortlisted" && handleShortlist(candidate)}
-                        className={`h-9 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all ${candidate.stage === "shortlisted"
-                            ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
-                            : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                          }`}
+                        onClick={() => candidate.stage !== "shortlisted" && candidate.stage !== "invited" && handleShortlist(candidate)}
+                        className={`h-9 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all ${
+                          candidate.stage === "invited"
+                            ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
+                            : candidate.stage === "shortlisted"
+                              ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
+                              : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                        }`}
                       >
-                        {candidate.stage === "shortlisted" ? (
+                        {candidate.stage === "invited" ? (
+                          <span className="flex items-center gap-1.5">
+                            <Check className="w-4 h-4" strokeWidth={3} />
+                            Invited
+                          </span>
+                        ) : candidate.stage === "shortlisted" ? (
                           <span className="flex items-center gap-1.5">
                             <Check className="w-4 h-4" strokeWidth={3} />
                             Shortlisted
@@ -1252,7 +1262,7 @@ const EmployerAIShortlists = () => {
                         )}
                       </Button>
 
-                      {candidate.stage === "shortlisted" && (
+                      {(candidate.stage === "shortlisted" || candidate.stage === "invited") && (
                         <Button
                           variant="outline"
                           size="icon"

@@ -57,7 +57,7 @@ export interface Match {
   /** Backend-persisted shortlist status */
   isShortlisted?: boolean;
   /** Pipeline stage persisted in EmployerShortlist — returned by GET /jobs/:id/matches */
-  stage?: 'shortlisted' | 'invited' | null;
+  stage?: "shortlisted" | "invited" | null;
   [key: string]: unknown;
 }
 
@@ -87,7 +87,7 @@ export interface GetJobMatchesArgs {
 export interface ShortlistCandidateArgs {
   jobId: EntityId;
   talentId: EntityId;
-  talentSource: 'candidate' | 'bench';
+  talentSource: "candidate" | "bench";
 }
 
 const DEFAULT_PAGE = 1;
@@ -174,28 +174,40 @@ export const aiShortlistApi = createApi({
         { type: "AiShortlistMatches", id: String(jobId) },
       ],
     }),
-    createCodingTest: builder.mutation<any, { jobRoles: string[], testLevel: string, durationMinutes: number }>({
+    createCodingTest: builder.mutation<
+      any,
+      { jobRoles: string[]; testLevel: string; durationMinutes: number }
+    >({
       query: (body) => ({
         method: "POST",
-        url: 'coding/tests',
+        url: "coding/tests",
         body,
       }),
     }),
-    sendInviteEmail: builder.mutation<any, { codingTestId: string, candidateEmail?: string, expiresInHours?: number }>({
+    sendInviteEmail: builder.mutation<
+      any,
+      { codingTestId: string; candidateEmail?: string; expiresInHours?: number }
+    >({
       query: ({ codingTestId, ...body }) => ({
         method: "POST",
         url: `coding/tests/${codingTestId}/invite`,
         body,
       }),
     }),
-    createCustomTest: builder.mutation<any, { title: string; questions: any[]; candidateEmail?: string }>({
+    createCustomTest: builder.mutation<
+      any,
+      { title: string; questions: any[]; candidateEmail?: string }
+    >({
       query: (body) => ({
         url: "/coding/tests/custom",
         method: "POST",
         body,
       }),
     }),
-    updateCustomTest: builder.mutation<any, { id: number; title: string; questions: any[] }>({
+    updateCustomTest: builder.mutation<
+      any,
+      { id: number; title: string; questions: any[] }
+    >({
       query: ({ id, ...body }) => ({
         url: `/coding/tests/${id}/custom`,
         method: "PUT",
@@ -215,7 +227,10 @@ export const aiShortlistApi = createApi({
         url: "coding/tests/all/custom",
       }),
     }),
-    deleteCustomQuestion: builder.mutation<any, { testId: number, questionIndex: number }>({
+    deleteCustomQuestion: builder.mutation<
+      any,
+      { testId: number; questionIndex: number }
+    >({
       query: ({ testId, questionIndex }) => ({
         method: "DELETE",
         url: `coding/tests/${testId}/questions/${questionIndex}`,
@@ -223,7 +238,12 @@ export const aiShortlistApi = createApi({
     }),
     updateShortlistStage: builder.mutation<
       { success: boolean; message?: string },
-      { jobId: EntityId; talentId: EntityId; talentSource: 'candidate' | 'bench'; stage: 'shortlisted' | 'invited' }
+      {
+        jobId: EntityId;
+        talentId: EntityId;
+        talentSource: "candidate" | "bench";
+        stage: "shortlisted" | "invited";
+      }
     >({
       query: ({ jobId, ...body }) => ({
         method: "PATCH",
