@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Timer, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -10,8 +10,16 @@ interface TestTimerProps {
 
 const TestTimer: React.FC<TestTimerProps> = ({ startedAt, totalMinutes, onTimeUp }) => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
+  const onTimeUpRef = useRef(onTimeUp);
+  const hasFiredRef = useRef(false);
 
   useEffect(() => {
+    onTimeUpRef.current = onTimeUp;
+  }, [onTimeUp]);
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+
     const calculateTimeLeft = () => {
       const start = new Date(startedAt).getTime();
       const end = start + totalMinutes * 60 * 1000;
@@ -21,15 +29,23 @@ const TestTimer: React.FC<TestTimerProps> = ({ startedAt, totalMinutes, onTimeUp
       setTimeLeft(remaining);
 
       if (remaining === 0) {
-        onTimeUp();
+        if (!hasFiredRef.current) {
+          hasFiredRef.current = true;
+          onTimeUpRef.current();
+        }
+        if (interval) clearInterval(interval);
       }
     };
 
     calculateTimeLeft();
-    const interval = setInterval(calculateTimeLeft, 1000);
+    if (!hasFiredRef.current) {
+      interval = setInterval(calculateTimeLeft, 1000);
+    }
 
-    return () => clearInterval(interval);
-  }, [startedAt, totalMinutes, onTimeUp]);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [startedAt, totalMinutes]);
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);

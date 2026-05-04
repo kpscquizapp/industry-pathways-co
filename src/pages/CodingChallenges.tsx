@@ -101,9 +101,7 @@ const getLanguageKey = (name?: string): string => {
   if (n.includes("typescript")) return "typescript";
   if (n.includes("python")) return "python";
   if (n.includes("java") && !n.includes("javascript")) return "java";
-  if (n.includes("c++") || n.includes("cpp")) return "cpp";
   if (n.includes("go")) return "go";
-  if (n === "c" || n.startsWith("c (") || n.startsWith("c  (")) return "c";
   return n;
 };
 
@@ -151,6 +149,7 @@ const mapApiResults = (raw: any[], knownTCs: TestCase[]): TestCase[] => {
       id: known?.id ?? idx + 1,
       input,
       expectedOutput,
+      compile_output: tc.compile_output,
       actualOutput: stdout,
       stderr: stderr || undefined,
       passed,
@@ -173,7 +172,6 @@ const CodingChallenge: React.FC = () => {
   const [metadata, setMetadata] = useState<TestMetadata | null>(null);
   const [problems, setProblems] = useState<CodingProblem[]>([]);
   const [activeProblemIndex, setActiveProblemIndex] = useState(0);
-
   const [code, setCode] = useState<string>("");
   const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [isRunningCode, setIsRunningCode] = useState(false);
@@ -253,15 +251,11 @@ const CodingChallenge: React.FC = () => {
       if (n.includes("typescript")) return "typescript";
       if (n.includes("python")) return "python";
       if (n.includes("java") && !n.includes("javascript")) return "java";
-      if (n.includes("c++") || n.includes("cpp")) return "cpp";
       if (n.includes("go")) return "go";
-      if (n === "c" || n.startsWith("c (") || n.startsWith("c  (")) return "c";
       return n;
     };
 
     const supportedKeys = [
-      "c",
-      "cpp",
       "go",
       "java",
       "javascript",
@@ -272,8 +266,6 @@ const CodingChallenge: React.FC = () => {
 
     const preferredIds: Record<string, number> = {
       python: 71, // Python 3.8.1
-      c: 50, // C (GCC 9.2.0)
-      cpp: 54, // C++ (GCC 9.2.0)
     };
 
     languagesData.forEach((lang) => {
@@ -716,8 +708,6 @@ const CodingChallenge: React.FC = () => {
       const langKey = getLanguageKey(language.name);
 
       const supportedKeys = [
-        "c",
-        "cpp",
         "go",
         "java",
         "javascript",
@@ -796,8 +786,8 @@ const CodingChallenge: React.FC = () => {
     } catch (err: any) {
       setError(
         err?.data?.message ||
-          err.message ||
-          "An error occurred during execution",
+        err.message ||
+        "An error occurred during execution",
       );
     } finally {
       setIsRunningCode(false);
@@ -865,8 +855,8 @@ const CodingChallenge: React.FC = () => {
     } catch (err: any) {
       setError(
         err?.data?.message ||
-          err.message ||
-          "An error occurred during submission",
+        err.message ||
+        "An error occurred during submission",
       );
     } finally {
       setIsSubmitting(false);
@@ -1047,11 +1037,10 @@ const CodingChallenge: React.FC = () => {
 
             <div className="space-y-4 mb-8">
               <button
-                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${
-                  hasWebcamPermission
-                    ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
-                    : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
-                }`}
+                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${hasWebcamPermission
+                  ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
+                  : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
+                  }`}
                 onClick={async () => {
                   if (hasWebcamPermission) return;
                   try {
@@ -1097,11 +1086,10 @@ const CodingChallenge: React.FC = () => {
               </button>
 
               <button
-                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${
-                  isScreenSelected
-                    ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
-                    : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
-                }`}
+                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${isScreenSelected
+                  ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
+                  : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
+                  }`}
                 onClick={async () => {
                   if (isScreenSelected) return;
                   try {
@@ -1188,11 +1176,10 @@ const CodingChallenge: React.FC = () => {
                       ? "1px solid #e2e8f0"
                       : "none",
                 }}
-                className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${
-                  !hasWebcamPermission || !isScreenSelected
-                    ? "cursor-not-allowed opacity-100"
-                    : "hover:opacity-90"
-                }`}
+                className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${!hasWebcamPermission || !isScreenSelected
+                  ? "cursor-not-allowed opacity-100"
+                  : "hover:opacity-90"
+                  }`}
                 disabled={!hasWebcamPermission || !isScreenSelected}
                 onClick={handleStartTest}
               >
@@ -1279,7 +1266,7 @@ const CodingChallenge: React.FC = () => {
               className={cn(
                 "gap-2 bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none shrink-0",
                 !isMobile &&
-                  "bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none",
+                "bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none",
               )}
             >
               {isRunningCode ? (
