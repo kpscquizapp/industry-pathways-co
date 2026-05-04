@@ -600,11 +600,10 @@ const CandidateSignup = () => {
                               name="firstName"
                               placeholder="John"
                               maxLength={50}
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.firstName
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${fieldErrors.firstName
                                   ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                                   : ""
-                              }`}
+                                }`}
                               value={formData.firstName}
                               onChange={handleInputChange}
                               required
@@ -623,11 +622,10 @@ const CandidateSignup = () => {
                               name="lastName"
                               placeholder="Doe"
                               maxLength={50}
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.lastName
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${fieldErrors.lastName
                                   ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                                   : ""
-                              }`}
+                                }`}
                               value={formData.lastName}
                               onChange={handleInputChange}
                               required
@@ -648,11 +646,10 @@ const CandidateSignup = () => {
                             type="email"
                             maxLength={254}
                             placeholder="john@example.com"
-                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                              fieldErrors.email
+                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${fieldErrors.email
                                 ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                                 : ""
-                            }`}
+                              }`}
                             value={formData.email}
                             onChange={handleInputChange}
                             required
@@ -678,11 +675,10 @@ const CandidateSignup = () => {
                             name="mobileNumber"
                             type="tel"
                             placeholder="+1 (555) 000-1234"
-                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                              fieldErrors.mobileNumber
+                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${fieldErrors.mobileNumber
                                 ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                                 : ""
-                            }`}
+                              }`}
                             value={formData.mobileNumber}
                             onChange={handleInputChange}
                             required
@@ -703,11 +699,10 @@ const CandidateSignup = () => {
                               type="password"
                               placeholder="Enter your password"
                               maxLength={128}
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.password
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${fieldErrors.password
                                   ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                                   : ""
-                              }`}
+                                }`}
                               value={formData.password}
                               onChange={handleInputChange}
                               required
@@ -727,11 +722,10 @@ const CandidateSignup = () => {
                               type="password"
                               placeholder="Confirm your password"
                               maxLength={128}
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.confirmPassword
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${fieldErrors.confirmPassword
                                   ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                                   : ""
-                              }`}
+                                }`}
                               value={confirmPassword}
                               onChange={(e) => {
                                 setConfirmPassword(e.target.value);
@@ -796,11 +790,10 @@ const CandidateSignup = () => {
                               placeholder="E.g. 5"
                               min="0"
                               max={70}
-                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                                fieldErrors.yearsExperience
+                              className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${fieldErrors.yearsExperience
                                   ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                                   : ""
-                              }`}
+                                }`}
                               value={formData.yearsExperience ?? ""}
                               onChange={handleInputChange}
                               required
@@ -821,11 +814,10 @@ const CandidateSignup = () => {
                             name="primaryJobRole"
                             placeholder="e.g. Full Stack Developer, Data Scientist"
                             maxLength={100}
-                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                              fieldErrors.primaryJobRole
+                            className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${fieldErrors.primaryJobRole
                                 ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                                 : ""
-                            }`}
+                              }`}
                             value={formData.primaryJobRole}
                             onChange={handleInputChange}
                             required
@@ -844,11 +836,10 @@ const CandidateSignup = () => {
                           <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300" />
                           <Input
                             placeholder="Type skill and press Enter..."
-                            className={`h-12 pl-12 pr-24 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                              fieldErrors.primarySkills
+                            className={`h-12 pl-12 pr-24 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${fieldErrors.primarySkills
                                 ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
                                 : ""
-                            }`}
+                              }`}
                             value={skillInput}
                             ref={skillInputRef}
                             maxLength={50}
@@ -945,11 +936,10 @@ const CandidateSignup = () => {
                                 id={`type-${type}`}
                                 checked={preferredWorkType.includes(type)}
                                 onCheckedChange={() => toggleWorkType(type)}
-                                className={`border-slate-300 min-h-0 min-w-0 dark:border-white/10 ${
-                                  fieldErrors.preferredWorkType
+                                className={`border-slate-300 min-h-0 min-w-0 dark:border-white/10 ${fieldErrors.preferredWorkType
                                     ? "border-red-500"
                                     : ""
-                                }`}
+                                  }`}
                               />
                               <label
                                 htmlFor={`type-${type}`}
@@ -983,9 +973,8 @@ const CandidateSignup = () => {
                                 });
                               }
                             }}
-                            className={`mt-1 border-slate-300 min-h-0 min-w-0 dark:border-white/10 ${
-                              fieldErrors.acceptedTerms ? "border-red-500" : ""
-                            }`}
+                            className={`mt-1 border-slate-300 min-h-0 min-w-0 dark:border-white/10 ${fieldErrors.acceptedTerms ? "border-red-500" : ""
+                              }`}
                           />
                           <label
                             htmlFor="terms"
@@ -1018,11 +1007,10 @@ const CandidateSignup = () => {
                                 });
                               }
                             }}
-                            className={`mt-1 border-slate-300 min-h-0 min-w-0 dark:border-white/10 ${
-                              fieldErrors.acceptedPrivacyPolicy
+                            className={`mt-1 border-slate-300 min-h-0 min-w-0 dark:border-white/10 ${fieldErrors.acceptedPrivacyPolicy
                                 ? "border-red-500"
                                 : ""
-                            }`}
+                              }`}
                           />
                           <label
                             htmlFor="privacy"

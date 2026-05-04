@@ -46,7 +46,7 @@ export default function TermsService() {
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-            <img src={logo} alt="Quick Recruit" className="h-8 w-auto" />
+            <img src={logo} alt="Quick Recruit" className="h-12 w-auto" />
           </Link>
           <div className="flex items-center gap-4">
             <Link
@@ -95,18 +95,18 @@ export default function TermsService() {
               <p className="mt-4 text-lg font-medium text-slate-700">
                 PLEASE READ THESE TERMS AND CONDITIONS CAREFULLY BEFORE USING THE QUICK RECRUIT PLATFORM.
               </p>
-              <p className="mt-2 text-slate-600">
+              {/* <p className="mt-2 text-slate-600">
                 Effective Date: April 4, 2024
-              </p>
+              </p> */}
             </div>
 
             <div className="space-y-16">
               {/* Introduction */}
               <section id="introduction" className="scroll-mt-28">
                 <div className="rounded-2xl bg-amber-50 p-6 ring-1 ring-inset ring-amber-600/10">
-                   <p className="text-sm font-semibold leading-relaxed text-amber-900">
+                  <p className="text-sm font-semibold leading-relaxed text-amber-900">
                     BY REGISTERING, ACCESSING, OR USING OUR SERVICES, YOU AGREE TO BE LEGALLY BOUND BY THESE TERMS. IF YOU DO NOT AGREE, YOU MUST NOT USE THE PLATFORM.
-                   </p>
+                  </p>
                 </div>
               </section>
 
@@ -122,32 +122,32 @@ export default function TermsService() {
                   <p>In these Terms and Conditions, the following terms shall have the meanings assigned to them below:</p>
                   <ul className="grid gap-4">
                     <li className="flex flex-col gap-1">
-                       <span className="font-bold text-slate-900">"Platform"</span>
-                       <span>Quick Recruit website, mobile application, APIs, and all associated services operated by Quick Recruit.</span>
+                      <span className="font-bold text-slate-900">"Platform"</span>
+                      <span>Quick Recruit website, mobile application, APIs, and all associated services operated by Quick Recruit.</span>
                     </li>
                     <li className="flex flex-col gap-1">
-                       <span className="font-bold text-slate-900">"Quick Recruit", "we", "us", or "our"</span>
-                       <span>The company operating the Quick Recruit Platform.</span>
+                      <span className="font-bold text-slate-900">"Quick Recruit", "we", "us", or "our"</span>
+                      <span>The company operating the Quick Recruit Platform.</span>
                     </li>
                     <li className="flex flex-col gap-1">
-                       <span className="font-bold text-slate-900">"User"</span>
-                       <span>Any individual or entity that accesses or uses the Platform, including Employers and Candidates.</span>
+                      <span className="font-bold text-slate-900">"User"</span>
+                      <span>Any individual or entity that accesses or uses the Platform, including Employers and Candidates.</span>
                     </li>
                     <li className="flex flex-col gap-1">
-                       <span className="font-bold text-slate-900">"Employer"</span>
-                       <span>Any company, HR professional, hiring manager, or individual using the Platform to post jobs and hire talent.</span>
+                      <span className="font-bold text-slate-900">"Employer"</span>
+                      <span>Any company, HR professional, hiring manager, or individual using the Platform to post jobs and hire talent.</span>
                     </li>
                     <li className="flex flex-col gap-1">
-                       <span className="font-bold text-slate-900">"Candidate"</span>
-                       <span>Any individual contractor, freelancer, IT professional, or bench resource registered on the Platform seeking employment or project engagements.</span>
+                      <span className="font-bold text-slate-900">"Candidate"</span>
+                      <span>Any individual contractor, freelancer, IT professional, or bench resource registered on the Platform seeking employment or project engagements.</span>
                     </li>
                     <li className="flex flex-col gap-1">
-                       <span className="font-bold text-slate-900">"Bench Resource"</span>
-                       <span>A Candidate employed by a company but currently available for external deployment and listed on the Platform by their employer's HR team.</span>
+                      <span className="font-bold text-slate-900">"Bench Resource"</span>
+                      <span>A Candidate employed by a company but currently available for external deployment and listed on the Platform by their employer's HR team.</span>
                     </li>
                     <li className="flex flex-col gap-1">
-                       <span className="font-bold text-slate-900">"AI Services"</span>
-                       <span>Proprietary artificial intelligence tools including semantic matching, skill gap analysis, automated assessments, and AI interview scoring.</span>
+                      <span className="font-bold text-slate-900">"AI Services"</span>
+                      <span>Proprietary artificial intelligence tools including semantic matching, skill gap analysis, automated assessments, and AI interview scoring.</span>
                     </li>
                   </ul>
                 </div>
@@ -176,10 +176,10 @@ export default function TermsService() {
                     <h3 className="text-xl font-bold text-slate-900">2.2 Account Registration</h3>
                     <p>To access core features, you must create a verified account. You agree to:</p>
                     <ul className="list-disc pl-5 space-y-2">
-                       <li>Provide accurate, complete, and up-to-date information.</li>
-                       <li>Maintain only one active account per individual or entity.</li>
-                       <li>Not share your account credentials with anyone else.</li>
-                       <li>Notify us immediately of any suspected unauthorised access.</li>
+                      <li>Provide accurate, complete, and up-to-date information.</li>
+                      <li>Maintain only one active account per individual or entity.</li>
+                      <li>Not share your account credentials with anyone else.</li>
+                      <li>Notify us immediately of any suspected unauthorised access.</li>
                     </ul>
                   </div>
 
@@ -237,35 +237,35 @@ export default function TermsService() {
                   <h2 className="text-2xl font-bold text-slate-900">4. User Obligations and Acceptable Use</h2>
                 </div>
                 <div className="mt-6 space-y-8 text-base leading-relaxed text-slate-600">
-                   <div className="space-y-4">
-                      <h3 className="font-bold text-slate-900">4.1 General Obligations</h3>
-                      <ul className="grid gap-2 pl-5 list-disc text-sm">
-                         <li>Use for lawful recruitment purposes in India and UAE.</li>
-                         <li>Provide truthful information.</li>
-                         <li>No reverse-engineering of AI systems.</li>
-                         <li>No scraping or automated data extraction.</li>
-                         <li>No malware, spam, or impersonation.</li>
-                      </ul>
-                   </div>
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-slate-900">4.1 General Obligations</h3>
+                    <ul className="grid gap-2 pl-5 list-disc text-sm">
+                      <li>Use for lawful recruitment purposes in India and UAE.</li>
+                      <li>Provide truthful information.</li>
+                      <li>No reverse-engineering of AI systems.</li>
+                      <li>No scraping or automated data extraction.</li>
+                      <li>No malware, spam, or impersonation.</li>
+                    </ul>
+                  </div>
 
-                   <div className="space-y-4">
-                      <h3 className="font-bold text-slate-900">4.2 Employer-Specific</h3>
-                      <ul className="grid gap-2 pl-5 list-disc text-sm">
-                         <li>Post only genuine, current job opportunities.</li>
-                         <li>Comply with labour and anti-discrimination laws.</li>
-                         <li>No unauthorized sharing of Candidate data.</li>
-                         <li>AI outputs must be one part of a human-reviewed process.</li>
-                      </ul>
-                   </div>
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-slate-900">4.2 Employer-Specific</h3>
+                    <ul className="grid gap-2 pl-5 list-disc text-sm">
+                      <li>Post only genuine, current job opportunities.</li>
+                      <li>Comply with labour and anti-discrimination laws.</li>
+                      <li>No unauthorized sharing of Candidate data.</li>
+                      <li>AI outputs must be one part of a human-reviewed process.</li>
+                    </ul>
+                  </div>
 
-                   <div className="space-y-4">
-                      <h3 className="font-bold text-slate-900">4.3 Candidate-Specific</h3>
-                      <ul className="grid gap-2 pl-5 list-disc text-sm">
-                         <li>Profiles must accurately reflect qualifications.</li>
-                         <li>Complete assessments independently without assistance or AI.</li>
-                         <li>Keep availability status updated.</li>
-                      </ul>
-                   </div>
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-slate-900">4.3 Candidate-Specific</h3>
+                    <ul className="grid gap-2 pl-5 list-disc text-sm">
+                      <li>Profiles must accurately reflect qualifications.</li>
+                      <li>Complete assessments independently without assistance or AI.</li>
+                      <li>Keep availability status updated.</li>
+                    </ul>
+                  </div>
                 </div>
               </section>
 
@@ -284,14 +284,14 @@ export default function TermsService() {
                       All AI-generated outputs are informational tools to support, not replace, human judgment. Quick Recruit expressly disclaims liability arising from hiring decisions made based on AI outputs.
                     </p>
                     <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                       <div className="rounded-xl bg-slate-50 p-4 text-xs">
-                          <span className="font-bold block mb-1 uppercase">Accuracy</span>
-                          AI models may produce imperfect results. Users should apply professional judgment.
-                       </div>
-                       <div className="rounded-xl bg-slate-50 p-4 text-xs">
-                          <span className="font-bold block mb-1 uppercase">Integrity</span>
-                          Cheating on AI assessments results in a permanent ban from the Platform.
-                       </div>
+                      <div className="rounded-xl bg-slate-50 p-4 text-xs">
+                        <span className="font-bold block mb-1 uppercase">Accuracy</span>
+                        AI models may produce imperfect results. Users should apply professional judgment.
+                      </div>
+                      <div className="rounded-xl bg-slate-50 p-4 text-xs">
+                        <span className="font-bold block mb-1 uppercase">Integrity</span>
+                        Cheating on AI assessments results in a permanent ban from the Platform.
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -306,18 +306,18 @@ export default function TermsService() {
                   <h2 className="text-2xl font-bold text-slate-900">6. Intellectual Property</h2>
                 </div>
                 <div className="mt-6 space-y-6 text-base leading-relaxed text-slate-600">
-                   <div className="space-y-4">
-                      <h3 className="font-bold text-slate-900 underline decoration-slate-200 underline-offset-4">Quick Recruit's IP</h3>
-                      <p className="text-sm">
-                        Algorithms, software, design, and branding are the exclusive IP of Quick Recruit, protected under Indian and UAE laws.
-                      </p>
-                   </div>
-                   <div className="space-y-4">
-                      <h3 className="font-bold text-slate-900 underline decoration-slate-200 underline-offset-4">User-Submitted Content</h3>
-                      <p className="text-sm">
-                        You retain ownership of Content you submit, but grant us a license to use, store, and process it to provide services.
-                      </p>
-                   </div>
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-slate-900 underline decoration-slate-200 underline-offset-4">Quick Recruit's IP</h3>
+                    <p className="text-sm">
+                      Algorithms, software, design, and branding are the exclusive IP of Quick Recruit, protected under Indian and UAE laws.
+                    </p>
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-slate-900 underline decoration-slate-200 underline-offset-4">User-Submitted Content</h3>
+                    <p className="text-sm">
+                      You retain ownership of Content you submit, but grant us a license to use, store, and process it to provide services.
+                    </p>
+                  </div>
                 </div>
               </section>
 
@@ -402,7 +402,7 @@ export default function TermsService() {
                   <h2 className="text-2xl font-bold text-slate-900">11. Suspension and Termination</h2>
                 </div>
                 <div className="mt-6 space-y-4 text-base leading-relaxed text-slate-600">
-                   <p>You may close your account at any time. Quick Recruit reserves the right to suspend or terminate accounts for breaches, fraud, or 24+ months of inactivity.</p>
+                  <p>You may close your account at any time. Quick Recruit reserves the right to suspend or terminate accounts for breaches, fraud, or 24+ months of inactivity.</p>
                 </div>
               </section>
 
@@ -415,7 +415,7 @@ export default function TermsService() {
                   <h2 className="text-2xl font-bold text-slate-900">12. Legal Compliance — India and UAE</h2>
                 </div>
                 <div className="mt-6 space-y-4 text-base leading-relaxed text-slate-600">
-                   <p>Users must comply with Information Technology Act (India), UAE Labour Law, and Personal Data Protection laws in both regions. We strictly prohibit discrimination in hiring.</p>
+                  <p>Users must comply with Information Technology Act (India), UAE Labour Law, and Personal Data Protection laws in both regions. We strictly prohibit discrimination in hiring.</p>
                 </div>
               </section>
 
@@ -428,8 +428,8 @@ export default function TermsService() {
                   <h2 className="text-2xl font-bold text-slate-900">13. Governing Law and Dispute Resolution</h2>
                 </div>
                 <div className="mt-6 space-y-4 text-base leading-relaxed text-slate-600">
-                   <p>Governed by laws of India for Indian users and UAE laws for UAE users. Disputes unresolved through negotiation will be referred to arbitration (India) or relevant courts (UAE).</p>
-                   <p className="font-bold text-slate-900">All users waive rights to class action proceedings.</p>
+                  <p>Governed by laws of India for Indian users and UAE laws for UAE users. Disputes unresolved through negotiation will be referred to arbitration (India) or relevant courts (UAE).</p>
+                  <p className="font-bold text-slate-900">All users waive rights to class action proceedings.</p>
                 </div>
               </section>
 
@@ -442,30 +442,27 @@ export default function TermsService() {
                   <h2 className="text-2xl font-bold text-slate-900">14. General Provisions</h2>
                 </div>
                 <div className="mt-6 grid gap-6 sm:grid-cols-2 text-sm text-slate-600">
-                    <div className="space-y-2">
-                       <h4 className="font-bold text-slate-900">Entire Agreement</h4>
-                       <p>Constitutes the full agreement between you and Quick Recruit.</p>
-                    </div>
-                    <div className="space-y-2">
-                       <h4 className="font-bold text-slate-900">Amendments</h4>
-                       <p>Subject to change with 30 days notice for material updates.</p>
-                    </div>
+                  <div className="space-y-2">
+                    <h4 className="font-bold text-slate-900">Entire Agreement</h4>
+                    <p>Constitutes the full agreement between you and Quick Recruit.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-bold text-slate-900">Amendments</h4>
+                    <p>Subject to change with 30 days notice for material updates.</p>
+                  </div>
                 </div>
               </section>
 
               {/* End Note */}
               <div className="border-t border-slate-200 pt-12 text-center text-sm text-slate-500">
                 <p className="font-bold text-slate-900 text-base">Quick Recruit — Smarter Hiring, Trusted Platform</p>
-                <div className="mt-6 grid grid-cols-2 gap-4 max-w-sm mx-auto text-xs font-medium uppercase tracking-widest text-slate-400">
-                   <div className="flex flex-col items-center gap-2">
-                      <Mail className="h-4 w-4" /> legal@quickrecruit.ai
-                   </div>
-                   <div className="flex flex-col items-center gap-2">
-                      <Mail className="h-4 w-4" /> support@quickrecruit.ai
-                   </div>
+                <div className="mt-6 grid grid-cols-1 gap-4 max-w-sm mx-auto text-xs font-medium uppercase tracking-widest text-slate-400">
+                  <div className="flex flex-col items-center gap-2">
+                    <Mail className="h-4 w-4" /> hello@quickrekruit.com
+                  </div>
                 </div>
                 <p className="mt-8 italic">By using Quick Recruit, you confirm that you have read and agreed to these Terms and Conditions.</p>
-                <p className="mt-4">© 2025 Quick Recruit. All Rights Reserved. | India & UAE</p>
+                <p className="mt-4">&copy; {new Date().getFullYear()} Quick Recruit. All Rights Reserved. | India & UAE</p>
               </div>
             </div>
           </div>
@@ -474,7 +471,7 @@ export default function TermsService() {
 
       {/* Floating Action Button (Mobile Only) */}
       <div className="fixed bottom-6 right-6 lg:hidden">
-        <a 
+        <a
           href="#top"
           className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl transition-transform hover:scale-110 active:scale-95"
         >

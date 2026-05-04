@@ -73,6 +73,7 @@ const ProfileMenu = ({
                   "U"}
               </AvatarFallback>
             </Avatar>
+<<<<<<< HEAD
 
             {/* User Info */}
             <div className="text-left flex-1 min-w-0 pr-1">
@@ -89,6 +90,12 @@ const ProfileMenu = ({
             {/* Icon */}
             <LogOut className="h-[22px] w-[22px] text-slate-500 flex-shrink-0 hover:text-slate-300 transition-colors" />
           </div>
+=======
+            <span className="font-medium text-sm hidden sm:inline font-inter">
+              {user?.firstName || user?.role || "User"}
+            </span>
+          </Button>
+>>>>>>> c42f2f7c6202e727dcdafac4c16e974713e6f18a
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" side="top" className="w-56 bg-[#0B1221] border-[#1c2e3d] text-slate-300 shadow-2xl shadow-black/50">

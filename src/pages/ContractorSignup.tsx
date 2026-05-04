@@ -22,6 +22,7 @@ import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
 import logo from "@/assets/White Option.png";
 import logo2 from "@/assets/Dark Option.png";
 import { toast } from "sonner";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { Briefcase, Clock, Lock, Mail, Phone, Star, User } from "lucide-react";
 import {
   Select as UiSelect,
@@ -93,7 +94,7 @@ interface FormData {
   mobileNumber: string;
   password: string;
   confirmPassword: string;
-  contractorType: string;
+  candidateType: string;
   yearsExperience: number | null;
   primaryJobRole: string;
   availableToJoin: string;
@@ -135,11 +136,12 @@ const VALIDATION = {
   },
   phone: {
     regex: /^\+?[1-9]\d{6,14}$/,
-    validate: (phone: string) => {
-      if (!phone) return "Mobile number is required";
-      const cleaned = phone.replace(/[\s\-()]/g, "");
+    validate: (phone: string | number) => {
+      if (phone === null || phone === undefined || phone === "") return "Mobile number is required";
+      const phoneStr = String(phone);
+      const cleaned = phoneStr.replace(/[\s\-()]/g, "");
       if (!VALIDATION.phone.regex.test(cleaned)) {
-        return "Please enter a valid mobile number (e.g., +14155551234 or +919876543210)";
+        return "Please enter a valid mobile number";
       }
       return null;
     },
@@ -243,7 +245,7 @@ const VALUE_PROPS = [
 const CONTRACTOR_TYPE_OPTIONS: SelectOption[] = [
   { value: "", label: "Select contractor type" },
   { value: "Full-Time Job Seeker", label: "Full-Time Job Seeker" },
-  { value: "Contract / Freelancer", label: "Contract / Freelancer" },
+  { value: "Contract / Freelance", label: "Contract / Freelance" },
   { value: "Hybrid Professional", label: "Hybrid Professional" },
 ];
 
@@ -264,7 +266,7 @@ const INITIAL_FORM: FormData = {
   mobileNumber: "",
   password: "",
   confirmPassword: "",
-  contractorType: "",
+  candidateType: "",
   yearsExperience: null,
   primaryJobRole: "",
   availableToJoin: "",
@@ -970,7 +972,8 @@ const LeftPanel: FC = memo(() => {
             fontSize: 16,
             color: "rgba(255,255,255,0.55)",
             lineHeight: 1.6,
-            maxWidth: 340,
+            maxWidth: 360,
+            marginTop: 32,
           }}
         >
           Join the ecosystem of elite contractors and find the perfect match for
@@ -1122,7 +1125,8 @@ export default function ContractorSignup(): JSX.Element {
     });
     setForm((prev) => ({
       ...prev,
-      [name]: type === "number" ? (value === "" ? null : Number(value)) : value,
+      // Special case: mobileNumber should remain a string to preserve leading zeros
+      [name]: (type === "number" && name !== "mobileNumber") ? (value === "" ? null : Number(value)) : value,
     }));
   }, []);
 
@@ -1210,8 +1214,8 @@ export default function ContractorSignup(): JSX.Element {
         errors.confirmPassword = "Passwords do not match";
       }
     } else if (step === 2) {
-      if (!form.contractorType)
-        errors.contractorType = "Please select a contractor type";
+      if (!form.candidateType)
+        errors.candidateType = "Please select a contractor type";
       const expErr = VALIDATION.experience.validate(form.yearsExperience);
       if (expErr) errors.yearsExperience = expErr;
       if (!form.primaryJobRole || !form.primaryJobRole.trim()) {
@@ -1276,9 +1280,9 @@ export default function ContractorSignup(): JSX.Element {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       email: form.email.toLowerCase().trim(),
-      mobileNumber: form.mobileNumber.replace(/[\s\-()]/g, ""),
+      mobileNumber: String(form.mobileNumber || "").replace(/[\s\-()]/g, ""),
       password: form.password,
-      contractorType: form.contractorType,
+      candidateType: form.candidateType,
       yearsExperience: form.yearsExperience,
       primaryJobRole: form.primaryJobRole.trim(),
       primarySkills,
@@ -1634,7 +1638,7 @@ export default function ContractorSignup(): JSX.Element {
             gap: 12px;
           }
           .contractor-actions {
-            flex-direction: column;
+            flex-direction: column-reverse;
             gap: 10px;
             margin-top: 24px;
           }
@@ -1883,8 +1887,15 @@ export default function ContractorSignup(): JSX.Element {
                 onChange={handleInput}
                 error={fieldErrors.email}
               />
+              {isCheckingEmail && (
+                <div className="text-sm text-slate-500 flex items-center gap-2">
+                  <SpinnerLoader />{" "}
+                  <span>Checking availability...</span>
+                </div>
+              )}
               <Input
                 label="Mobile Number"
+                type="number"
                 required
                 name="mobileNumber"
                 placeholder="+1 (555) 000-0000"
@@ -1918,10 +1929,10 @@ export default function ContractorSignup(): JSX.Element {
             </div>
           )}
 
-        
+
           {step === 2 && (
             <div style={S.column(22)}>
-             
+
               <div
                 style={{
                   background: isEmailVerified ? "rgba(77,217,232,0.05)" : "#fff9f9",
@@ -2023,9 +2034,9 @@ export default function ContractorSignup(): JSX.Element {
                   required
                   icon={BriefcaseIcon}
                   options={CONTRACTOR_TYPE_OPTIONS}
-                  value={form.contractorType}
-                  onChange={handleSelect("contractorType")}
-                  error={fieldErrors.contractorType}
+                  value={form.candidateType}
+                  onChange={handleSelect("candidateType")}
+                  error={fieldErrors.candidateType}
                 />
                 {/* Years of Experience — number input */}
                 <Input
@@ -2160,11 +2171,17 @@ export default function ContractorSignup(): JSX.Element {
               disabled={isLoading || isCheckingEmail}
               style={btnPrimary}
               onMouseEnter={(e) => {
-                if (!isLoading && !isCheckingEmail)
-                  e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.backgroundColor = 'rgba(15, 23, 41, 0.9)';
+                e.currentTarget.style.backgroundImage = 'none';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
+                if (isLast) {
+                  e.currentTarget.style.backgroundImage = `linear-gradient(135deg, ${ACCENT} 0%, #06b6d4 100%)`;
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                } else {
+                  e.currentTarget.style.backgroundColor = TEXT_PRIMARY;
+                  e.currentTarget.style.backgroundImage = 'none';
+                }
               }}
             >
               {isLoading || isCheckingEmail ? (

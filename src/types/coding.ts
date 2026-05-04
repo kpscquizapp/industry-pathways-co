@@ -1,7 +1,7 @@
 export enum Difficulty {
-  EASY = "Easy",
-  MEDIUM = "Medium",
-  HARD = "Hard",
+  EASY = "easy",
+  MEDIUM = "medium",
+  HARD = "hard",
 }
 
 export enum SupportedLanguage {
@@ -10,31 +10,38 @@ export enum SupportedLanguage {
   PYTHON = "python",
   JAVA = "java",
   CPP = "cpp",
+  C = "c",
+  GO = "go",
 }
 
 export interface TestCase {
-  id: string;
+  id: string | number;
   input: string;
   expectedOutput: string;
   actualOutput?: string;
+  compileOutput?: string;
+  stderr?: string;
   passed?: boolean;
   runtime?: number;
   memory?: number;
 }
 
 export interface CodingProblem {
-  id: string;
+  id: string | number;
   title: string;
-  difficulty: Difficulty;
+  difficulty: string | Difficulty;
   description: string;
-  examples: {
+  examples?: {
     input: string;
     output: string;
     explanation?: string;
   }[];
-  constraints: string[];
-  starterCode: Record<SupportedLanguage, string>;
-  testCases: TestCase[];
+  constraints?: string[];
+  baseCode?: Record<string, string>;
+  starterCode?: Record<SupportedLanguage, string>;
+  test_cases?: TestCase[];
+  testcases?: TestCase[];
+  testCases?: TestCase[];
 }
 
 export interface SubmissionResult {

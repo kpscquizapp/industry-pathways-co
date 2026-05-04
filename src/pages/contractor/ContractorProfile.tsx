@@ -115,7 +115,7 @@ const ContractorProfile = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-5 my-8 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-5 my-8 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">
       {/* Left Column (Profile Summary, Skills, Certs) */}
       <div className="flex flex-col gap-4">
         <DashCard className="text-center p-7">

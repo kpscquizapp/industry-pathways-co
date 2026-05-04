@@ -1,0 +1,27 @@
+                {/* Left: Input Selection
+                <div className="flex flex-col gap-6">
+                  <div className="space-y-2.5">
+                    <label className="text-[13px] font-bold text-slate-500 ml-1">Target Skill / Role</label>
+                    <div className="relative group">
+                      <select className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 text-[15px] font-medium text-slate-700 outline-none focus:ring-2 focus:ring-[#0ea5e9]/20 focus:border-[#0ea5e9] transition-all appearance-none cursor-pointer group-hover:bg-slate-100/50">
+                        <option>Select a skill... (e.g., ReactJS)</option>
+                        <option>ReactJS Development</option>
+                        <option>Node.js Backend</option>
+                        <option>Manual Testing</option>
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-slate-600 transition-colors" size={20} />
+                    </div>
+                  </div>
+
+                  <div className="relative flex items-center justify-center py-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-dashed border-slate-200" />
+                    </div>
+                    <span className="relative bg-white px-4 text-[11px] font-black text-slate-300 uppercase tracking-widest">OR</span>
+                  </div>
+
+                  <button className="w-full h-14 bg-[#F5F3FF] border border-[#DDD6FE] rounded-xl flex items-center justify-center gap-3 text-[#7C3AED] text-[15px] font-bold hover:bg-[#EDE9FE] transition-all active:scale-[0.98]">
+                    <WandSparkles size={20} />
+                    Generate based on my Resume
+                  </button>
+                </div> */}

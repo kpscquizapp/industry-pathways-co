@@ -5,6 +5,8 @@ import Logos from "@/components/landing/Logos";
 import HowItWorks from "@/components/landing/HowItWorks";
 import AiHiring from "@/components/landing/AiHiring";
 import Roles from "@/components/landing/Roles";
+import CandidateAutopilot from "@/components/landing/CandidateAutopilot";
+import CompanyHiringProcess from "@/components/landing/CompanyHiringProcess";
 import TrustedCompanies from "@/components/landing/TrustedCompanies";
 import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
@@ -37,13 +39,16 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-background isolate">
+      <div className="w-full h-10 bg-[#75d6ff]" />
       <Navbar />
       <main>
         <Hero />
         <Logos />
         <HowItWorks />
         <Roles />
+        <CandidateAutopilot />
+        <CompanyHiringProcess />
         <TrustedCompanies />
         <AiHiring />
         <FAQ />

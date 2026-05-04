@@ -51,6 +51,7 @@ import { useGetCandidateProfileImageQuery } from "@/app/queries/profileApi";
 import { skipToken } from "@reduxjs/toolkit/query";
 import logo from "../../assets/White Option.png";
 import logoIcon from "../../assets/logo_icon.png";
+import BarLoader from "../loader/BarLoader";
 
 type DashboardRole = "contractor" | "bench" | "hire-talent";
 
@@ -67,7 +68,11 @@ const getMenuItems = (role: DashboardRole) => {
           label: "Dashboard",
           href: "/contractor/dashboard",
         },
-        { icon: User, label: "Profile", href: "/contractor/profile/update" },
+        {
+          icon: User,
+          label: "Update Profile",
+          href: "/contractor/profile/update",
+        },
         { icon: Code, label: "Skill Tests", href: "/contractor/tests" },
         // {
         //   icon: Video,
@@ -121,12 +126,12 @@ const getMenuItems = (role: DashboardRole) => {
           href: "/hire-talent/skill-tests",
         },
         {
-          icon: Video,
-          label: "AI Interviews",
-          href: "/hire-talent/ai-interviews",
-          isAI: true,
+          icon: ClipboardCheck,
+          label: "Interview Questions",
+          href: "/hire-talent/interview-questions",
+          // isAI: true,
         },
-        { icon: FileText, label: "Contracts", href: "/hire-talent/contracts" },
+        // { icon: FileText, label: "Contracts", href: "/hire-talent/contracts" },
         { icon: Settings, label: "Settings", href: "/hire-talent/settings" },
       ];
     default:
@@ -198,17 +203,17 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
     <Sidebar
       collapsible="icon"
       className="border-none text-slate-300 !bg-[#0B1221]"
-      style={{
-        "--sidebar-background": "221 50% 9%",
-        "--sidebar": "221 50% 9%"
-      } as React.CSSProperties}
+      style={
+        {
+          "--sidebar-background": "221 50% 9%",
+          "--sidebar": "221 50% 9%",
+        } as React.CSSProperties
+      }
     >
       <SidebarHeader className="p-6">
-        {
-          isCollapsed && (
-            <img src={logoIcon} alt="logo icon" className="w-12 h-auto" />
-          )
-        }
+        {isCollapsed && (
+          <img src={logoIcon} alt="logo icon" className="w-12 h-auto" />
+        )}
         <Link to="/" className="flex items-center gap-3">
           {!isCollapsed && (
             <img src={logo} alt="company logo" className="h-auto w-36" />
@@ -216,7 +221,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="p-4 pt-2">
+      <SidebarContent className="p-4 pt-2 font-inter">
         {!isCollapsed && (
           <div className="px-3 mb-4 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
             Menu
@@ -240,10 +245,10 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
                   tooltip={item.label}
                   className={cn(
                     "w-full justify-start transition-all relative overflow-hidden group/menuBtn border border-transparent",
-                    !isCollapsed && "px-4 py-6 rounded-2xl",
-                    isCollapsed && "rounded-xl",
+                    !isCollapsed && "px-4 py-6 rounded-sm",
+                    isCollapsed && "rounded-sm",
                     isActive
-                      ? "!bg-[#112433] !text-[#00e5ff]"
+                      ? "!bg-[#112433] !text-[#00e5ff]/80"
                       : "!text-slate-400 hover:!bg-[rgba(0,229,255,0.05)] hover:!text-white",
                   )}
                 >
@@ -251,9 +256,16 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
                     {isActive && (
                       <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-[#00e5ff] rounded-r-md z-10 shadow-[0_0_10px_rgba(0,229,255,0.4)]" />
                     )}
-                    <item.icon className={cn("!w-[22px] !h-[22px] flex-shrink-0 z-10 transition-colors", isActive ? "" : "group-hover/menuBtn:text-[#00e5ff]")} />
+                    <item.icon
+                      className={cn(
+                        "!w-[20px] !h-[20px] flex-shrink-0 z-10 transition-colors",
+                        isActive ? "" : "group-hover/menuBtn:text-[#00e5ff]",
+                      )}
+                    />
                     {!isCollapsed && (
-                      <span className="font-semibold text-[15px] ml-4 z-10 transition-colors">{item.label}</span>
+                      <span className="font-semibold text-[14px] ml-4 z-10 transition-colors">
+                        {item.label}
+                      </span>
                     )}
                     {item.isAI && !isCollapsed && (
                       <span className="ml-auto px-2 py-0.5 text-[10px] bg-[rgba(0,229,255,0.1)] text-[#00e5ff] rounded-full font-bold">
@@ -274,7 +286,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
             <button
               className={cn(
                 "flex items-center w-full p-2.5 rounded-2xl hover:bg-white/5 transition-colors bg-[#111928] border border-transparent hover:border-white/10",
-                isCollapsed ? "justify-center" : "gap-3"
+                isCollapsed ? "justify-center" : "gap-3",
               )}
             >
               <Avatar className="h-10 w-10 bg-cyan-900/40 flex-shrink-0 rounded-xl">
@@ -285,7 +297,7 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
                     alt={`${user?.firstName ?? "User"} profile image`}
                   />
                 )}
-                <AvatarFallback className="bg-transparent text-[#00e5ff] text-base font-bold rounded-xl">
+                <AvatarFallback className="bg-transparent text-[#00e5ff] text-base font-bold rounded-xl font-inter">
                   {user?.firstName?.charAt(0) ||
                     user?.email?.charAt(0) ||
                     role.charAt(0).toUpperCase()}
@@ -295,10 +307,10 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
               {!isCollapsed && (
                 <>
                   <div className="text-left flex-1 min-w-0 pr-1">
-                    <p className="text-[15px] font-semibold text-white truncate leading-tight">
+                    <p className="text-[13px] font-semibold text-white truncate leading-tight font-inter">
                       {user?.firstName} {user?.lastName}
                     </p>
-                    <p className="text-[13px] text-slate-400 truncate mt-0.5">
+                    <p className="text-[13px] text-slate-400 truncate mt-0.5 font-inter">
                       {getRoleBadge()}
                     </p>
                   </div>
@@ -307,17 +319,21 @@ const UnifiedSidebarContent = ({ role }: { role: DashboardRole }) => {
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" className="w-56 bg-[#0B1221] border-[#1c2e3d] text-slate-300 shadow-2xl shadow-black/50">
+          <DropdownMenuContent
+            align="end"
+            side="top"
+            className="w-56 bg-[#0B1221] border-[#1c2e3d] text-slate-300 shadow-2xl shadow-black/50 font-inter"
+          >
             <DropdownMenuItem
               onClick={handleProfile}
-              className="focus:bg-[#112433] focus:text-[#00e5ff] cursor-pointer transition-colors"
+              className="focus:bg-[#112433] focus:text-[#00e5ff]/80 cursor-pointer transition-colors"
             >
               <User className="h-4 w-4 mr-2" />
               Profile
             </DropdownMenuItem>
             <DropdownMenuItem
               asChild
-              className="focus:bg-[#112433] focus:text-[#00e5ff] cursor-pointer transition-colors"
+              className="focus:bg-[#112433] focus:text-[#00e5ff]/80 cursor-pointer transition-colors"
             >
               <Link to={`/${role}/settings`} className="w-full">
                 <Settings className="h-4 w-4 mr-2" />
@@ -356,22 +372,26 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
         <div className="flex-1 flex flex-col min-w-0">
           <header className="sticky top-0 z-40 h-16 bg-background border-b border-border flex items-center justify-between px-2 sm:px-6">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="text-muted-foreground hover:bg-[#0b1221]/10" title="Toggle Sidebar" />
+              <SidebarTrigger
+                className="text-muted-foreground hover:bg-[#0b1221]/10"
+                title="Toggle Sidebar"
+              />
             </div>
 
             <div className="flex items-center gap-3">
               <Button size="icon" className="relative bg-transparent hover:bg-[#0b1221]/10">
                 <Bell className="h-5 w-5 text-muted-foreground" />
-                {/* <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" /> */}
+                <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
               </Button>
             </div>
           </header>
 
-          <main className="flex-1 p-6 overflow-auto">
+          <main className="flex-1 p-0 overflow-auto">
             <React.Suspense
               fallback={
-                <div className="flex items-center justify-center h-full">
-                  <SpinnerLoader className="w-8 h-8 text-primary" />
+                <div className="flex items-center justify-center gap-4 h-full">
+                  <SpinnerLoader className="w-10 h-10" />
+                  <p className="text-muted-foreground">Loading...</p>
                 </div>
               }
             >

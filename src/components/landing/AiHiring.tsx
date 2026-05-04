@@ -68,7 +68,7 @@ const AiHiring = () => {
       <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-      <div className="max-w-[1240px] mx-auto px-6 relative z-10">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 relative z-10">
         {/* Section Header */}
         <div className="text-center mb-20">
           <motion.div
@@ -76,7 +76,7 @@ const AiHiring = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-[2.5px] mb-6"
+            className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[11px] font-bold uppercase tracking-[2.5px] mb-6 font-mono"
           >
             Benefits
           </motion.div>
@@ -86,7 +86,7 @@ const AiHiring = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="font-heading text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight"
+            className="font-heading text-[30px] md:text-[45px] font-bold text-white mb-2 tracking-tight"
           >
             AI That Actually Understands Hiring
           </motion.h2>
@@ -96,7 +96,7 @@ const AiHiring = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="max-w-2xl mx-auto text-gray-400 text-lg md:text-xl leading-relaxed mt-4"
+            className="max-w-3xl mx-auto text-gray-400 font-medium text-[17px] leading-relaxed"
           >
             Our proprietary AI goes beyond basic matching to deliver genuinely qualified candidates.
           </motion.p>

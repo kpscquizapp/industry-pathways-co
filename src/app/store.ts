@@ -8,6 +8,8 @@ import { atsApi } from "./queries/atsApi";
 import { benchApi } from "./queries/benchApi";
 import { aiShortlistApi } from "./queries/aiShortlistApi";
 import { employerApi } from "./queries/employerApi";
+import { contractorSkillTestApi } from "./queries/contractorSkillTest";
+import { assessmentApi } from "./queries/assessmentApi";
 
 const store = configureStore({
   reducer: {
@@ -20,6 +22,8 @@ const store = configureStore({
     [atsApi.reducerPath]: atsApi.reducer,
     [benchApi.reducerPath]: benchApi.reducer,
     [aiShortlistApi.reducerPath]: aiShortlistApi.reducer,
+    [contractorSkillTestApi.reducerPath]: contractorSkillTestApi.reducer,
+    [assessmentApi.reducerPath]: assessmentApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -30,8 +34,11 @@ const store = configureStore({
       atsApi.middleware,
       benchApi.middleware,
       aiShortlistApi.middleware,
+      contractorSkillTestApi.middleware,
+      assessmentApi.middleware,
     ),
 });
+
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
