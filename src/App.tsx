@@ -284,61 +284,61 @@ const App = () => {
                       </Route>
 
                       {/* Legacy (Employer -Current using) HR Dashboard Routes */}
-                      { /*  <Route element={<ProtectedLayout allowedRoles={["hr"]} />}> */}
-                      <Route
-                        path="/bench-dashboard"
-                        element={<EmployerLayoutOld />}
-                      >
-                        <Route index element={<CompanyDashboard />} />
+                      <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
                         <Route
-                          path="dashboard"
-                          element={<CompanyDashboard />}
-                        />
-                        <Route path="job-board" element={<JobBoard />} />
-                        <Route path="create-job" element={<CreateJob />} />
-                        <Route path="post-job" element={<PostJob />} />
-                        <Route
-                          path="hire-fulltime"
-                          element={<HireFullTime />}
-                        />
-                        <Route path="hire-interns" element={<HireInterns />} />
-                        <Route
-                          path="contract-hiring"
-                          element={<ContractHiring />}
-                        />
-                        <Route
-                          path="talent-marketplace"
-                          element={<TalentMarketplace />}
-                        />
-                        <Route
-                          path="post-bench-resource"
-                          element={<PostBenchResource />}
-                        />
-                        <Route
-                          path="active-resources"
-                          element={<ActiveResources />}
-                        />
-                        <Route
-                          path="visibility-settings"
-                          element={<VisibilitySettings />}
-                        />
-                        <Route path="ai-screening" element={<AIScreening />} />
-                        <Route path="job/:jobId" element={<JobDetailsPage />} />
-                        <Route
-                          path="job/:jobId/candidates"
-                          element={<JobCandidates />}
-                        />
-                        <Route
-                          path="job/:jobId/candidate/:candidateId"
-                          element={<CandidateDetailPage />}
-                        />
-                        <Route
-                          path="interview-results/:candidateId"
-                          element={<AIInterviewResults />}
-                        />
-                        <Route path="settings" element={<EmployerSettings />} />
+                          path="/bench-dashboard"
+                          element={<EmployerLayoutOld />}
+                        >
+                          <Route index element={<CompanyDashboard />} />
+                          <Route
+                            path="dashboard"
+                            element={<CompanyDashboard />}
+                          />
+                          <Route path="job-board" element={<JobBoard />} />
+                          <Route path="create-job" element={<CreateJob />} />
+                          <Route path="post-job" element={<PostJob />} />
+                          <Route
+                            path="hire-fulltime"
+                            element={<HireFullTime />}
+                          />
+                          <Route path="hire-interns" element={<HireInterns />} />
+                          <Route
+                            path="contract-hiring"
+                            element={<ContractHiring />}
+                          />
+                          <Route
+                            path="talent-marketplace"
+                            element={<TalentMarketplace />}
+                          />
+                          <Route
+                            path="post-bench-resource"
+                            element={<PostBenchResource />}
+                          />
+                          <Route
+                            path="active-resources"
+                            element={<ActiveResources />}
+                          />
+                          <Route
+                            path="visibility-settings"
+                            element={<VisibilitySettings />}
+                          />
+                          <Route path="ai-screening" element={<AIScreening />} />
+                          <Route path="job/:jobId" element={<JobDetailsPage />} />
+                          <Route
+                            path="job/:jobId/candidates"
+                            element={<JobCandidates />}
+                          />
+                          <Route
+                            path="job/:jobId/candidate/:candidateId"
+                            element={<CandidateDetailPage />}
+                          />
+                          <Route
+                            path="interview-results/:candidateId"
+                            element={<AIInterviewResults />}
+                          />
+                          <Route path="settings" element={<EmployerSettings />} />
+                        </Route>
                       </Route>
-                      {/* </Route> */}
 
                       {/* <Route
                       path="/profile-visibility"
