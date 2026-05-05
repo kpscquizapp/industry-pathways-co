@@ -2010,7 +2010,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
   }
 
   return (
-    <div className="w-full mx-auto px-6 sm:px-9 md:px-8 py-6 sm:py-10 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">
+    <div className="w-full mx-auto px-6 sm:px-9 md:px-8 py-6 sm:py-10 font-inter">
       <div className="mb-6 sm:mb-8">
         <h2 className="text-2xl sm:text-3xl font-bold">Update Profile</h2>
         <p className="text-muted-foreground my-2">

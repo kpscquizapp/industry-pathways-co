@@ -229,7 +229,7 @@ const ContractorSkillTest = () => {
   };
 
   return (
-    <div className="flex flex-col gap-8 py-6 sm:py-10 px-6 sm:px-9 md:px-8 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">
+    <div className="flex flex-col gap-8 py-6 sm:py-10 px-6 sm:px-9 md:px-8 font-sans  font-inter">
       {/* Header Section */}
       <div>
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
