@@ -66,7 +66,7 @@ const HrSidebarContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { state, isMobile, setOpenMobile } = useSidebar();
-  const isCollapsed = state === "collapsed";
+  const isCollapsed = state === "collapsed" && !isMobile;
 
   const handleMobileClose = () => {
     if (isMobile && setOpenMobile) {
