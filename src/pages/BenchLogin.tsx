@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import HirionLogo from "../assets/White Option.png";
 import DarkLogo from "../assets/Dark Option.png";
 import { Label } from "@/components/ui/label";
 import {
-  Sparkles,
   ArrowRight,
   Mail,
   Lock,
@@ -164,185 +162,304 @@ const BenchLogin = () => {
   };
 
   return (
+    <div
+      className="login-page"
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        width: "100%",
+        fontFamily: "'Inter', sans-serif",
+        background: "#f3f5f8",
+        overflowX: "hidden",
+      }}
+    >
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes floatY {
+          0%, 100% { transform: translateY(0); }
+          50%      { transform: translateY(-20px); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.15; }
+          50%      { opacity: 0.35; }
+        }
+        .login-page * { box-sizing: border-box; }
+        .login-left-panel {
+          display: none;
+          flex: 0 0 50%;
+          width: 50%;
+          max-width: 50%;
+          min-height: 100vh;
+          overflow: hidden;
+        }
+        .login-right-panel {
+          flex: 1 1 auto;
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          max-width: 100%;
+          padding: 24px 14px;
+          overflow-y: auto;
+          overflow-x: hidden;
+          background: #fff;
+          min-width: 0;
+          min-height: 100vh;
+        }
+        .login-mobile-brand {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 24px;
+          width: 100%;
+          animation: fadeUp 0.6s ease;
+        }
+        .login-mobile-brand img {
+          width: 180px;
+          height: auto;
+          display: block;
+          max-width: 70vw;
+        }
+        .login-mobile-brand span {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: #6b7280;
+        }
+        @media (min-width: 1025px) {
+          .login-left-panel {
+            display: flex;
+          }
+          .login-right-panel {
+            flex: 0 0 50%;
+            width: 50%;
+            max-width: 50%;
+            padding: 60px 70px;
+            background: #fff;
+          }
+          .login-mobile-brand {
+            display: none;
+          }
+        }
+        .animate-fade-up {
+          animation: fadeUp 0.6s ease forwards;
+        }
+        .animate-float {
+          animation: floatY 6s ease-in-out infinite;
+        }
+        .animate-pulse-slow {
+          animation: pulse 4s ease-in-out infinite;
+        }
+      `}</style>
 
-    <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
       {/* Left Panel - Immersive Branding */}
-      <div className="hidden lg:flex lg:w-[50%] bg-[#080b20] px-16 py-8 flex-col justify-center relative overflow-hidden shrink-0 border-r border-white/5">
-        <div className="absolute top-0 left-0 w-full h-full opacity-[0.15] pointer-events-none animate-pulse-slow">
+      <div className="login-left-panel bg-[#080b20] px-16 py-8 flex-col justify-center relative shrink-0 border-r border-white/5">
+        {/* Subtle Decorative Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none animate-pulse-slow">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <pattern id="dotGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+              <pattern
+                id="dotGrid"
+                width="24"
+                height="24"
+                patternUnits="userSpaceOnUse"
+              >
                 <circle cx="2" cy="2" r="1" fill="#fff" />
               </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#dotGrid)" opacity="0.4" />
+            <rect width="100%" height="100%" fill="url(#dotGrid)" />
           </svg>
         </div>
-        <div className="absolute z-10 top-8 left-16 animate-fade-up">
-          <div className="relative z-10" style={{ marginBottom: "4rem", marginTop: "1rem" }}>
-            <Link to="/" className="flex items-center gap-3 group" >
-              <img src={HirionLogo} alt="Hirion Logo" className="w-44 h-auto" />
-            </Link>
-          </div>
+        <div className="absolute bottom-[-15%] right-[-10%] w-[350px] h-[350px] border border-white/[0.03] rounded-full animate-float" />
+        <div
+          className="absolute bottom-[-20%] right-[-15%] w-[500px] h-[500px] border border-white/[0.02] rounded-full animate-float"
+          style={{ animationDelay: "1s" }}
+        />
 
+        <div className="absolute top-10 left-16 z-20 animate-fade-up">
+          <Link to="/" className="flex items-center gap-3 group">
+            <img src={HirionLogo} alt="company logo" className="w-44 h-auto" />
+          </Link>
+        </div>
 
-
-
-          <div className="space-y-8 max-w-lg" style={{ marginTop: "10rem" }}>
+        <div className="relative z-10 animate-fade-up">
+          <div className="space-y-8 max-w-lg">
             <div className="inline-flex items-center gap-2">
               <span className="text-[#4DD9E8] text-[11px] font-semibold tracking-[0.15em] uppercase">
-                BENCH DASHBOARD</span></div>
+                BENCH DASHBOARD
+              </span>
+            </div>
 
             <h1 className="text-[44px] font-bold text-white leading-[1.2] tracking-tight">
-              Welcome back,<br />
+              Welcome back,
+              <br />
               <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
                 let's build.
               </span>
             </h1>
 
             <p className="text-[16px] text-white/40 leading-relaxed max-w-sm">
-              Access your projects, track interviews, and manage your bench profile — all in one place.
+              Access your projects, track interviews, and manage your bench
+              profile — all in one place.
             </p>
-
           </div>
         </div>
-
       </div>
 
       {/* Right Panel - Premium Login Section */}
-      <div className="flex-1 flex flex-col bg-white overflow-y-auto animate-fade-up">
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 xl:p-16">
-          <div className="w-full max-w-[420px]">
-            <div className="lg:hidden mb-6 flex flex-col items-center gap-3">
-              <Link to="/">
-                <img src={DarkLogo} alt="Hirion Logo" className="w-44 h-auto" />
-              </Link>
-              <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gray-500">Bench Dashboard</span>
+      <div className="login-right-panel flex flex-col overflow-y-auto">
+        {/* Mobile Brand Logo */}
+        <div className="login-mobile-brand">
+          <img src={DarkLogo} alt="company logo" className="mb-1" />
+          <span>BENCH DASHBOARD</span>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="w-full max-w-[420px] animate-fade-up [animation-delay:150ms]">
+            <div className="w-full flex flex-col mb-10">
+              <h3 className="text-4xl font-bold text-[#1a1a2e] mb-3 lg:text-left text-center">
+                Sign In
+              </h3>
+              <p className="text-slate-400 font-medium lg:text-left text-center text-sm">
+                Enter your partner credentials below.
+              </p>
             </div>
 
-            <div className="relative">
-              <div className="p-4 md:p-6">
-
-                <div className="mb-10 text-center lg:text-left">
-                  <h3 className="text-4xl font-bold text-[#1a1a2e] mb-3 lg:text-left text-center">
-                    Sign In
-                  </h3>
-                  <p className="text-slate-400 font-medium lg:text-left text-center text-sm">
-                    Enter your partner credentials below.
-                  </p>
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
+              {/* Email Field */}
+              <div className="flex flex-col gap-1.5 min-w-0">
+                <Label
+                  htmlFor="email"
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "#1a1a2e",
+                    letterSpacing: "0.02em",
+                  }}
+                  className="ml-1"
+                >
+                  Email Address
+                </Label>
+                <div
+                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                    touched.email && fieldErrors.email
+                      ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
+                      : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                  }`}
+                >
+                  <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="bench@example.com"
+                    autoComplete="email"
+                    className="flex-1 min-w-0 border-none bg-transparent outline-none h-full p-0 text-sm focus-visible:ring-0 shadow-none font-normal"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    onBlur={() => handleBlur("email")}
+                    required
+                  />
                 </div>
-
-                <form onSubmit={handleSubmit} noValidate className="space-y-6">
-                  {/* Email Field */}
-                  <div className="flex flex-col gap-1.5 min-w-0">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-1" htmlFor="email" style={{ fontSize: "13px", fontWeight: "600", color: "rgb(26, 26, 46)", letterSpacing: "0.02em" }}>
-                      Email Address
-                    </label>
-                    <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300 z-10" />
-                      <Input
-                        name="email"
-                        type="email"
-                        placeholder="bench@example.com"
-                        autoComplete="email"
-                        className={`h-12 w-full pl-12 pr-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700 transition-all duration-300 font-medium ${fieldErrors.email && touched.email
-                          ? "ring-2 ring-red-500 focus:ring-red-500 focus-visible:ring-red-500"
-                          : ""
-                          }`}
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        onBlur={() => handleBlur("email")}
-                        required
-                      />
-                    </div>
-                    {touched.email && (
-                      <ErrorMessage error={fieldErrors.email} />
-                    )}
-                  </div>
-
-                  {/* Password Field */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-1" htmlFor="password" style={{ fontSize: "13px", fontWeight: "600", color: "rgb(26, 26, 46)", letterSpacing: "0.02em" }}>
-                        Password
-                      </label>
-                      <Link
-                        to="/forgot-password"
-                        title="Forgot Password"
-                        className="text-xs font-semibold text-slate-400 hover:text-teal-600 transition-colors"
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300 z-10" />
-                      <Input
-                        name="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        autoComplete="current-password"
-                        className={`h-12 w-full pl-12 pr-12 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700 transition-all duration-300 font-medium ${fieldErrors.password && touched.password
-                          ? "ring-2 ring-red-500 focus:ring-red-500 focus-visible:ring-red-500"
-                          : ""
-                          }`}
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        onBlur={() => handleBlur("password")}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors z-10"
-                        aria-label={
-                          showPassword ? "Hide password" : "Show password"
-                        }
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                    {touched.password && (
-                      <ErrorMessage error={fieldErrors.password} />
-                    )}
-                  </div>
-
-                  {/* Submit Button */}
-                  <Button
-                    type="submit"
-                    className="w-full h-[52px] text-[15px] font-bold mt-4 rounded-xl text-white hover:opacity-90 transition-all active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
-                    style={{ background: "linear-gradient(135deg, rgb(77, 217, 232), rgb(14, 165, 233))", boxShadow: "rgba(77, 217, 232, 0.35) 0px 4px 20px" }}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center gap-3">
-                        <SpinnerLoader className="w-5 h-5 text-current" />
-                        <span>Logging you in...</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center gap-3">
-                        <span>Sign In to Dashboard</span>
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    )}
-                  </Button>
-                </form>
-
-                <div className="mt-12 text-center text-sm font-medium text-slate-400">
-                  <p className="mt-12 text-center text-sm font-medium text-slate-400">
-                    New to QuickRekruit?{" "}
-                    <Link
-                      to="/bench-registration"
-                      className="text-teal-500 font-bold hover:underline"
-                    >
-                      Bench Signup
-                    </Link>
-                  </p>
-                </div>
+                {touched.email && <ErrorMessage error={fieldErrors.email} />}
               </div>
+
+              {/* Password Field */}
+              <div className="flex flex-col gap-1.5 min-w-0">
+                <div className="flex items-center justify-between ml-1">
+                  <Label
+                    htmlFor="password"
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "#1a1a2e",
+                      letterSpacing: "0.02em",
+                    }}
+                  >
+                    Password
+                  </Label>
+                  <Link
+                    to="/forgot-password"
+                    title="Forgot Password"
+                    className="text-xs font-semibold text-slate-400 hover:text-teal-600 transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <div
+                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                    touched.password && fieldErrors.password
+                      ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
+                      : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                  }`}
+                >
+                  <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                    className="flex-1 min-w-0 border-none bg-transparent outline-none h-full p-0 text-sm focus-visible:ring-0 shadow-none font-normal"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    onBlur={() => handleBlur("password")}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-[#999] hover:text-slate-500 transition-colors shrink-0"
+                  >
+                    {showPassword ? (
+                      <Eye className="w-4.5 h-4.5" />
+                    ) : (
+                      <EyeOff className="w-4.5 h-4.5" />
+                    )}
+                  </button>
+                </div>
+                {touched.password && (
+                  <ErrorMessage error={fieldErrors.password} />
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                style={{
+                  background: "linear-gradient(135deg, #4DD9E8, #0ea5e9)",
+                  boxShadow: "0 4px 20px rgba(77,217,232,0.35)",
+                }}
+                className="w-full h-[52px] text-[15px] font-bold rounded-xl text-white hover:opacity-90 transition-all active:scale-[0.98] group disabled:opacity-50 mt-4"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-3">
+                    <SpinnerLoader className="w-5 h-5 text-current" />
+                    <span>Logging you in...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-3">
+                    <span>Sign In to Dashboard</span>
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                )}
+              </Button>
+            </form>
+
+            <div className="mt-12 text-center text-sm font-medium text-slate-400">
+              New to QuickRekruit?{" "}
+              <Link
+                to="/bench-registration"
+                className="text-teal-500 font-bold hover:underline"
+              >
+                Bench Signup
+              </Link>
             </div>
           </div>
         </div>
