@@ -78,7 +78,7 @@ const MockTestReport = () => {
       : null;
 
   return (
-    <div className="flex flex-col gap-6 py-6 sm:py-10 px-6 sm:px-9 md:px-8 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 max-w-full mx-auto w-full font-inter">
+    <div className="flex flex-col gap-6 py-6 sm:py-10 px-6 sm:px-9 md:px-8 font-sans  font-inter">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
