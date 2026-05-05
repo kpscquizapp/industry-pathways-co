@@ -30,12 +30,12 @@ export interface BenchResourceRawDto {
   certifications?: Array<
     | string
     | {
-        name?: string;
-        title?: string;
-        issuer?: string;
-        year?: string;
-        issueDate?: string;
-      }
+      name?: string;
+      title?: string;
+      issuer?: string;
+      year?: string;
+      issueDate?: string;
+    }
   >;
   workExperience?: Array<{
     role?: string;
@@ -127,6 +127,19 @@ export const benchApi = createApi({
       }),
       invalidatesTags: ["BenchResources"],
     }),
+
+
+
+    permanentDeleteBenchResource: builder.mutation<any, number | string>({
+      query: (id) => ({
+        url: `employers/bench-resources/${id}/permanent`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["BenchResources"],
+    }),
+
+
+
     getBenchResourceById: builder.query<BenchResourceResponse, number | string>(
       {
         query: (id) => ({
@@ -194,4 +207,5 @@ export const {
   useDeleteBenchResourceMutation,
   useGetBenchResourceByIdQuery,
   useLazyViewBenchResumeQuery,
+  usePermanentDeleteBenchResourceMutation,
 } = benchApi;

@@ -1,25 +1,44 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import HirionLogo from "@/assets/White Option.png";
+import logoIcon from "@/assets/logo_icon.png";
 import {
   LayoutDashboard,
-  ChevronLeft,
-  ChevronRight,
   Users,
   UserPlus,
-  Eye,
+  Settings,
+  LogOut,
+  LayoutGrid,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import hirionLogo from "@/assets/hirion-logo.png";
-
-interface HrSidebarProps {
-  collapsed: boolean;
-  onToggle: () => void;
-}
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store";
+import { useGetEmployerProfileImageQuery } from "@/app/queries/employerApi";
+import { skipToken } from "@reduxjs/toolkit/query";
+import useLogout from "@/hooks/useLogout";
 
 const menuItems = [
   {
     title: "Dashboard",
-    icon: LayoutDashboard,
+    icon: LayoutGrid,
     path: "/bench-dashboard",
     isAI: false,
   },
@@ -36,44 +55,63 @@ const menuItems = [
     isAI: false,
   },
   {
-    title: "Visibility Settings",
-    icon: Eye,
+    title: "Settings",
+    icon: Settings,
     path: "/bench-dashboard/visibility-settings",
     isAI: false,
   },
 ];
 
-const HrSidebar = ({ collapsed, onToggle }: HrSidebarProps) => {
+const HrSidebarContent = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { state, isMobile, setOpenMobile } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
+  const handleMobileClose = () => {
+    if (isMobile && setOpenMobile) {
+      setOpenMobile(false);
+    }
+  };
   const currentPath = location.pathname;
 
+  const [handleLogout, isLoggingOut] = useLogout();
+  const token = useSelector((rootState: RootState) => rootState.user.token);
+  const user = useSelector((s: RootState) => s.user.userDetails);
+
+  const { currentData: profileImage } = useGetEmployerProfileImageQuery(
+    token && user?.id != null ? user.id : skipToken
+  );
+
   return (
-    <aside
-      className={cn(
-        "fixed top-0 left-0 h-screen bg-slate-900 text-white flex flex-col transition-all duration-300 z-50 flex-shrink-0",
-        collapsed ? "w-20" : "w-64",
-      )}
+    <Sidebar
+      collapsible="icon"
+      className="border-none text-slate-300 !bg-[#0B1221]"
+      style={
+        {
+          "--sidebar-background": "221 50% 9%",
+          "--sidebar": "221 50% 9%",
+        } as React.CSSProperties
+      }
     >
       {/* Logo */}
-      <div className="p-4 border-b border-navy-700">
+      <SidebarHeader className="p-6">
+        {isCollapsed && (
+          <img src={logoIcon} alt="logo icon" className="w-12 h-auto" />
+        )}
         <Link to="/" className="flex items-center gap-3">
-          <img
-            src={hirionLogo}
-            alt="Hirion"
-            className="h-10 w-10 rounded-full object-cover"
-          />
-          {!collapsed && (
-            <div className="flex flex-col">
-              <span className="font-bold text-lg">HIRION</span>
-              <span className="text-xs text-navy-300">HR Portal</span>
-            </div>
+          {!isCollapsed && (
+            <img src={HirionLogo} alt="Hirion Logo" className="h-auto w-36" />
           )}
         </Link>
-      </div>
+      </SidebarHeader>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 overflow-y-auto">
-        <ul className="space-y-1 px-3">
+      <SidebarContent className="p-4 pt-2">
+        {!isCollapsed && (
+          <div className="px-3 mb-4 text-[11px] font-bold tracking-wider text-slate-500 uppercase">Menu</div>
+        )}
+        <SidebarMenu className="gap-1.5">
           {menuItems.map((item) => {
             const isActive =
               currentPath === item.path ||
@@ -82,70 +120,131 @@ const HrSidebar = ({ collapsed, onToggle }: HrSidebarProps) => {
               (item.path === "/bench-dashboard" &&
                 (currentPath === "/bench-dashboard" ||
                   currentPath === "/bench-dashboard/dashboard"));
-            const Icon = item.icon;
 
             return (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
+              <SidebarMenuItem key={item.path}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  tooltip={item.title}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative",
+                    "w-full justify-start transition-all relative overflow-hidden group/menuBtn border border-transparent",
+                    !isCollapsed && "px-4 py-6 rounded-sm",
+                    isCollapsed && "rounded-sm",
                     isActive
-                      ? "bg-teal-500/20 text-teal-400 border-l-4 border-teal-400 -ml-3 pl-6"
-                      : "hover:bg-navy-800 text-navy-200 hover:text-white",
-                    item.isAI &&
-                      !isActive &&
-                      "text-teal-300 hover:text-teal-200",
+                      ? "!bg-[#112433] !text-[#00e5ff]"
+                      : "!text-slate-400 hover:!bg-[rgba(0,229,255,0.05)] hover:!text-white"
                   )}
                 >
-                  <Icon
-                    className={cn(
-                      "h-5 w-5 flex-shrink-0",
-                      item.isAI && "text-teal-400",
+                  <Link
+                    to={item.path}
+                    className="flex items-center w-full"
+                    onClick={handleMobileClose}
+                  >
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-[#00e5ff] rounded-r-md z-10 shadow-[0_0_10px_rgba(0,229,255,0.4)]" />
                     )}
-                  />
-                  {!collapsed && (
-                    <span
+                    <item.icon
                       className={cn(
-                        "font-medium text-sm",
-                        item.isAI && "text-teal-300",
+                        "!w-[20px] !h-[20px] flex-shrink-0 z-10 transition-colors",
+                        isActive ? "" : "group-hover/menuBtn:text-[#00e5ff]"
                       )}
-                    >
-                      {item.title}
-                    </span>
-                  )}
-                  {item.isAI && !collapsed && (
-                    <span className="ml-auto px-2 py-0.5 bg-teal-500/30 text-teal-300 text-xs rounded-full font-medium">
-                      AI
-                    </span>
-                  )}
-                </Link>
-              </li>
+                    />
+                    {!isCollapsed && (
+                      <span className="font-semibold text-[14px] ml-4 z-10 transition-colors">
+                        {item.title}
+                      </span>
+                    )}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             );
           })}
-        </ul>
-      </nav>
+        </SidebarMenu>
+      </SidebarContent>
 
-      {/* Collapse Toggle */}
-      <div className="p-4 border-t border-navy-700">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onToggle}
-          className="w-full text-navy-300 hover:text-white hover:bg-navy-800"
-        >
-          {collapsed ? (
-            <ChevronRight className="h-5 w-5" />
-          ) : (
-            <>
-              <ChevronLeft className="h-5 w-5 mr-2" />
-              <span>Collapse</span>
-            </>
-          )}
-        </Button>
-      </div>
-    </aside>
+      {/* Footer / Profile */}
+      <SidebarFooter className="p-4 border-t border-white/5 pb-6">
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <button
+              className={cn(
+                "flex items-center w-full p-2.5 rounded-2xl hover:bg-white/5 transition-colors bg-[#111928] border border-transparent hover:border-white/10",
+                isCollapsed ? "justify-center" : "gap-3"
+              )}
+            >
+              <Avatar className="h-10 w-10 bg-cyan-900/40 flex-shrink-0 rounded-xl">
+                {profileImage && (
+                  <AvatarImage
+                    className="object-cover rounded-xl"
+                    src={profileImage}
+                    alt={`${user?.firstName ?? "User"} profile image`}
+                  />
+                )}
+                <AvatarFallback className="bg-transparent text-[#00e5ff] text-base font-bold rounded-xl">
+                  {user?.firstName?.charAt(0) ||
+                    user?.email?.charAt(0) ||
+                    "B"}
+                  {user?.lastName?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              {!isCollapsed && (
+                <>
+                  <div className="text-left flex-1 min-w-0 pr-1">
+                    <p className="text-[15px] font-semibold text-white truncate leading-tight">
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                    <p className="text-[13px] text-slate-400 truncate mt-0.5">
+                      Bench Resource
+                    </p>
+                  </div>
+                  <LogOut className="h-[22px] w-[22px] text-slate-500 flex-shrink-0 hover:text-slate-300" />
+                </>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            side="top"
+            className="w-56 bg-[#0B1221] border-[#1c2e3d] text-slate-300 shadow-2xl shadow-black/50"
+          >
+            <DropdownMenuItem
+              onClick={() => {
+                navigate("/bench-dashboard/visibility-settings?tab=general");
+                handleMobileClose();
+              }}
+              className="focus:bg-[#112433] focus:text-[#00e5ff] cursor-pointer transition-colors"
+            >
+              <User className="h-4 w-4 mr-2" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              asChild
+              className="focus:bg-[#112433] focus:text-[#00e5ff] cursor-pointer transition-colors"
+            >
+              <Link
+                to="/bench-dashboard/visibility-settings?tab=account"
+                className="w-full"
+                onClick={handleMobileClose}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="text-red-400 focus:bg-red-500/10 focus:text-red-300 cursor-pointer transition-colors"
+              disabled={isLoggingOut}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              {isLoggingOut ? "Logging out..." : "Log out"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarFooter>
+    </Sidebar>
   );
 };
 
-export default HrSidebar;
+export default HrSidebarContent;
