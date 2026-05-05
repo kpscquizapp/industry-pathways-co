@@ -28,7 +28,6 @@ import { cn } from "@/lib/utils";
 import ProblemPanel from "@/components/coding/ProblemPanel";
 import EditorPanel from "@/components/coding/EditorPanel";
 import ConsoleOutput from "@/components/coding/ConsoleOutput";
-// import WebcamFeed from "@/pages/WebcamFeed";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { CodingProblem, SupportedLanguage, TestCase } from "@/types/coding";
 import { toast } from "sonner";
@@ -1386,22 +1385,22 @@ const CodingChallenge: React.FC = () => {
             y: e.touches[0].clientY - popupPosition.y,
           });
         }}
-      >
-        <div className="relative rounded-lg shadow-2xl max-w-sm">
-          <WebcamFeed
-            apiBaseUrl={import.meta.env.VITE_API_BASE_URL}
-            isInterviewActive={isInterviewActive}
-            totalViolations={totalViolations}
-            onScreenShareStart={handleScreenShareStart}
-            onRecordingStart={handleRecordingStart}
-            onRecordingStop={handleRecordingStop}
-            onCameraError={handleCameraError}
-            sessionId={sessionId}
-            initialStream={initialWebcamStream}
-            initialScreenStream={initialScreenStream}
-          />
-        </div>
-      </div> */}
+      > */}
+      <div className="relative rounded-lg shadow-2xl max-w-sm">
+        {/* <WebcamFeed
+          apiBaseUrl={import.meta.env.VITE_API_BASE_URL}
+          isInterviewActive={isInterviewActive}
+          totalViolations={totalViolations}
+          onScreenShareStart={handleScreenShareStart}
+          onRecordingStart={handleRecordingStart}
+          onRecordingStop={handleRecordingStop}
+          onCameraError={handleCameraError}
+          sessionId={sessionId}
+          initialStream={initialWebcamStream}
+          initialScreenStream={initialScreenStream}
+        /> */}
+      </div>
+      {/* </div> */}
     </div>
   );
 };
