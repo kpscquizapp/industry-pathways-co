@@ -20,7 +20,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import {
-  // useCheckExistingEmailMutation,
+  useCheckExistingEmailMutation,
   useRegisterEmployerMutation,
   useSendVerificationOtpMutation,
   useVerifyOtpMutation,
@@ -98,10 +98,6 @@ const EmployerSignup = () => {
   >({});
 
   const [registerEmployer] = useRegisterEmployerMutation();
-<<<<<<< HEAD
-  // const [checkExistingEmail, { isLoading: isCheckingEmail }] =
-    // useCheckExistingEmailMutation();
-=======
   const [checkExistingEmail, { isLoading: isCheckingEmail }] =
     useCheckExistingEmailMutation();
   const [sendVerificationOtp, { isLoading: isSendingOtp }] =
@@ -112,7 +108,6 @@ const EmployerSignup = () => {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
->>>>>>> c42f2f7c6202e727dcdafac4c16e974713e6f18a
   const navigate = useNavigate();
 
   const handleSendOtp = React.useCallback(async () => {
@@ -242,19 +237,19 @@ const EmployerSignup = () => {
       const emailError = VALIDATION.email.validate(formData.email);
       if (emailError) errors.email = emailError;
       // Check email availability only when format is valid
-      //  if (!emailError && formData.email) {
-      //   try {
-      //     await checkExistingEmail({ email: formData.email }).unwrap();
-      //   } catch (error) {
-      //     if (isFetchBaseQueryError(error) && error.status === 409) {
-      //       errors.email =
-      //         "Email already registered, please use a different email.";
-      //     } else {
-      //       errors.email =
-      //         "Could not verify email right now. Please try again.";
-      //     }
-      //   }
-      // }
+      if (!emailError && formData.email) {
+        try {
+          await checkExistingEmail({ email: formData.email }).unwrap();
+        } catch (error) {
+          if (isFetchBaseQueryError(error) && error.status === 409) {
+            errors.email =
+              "Email already registered, please use a different email.";
+          } else {
+            errors.email =
+              "Could not verify email right now. Please try again.";
+          }
+        }
+      }
 
       // Validate password
       const passwordError = VALIDATION.password.validate(formData.password);
@@ -608,11 +603,10 @@ const EmployerSignup = () => {
                 <div key={item.id} className="flex items-center text-[11px]">
                   <div className="flex items-center gap-2">
                     <div
-                      className={`stepper-dot w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-300 ${
-                        currentStep >= item.id
+                      className={`stepper-dot w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-300 ${currentStep >= item.id
                           ? "bg-[#4DD9E8] text-white"
                           : "bg-slate-100 text-slate-400 border border-slate-50"
-                      }`}
+                        }`}
                     >
                       {currentStep > item.id ? (
                         <Check className="w-3.5 h-3.5" />
@@ -621,11 +615,10 @@ const EmployerSignup = () => {
                       )}
                     </div>
                     <span
-                      className={`stepper-label text-[10px] sm:text-[11px] font-semibold tracking-widest transition-colors duration-300 ${
-                        currentStep >= item.id
+                      className={`stepper-label text-[10px] sm:text-[11px] font-semibold tracking-widest transition-colors duration-300 ${currentStep >= item.id
                           ? "text-[#080b20]"
                           : "text-[#bbb]"
-                      }`}
+                        }`}
                     >
                       {item.label}
                     </span>
@@ -651,443 +644,426 @@ const EmployerSignup = () => {
                 {(currentStep === 1 ||
                   currentStep === 2 ||
                   currentStep === 3) && (
-                  <div className="space-y-5 animate-fade-up">
-                    {currentStep === 1 && (
-                      <div className="space-y-5 animate-fade-up">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          <div className="flex flex-col gap-1.5">
-                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                              First Name{" "}
-                              <span className="text-[#4DD9E8]">*</span>
-                            </Label>
-                            <div
-                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
-                                fieldErrors.firstName
-                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                              }`}
-                            >
-                              <User className="w-4 h-4 text-[#aaa] shrink-0" />
-                              <input
-                                name="firstName"
-                                placeholder="John"
-                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
-                                value={formData.firstName}
-                                onChange={handleInputChange}
-                              />
-                            </div>
-                            <ErrorMessage error={fieldErrors.firstName} />
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                              Last Name{" "}
-                              <span className="text-[#4DD9E8]">*</span>
-                            </Label>
-                            <div
-                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
-                                fieldErrors.lastName
-                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                              }`}
-                            >
-                              <User className="w-4 h-4 text-[#aaa] shrink-0" />
-                              <input
-                                name="lastName"
-                                placeholder="Doe"
-                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
-                                value={formData.lastName}
-                                onChange={handleInputChange}
-                              />
-                            </div>
-                            <ErrorMessage error={fieldErrors.lastName} />
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col gap-1.5">
-                          <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                            Work Email <span className="text-[#4DD9E8]">*</span>
-                          </Label>
-                          <div
-                            className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
-                              fieldErrors.email
-                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                            }`}
-                          >
-                            <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
-                            <input
-                              name="email"
-                              type="email"
-                              placeholder="company@example.com"
-                              className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
-                              value={formData.email}
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                          <ErrorMessage error={fieldErrors.email} />
-<<<<<<< HEAD
-                          {/* {isCheckingEmail && (
-                            <div className="text-sm text-slate-500 flex items-center gap-2">
-=======
-                          {isCheckingEmail && (
-                            <div className="text-sm text-slate-500 flex items-center gap-2 mt-3">
->>>>>>> c42f2f7c6202e727dcdafac4c16e974713e6f18a
-                              <SpinnerLoader />{" "}
-                              <span>Checking availability...</span>
-                            </div>
-                          )} */}
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          <div className="flex flex-col gap-1.5">
-                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                              Password <span className="text-[#4DD9E8]">*</span>
-                            </Label>
-                            <div
-                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
-                                fieldErrors.password
-                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                              }`}
-                            >
-                              <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
-                              <input
-                                name="password"
-                                type={showPassword ? "text" : "password"}
-                                placeholder="••••••••"
-                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95"
-                              >
-                                {showPassword ? (
-                                  <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
-                                ) : (
-                                  <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
-                                )}
-                              </button>
-                            </div>
-                            <ErrorMessage error={fieldErrors.password} />
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                              Confirm Password{" "}
-                              <span className="text-[#4DD9E8]">*</span>
-                            </Label>
-                            <div
-                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
-                                fieldErrors.confirmPassword
-                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                              }`}
-                            >
-                              <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
-                              <input
-                                name="confirmPassword"
-                                type={showConfirmPassword ? "text" : "password"}
-                                placeholder="••••••••"
-                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
-                                value={formData.confirmPassword}
-                                onChange={handleInputChange}
-                              />
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setShowConfirmPassword(!showConfirmPassword)
-                                }
-                                className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95"
-                              >
-                                {showConfirmPassword ? (
-                                  <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
-                                ) : (
-                                  <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
-                                )}
-                              </button>
-                            </div>
-                            <ErrorMessage error={fieldErrors.confirmPassword} />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {currentStep === 2 && (
-                      <div className="space-y-6 animate-fade-up">
-                        {/* Email Verification Section */}
-                        <div
-                          className={`rounded-2xl p-5 border-[1.5px] transition-all duration-200 ${
-                            isEmailVerified
-                              ? "bg-emerald-50/30 border-emerald-100"
-                              : "bg-[#f8f9fb] border-[#e8eaef]"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
+                    <div className="space-y-5 animate-fade-up">
+                      {currentStep === 1 && (
+                        <div className="space-y-5 animate-fade-up">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="flex flex-col gap-1.5">
+                              <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                                First Name{" "}
+                                <span className="text-[#4DD9E8]">*</span>
+                              </Label>
                               <div
-                                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
-                                  isEmailVerified
-                                    ? "bg-emerald-500 text-white"
-                                    : "bg-slate-200 text-slate-500"
-                                }`}
+                                className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.firstName
+                                    ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                    : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                  }`}
                               >
-                                {isEmailVerified ? (
-                                  <Check className="w-5 h-5" />
-                                ) : (
-                                  <Mail className="w-5 h-5" />
-                                )}
+                                <User className="w-4 h-4 text-[#aaa] shrink-0" />
+                                <input
+                                  name="firstName"
+                                  placeholder="John"
+                                  className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                                  value={formData.firstName}
+                                  onChange={handleInputChange}
+                                />
                               </div>
-                              <div>
-                                <h4 className="text-[15px] font-bold text-[#1a1a2e]">
-                                  Email Verification
-                                </h4>
-                                <p className="text-[12px] text-slate-400">
-                                  {formData.email}
-                                </p>
-                              </div>
+                              <ErrorMessage error={fieldErrors.firstName} />
                             </div>
-                            {isEmailVerified && (
-                              <span className="text-[12px] font-bold text-emerald-600 bg-emerald-100 px-2.5 py-1 rounded-full">
-                                Verified
-                              </span>
+                            <div className="flex flex-col gap-1.5">
+                              <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                                Last Name{" "}
+                                <span className="text-[#4DD9E8]">*</span>
+                              </Label>
+                              <div
+                                className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.lastName
+                                    ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                    : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                  }`}
+                              >
+                                <User className="w-4 h-4 text-[#aaa] shrink-0" />
+                                <input
+                                  name="lastName"
+                                  placeholder="Doe"
+                                  className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                                  value={formData.lastName}
+                                  onChange={handleInputChange}
+                                />
+                              </div>
+                              <ErrorMessage error={fieldErrors.lastName} />
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-1.5">
+                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                              Work Email <span className="text-[#4DD9E8]">*</span>
+                            </Label>
+                            <div
+                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.email
+                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                }`}
+                            >
+                              <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
+                              <input
+                                name="email"
+                                type="email"
+                                placeholder="company@example.com"
+                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                                value={formData.email}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                            <ErrorMessage error={fieldErrors.email} />
+                            {isCheckingEmail && (
+                              <div className="text-sm text-slate-500 flex items-center gap-2 mt-3">
+                                <SpinnerLoader />{" "}
+                                <span>Checking availability...</span>
+                              </div>
                             )}
                           </div>
 
-                          {!isEmailVerified && (
-                            <div className="space-y-4">
-                              <div className="flex flex-col gap-1.5">
-                                <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                                  Enter 6-digit Code
-                                </Label>
-                                <div className="flex gap-3">
-                                  <div
-                                    className={`flex-1 flex items-center gap-2.5 bg-white border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
-                                      fieldErrors.otp
-                                        ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                        : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                                    }`}
-                                  >
-                                    <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
-                                    <input
-                                      placeholder="000000"
-                                      maxLength={6}
-                                      className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-medium tracking-[0.2em]"
-                                      value={otp}
-                                      onChange={(e) => {
-                                        setOtp(
-                                          e.target.value.replace(/\D/g, ""),
-                                        );
-                                        if (fieldErrors.otp) {
-                                          setFieldErrors((prev) => {
-                                            const newErrors = { ...prev };
-                                            delete newErrors.otp;
-                                            return newErrors;
-                                          });
-                                        }
-                                      }}
-                                    />
-                                  </div>
-                                  <Button
-                                    type="button"
-                                    onClick={handleVerifyOtp}
-                                    disabled={
-                                      isVerifyingOtp || otp.length !== 6
-                                    }
-                                    className="h-[46px] px-6 bg-[#1a1a2e] hover:bg-[#2a2a4e] text-white font-bold rounded-[10px] transition-all"
-                                  >
-                                    {isVerifyingOtp ? (
-                                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    ) : (
-                                      "Verify"
-                                    )}
-                                  </Button>
-                                </div>
-                                <ErrorMessage error={fieldErrors.otp} />
-                              </div>
-
-                              <div className="flex items-center justify-between text-[12px]">
-                                <span className="text-slate-400">
-                                  Didn't receive the code?
-                                </span>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="flex flex-col gap-1.5">
+                              <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                                Password <span className="text-[#4DD9E8]">*</span>
+                              </Label>
+                              <div
+                                className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.password
+                                    ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                    : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                  }`}
+                              >
+                                <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                                <input
+                                  name="password"
+                                  type={showPassword ? "text" : "password"}
+                                  placeholder="••••••••"
+                                  className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
+                                  value={formData.password}
+                                  onChange={handleInputChange}
+                                />
                                 <button
                                   type="button"
-                                  onClick={handleSendOtp}
-                                  disabled={isSendingOtp || resendCooldown > 0}
-                                  className={`font-bold transition-colors ${
-                                    isSendingOtp || resendCooldown > 0
-                                      ? "text-slate-300 cursor-not-allowed"
-                                      : "text-[#4DD9E8] hover:text-[#0e8a96] underline"
-                                  }`}
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95"
                                 >
-                                  {isSendingOtp
-                                    ? "Sending..."
-                                    : resendCooldown > 0
-                                      ? `Resend in ${resendCooldown}s`
-                                      : "Resend Code"}
+                                  {showPassword ? (
+                                    <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                                  ) : (
+                                    <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                                  )}
                                 </button>
                               </div>
+                              <ErrorMessage error={fieldErrors.password} />
                             </div>
-                          )}
+                            <div className="flex flex-col gap-1.5">
+                              <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                                Confirm Password{" "}
+                                <span className="text-[#4DD9E8]">*</span>
+                              </Label>
+                              <div
+                                className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.confirmPassword
+                                    ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                    : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                  }`}
+                              >
+                                <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                                <input
+                                  name="confirmPassword"
+                                  type={showConfirmPassword ? "text" : "password"}
+                                  placeholder="••••••••"
+                                  className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
+                                  value={formData.confirmPassword}
+                                  onChange={handleInputChange}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setShowConfirmPassword(!showConfirmPassword)
+                                  }
+                                  className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95"
+                                >
+                                  {showConfirmPassword ? (
+                                    <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                                  ) : (
+                                    <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                                  )}
+                                </button>
+                              </div>
+                              <ErrorMessage error={fieldErrors.confirmPassword} />
+                            </div>
+                          </div>
                         </div>
+                      )}
 
-                        <div className="flex flex-col gap-1.5">
-                          <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                            Organization Name{" "}
-                            <span className="text-[#4DD9E8]">*</span>
-                          </Label>
+                      {currentStep === 2 && (
+                        <div className="space-y-6 animate-fade-up">
+                          {/* Email Verification Section */}
                           <div
-                            className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
-                              fieldErrors.companyName
-                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                            }`}
-                          >
-                            <Building2 className="w-4 h-4 text-[#aaa] shrink-0" />
-                            <input
-                              name="companyName"
-                              placeholder="Organization Ltd."
-                              className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
-                              value={formData.companyName}
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                          <ErrorMessage error={fieldErrors.companyName} />
-                        </div>
-
-                        <div className="flex flex-col gap-1.5">
-                          <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                            Company Details (Optional)
-                          </Label>
-                          <div
-                            className={`flex flex-col gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] p-3.5 transition-all duration-200 ${
-                              fieldErrors.companyDetails
-                                ? "border-red-500"
-                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                            }`}
-                          >
-                            <textarea
-                              name="companyDetails"
-                              placeholder="Tell us about your organization..."
-                              className="min-h-[120px] bg-transparent border-none focus:ring-0 p-0 text-sm font-normal resize-none shadow-none outline-none"
-                              value={formData.companyDetails}
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                          <ErrorMessage error={fieldErrors.companyDetails} />
-                          <div className="text-[11px] text-slate-400 text-right">
-                            {formData.companyDetails.length}/1000
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {currentStep === 3 && (
-                      <div className="space-y-5 animate-fade-up">
-                        <div className="flex flex-col gap-3">
-                          <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                            Verification Document{" "}
-                            <span className="text-[#4DD9E8]">*</span>
-                          </Label>
-
-                          {!companyDocument ? (
-                            <div
-                              onClick={() => fileInputRef.current?.click()}
-                              className={`group cursor-pointer border-2 border-dashed rounded-2xl p-10 transition-all flex flex-col items-center justify-center gap-4 ${
-                                fieldErrors.companyDocument
-                                  ? "border-red-500 bg-red-50/10"
-                                  : "border-slate-100 hover:border-[#4DD9E8] hover:bg-[#4DD9E8]/5"
+                            className={`rounded-2xl p-5 border-[1.5px] transition-all duration-200 ${isEmailVerified
+                                ? "bg-emerald-50/30 border-emerald-100"
+                                : "bg-[#f8f9fb] border-[#e8eaef]"
                               }`}
-                            >
-                              <div className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center bg-white group-hover:scale-110 transition-transform">
-                                <Upload className="w-5 h-5 text-[#4DD9E8]" />
-                              </div>
-                              <div className="text-center">
-                                <p className="text-[14px] font-bold text-[#1a1a2e]">
-                                  Click to upload or drag and drop
-                                </p>
-                                <p className="text-[12px] text-slate-400 mt-1">
-                                  PDF, DOC, DOCX or PDF (max. 10MB)
-                                </p>
-                              </div>
-                              <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileChange}
-                                accept=".pdf,.doc,.docx"
-                                className="hidden"
-                              />
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-between p-4 bg-[#f8f9fb] border border-slate-100 rounded-xl">
+                          >
+                            <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-[#4DD9E8]/10 rounded-lg flex items-center justify-center">
-                                  <FileText className="w-5 h-5 text-[#4DD9E8]" />
+                                <div
+                                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isEmailVerified
+                                      ? "bg-emerald-500 text-white"
+                                      : "bg-slate-200 text-slate-500"
+                                    }`}
+                                >
+                                  {isEmailVerified ? (
+                                    <Check className="w-5 h-5" />
+                                  ) : (
+                                    <Mail className="w-5 h-5" />
+                                  )}
                                 </div>
                                 <div>
-                                  <p className="text-[13px] font-bold text-[#1a1a2e] truncate max-w-[200px]">
-                                    {companyDocument.name}
-                                  </p>
-                                  <p className="text-[11px] text-slate-400">
-                                    {(
-                                      companyDocument.size /
-                                      1024 /
-                                      1024
-                                    ).toFixed(2)}{" "}
-                                    MB
+                                  <h4 className="text-[15px] font-bold text-[#1a1a2e]">
+                                    Email Verification
+                                  </h4>
+                                  <p className="text-[12px] text-slate-400">
+                                    {formData.email}
                                   </p>
                                 </div>
                               </div>
-                              <button
-                                type="button"
-                                onClick={removeFile}
-                                className="p-2 hover:bg-slate-200/50 rounded-lg transition-colors"
-                              >
-                                <X className="w-5 h-5 text-slate-400" />
-                              </button>
+                              {isEmailVerified && (
+                                <span className="text-[12px] font-bold text-emerald-600 bg-emerald-100 px-2.5 py-1 rounded-full">
+                                  Verified
+                                </span>
+                              )}
                             </div>
-                          )}
-                          <ErrorMessage error={fieldErrors.companyDocument} />
-                        </div>
-                      </div>
-                    )}
 
-                    <div className="flex items-center gap-3 pt-4">
-                      {currentStep > 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={prevStep}
-                          className="h-[52px] px-6 rounded-xl hover:border-[#4DD9E8] text-[#1a1a2e] font-bold hover:bg-slate-50 hover:text-teal-600"
-                        >
-                          Back
-                        </Button>
+                            {!isEmailVerified && (
+                              <div className="space-y-4">
+                                <div className="flex flex-col gap-1.5">
+                                  <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                                    Enter 6-digit Code
+                                  </Label>
+                                  <div className="flex gap-3">
+                                    <div
+                                      className={`flex-1 flex items-center gap-2.5 bg-white border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.otp
+                                          ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                          : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                        }`}
+                                    >
+                                      <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                                      <input
+                                        placeholder="000000"
+                                        maxLength={6}
+                                        className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-medium tracking-[0.2em]"
+                                        value={otp}
+                                        onChange={(e) => {
+                                          setOtp(
+                                            e.target.value.replace(/\D/g, ""),
+                                          );
+                                          if (fieldErrors.otp) {
+                                            setFieldErrors((prev) => {
+                                              const newErrors = { ...prev };
+                                              delete newErrors.otp;
+                                              return newErrors;
+                                            });
+                                          }
+                                        }}
+                                      />
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      onClick={handleVerifyOtp}
+                                      disabled={
+                                        isVerifyingOtp || otp.length !== 6
+                                      }
+                                      className="h-[46px] px-6 bg-[#1a1a2e] hover:bg-[#2a2a4e] text-white font-bold rounded-[10px] transition-all"
+                                    >
+                                      {isVerifyingOtp ? (
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                      ) : (
+                                        "Verify"
+                                      )}
+                                    </Button>
+                                  </div>
+                                  <ErrorMessage error={fieldErrors.otp} />
+                                </div>
+
+                                <div className="flex items-center justify-between text-[12px]">
+                                  <span className="text-slate-400">
+                                    Didn't receive the code?
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={handleSendOtp}
+                                    disabled={isSendingOtp || resendCooldown > 0}
+                                    className={`font-bold transition-colors ${isSendingOtp || resendCooldown > 0
+                                        ? "text-slate-300 cursor-not-allowed"
+                                        : "text-[#4DD9E8] hover:text-[#0e8a96] underline"
+                                      }`}
+                                  >
+                                    {isSendingOtp
+                                      ? "Sending..."
+                                      : resendCooldown > 0
+                                        ? `Resend in ${resendCooldown}s`
+                                        : "Resend Code"}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col gap-1.5">
+                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                              Organization Name{" "}
+                              <span className="text-[#4DD9E8]">*</span>
+                            </Label>
+                            <div
+                              className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.companyName
+                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                }`}
+                            >
+                              <Building2 className="w-4 h-4 text-[#aaa] shrink-0" />
+                              <input
+                                name="companyName"
+                                placeholder="Organization Ltd."
+                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                                value={formData.companyName}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                            <ErrorMessage error={fieldErrors.companyName} />
+                          </div>
+
+                          <div className="flex flex-col gap-1.5">
+                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                              Company Details (Optional)
+                            </Label>
+                            <div
+                              className={`flex flex-col gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] p-3.5 transition-all duration-200 ${fieldErrors.companyDetails
+                                  ? "border-red-500"
+                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                }`}
+                            >
+                              <textarea
+                                name="companyDetails"
+                                placeholder="Tell us about your organization..."
+                                className="min-h-[120px] bg-transparent border-none focus:ring-0 p-0 text-sm font-normal resize-none shadow-none outline-none"
+                                value={formData.companyDetails}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                            <ErrorMessage error={fieldErrors.companyDetails} />
+                            <div className="text-[11px] text-slate-400 text-right">
+                              {formData.companyDetails.length}/1000
+                            </div>
+                          </div>
+                        </div>
                       )}
-                      <Button
-                        type="submit"
-                        className="flex-1 h-[52px] bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
-                        // disabled={isLoading || isCheckingEmail}
-                      >
-                        {isLoading  ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            Processing...
-                          </span>
-                        ) : (
-                          <>
-                            <span>
-                              {currentStep === totalSteps
-                                ? "Create Account"
-                                : "Next Step"}
-                            </span>
-                            <ArrowRight className="w-5 h-5" />
-                          </>
+
+                      {currentStep === 3 && (
+                        <div className="space-y-5 animate-fade-up">
+                          <div className="flex flex-col gap-3">
+                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                              Verification Document{" "}
+                              <span className="text-[#4DD9E8]">*</span>
+                            </Label>
+
+                            {!companyDocument ? (
+                              <div
+                                onClick={() => fileInputRef.current?.click()}
+                                className={`group cursor-pointer border-2 border-dashed rounded-2xl p-10 transition-all flex flex-col items-center justify-center gap-4 ${fieldErrors.companyDocument
+                                    ? "border-red-500 bg-red-50/10"
+                                    : "border-slate-100 hover:border-[#4DD9E8] hover:bg-[#4DD9E8]/5"
+                                  }`}
+                              >
+                                <div className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center bg-white group-hover:scale-110 transition-transform">
+                                  <Upload className="w-5 h-5 text-[#4DD9E8]" />
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-[14px] font-bold text-[#1a1a2e]">
+                                    Click to upload or drag and drop
+                                  </p>
+                                  <p className="text-[12px] text-slate-400 mt-1">
+                                    PDF, DOC, DOCX or PDF (max. 10MB)
+                                  </p>
+                                </div>
+                                <input
+                                  type="file"
+                                  ref={fileInputRef}
+                                  onChange={handleFileChange}
+                                  accept=".pdf,.doc,.docx"
+                                  className="hidden"
+                                />
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between p-4 bg-[#f8f9fb] border border-slate-100 rounded-xl">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-[#4DD9E8]/10 rounded-lg flex items-center justify-center">
+                                    <FileText className="w-5 h-5 text-[#4DD9E8]" />
+                                  </div>
+                                  <div>
+                                    <p className="text-[13px] font-bold text-[#1a1a2e] truncate max-w-[200px]">
+                                      {companyDocument.name}
+                                    </p>
+                                    <p className="text-[11px] text-slate-400">
+                                      {(
+                                        companyDocument.size /
+                                        1024 /
+                                        1024
+                                      ).toFixed(2)}{" "}
+                                      MB
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={removeFile}
+                                  className="p-2 hover:bg-slate-200/50 rounded-lg transition-colors"
+                                >
+                                  <X className="w-5 h-5 text-slate-400" />
+                                </button>
+                              </div>
+                            )}
+                            <ErrorMessage error={fieldErrors.companyDocument} />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-3 pt-4">
+                        {currentStep > 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={prevStep}
+                            className="h-[52px] px-6 rounded-xl hover:border-[#4DD9E8] text-[#1a1a2e] font-bold hover:bg-slate-50 hover:text-teal-600"
+                          >
+                            Back
+                          </Button>
                         )}
-                      </Button>
+                        <Button
+                          type="submit"
+                          className="flex-1 h-[52px] bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+                          disabled={isLoading || isCheckingEmail}
+                        >
+                          {isLoading || isCheckingEmail ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              Processing...
+                            </span>
+                          ) : (
+                            <>
+                              <span>
+                                {currentStep === totalSteps
+                                  ? "Create Account"
+                                  : "Next Step"}
+                              </span>
+                              <ArrowRight className="w-5 h-5" />
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </form>
 
               <div className="mt-10 text-center text-sm font-medium text-slate-400">
@@ -1098,7 +1074,7 @@ const EmployerSignup = () => {
                 >
                   Sign In to Dashboard
                 </Link>
-              </div> 
+              </div>
             </div>
           </div>
         </div>

@@ -301,16 +301,16 @@ const CompanyDashboard = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Coming Soon Overlay */}
-          <div className="absolute inset-0 rounded-xl backdrop-blur-sm bg-white/60 flex flex-col items-center justify-center z-10">
+          {/* <div className="absolute inset-0 rounded-xl backdrop-blur-sm bg-white/60 flex flex-col items-center justify-center z-10">
             <div className="bg-white/80 backdrop-blur-md rounded-2xl px-8 py-5 shadow-lg border border-white/50 text-center">
               <span className="text-2xl font-bold text-slate-700 tracking-wide">Coming Soon</span>
               <p className="text-sm text-slate-400 mt-1">
                 This feature is under development
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* AI Recommendations */}
@@ -358,14 +358,14 @@ const CompanyDashboard = () => {
           </Card>
 
           {/* Coming Soon Overlay */}
-          <div className="absolute inset-0 rounded-xl backdrop-blur-sm bg-white/60 flex flex-col items-center justify-center z-10">
+          {/* <div className="absolute inset-0 rounded-xl backdrop-blur-sm bg-white/60 flex flex-col items-center justify-center z-10">
             <div className="bg-white/80 backdrop-blur-md rounded-2xl px-8 py-5 shadow-lg border border-white/50 text-center">
               <span className="text-2xl font-bold text-slate-700 tracking-wide">Coming Soon</span>
               <p className="text-sm text-slate-400 mt-1">
                 This feature is under development
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 

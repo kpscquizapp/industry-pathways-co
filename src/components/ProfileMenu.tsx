@@ -57,7 +57,7 @@ const ProfileMenu = ({
     <div className="w-full">
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
-          <div role="button" tabIndex={0} className={btnClass || "flex items-center w-full p-2.5 rounded-2xl hover:bg-white/5 transition-colors bg-[#111928] border border-transparent hover:border-white/10 gap-3 cursor-pointer text-left"}>
+          <Button>
             {/* Avatar */}
             <Avatar className="h-10 w-10 bg-cyan-900/40 rounded-xl overflow-hidden flex-shrink-0">
               {profileImage && (
@@ -73,29 +73,11 @@ const ProfileMenu = ({
                   "U"}
               </AvatarFallback>
             </Avatar>
-<<<<<<< HEAD
 
-            {/* User Info */}
-            <div className="text-left flex-1 min-w-0 pr-1">
-              <p className="text-[15px] font-semibold text-white truncate leading-tight">
-                {user?.firstName || "User"}
-              </p>
-              <p className="text-[13px] text-slate-400 truncate mt-0.5">
-                {user?.role === "hr"
-                  ? "Partner Admin"
-                  : user?.role || "User"}
-              </p>
-            </div>
-
-            {/* Icon */}
-            <LogOut className="h-[22px] w-[22px] text-slate-500 flex-shrink-0 hover:text-slate-300 transition-colors" />
-          </div>
-=======
             <span className="font-medium text-sm hidden sm:inline font-inter">
               {user?.firstName || user?.role || "User"}
             </span>
           </Button>
->>>>>>> c42f2f7c6202e727dcdafac4c16e974713e6f18a
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" side="top" className="w-56 bg-[#0B1221] border-[#1c2e3d] text-slate-300 shadow-2xl shadow-black/50">

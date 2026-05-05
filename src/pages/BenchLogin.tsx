@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import HirionLogo from "../assets/White Option.png";
+import DarkLogo from "../assets/Dark Option.png";
 import { Label } from "@/components/ui/label";
 import {
   Sparkles,
@@ -163,47 +164,47 @@ const BenchLogin = () => {
   };
 
   return (
-    
+
     <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
       {/* Left Panel - Immersive Branding */}
-     <div className="hidden lg:flex lg:w-[50%] bg-[#080b20] px-16 py-8 flex-col justify-center relative overflow-hidden shrink-0 border-r border-white/5">
-  <div className="absolute top-0 left-0 w-full h-full opacity-[0.15] pointer-events-none animate-pulse-slow">
-    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern id="dotGrid" width="24" height="24" patternUnits="userSpaceOnUse">
-          <circle cx="2" cy="2" r="1" fill="#fff" />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#dotGrid)" opacity="0.4" />
-    </svg>
-  </div>
+      <div className="hidden lg:flex lg:w-[50%] bg-[#080b20] px-16 py-8 flex-col justify-center relative overflow-hidden shrink-0 border-r border-white/5">
+        <div className="absolute top-0 left-0 w-full h-full opacity-[0.15] pointer-events-none animate-pulse-slow">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="dotGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1" fill="#fff" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dotGrid)" opacity="0.4" />
+          </svg>
+        </div>
         <div className="absolute z-10 top-8 left-16 animate-fade-up">
-  <div className="relative z-10" style={{marginBottom: "4rem",marginTop:"1rem"}}>
-  <Link to="/" className="flex items-center gap-3 group" >
-    <img src={HirionLogo} alt="Hirion Logo" className="w-44 h-auto" />
-  </Link>
-</div>
+          <div className="relative z-10" style={{ marginBottom: "4rem", marginTop: "1rem" }}>
+            <Link to="/" className="flex items-center gap-3 group" >
+              <img src={HirionLogo} alt="Hirion Logo" className="w-44 h-auto" />
+            </Link>
+          </div>
 
 
 
 
-<div className="space-y-8 max-w-lg" style={{marginTop:"10rem"}}>
-  <div className="inline-flex items-center gap-2">
-    <span className="text-[#4DD9E8] text-[11px] font-semibold tracking-[0.15em] uppercase">
-      BENCH DASHBOARD</span></div>
+          <div className="space-y-8 max-w-lg" style={{ marginTop: "10rem" }}>
+            <div className="inline-flex items-center gap-2">
+              <span className="text-[#4DD9E8] text-[11px] font-semibold tracking-[0.15em] uppercase">
+                BENCH DASHBOARD</span></div>
 
-  <h1 className="text-[44px] font-bold text-white leading-[1.2] tracking-tight">
-    Welcome back,<br />
-    <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
-      let's build.
-    </span>
-  </h1>
+            <h1 className="text-[44px] font-bold text-white leading-[1.2] tracking-tight">
+              Welcome back,<br />
+              <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                let's build.
+              </span>
+            </h1>
 
-  <p className="text-[16px] text-white/40 leading-relaxed max-w-sm">
-    Access your projects, track interviews, and manage your bench profile — all in one place.
-  </p>
+            <p className="text-[16px] text-white/40 leading-relaxed max-w-sm">
+              Access your projects, track interviews, and manage your bench profile — all in one place.
+            </p>
 
-</div>
+          </div>
         </div>
 
       </div>
@@ -211,32 +212,32 @@ const BenchLogin = () => {
       {/* Right Panel - Premium Login Section */}
       <div className="flex-1 flex flex-col bg-white overflow-y-auto animate-fade-up">
         <div className="flex-1 flex items-center justify-center p-6 lg:p-12 xl:p-16">
-          <div className="w-full max-w-[500px]">
-           <div className="lg:hidden mb-12 flex flex-col items-center">
-  <Link to="/" className="flex items-center gap-2 mb-2">
-   <img src={HirionLogo} alt="Hirion Logo" className="w-32 h-12 object-contain invert" />
-  </Link>
-  <p className="text-xs text-gray-400 uppercase tracking-widest">Bench Dashboard</p>
-</div>
+          <div className="w-full max-w-[420px]">
+            <div className="lg:hidden mb-6 flex flex-col items-center gap-3">
+              <Link to="/">
+                <img src={DarkLogo} alt="Hirion Logo" className="w-44 h-auto" />
+              </Link>
+              <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gray-500">Bench Dashboard</span>
+            </div>
 
             <div className="relative">
-             <div className="p-8 md:p-10">
+              <div className="p-4 md:p-6">
 
                 <div className="mb-10 text-center lg:text-left">
                   <h3 className="text-4xl font-bold text-[#1a1a2e] mb-3 lg:text-left text-center">
                     Sign In
                   </h3>
                   <p className="text-slate-400 font-medium lg:text-left text-center text-sm">
-                   Enter your partner credentials below.
+                    Enter your partner credentials below.
                   </p>
                 </div>
 
                 <form onSubmit={handleSubmit} noValidate className="space-y-6">
                   {/* Email Field */}
                   <div className="flex flex-col gap-1.5 min-w-0">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-1" htmlFor="email" style={{fontSize: "13px", fontWeight: "600", color: "rgb(26, 26, 46)", letterSpacing: "0.02em"}}>
-                    Email Address
-                      </label>
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-1" htmlFor="email" style={{ fontSize: "13px", fontWeight: "600", color: "rgb(26, 26, 46)", letterSpacing: "0.02em" }}>
+                      Email Address
+                    </label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300 z-10" />
                       <Input
@@ -244,11 +245,10 @@ const BenchLogin = () => {
                         type="email"
                         placeholder="bench@example.com"
                         autoComplete="email"
-                        className={`h-12 w-full pl-12 pr-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700 transition-all duration-300 font-medium ${
-                          fieldErrors.email && touched.email
-                            ? "ring-2 ring-red-500 focus:ring-red-500 focus-visible:ring-red-500"
-                            : ""
-                        }`}
+                        className={`h-12 w-full pl-12 pr-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700 transition-all duration-300 font-medium ${fieldErrors.email && touched.email
+                          ? "ring-2 ring-red-500 focus:ring-red-500 focus-visible:ring-red-500"
+                          : ""
+                          }`}
                         value={formData.email}
                         onChange={handleInputChange}
                         onBlur={() => handleBlur("email")}
@@ -263,9 +263,9 @@ const BenchLogin = () => {
                   {/* Password Field */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-1" htmlFor="password" style={{fontSize: "13px", fontWeight: "600", color: "rgb(26, 26, 46)", letterSpacing: "0.02em"}}>
-  Password
-</label>
+                      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-1" htmlFor="password" style={{ fontSize: "13px", fontWeight: "600", color: "rgb(26, 26, 46)", letterSpacing: "0.02em" }}>
+                        Password
+                      </label>
                       <Link
                         to="/forgot-password"
                         title="Forgot Password"
@@ -281,11 +281,10 @@ const BenchLogin = () => {
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
                         autoComplete="current-password"
-                        className={`h-12 w-full pl-12 pr-12 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700 transition-all duration-300 font-medium ${
-                          fieldErrors.password && touched.password
-                            ? "ring-2 ring-red-500 focus:ring-red-500 focus-visible:ring-red-500"
-                            : ""
-                        }`}
+                        className={`h-12 w-full pl-12 pr-12 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700 transition-all duration-300 font-medium ${fieldErrors.password && touched.password
+                          ? "ring-2 ring-red-500 focus:ring-red-500 focus-visible:ring-red-500"
+                          : ""
+                          }`}
                         value={formData.password}
                         onChange={handleInputChange}
                         onBlur={() => handleBlur("password")}
@@ -312,24 +311,24 @@ const BenchLogin = () => {
                   </div>
 
                   {/* Submit Button */}
-          <Button
-  type="submit"
-  className="w-full h-[52px] text-[15px] font-bold mt-4 rounded-xl text-white hover:opacity-90 transition-all active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
-  style={{background: "linear-gradient(135deg, rgb(77, 217, 232), rgb(14, 165, 233))", boxShadow: "rgba(77, 217, 232, 0.35) 0px 4px 20px"}}
-  disabled={isLoading}
->
-  {isLoading ? (
-    <div className="flex items-center gap-3">
-      <SpinnerLoader className="w-5 h-5 text-current" />
-      <span>Logging you in...</span>
-    </div>
-  ) : (
-    <div className="flex items-center justify-center gap-3">
-      <span>Sign In to Dashboard</span>
-      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-    </div>
-  )}
-</Button>
+                  <Button
+                    type="submit"
+                    className="w-full h-[52px] text-[15px] font-bold mt-4 rounded-xl text-white hover:opacity-90 transition-all active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                    style={{ background: "linear-gradient(135deg, rgb(77, 217, 232), rgb(14, 165, 233))", boxShadow: "rgba(77, 217, 232, 0.35) 0px 4px 20px" }}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-3">
+                        <SpinnerLoader className="w-5 h-5 text-current" />
+                        <span>Logging you in...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-3">
+                        <span>Sign In to Dashboard</span>
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    )}
+                  </Button>
                 </form>
 
                 <div className="mt-12 text-center text-sm font-medium text-slate-400">
