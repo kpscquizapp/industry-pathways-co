@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -22,7 +28,6 @@ import { cn } from "@/lib/utils";
 import ProblemPanel from "@/components/coding/ProblemPanel";
 import EditorPanel from "@/components/coding/EditorPanel";
 import ConsoleOutput from "@/components/coding/ConsoleOutput";
-import WebcamFeed from "@/pages/WebcamFeed";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { CodingProblem, SupportedLanguage, TestCase } from "@/types/coding";
 import { toast } from "sonner";
@@ -42,6 +47,7 @@ import {
   useGetAllLanguagesQuery,
   Language,
 } from "@/app/queries/assessmentApi";
+import WebcamFeed from "./WebcamFeed";
 
 type TestStatus =
   | "loading"
@@ -61,22 +67,16 @@ interface TestMetadata {
 }
 
 async function detectMultipleMonitors(): Promise<boolean> {
-  // 1. Window Management API — most reliable (Chrome 100+)
   if ("getScreenDetails" in window) {
     try {
       const details = await (window as any).getScreenDetails();
       if (details.screens.length > 1) return true;
     } catch {
-      toast.error("Failed to detect screens");
+      /* permission denied */
     }
   }
-
-  // 2. screen.isExtended — boolean flag (Chrome 100+, Safari 16+)
   if ((window.screen as any).isExtended === true) return true;
-
-  // 3. availWidth wider than screen width — all browsers
   if (window.screen.availWidth - window.screen.width > 8) return true;
-
   return false;
 }
 
@@ -94,46 +94,68 @@ const getLanguageKey = (name?: string): string => {
   if (n.includes("typescript")) return "typescript";
   if (n.includes("python")) return "python";
   if (n.includes("java") && !n.includes("javascript")) return "java";
-  if (n.includes("c++") || n.includes("cpp")) return "cpp";
   if (n.includes("go")) return "go";
-  if (n === "c" || n.startsWith("c (") || n.startsWith("c  (")) return "c";
   return n;
 };
 
-// Merge raw API result with known problem test cases by index/id.
-const mergeTestCaseResults = (raw: any[], knownTCs: TestCase[]): TestCase[] => {
-  // Map over known (visible) test cases so we never show hidden ones
-  return knownTCs.map((known, idx) => {
-    // Find matching result in raw by id, fall back to positional index
-    const tc = raw.find((r: any) => String(r.id ?? r.testCaseId ?? r.testcase_id) === String(known.id)) ?? raw[idx] ?? {};
+// Map API results directly to TestCase[] — pass/fail is determined solely by the backend.
+// No frontend string comparison is performed.
+const mapApiResults = (raw: any[], knownTCs: TestCase[]): TestCase[] => {
+  return raw.map((tc: any, idx: number) => {
+    const known = knownTCs[idx]; // positional match (same order the backend returns)
 
-    const statusId = tc.status_id ?? tc.status?.id ?? tc.statusId;
-    const stdout = (tc.stdout ?? tc.actual_output ?? tc.actualOutput ?? "").toString().trim();
-    const expected = (known.expectedOutput ?? tc.expected_output ?? tc.expectedOutput ?? tc.expected ?? "").toString().trim();
-    const input = known.input ?? tc.input ?? tc.stdin ?? "";
-
+    // Determine pass from backend fields — never re-derive from string comparison
     let passed: boolean;
-    if (typeof tc.passed === "boolean") {
+    if (typeof tc.pass === "boolean") {
+      passed = tc.pass;
+    } else if (typeof tc.passed === "boolean") {
       passed = tc.passed;
-    } else if (statusId !== undefined) {
-      passed = statusId === 3; // Judge0: 3 = Accepted
-    } else if (tc.id !== undefined || raw[idx] !== undefined) {
-      passed = stdout === expected;
     } else {
-      passed = false; // no API result available yet
+      // Fall back: status string "Accepted" or status_id === 3 (Judge0)
+      const statusStr = tc.status ?? tc.status_description ?? "";
+      const statusId = tc.status_id ?? tc.statusId;
+      if (statusId !== undefined) {
+        passed = statusId === 3;
+      } else {
+        passed =
+          typeof statusStr === "string" &&
+          statusStr.toLowerCase() === "accepted";
+      }
     }
 
+    const stdout = (
+      tc.stdout ??
+      tc.actual_output ??
+      tc.actualOutput ??
+      ""
+    ).toString();
+    const stderr = (tc.stderr ?? tc.error ?? "").toString();
+    const input = known?.input ?? tc.input ?? tc.stdin ?? "";
+    const expectedOutput =
+      known?.expectedOutput ??
+      tc.expected_output ??
+      tc.expectedOutput ??
+      tc.expected ??
+      "";
+
     return {
-      id: known.id,
+      id: known?.id ?? idx + 1,
       input,
-      expectedOutput: known.expectedOutput ?? expected,
+      expectedOutput,
+      compile_output: tc.compile_output,
       actualOutput: stdout,
+      stderr: stderr || undefined,
       passed,
-      runtime: tc.time !== undefined ? Math.round(Number(tc.time) * 1000) : tc.runtime,
+      runtime:
+        tc.time !== undefined ? Math.round(Number(tc.time) * 1000) : tc.runtime,
       memory: tc.memory,
     };
   });
 };
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 const CodingChallenge: React.FC = () => {
   const navigate = useNavigate();
@@ -147,7 +169,6 @@ const CodingChallenge: React.FC = () => {
   const [metadata, setMetadata] = useState<TestMetadata | null>(null);
   const [problems, setProblems] = useState<CodingProblem[]>([]);
   const [activeProblemIndex, setActiveProblemIndex] = useState(0);
-
   const [code, setCode] = useState<string>("");
   const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [isRunningCode, setIsRunningCode] = useState(false);
@@ -168,7 +189,7 @@ const CodingChallenge: React.FC = () => {
   const initialWebcamStreamRef = useRef<MediaStream | null>(null);
   const initialScreenStreamRef = useRef<MediaStream | null>(null);
 
-  // Interview/Test state
+  // Interview state
   const [isInterviewActive, setIsInterviewActive] = useState(false);
   const [isMonitoringActive, setIsMonitoringActive] = useState(false);
   const [totalViolations, setTotalViolations] = useState(0);
@@ -227,20 +248,35 @@ const CodingChallenge: React.FC = () => {
       if (n.includes("typescript")) return "typescript";
       if (n.includes("python")) return "python";
       if (n.includes("java") && !n.includes("javascript")) return "java";
-      if (n.includes("c++") || n.includes("cpp")) return "cpp";
       if (n.includes("go")) return "go";
-      if (n === "c" || n.startsWith("c (") || n.startsWith("c  (")) return "c";
       return n;
     };
 
-    const supportedKeys = ["c", "cpp", "go", "java", "javascript", "python", "typescript"];
+    const supportedKeys = [
+      "go",
+      "java",
+      "javascript",
+      "python",
+      "typescript",
+    ];
     const uniqueLangs = new Map<string, Language>();
 
-    languagesData.forEach(lang => {
+    const preferredIds: Record<string, number> = {
+      python: 71, // Python 3.8.1
+    };
+
+    languagesData.forEach((lang) => {
       const key = getLangKey(lang.name);
       if (supportedKeys.includes(key)) {
-        // Keeps the first version of the language found
-        if (!uniqueLangs.has(key)) {
+        const existing = uniqueLangs.get(key);
+
+        if (preferredIds[key] === lang.id) {
+          // Always prioritize the explicitly preferred ID
+          uniqueLangs.set(key, lang);
+        } else if (!existing) {
+          uniqueLangs.set(key, lang);
+        } else if (existing.id !== preferredIds[key] && lang.id > existing.id) {
+          // Keep the highest ID, unless we already have the preferred one
           uniqueLangs.set(key, lang);
         }
       }
@@ -281,28 +317,31 @@ const CodingChallenge: React.FC = () => {
     suppressViolationsUntilRef.current = Date.now() + 1500;
   }, []);
 
-  const initializeSession = useCallback(async (jobId?: string) => {
-    try {
-      const candidateId = user?.id || user?.uuid;
-      if (!candidateId) {
-        console.error("No candidate ID found");
-        return null;
-      }
-      const sessionData = await startSessionMutation({
-        candidateId: String(candidateId),
-        jobId: jobId ? String(jobId) : undefined,
-      }).unwrap();
+  const initializeSession = useCallback(
+    async (jobId?: string) => {
+      try {
+        const candidateId = user?.id || user?.uuid;
+        if (!candidateId) {
+          console.error("No candidate ID found");
+          return null;
+        }
+        const sessionData = await startSessionMutation({
+          candidateId: String(candidateId),
+          jobId: jobId ? String(jobId) : undefined,
+        }).unwrap();
 
-      if (sessionData.sessionId) {
-        setSessionId(sessionData.sessionId);
-        sessionIdRef.current = sessionData.sessionId;
-        return sessionData.sessionId;
+        if (sessionData.sessionId) {
+          setSessionId(sessionData.sessionId);
+          sessionIdRef.current = sessionData.sessionId;
+          return sessionData.sessionId;
+        }
+      } catch (err) {
+        console.error("Failed to start session:", err);
       }
-    } catch (err) {
-      console.error("Failed to start session:", err);
-    }
-    return null;
-  }, [user, startSessionMutation]);
+      return null;
+    },
+    [user, startSessionMutation],
+  );
 
   const handleViolation = useCallback(
     async (reason: string) => {
@@ -321,9 +360,7 @@ const CodingChallenge: React.FC = () => {
     [isMonitoringActive, logViolationMutation, addLog],
   );
 
-  const onResize = useDebouncedCallback(() => {
-    handleViolation("Window resized");
-  }, 1000);
+  const onResize = useDebouncedCallback(() => handleViolation("Window resized"), 1000);
 
   const checkDevtools = useCallback(() => {
     if (!isMonitoringActive) return;
@@ -341,9 +378,7 @@ const CodingChallenge: React.FC = () => {
     if (isOpen && !devtoolsOpenRef.current) {
       devtoolsOpenRef.current = true;
       handleViolation("Developer tools opened");
-    } else if (!isOpen) {
-      devtoolsOpenRef.current = false;
-    }
+    } else if (!isOpen) devtoolsOpenRef.current = false;
   }, [handleViolation, isMonitoringActive]);
 
   const performCleanup = useCallback(async () => {
@@ -360,6 +395,21 @@ const CodingChallenge: React.FC = () => {
     // 2. Give WebcamFeed a window to flush final chunks
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
+    // 3. Clear saved codes from localStorage for all problems in this test
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && problems.some((p) => key.startsWith(`code_${p.id}_`))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+      setCode("");
+    } catch (err) {
+      console.error("Failed to clear localStorage:", err);
+    }
+
     try {
       await endTestMutation({ testId: testId!, token }).unwrap();
       const sid = sessionIdRef.current;
@@ -373,16 +423,20 @@ const CodingChallenge: React.FC = () => {
       console.error("Cleanup failed:", err);
       return false;
     }
-  }, [testId, token, endTestMutation, endSessionMutation]);
+  }, [testId, token, endTestMutation, endSessionMutation, problems, setCode]);
 
   const handleEndTest = useCallback(async () => {
     // Auto-submit any problems the candidate hasn't explicitly submitted yet.
     // This covers time-up, early exits, and skipped problems.
     // We use `problems` from the outer scope (captured at call time via ref pattern).
-    const unsubmitted = problems.filter(p => !submittedProblemIdsRef.current.has(p.id));
+    const unsubmitted = problems.filter(
+      (p) => !submittedProblemIdsRef.current.has(p.id),
+    );
 
     if (unsubmitted.length > 0) {
-      toast.info(`Auto-submitting ${unsubmitted.length} remaining problem(s)...`);
+      toast.info(
+        `Auto-submitting ${unsubmitted.length} remaining problem(s)...`,
+      );
       await Promise.allSettled(
         unsubmitted.map(async (problem) => {
           // Prefer saved code from localStorage, fall back to empty string
@@ -408,33 +462,18 @@ const CodingChallenge: React.FC = () => {
           } catch {
             // Silently swallow — best-effort, never block test ending
           }
-        })
+        }),
       );
     }
 
     const success = await performCleanup();
     if (success) {
       setTestStatus("completed");
-
-      // Clear saved codes from localStorage for all problems in this test
-      const keysToRemove: string[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && problems.some(p => key.startsWith(`code_${p.id}_`))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-
-      // Reset IDE code
-      setCode("");
-
       toast.success("Test submitted successfully!");
     } else {
       toast.error("Failed to submit test");
     }
   }, [performCleanup, problems, submitSolution, language, testId]);
-
 
   // Back-button & page-close guard
   useEffect(() => {
@@ -577,7 +616,9 @@ const CodingChallenge: React.FC = () => {
       if (data.success) {
         setMetadata(data.data);
         // Start session
-        const sid = await initializeSession(data.data?.id ? String(data.data.id) : undefined);
+        const sid = await initializeSession(
+          data.data?.id ? String(data.data.id) : undefined,
+        );
 
         setTestStatus("active");
         setIsInterviewActive(true);
@@ -660,8 +701,6 @@ const CodingChallenge: React.FC = () => {
       const langKey = getLanguageKey(language.name);
 
       const supportedKeys = [
-        "c",
-        "cpp",
         "go",
         "java",
         "javascript",
@@ -711,8 +750,13 @@ const CodingChallenge: React.FC = () => {
 
     setIsRunningCode(true);
     setError(undefined);
-    const knownTCs: TestCase[] = currentProblem.testcases || currentProblem.testCases || [];
-    setTestCases(knownTCs.map(tc => ({ ...tc, passed: undefined, actualOutput: undefined })));
+    setTestCases([]); // Clear previous results while running
+
+    const knownTCs: TestCase[] =
+      currentProblem.test_cases ||
+      currentProblem.testcases ||
+      currentProblem.testCases ||
+      [];
 
     try {
       const result = await runTestCases({
@@ -722,8 +766,13 @@ const CodingChallenge: React.FC = () => {
       }).unwrap();
 
       if (result.success) {
-        const raw = result.data?.testCases ?? result.data?.testcases ?? result.data?.results ?? [];
-        setTestCases(mergeTestCaseResults(raw, knownTCs));
+        // Use results directly from the backend — no frontend comparison
+        const raw: any[] =
+          result.data?.results ??
+          result.data?.testCases ??
+          result.data?.testcases ??
+          [];
+        setTestCases(mapApiResults(raw, knownTCs));
       } else {
         setError(result.message || "Execution failed");
       }
@@ -749,8 +798,12 @@ const CodingChallenge: React.FC = () => {
       localStorage.setItem(`code_${currentProblem.id}_${language.name}`, code);
     }
 
-    const knownTCs: TestCase[] = currentProblem.testcases || currentProblem.testCases || [];
-    setTestCases(knownTCs.map(tc => ({ ...tc, passed: undefined, actualOutput: undefined })));
+    const knownTCs: TestCase[] =
+      currentProblem.test_cases ||
+      currentProblem.testcases ||
+      currentProblem.testCases ||
+      [];
+    setTestCases([]); // Clear previous results while submitting
 
     try {
       const result = await submitSolution({
@@ -761,8 +814,13 @@ const CodingChallenge: React.FC = () => {
       }).unwrap();
 
       if (result.success) {
-        const raw = result.data?.testCases ?? result.data?.testcases ?? result.data?.results ?? [];
-        const results = mergeTestCaseResults(raw, knownTCs);
+        // Use results directly from the backend — no frontend comparison
+        const raw: any[] =
+          result.data?.results ??
+          result.data?.testCases ??
+          result.data?.testcases ??
+          [];
+        const results = mapApiResults(raw, knownTCs);
         setTestCases(results);
 
         // Mark this problem as submitted
@@ -856,7 +914,7 @@ const CodingChallenge: React.FC = () => {
           </p>
           <Button
             onClick={() => navigate("/contractor/tests")}
-            className="w-full bg-slate-900 hover:bg-slate-900/90"
+            className="w-full bg-slate-900 hover:bg-slate-900/90 text-white hover:text-white"
           >
             Back to Dashboard
           </Button>
@@ -1199,7 +1257,7 @@ const CodingChallenge: React.FC = () => {
               variant="outline"
               size={isMobile ? "icon" : "default"}
               className={cn(
-                "gap-2 border-slate-200 hover:bg-slate-50 shrink-0",
+                "gap-2 bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none shrink-0",
                 !isMobile &&
                 "bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none",
               )}
@@ -1219,8 +1277,13 @@ const CodingChallenge: React.FC = () => {
                 size={isMobile ? "icon" : "default"}
                 className="gap-2 shrink-0"
               >
-                {isSubmitting ? <SpinnerLoader /> : <Send className="h-4 w-4" />}
-                {!isMobile && (isSubmitting ? "Submitting..." : "Submit & End Test")}
+                {isSubmitting ? (
+                  <SpinnerLoader />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                {!isMobile &&
+                  (isSubmitting ? "Submitting..." : "Submit & End Test")}
               </Button>
             ) : (
               <Button
@@ -1229,7 +1292,11 @@ const CodingChallenge: React.FC = () => {
                 size={isMobile ? "icon" : "default"}
                 className="gap-2 shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                {isSubmitting ? <SpinnerLoader /> : <Send className="h-4 w-4" />}
+                {isSubmitting ? (
+                  <SpinnerLoader />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
                 {!isMobile && (isSubmitting ? "Submitting..." : "Submit Code")}
               </Button>
             )}
@@ -1287,9 +1354,9 @@ const CodingChallenge: React.FC = () => {
       </div>
 
       {/* Camera monitoring floating window */}
-      <div
+      {/* <div
         ref={popupRef}
-        className="fixed z-50 cursor-move select-none"
+        className="fixed z-50 cursor-move select-none hidden"
         style={{
           left: popupPosition.x,
           top: popupPosition.y,
@@ -1312,22 +1379,22 @@ const CodingChallenge: React.FC = () => {
             y: e.touches[0].clientY - popupPosition.y,
           });
         }}
-      >
-        <div className="relative rounded-lg shadow-2xl max-w-sm">
-          <WebcamFeed
-            apiBaseUrl={import.meta.env.VITE_API_BASE_URL}
-            isInterviewActive={isInterviewActive}
-            totalViolations={totalViolations}
-            onScreenShareStart={handleScreenShareStart}
-            onRecordingStart={handleRecordingStart}
-            onRecordingStop={handleRecordingStop}
-            onCameraError={handleCameraError}
-            sessionId={sessionId}
-            initialStream={initialWebcamStream}
-            initialScreenStream={initialScreenStream}
-          />
-        </div>
+      > */}
+      <div className="relative rounded-lg shadow-2xl max-w-sm">
+        {/* <WebcamFeed
+          apiBaseUrl={import.meta.env.VITE_API_BASE_URL}
+          isInterviewActive={isInterviewActive}
+          totalViolations={totalViolations}
+          onScreenShareStart={handleScreenShareStart}
+          onRecordingStart={handleRecordingStart}
+          onRecordingStop={handleRecordingStop}
+          onCameraError={handleCameraError}
+          sessionId={sessionId}
+          initialStream={initialWebcamStream}
+          initialScreenStream={initialScreenStream}
+        /> */}
       </div>
+      {/* </div> */}
     </div>
   );
 };

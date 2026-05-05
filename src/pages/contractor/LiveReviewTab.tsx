@@ -36,11 +36,17 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
   const { data: violationsData, isLoading: violLoading } =
     useGetSessionViolationsQuery(sessionId, { skip });
 
-  const { data: webcamSrc, isLoading: webcamLoading, isError: webcamError } =
-    useGetRecordingPlayQuery({ sessionId, type: "webcam" }, { skip });
+  const {
+    data: webcamSrc,
+    isLoading: webcamLoading,
+    isError: webcamError,
+  } = useGetRecordingPlayQuery({ sessionId, type: "webcam" }, { skip });
 
-  const { data: screenSrc, isLoading: screenLoading, isError: screenError } =
-    useGetRecordingPlayQuery({ sessionId, type: "screen" }, { skip });
+  const {
+    data: screenSrc,
+    isLoading: screenLoading,
+    isError: screenError,
+  } = useGetRecordingPlayQuery({ sessionId, type: "screen" }, { skip });
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -72,7 +78,7 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
     if (webcamSrc && webcamRef.current) {
       const w = webcamRef.current;
       w.src = webcamSrc;
-      w.muted = false;          // allow microphone audio to play
+      w.muted = false; // allow microphone audio to play
       w.volume = volume;
     }
   }, [webcamSrc]);
@@ -81,7 +87,7 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
     if (screenSrc && screenRef.current) {
       const v = screenRef.current;
       v.src = screenSrc;
-      v.muted = false;          // ensure audio plays
+      v.muted = false; // ensure audio plays
       v.volume = volume;
       v.onloadedmetadata = () => setDuration(v.duration);
       v.ontimeupdate = () => setCurrentTime(v.currentTime);
@@ -101,28 +107,34 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
     const v = screenRef.current;
     if (!v) return;
     if (v.paused) {
-      v.play().catch(() => { });
-      webcamRef.current?.play().catch(() => { });
+      v.play().catch(() => {});
+      webcamRef.current?.play().catch(() => {});
     } else {
       v.pause();
       webcamRef.current?.pause();
     }
   }, []);
 
-  const seek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const t = Number(e.target.value);
-    if (screenRef.current) screenRef.current.currentTime = t;
-    syncWebcam(t);
-    setCurrentTime(t);
-  }, [syncWebcam]);
+  const seek = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const t = Number(e.target.value);
+      if (screenRef.current) screenRef.current.currentTime = t;
+      syncWebcam(t);
+      setCurrentTime(t);
+    },
+    [syncWebcam],
+  );
 
-  const skip10 = useCallback((dir: 1 | -1) => {
-    const v = screenRef.current;
-    if (!v) return;
-    const t = Math.max(0, Math.min(v.duration, v.currentTime + dir * 10));
-    v.currentTime = t;
-    syncWebcam(t);
-  }, [syncWebcam]);
+  const skip10 = useCallback(
+    (dir: 1 | -1) => {
+      const v = screenRef.current;
+      if (!v) return;
+      const t = Math.max(0, Math.min(v.duration, v.currentTime + dir * 10));
+      v.currentTime = t;
+      syncWebcam(t);
+    },
+    [syncWebcam],
+  );
 
   const toggleMute = useCallback(() => {
     setMuted((m) => {
@@ -200,9 +212,11 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
         ctx.font = "15px sans-serif";
         ctx.textAlign = "center";
         ctx.fillText(
-          screenError ? "Screen recording not available" : "Loading screen recording…",
+          screenError
+            ? "Screen recording not available"
+            : "Loading screen recording…",
           w / 2,
-          h / 2
+          h / 2,
         );
       }
 
@@ -240,7 +254,7 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
         ctx.fillText(
           webcamError ? "No webcam" : "…",
           pipX + pipW / 2,
-          pipY + pipH / 2
+          pipY + pipH / 2,
         );
       }
 
@@ -277,7 +291,11 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
         className={`relative w-full bg-slate-900 overflow-hidden shadow-xl group ${
           isFullscreen ? "rounded-none" : "rounded-2xl"
         }`}
-        style={isFullscreen ? { width: "100%", height: "100%" } : { aspectRatio: "16/9" }}
+        style={
+          isFullscreen
+            ? { width: "100%", height: "100%" }
+            : { aspectRatio: "16/9" }
+        }
         onMouseMove={resetHideTimer}
         onMouseEnter={() => setShowControls(true)}
         onMouseLeave={() => !playing && setShowControls(true)}
@@ -290,11 +308,29 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
 
         {/* Hidden video elements – use offscreen positioning instead of display:none
             so the browser doesn't suppress audio playback */}
-        <video ref={webcamRef} playsInline
-          style={{ position: "absolute", width: 0, height: 0, overflow: "hidden", opacity: 0 }} />
+        <video
+          ref={webcamRef}
+          playsInline
+          style={{
+            position: "absolute",
+            width: 0,
+            height: 0,
+            overflow: "hidden",
+            opacity: 0,
+          }}
+        />
         {/* Screen video: NOT muted so audio plays */}
-        <video ref={screenRef} playsInline
-          style={{ position: "absolute", width: 0, height: 0, overflow: "hidden", opacity: 0 }} />
+        <video
+          ref={screenRef}
+          playsInline
+          style={{
+            position: "absolute",
+            width: 0,
+            height: 0,
+            overflow: "hidden",
+            opacity: 0,
+          }}
+        />
 
         {/* Loading overlay */}
         {isVideoLoading && (
@@ -309,15 +345,19 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
         {/* ── Controls overlay ── */}
         {!isVideoLoading && (
           <div
-            className={`absolute inset-x-0 bottom-0 transition-opacity duration-200 ${showControls ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
+            className={`absolute inset-x-0 bottom-0 transition-opacity duration-200 ${
+              showControls ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
           >
             {/* Gradient scrim */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
 
             <div className="relative px-4 pb-3 pt-6 flex flex-col gap-2 w-full box-border">
               {/* Seek bar */}
-              <div className="relative w-full group/seek py-2 cursor-pointer" style={{ minWidth: 0 }}>
+              <div
+                className="relative w-full group/seek py-2 cursor-pointer"
+                style={{ minWidth: 0 }}
+              >
                 {/* Track background */}
                 <div className="relative h-1.5 w-full">
                   <div className="absolute inset-0 rounded-full bg-white/20" />
@@ -346,7 +386,10 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
               </div>
 
               {/* Buttons row */}
-              <div className="flex items-center gap-3 flex-wrap" style={{ minWidth: 0 }}>
+              <div
+                className="flex items-center gap-3 flex-wrap"
+                style={{ minWidth: 0 }}
+              >
                 {/* Skip back */}
                 <button
                   onClick={() => skip10(-1)}
@@ -421,7 +464,11 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
                   className="text-white/70 hover:text-white transition-colors flex-shrink-0"
                   title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
                 >
-                  {isFullscreen ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
+                  {isFullscreen ? (
+                    <Minimize2 size={17} />
+                  ) : (
+                    <Maximize2 size={17} />
+                  )}
                 </button>
               </div>
             </div>
@@ -435,6 +482,14 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
           <span className="capitalize">
             <span className="font-semibold text-slate-700">Status:</span>{" "}
             {session.status}
+            {session.ended_at && (
+              <>
+                <span className="font-semibold text-slate-700 ml-4">
+                  Completed on:
+                </span>{" "}
+                {session.ended_at.split("T")[0]}
+              </>
+            )}
           </span>
         </div>
       )}
@@ -468,15 +523,17 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
                 className="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-100 bg-slate-50"
               >
                 <span
-                  className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border ${typeStyle[v.type] ?? "bg-slate-100 border-slate-200 text-slate-600"
-                    }`}
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border ${
+                    typeStyle[v.type] ??
+                    "bg-slate-100 border-slate-200 text-slate-600"
+                  }`}
                 >
                   {v.type}
                 </span>
-                <span className="flex items-center gap-1 text-[12px] text-slate-400 ml-auto whitespace-nowrap">
+                {/* <span className="flex items-center gap-1 text-[12px] text-slate-400 ml-auto whitespace-nowrap">
                   <Clock size={11} />
                   {new Date(v.timestamp).toLocaleTimeString()}
-                </span>
+                </span> */}
                 {v.question_id && (
                   <span className="text-[11px] text-slate-400">
                     Q#{v.question_id}

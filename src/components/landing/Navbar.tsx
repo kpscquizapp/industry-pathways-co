@@ -1,7 +1,7 @@
 import { useState, useEffect, type MouseEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import logo from "@/assets/Dark Option.png";
-import { Building2, Equal, User, X } from "lucide-react";
+import { Building2, Equal, User, X, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
@@ -129,6 +129,9 @@ export default function Navbar() {
                     <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-2 transition-colors mt-1">
                       <Link to="/hire-talent-login" className="w-full flex items-center gap-2 text-gray-700 font-medium whitespace-nowrap"><Building2 className="w-4 h-4 text-gray-500" /> For Hiring</Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-2 transition-colors mt-1">
+                      <Link to="/bench-login" className="w-full flex items-center gap-2 text-gray-700 font-medium whitespace-nowrap"><Users className="w-4 h-4 text-gray-500" /> For Bench</Link>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -142,6 +145,9 @@ export default function Navbar() {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-2 transition-colors mt-1">
                       <Link to="/hire-talent-signup" className="w-full flex items-center gap-2 text-gray-700 font-medium whitespace-nowrap"><Building2 className="w-4 h-4 text-gray-500" /> For Hiring</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-2 transition-colors mt-1">
+                      <Link to="/bench-registration" className="w-full flex items-center gap-2 text-gray-700 font-medium whitespace-nowrap"><Users className="w-4 h-4 text-gray-500" /> For Bench</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -200,6 +206,9 @@ export default function Navbar() {
                       <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-3 transition-colors mt-1">
                         <Link to="/hire-talent-login" onClick={closeMobileMenu} className="w-full flex items-center gap-2 text-gray-700 font-medium text-base"><Building2 className="w-5 h-5 text-gray-500" /> For Hiring</Link>
                       </DropdownMenuItem>
+                      <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-3 transition-colors mt-1">
+                        <Link to="/bench-login" onClick={closeMobileMenu} className="w-full flex items-center gap-2 text-gray-700 font-medium text-base"><Users className="w-5 h-5 text-gray-500" /> For Bench</Link>
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
 
@@ -213,6 +222,9 @@ export default function Navbar() {
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-3 transition-colors mt-1">
                         <Link to="/hire-talent-signup" onClick={closeMobileMenu} className="w-full flex items-center gap-2 text-gray-700 font-medium text-base"><Building2 className="w-5 h-5 text-gray-500" /> For Hiring</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-3 transition-colors mt-1">
+                        <Link to="/bench-registration" onClick={closeMobileMenu} className="w-full flex items-center gap-2 text-gray-700 font-medium text-base"><Users className="w-5 h-5 text-gray-500" /> For Bench</Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

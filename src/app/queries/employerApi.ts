@@ -9,6 +9,9 @@ interface UpdateEmployerProfile {
   companySize?: string;
   website?: string;
   description?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
 }
 
 export interface CandidateWorkExperience {
@@ -162,6 +165,23 @@ export const employerApi = createApi({
         url: `employers/candidates/${id}`,
       }),
     }),
+    getBenchDashboard: builder.query<
+      {
+        success: boolean;
+        data: {
+          totalResources: number;
+          activeResources: number;
+          profileViews: number;
+          benchUtilization: string;
+        };
+      },
+      void
+    >({
+      query: () => ({
+        method: "GET",
+        url: "employers/bench-dashboard",
+      }),
+    }),
     viewCandidateResume: builder.query<
       string,
       { candidateId: string | number; resumeId: number }
@@ -177,6 +197,13 @@ export const employerApi = createApi({
       transformResponse: (blob: Blob) => URL.createObjectURL(blob),
       keepUnusedDataFor: 0,
     }),
+    // changePassword: builder.mutation<void, { currentPassword: string; newPassword: string }>({
+    //   query: (data) => ({
+    //     url: "users/change-password",
+    //     method: "POST",
+    //     body: data,
+    //   }),
+    // }),
   }),
 });
 
@@ -188,4 +215,6 @@ export const {
   useGetEmployerProfileQuery,
   useGetCandidateByIdQuery,
   useLazyViewCandidateResumeQuery,
+  useGetBenchDashboardQuery,
+  // useChangePasswordMutation,
 } = employerApi;

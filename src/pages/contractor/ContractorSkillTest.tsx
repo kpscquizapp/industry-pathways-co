@@ -19,6 +19,7 @@ import {
   XCircle,
   AlertCircle,
   FileCode2,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -183,7 +184,9 @@ const ContractorSkillTest = () => {
   const availableTags = tagsData?.data || [];
   const [expandedTestId, setExpandedTestId] = useState<number | null>(null);
   const [insightsData, setInsightsData] = useState<Record<number, any>>({});
-  const [insightsLoading, setInsightsLoading] = useState<Record<number, boolean>>({});
+  const [insightsLoading, setInsightsLoading] = useState<
+    Record<number, boolean>
+  >({});
   const [mockTest, setMockTest] = useState({
     title: "",
     totalTime: 0,
@@ -226,7 +229,7 @@ const ContractorSkillTest = () => {
   };
 
   return (
-    <div className="flex flex-col gap-8 py-4 sm:px-2 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">
+    <div className="flex flex-col gap-8 py-6 sm:py-10 px-6 sm:px-9 md:px-8 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 font-inter">
       {/* Header Section */}
       <div>
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
@@ -536,12 +539,13 @@ const ContractorSkillTest = () => {
                 </div>
               ) : testResults.length > 0 ? (
                 testResults.map((res: any, i: number) => {
+                  const scoreVal = Number(res.overallScore ?? res.score ?? 0);
                   const scoreColor =
-                    (res.score || 0) >= 80
-                      ? "#22c55e"
-                      : (res.score || 0) >= 60
-                        ? "#f59e0b"
-                        : "#ef4444";
+                    scoreVal >= 70
+                      ? "#22c55e" // green  ≥ 70
+                      : scoreVal >= 40
+                        ? "#f59e0b" // yellow 40–69
+                        : "#ef4444"; // red   < 40
                   const isExpanded = expandedTestId === res.id;
                   const status = insightsData[res.id];
                   const isLoadingInsights = insightsLoading[res.id];
@@ -553,14 +557,25 @@ const ContractorSkillTest = () => {
                     }
                     setExpandedTestId(res.id);
                     if (!insightsData[res.id]) {
-                      setInsightsLoading((prev) => ({ ...prev, [res.id]: true }));
+                      setInsightsLoading((prev) => ({
+                        ...prev,
+                        [res.id]: true,
+                      }));
                       try {
-                        const result = await triggerGetTestStatus({ testId: res.id }).unwrap();
-                        setInsightsData((prev) => ({ ...prev, [res.id]: result.data || result }));
+                        const result = await triggerGetTestStatus({
+                          testId: res.id,
+                        }).unwrap();
+                        setInsightsData((prev) => ({
+                          ...prev,
+                          [res.id]: result.data || result,
+                        }));
                       } catch {
                         toast.error("Failed to load test insights");
                       } finally {
-                        setInsightsLoading((prev) => ({ ...prev, [res.id]: false }));
+                        setInsightsLoading((prev) => ({
+                          ...prev,
+                          [res.id]: false,
+                        }));
                       }
                     }
                   };
@@ -570,7 +585,12 @@ const ContractorSkillTest = () => {
                       <Card
                         className={cn(
                           "p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200",
-                          isExpanded && "rounded-b-none border-b-0"
+                          <div
+                            className="text-[14px] md:text-[17px] font-black"
+                            style={{ color: scoreColor }}
+                          >
+                            {scoreVal}%
+                          </div>,
                         )}
                       >
                         <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
@@ -583,7 +603,7 @@ const ContractorSkillTest = () => {
                               className="text-[14px] md:text-[17px] font-black"
                               style={{ color: scoreColor }}
                             >
-                              {res.score || 0}%
+                              {scoreVal}%
                             </div>
                           </div>
 
@@ -599,8 +619,18 @@ const ContractorSkillTest = () => {
                                 ).find(([_, v]) => (v as any) > 0)?.[0] ||
                                   "Mixed"}
                               </span>
+                              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
                               <span className="text-slate-400">
                                 Status: {res.status}
+                              </span>
+                              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                              <span className="text-slate-400">
+                                Completed on:{" "}
+                                {res.submittedAt
+                                  ? new Date(
+                                    res.submittedAt,
+                                  ).toLocaleDateString()
+                                  : "N/A"}
                               </span>
                               <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
                               <span className="flex items-center gap-1 font-semibold text-purple-600">
@@ -614,17 +644,20 @@ const ContractorSkillTest = () => {
                         {/* Buttons */}
                         <div className="flex flex-col xs:flex-row sm:flex-row items-center gap-3 w-full md:w-auto">
                           <button
-                            onClick={() => navigate(`/contractor/tests/report?id=${res.id}`)}
+                            onClick={() =>
+                              navigate(`/contractor/tests/report?id=${res.id}`)
+                            }
                             className={cn(
-                              "w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border font-bold text-[13px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm")}
+                              "w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border font-bold text-[13px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm",
+                            )}
                           >
-                            <LineChart size={16} className={isExpanded ? "text-[#0ea5e9]" : "text-slate-400"} />
+                            <Eye
+                              size={16}
+                              className={
+                                isExpanded ? "text-[#0ea5e9]" : "text-slate-400"
+                              }
+                            />
                             View Insights
-                          </button>
-                          <button
-                            className="w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg bg-[#0F172A] text-white font-bold text-[13px] hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm"
-                          >
-                            Retake ₹99
                           </button>
                         </div>
                       </Card>

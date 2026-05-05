@@ -506,23 +506,23 @@ const ShowJobs = () => {
                     {/* Right: Stats & Actions */}
                     <div className="md:w-[280px] lg:w-[320px] shrink-0 flex flex-col pt-2 md:pt-0 self-stretch">
                       {/* Stats Grid */}
-                      <div className="grid grid-cols-2 gap-3 mb-5">
-                        <div className="bg-[#faf7f0] p-3.5 rounded-2xl flex flex-col justify-center">
+                      <div className="grid grid-cols-2 gap-3 mb-5 mt-4 md:mt-12">
+                        {/* <div className="bg-[#faf7f0] p-3.5 rounded-2xl flex flex-col justify-center">
                           <span className="text-[11px] font-medium text-gray-500 mb-1">
                             Applicants
                           </span>
                           <span className="text-[20px] font-extrabold text-gray-900">
                             {applicants}
                           </span>
-                        </div>
-                        <div className="bg-[#faf7f0] p-3.5 rounded-2xl flex flex-col justify-center">
+                        </div> */}
+                        {/* <div className="bg-[#faf7f0] p-3.5 rounded-2xl flex flex-col justify-center">
                           <span className="text-[11px] font-medium text-gray-500 mb-1">
                             AI Matches
                           </span>
                           <span className="text-[20px] font-extrabold text-gray-900">
                             {aiMatches}
                           </span>
-                        </div>
+                        </div> */}
                         <div className="bg-[#faf7f0] p-3.5 rounded-2xl flex flex-col justify-center">
                           <span className="text-[11px] font-medium text-gray-500 mb-1">
                             Interviews

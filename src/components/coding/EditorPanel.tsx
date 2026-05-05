@@ -46,7 +46,6 @@ const getMonacoLanguage = (name?: string): string => {
   if (normalized.includes("python")) return "python";
   if (normalized.includes("java") && !normalized.includes("javascript"))
     return "java";
-  if (normalized.includes("c++") || normalized.includes("cpp")) return "cpp";
   return normalized;
 };
 
@@ -94,9 +93,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
       if (n.includes("typescript")) return "typescript";
       if (n.includes("python")) return "python";
       if (n.includes("java") && !n.includes("javascript")) return "java";
-      if (n.includes("c++") || n.includes("cpp")) return "cpp";
       if (n.includes("go")) return "go";
-      if (n.includes("c") && !n.includes("c++") && !n.includes("c#")) return "c";
       return n;
     };
 
@@ -124,9 +121,8 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
 
   return (
     <Card
-      className={`h-full border-none rounded-none shadow-none flex flex-col ${
-        isFullscreen ? "fixed inset-0 z-50" : ""
-      }`}
+      className={`h-full border-none rounded-none shadow-none flex flex-col ${isFullscreen ? "fixed inset-0 z-50" : ""
+        }`}
     >
       {/* Toolbar */}
       <div className="border-b border-border px-4 py-2 flex items-center justify-between gap-4 bg-card flex-shrink-0">

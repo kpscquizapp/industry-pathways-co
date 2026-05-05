@@ -84,23 +84,25 @@ const getMenuItems = (role: DashboardRole) => {
       ];
     case "bench":
       return [
-        { icon: LayoutGrid, label: "Dashboard", href: "/bench/dashboard" },
-        { icon: PlusCircle, label: "Post Job", href: "/bench/post-job" },
-        {
-          icon: Users,
-          label: "AI Shortlists",
-          href: "/bench/ai-shortlists",
-          isAI: true,
-        },
-        { icon: Code, label: "Skill Test", href: "/bench/skill-tests" },
-        {
-          icon: Video,
-          label: "AI Interviews",
-          href: "/bench/ai-interviews",
-          isAI: true,
-        },
-        { icon: FileText, label: "Contracts", href: "/bench/contracts" },
-        { icon: Settings, label: "Settings", href: "/bench/settings" },
+        { icon: LayoutGrid, label: "Dashboard", href: "/bench-dashboard" },
+        { icon: PlusCircle, label: "Post Job", href: "/bench-dashboard/post-bench-resource" },
+        { icon: Users, label: "Active Resources", href: "/bench-dashboard/active-resources"},
+        { icon: Settings, label: "Visibility Settings", href: "/bench-dashboard/visibility-settings" },
+        // {
+        //   icon: Users,
+        //   label: "AI Shortlists",
+        //   href: "/bench/ai-shortlists",
+        //   isAI: true,
+        // },
+        // // { icon: Code, label: "Skill Test", href: "/bench/skill-tests" },
+        // {
+        //   icon: Video,
+        //   label: "AI Interviews",
+        //   href: "/bench/ai-interviews",
+        //   isAI: true,
+        // },
+        // { icon: FileText, label: "Contracts", href: "/bench/contracts" },
+        // { icon: Settings, label: "Settings", href: "/bench/settings" },
         // { icon: CreditCard, label: "Billing", href: "/bench/billing" },
       ];
     case "hire-talent":
@@ -124,12 +126,12 @@ const getMenuItems = (role: DashboardRole) => {
           href: "/hire-talent/skill-tests",
         },
         {
-          icon: Video,
-          label: "AI Interviews",
-          href: "/hire-talent/ai-interviews",
-          isAI: true,
+          icon: ClipboardCheck,
+          label: "Interview Questions",
+          href: "/hire-talent/interview-questions",
+          // isAI: true,
         },
-        { icon: FileText, label: "Contracts", href: "/hire-talent/contracts" },
+        // { icon: FileText, label: "Contracts", href: "/hire-talent/contracts" },
         { icon: Settings, label: "Settings", href: "/hire-talent/settings" },
       ];
     default:
@@ -376,15 +378,15 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
               />
             </div>
 
-            {/* <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
               <Button size="icon" className="relative bg-transparent hover:bg-[#0b1221]/10">
                 <Bell className="h-5 w-5 text-muted-foreground" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
               </Button>
-            </div> */}
+            </div>
           </header>
 
-          <main className="flex-1 p-6 overflow-auto">
+          <main className="flex-1 p-0 overflow-auto">
             <React.Suspense
               fallback={
                 <div className="flex items-center justify-center gap-4 h-full">

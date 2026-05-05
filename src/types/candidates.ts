@@ -16,6 +16,7 @@ export interface CandidateProfile {
   englishLevel?: string;
   type: "individual" | "bench";
   company?: string;
+  requireNonSolicitation?: boolean;
   skills: string[];
   certifications?: { name: string; issuer: string; year: string }[];
   about?: string;

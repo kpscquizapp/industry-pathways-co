@@ -597,65 +597,7 @@ const WebcamFeed = ({
     }
   }, [canScreenShare, onScreenShareStart, stopScreenShare]);
 
-  return (
-    <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-2xl bg-[#0b1220] shadow-[0_20px_50px_rgba(0,0,0,0.35)] border border-white/10 sm:p-2">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 p-2 text-[10px] sm:text-xs">
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={`rounded-full px-2 py-1 font-semibold uppercase tracking-widest ${isRecording ? "bg-red-600 text-white" : "bg-white/10 text-white/80"}`}
-          >
-            {isRecording ? "Recording" : "Idle"}
-          </span>
-        </div>
-
-        <button
-          className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-white/80 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
-          onClick={() => {
-            if (!isScreenSharing) startScreenShare();
-          }}
-          disabled={!isInterviewActive || !canScreenShare || isScreenSharing}
-        >
-          {isScreenSharing ? "Screen Sharing" : "Share Screen"}
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 p-2">
-        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/40">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="aspect-video w-full object-cover min-h-[4rem]"
-          />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/20" />
-          <div className="absolute bottom-2 left-2 rounded-full bg-white/80 px-2 py-1 text-xs text-black">
-            Webcam
-          </div>
-        </div>
-
-        {isScreenSharing ? (
-          <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/40">
-            <video
-              ref={screenVideoRef}
-              autoPlay
-              playsInline
-              muted
-              className="aspect-video w-full object-cover"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/20" />
-            <div className="absolute bottom-2 left-2 rounded-full bg-white/80 px-2 py-1 text-xs text-black">
-              Screen
-            </div>
-          </div>
-        ) : (
-          <div className="relative flex min-h-[4rem] items-center justify-center rounded-xl border border-dashed border-white/30 bg-black/20 text-xs text-white/70 text-center">
-            Start screen share to display here
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  return null;
 };
 
 export default WebcamFeed;

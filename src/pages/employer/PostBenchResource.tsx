@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Checkbox, } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -102,6 +103,7 @@ const PostBenchResource = () => {
   });
 
   const [skillInput, setSkillInput] = useState("");
+  const [autoFill, setAutoFill] = useState(true);
 
   // Populate form when editing
   useEffect(() => {
@@ -138,7 +140,7 @@ const PostBenchResource = () => {
         })(),
         professionalSummary: resource.professionalSummary || "",
         hourlyRate: resource.hourlyRate?.toString() || "",
-        currency: resource.currency || "USD - US Dollar",
+        currency: resource.currency || "USD($) - US Dollar",
         availableFrom: (() => {
           if (!resource.availableFrom) return "";
           const d = new Date(resource.availableFrom);
@@ -195,29 +197,35 @@ const PostBenchResource = () => {
 
     setFormData((prev) => ({ ...prev, resumeFile: file }));
 
-    try {
-      const result = await extractResume(file).unwrap();
+    if (autoFill) {
+      try {
+        const result = await extractResume(file).unwrap();
 
-      if (result.success && result.data) {
-        setFormData((prev) => ({
-          ...prev,
-          resourceName: result.data.resourceName || prev.resourceName,
-          professionalSummary:
-            result.data.professionalSummary || prev.professionalSummary,
-          skills: result.data.technicalSkills || prev.skills,
-          totalExperience: result.data.totalExperience ?? prev.totalExperience,
-        }));
-        toast.success("Resume processed successfully!", {
-          description: "Form fields have been populated from your resume.",
-        });
-      } else {
-        toast.error("Failed to extract data from resume");
+        if (result.success && result.data) {
+          setFormData((prev) => ({
+            ...prev,
+            resourceName: result.data.resourceName || prev.resourceName,
+            professionalSummary:
+              result.data.professionalSummary || prev.professionalSummary,
+            skills: result.data.technicalSkills || prev.skills,
+            totalExperience: result.data.totalExperience ?? prev.totalExperience,
+          }));
+          toast.success("Resume processed successfully!", {
+            description: "Form fields have been populated from your resume.",
+          });
+        } else {
+          toast.error("Failed to extract data from resume");
+        }
+      } catch (error) {
+        console.error("OCR API error:", error);
+        toast.error("Error connecting to OCR service");
+        setFormData((prev) => ({ ...prev, resumeFile: null }));
+        input.value = "";
       }
-    } catch (error) {
-      console.error("OCR API error:", error);
-      toast.error("Error connecting to OCR service");
-      setFormData((prev) => ({ ...prev, resumeFile: null }));
-      input.value = "";
+    } else {
+      toast.success("Resume uploaded successfully!", {
+        description: "Auto-fill is disabled. Please fill in the details manually.",
+      });
     }
   };
 
@@ -383,25 +391,24 @@ const PostBenchResource = () => {
   const isProcessing = isSubmitting || isUpdating;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto p-6 space-y-6 animate-fade-in">
         <div>
           {/* Page Title */}
-          <div className="mb-6">
+          <div className="mb-6 p-5 border border-slate-200 rounded-xl bg-white">
             <h1 className="text-2xl font-bold text-slate-800">
               {isEditMode ? "Edit Bench Resource" : "Post Bench Resource"}
             </h1>
             <p className="text-slate-500 mt-1">
               {isEditMode
                 ? "Update the details of your bench resource"
-                : "Add a new resource to your bench"}
+                : "Add a new resource to your bench pool. Detailed profiles remain anonymized to potential clients until the interview stage."}
             </p>
           </div>
-
           {/* Main Form */}
           <div className="space-y-6">
             {/* Policy Alert */}
-            <Card className="border-0 shadow-sm rounded-2xl overflow-hidden bg-gradient-to-r from-orange-50 to-amber-50">
+            {/* <Card className="border-0 shadow-sm rounded-2xl overflow-hidden bg-gradient-to-r from-orange-50 to-amber-50">
               <CardContent className="p-4 flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
                   <AlertCircle className="h-4 w-4 text-orange-600" />
@@ -412,95 +419,91 @@ const PostBenchResource = () => {
                   interview request is accepted.
                 </p>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Documents */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white">
-              <CardHeader className="pb-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-purple-50/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-                      <FileText className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <CardTitle className="text-lg font-semibold text-slate-800">
-                      Documents
-                    </CardTitle>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="bg-purple-50 text-purple-700 border-purple-200 gap-1.5 py-1 px-3"
-                  >
-                    <Lightbulb className="h-3.5 w-3.5" />
-                    Upload to auto-fill details
-                  </Badge>
+            <Card className="border border-slate-200 shadow-sm rounded-xl bg-white">
+              <CardHeader className="pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-blue-500" />
+                  <CardTitle className="text-lg font-semibold text-slate-800">
+                    Document Upload
+                  </CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="pt-6 p-6">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    Upload Anonymized Resume (PDF)
-                  </Label>
-                  <div
-                    className={`border-2 border-dashed ${isExtracting ? "border-blue-400 bg-blue-50/30" : "border-slate-200"} rounded-2xl p-10 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer group relative`}
-                    onClick={() =>
-                      document.getElementById("resume-upload")?.click()
-                    }
-                  >
-                    <input
-                      id="resume-upload"
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleResumeUpload}
-                      disabled={isExtracting}
-                    />
-                    <div className="w-14 h-14 rounded-2xl bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center mx-auto mb-4 transition-colors">
-                      {isExtracting ? (
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                      ) : (
-                        <Upload className="h-6 w-6 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                      )}
-                    </div>
-                    <p className="text-sm font-medium text-slate-600 group-hover:text-blue-600 transition-colors">
-                      {isExtracting
-                        ? "Extracting information..."
-                        : formData.resumeFile
-                          ? formData.resumeFile.name
-                          : isEditMode
-                            ? "Click to upload new resume (optional)"
-                            : "Click to upload resume"}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-2">
-                      Max file size 5MB. Please remove contact details.
-                    </p>
+              <CardContent className="p-6 space-y-4">
+                <div
+                  className={`border-2 border-dashed ${isExtracting ? "border-blue-400 bg-blue-50/30" : "border-slate-200"} rounded-xl p-10 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer group relative`}
+                  onClick={() => document.getElementById("resume-upload")?.click()}
+                >
+                  <input
+                    id="resume-upload"
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleResumeUpload}
+                    disabled={isExtracting}
+                  />
+                  <div className="flex items-center justify-center mx-auto mb-4">
+                    {isExtracting ? (
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    ) : (
+                      <Upload className="h-8 w-8 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                    )}
                   </div>
+                  <p className="text-sm font-medium text-slate-600 group-hover:text-blue-600 transition-colors">
+                    {isExtracting
+                      ? "Extracting information..."
+                      : formData.resumeFile
+                        ? formData.resumeFile.name
+                        : "Click or drag anonymized resume to upload"}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Supported formats: PDF. Max size: 5MB.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-4 px-6 h-9 rounded-lg border-slate-200 text-slate-600 text-sm hover:bg-[#1e293b] hover:text-white transition-all"
+                    onClick={(e) => { e.stopPropagation(); document.getElementById("resume-upload")?.click(); }}
+                    disabled={isExtracting}
+                  >
+                    Browse Files
+                  </Button>
+                </div>
+
+                {/* Auto-fill toggle */}
+                <div className="flex items-center justify-between px-4 py-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800">Auto-fill details from resume</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Our AI will automatically extract skills, experience, and summary.</p>
+                  </div>
+                  <Switch
+                    checked={autoFill}
+                    onCheckedChange={setAutoFill}
+                    className="data-[state=checked]:bg-blue-500"
+                  />
                 </div>
               </CardContent>
             </Card>
 
             {/* Resource Basic Info */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white">
-              <CardHeader className="pb-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-blue-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                    <User className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg font-semibold text-slate-800">
-                      Resource Basic Info
-                    </CardTitle>
-                    <p className="text-sm text-slate-500">
-                      Details about the professional you want to deploy
-                    </p>
-                  </div>
+            <Card className="border border-slate-200 shadow-sm rounded-xl bg-white">
+              <CardHeader className="pb-4 border-b border-slate-100 ">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-blue-500" />
+                  <CardTitle className="text-lg font-semibold text-slate-800">
+                    Resource Basic Information
+                  </CardTitle>
                 </div>
               </CardHeader>
+
               <CardContent className="pt-6 space-y-5 p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      Resource Name (Internal){" "}
-                      <span className="text-destructive">*</span>
+                      Resource Name (Internal) <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       placeholder="John D."
@@ -511,9 +514,10 @@ const PostBenchResource = () => {
                           resourceName: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                     />
                   </div>
+
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
                       Email Address <span className="text-destructive">*</span>
@@ -528,15 +532,31 @@ const PostBenchResource = () => {
                           email: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                     />
                   </div>
+
                 </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      Total Experience (Years){" "}
-                      <span className="text-destructive">*</span>
+                      Employee ID / Reference Code <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      placeholder="e.g. EMP-001"
+                      value={formData.employeeId}
+                      onChange={(e) =>
+                        setFormData({ ...formData, employeeId: e.target.value })
+                      }
+                      className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-slate-700">
+                      Total Experience (Years) <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       type="number"
@@ -549,29 +569,15 @@ const PostBenchResource = () => {
                           totalExperience: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">
-                      Employee ID / Ref Code{" "}
-                      <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      placeholder="e.g. EMP-001"
-                      value={formData.employeeId}
-                      onChange={(e) =>
-                        setFormData({ ...formData, employeeId: e.target.value })
-                      }
-                      className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                    />
-                  </div>
+
                 </div>
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-slate-700">
-                    Current Role / Designation{" "}
-                    <span className="text-destructive">*</span>
+                    Current Role / Designation <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     placeholder="e.g. Senior Java Developer"
@@ -582,7 +588,7 @@ const PostBenchResource = () => {
                         currentRole: e.target.value,
                       })
                     }
-                    className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                   />
                 </div>
 
@@ -590,19 +596,21 @@ const PostBenchResource = () => {
                   <Label className="text-sm font-medium text-slate-700">
                     Technical Skills <span className="text-destructive">*</span>
                   </Label>
+
                   <div className="flex gap-2">
                     <Input
                       placeholder="Type skill and press enter..."
                       value={skillInput}
                       onChange={(e) => setSkillInput(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      className="h-12 flex-1 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="h-12 flex-1 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                     />
+
                     <Button
                       type="button"
                       onClick={addSkill}
                       disabled={!skillInput.trim()}
-                      className="h-12 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm shadow-blue-500/20"
+                      className="h-12 px-6 rounded-xl bg-[#0f172a] hover:bg-[#1e293b] text-white font-medium"
                     >
                       Add
                     </Button>
@@ -622,43 +630,38 @@ const PostBenchResource = () => {
                       </Badge>
                     ))}
                   </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-slate-700">
+                      Professional Summary
+                    </Label>
+                    <Textarea
+                      placeholder="Brief summary of their expertise and key projects..."
+                      value={formData.professionalSummary}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          professionalSummary: e.target.value,
+                        })
+                      }
+                      rows={4}
+                      className="px-4 py-2.5 rounded-xl resize-none bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
+                    />
+                  </div>
+
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    Professional Summary
-                  </Label>
-                  <Textarea
-                    placeholder="Brief summary of their expertise and key projects..."
-                    value={formData.professionalSummary}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        professionalSummary: e.target.value,
-                      })
-                    }
-                    rows={4}
-                    className="rounded-xl resize-none border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                  />
-                </div>
               </CardContent>
             </Card>
 
             {/* Availability & Contract Terms */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white">
-              <CardHeader className="pb-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-emerald-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                    <DollarSign className="h-5 w-5 text-emerald-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg font-semibold text-slate-800">
-                      Availability & Contract Terms
-                    </CardTitle>
-                    <p className="text-sm text-slate-500">
-                      Define the commercials and deployment conditions
-                    </p>
-                  </div>
+            <Card className="border border-slate-200 shadow-sm rounded-xl bg-white">
+              <CardHeader className="pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-teal-500" />
+                  <CardTitle className="text-lg font-semibold text-slate-800">
+                    Availability & Contract Terms
+                  </CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="pt-6 space-y-5 p-6">
@@ -668,15 +671,25 @@ const PostBenchResource = () => {
                       Hourly Rate (Client Billable){" "}
                       <span className="text-destructive">*</span>
                     </Label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
-                        {getCurrencySymbol(formData.currency)}
-                      </span>
+                    <div className="flex gap-2">
+                      <select
+                        value={formData.currency}
+                        onChange={(e) =>
+                          setFormData({ ...formData, currency: e.target.value })
+                        }
+                        className="h-12 w-28 px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none rounded-xl text-sm text-slate-600 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] bg-[length:1em_1em] pr-8"
+                      >
+                        {Object.keys(currencySymbols).map((curr) => (
+                          <option key={curr} value={curr}>
+                            {curr}
+                          </option>
+                        ))}
+                      </select>
                       <Input
                         type="number"
                         min="0"
                         step="0.01"
-                        placeholder="e.g. 45"
+                        placeholder="45.00"
                         value={formData.hourlyRate ?? ""}
                         onChange={(e) =>
                           setFormData({
@@ -684,89 +697,51 @@ const PostBenchResource = () => {
                             hourlyRate: e.target.value,
                           })
                         }
-                        className="pl-9 pr-14 h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                        className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                        / hr
-                      </span>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">
-                      Currency
-                    </Label>
-                    <Select
-                      value={formData.currency}
-                      onValueChange={(v) =>
-                        setFormData({ ...formData, currency: v })
-                      }
-                    >
-                      <SelectTrigger className="h-12 rounded-xl border-slate-200">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.keys(currencySymbols).map((curr) => (
-                          <SelectItem key={curr} value={curr}>
-                            {curr}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
                       Available From <span className="text-destructive">*</span>
                     </Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                      <Input
-                        type="date"
-                        placeholder="dd-mm-yyyy"
-                        value={formData.availableFrom}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            availableFrom: e.target.value,
-                          })
-                        }
-                        className="pl-12 h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">
-                      Minimum Contract Duration{" "}
-                      <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.minimumDuration}
-                      onValueChange={(v) =>
-                        setFormData({ ...formData, minimumDuration: v })
+                    <Input
+                      type="date"
+                      value={formData.availableFrom}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          availableFrom: e.target.value,
+                        })
                       }
-                    >
-                      <SelectTrigger className="h-12 rounded-xl border-slate-200">
-                        <SelectValue placeholder="Select duration">
-                          {formData.minimumDuration &&
-                            formatDuration(formData.minimumDuration)}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[
-                          { value: "1", label: "1 Month" },
-                          { value: "3", label: "3 Months" },
-                          { value: "6", label: "6 Months" },
-                          { value: "12", label: "12 Months" },
-                        ].map((dur) => (
-                          <SelectItem key={dur.value} value={dur.value}>
-                            {dur.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
+                    />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">
+                    Minimum Contract Duration{" "}
+                    <span className="text-destructive">*</span>
+                  </Label>
+                  <select
+                    value={formData.minimumDuration}
+                    onChange={(e) =>
+                      setFormData({ ...formData, minimumDuration: e.target.value })
+                    }
+                    className="h-12 w-[22rem] px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none rounded-xl text-sm text-slate-600 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] bg-[length:1.2em_1.2em] pr-10"
+                  >
+                    {[
+                      { value: "1", label: "1 Month" },
+                      { value: "3", label: "3 Months" },
+                      { value: "6", label: "6 Months" },
+                      { value: "12", label: "12 Months" },
+                    ].map((dur) => (
+                      <option key={dur.value} value={dur.value}>
+                        {dur.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="space-y-3">
@@ -774,7 +749,7 @@ const PostBenchResource = () => {
                     Deployment Location Preference{" "}
                     <span className="text-destructive">*</span>
                   </Label>
-                  <div className="flex flex-wrap gap-4">
+                  <div className="flex flex-col gap-2 md:flex-row md:flex-wrap md:gap-4">
                     {[
                       {
                         id: "remote",
@@ -794,7 +769,7 @@ const PostBenchResource = () => {
                     ].map((loc) => (
                       <div
                         key={loc.id}
-                        className="flex items-center space-x-2 bg-slate-50 px-4 py-2.5 rounded-xl"
+                        className="flex items-center gap-2 bg-slate-50 px-2 py-1.5 rounded-lg md:px-4 md:py-2.5 md:rounded-xl"
                       >
                         <Checkbox
                           id={loc.id}
@@ -808,11 +783,12 @@ const PostBenchResource = () => {
                               },
                             })
                           }
-                          className="border-slate-300 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                          className="h-4 w-4 rounded-full bg-slate-50 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+
                         />
                         <label
                           htmlFor={loc.id}
-                          className="text-sm cursor-pointer text-slate-600 font-medium"
+                          className="text-sm cursor-pointer text-slate-600 font-medium whitespace-nowrap"
                         >
                           {loc.label}
                         </label>
@@ -821,9 +797,16 @@ const PostBenchResource = () => {
                   </div>
                 </div>
 
-                <div className="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 flex items-start gap-4">
-                  <Checkbox
-                    id="non-solicitation"
+                <div className="p-4 bg-white rounded-xl border bg-slate-50 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">
+                      Non-Solicitation Agreement Required
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Clients must agree not to hire this resource directly for 12 months post-contract.
+                    </p>
+                  </div>
+                  <Switch
                     checked={formData.requireNonSolicitation}
                     onCheckedChange={(checked) =>
                       setFormData({
@@ -831,51 +814,46 @@ const PostBenchResource = () => {
                         requireNonSolicitation: checked === true,
                       })
                     }
-                    className="mt-0.5 border-blue-300 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                    className="data-[state=checked]:bg-blue-500 scale-75 md:scale-100"
                   />
-                  <div>
-                    <label
-                      htmlFor="non-solicitation"
-                      className="text-sm font-semibold text-slate-800 cursor-pointer"
-                    >
-                      Require Non-Solicitation Agreement
-                    </label>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Client cannot hire this resource permanently for 12
-                      months.
-                    </p>
-                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-4 pt-2 pb-8">
-              <Button
-                variant="outline"
-                onClick={handleSaveDraft}
-                className="px-8 h-12 rounded-xl border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-600 font-medium"
-                disabled={isProcessing}
-              >
-                Save Draft
-              </Button>
-              <Button
-                onClick={handleProceed}
-                disabled={isProcessing}
-                className="px-10 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium shadow-lg shadow-blue-500/30 transition-all hover:shadow-xl hover:shadow-blue-500/40"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    {isEditMode ? "Updating..." : "Publishing..."}
-                  </>
-                ) : (
-                  <>
-                    {isEditMode ? "Update Resource" : "Publish Resource"}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </>
-                )}
-              </Button>
+            {/* Bottom Compliance Bar */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between py-4 px-5 border border-slate-200 rounded-xl bg-white gap-3 md:gap-0">
+              <div className="flex items-start gap-2 w-full md:flex-1">
+                <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                <p className="text-xs text-slate-600">
+                  <strong>Compliance Notice:</strong> By publishing this resource, you confirm they are currently on your payroll and you adhere to the bench marketplace guidelines.
+                </p>
+              </div>
+              <div className="flex w-full md:w-auto items-center justify-end gap-3 md:ml-6 shrink-0">
+                {/* <Button
+                  variant="outline"
+                  onClick={handleSaveDraft}
+                  className="flex-1 md:flex-none w-full md:w-auto px-6 h-10 rounded-xl hover:bg-[#1e293b] text-slate-600 font-medium"
+                  disabled={isProcessing}
+                >
+                  Save as Draft
+                </Button> */}
+                <Button
+                  onClick={handleProceed}
+                  disabled={isProcessing}
+                  className="md:flex-none w-auto px-6 h-10 rounded-xl bg-[#0f172a] hover:bg-[#1e293b] text-white font-medium"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isEditMode ? "Updating..." : "Publishing..."}
+                    </>
+                  ) : (
+                    <>
+                      {isEditMode ? "Update Resource" : "Publish Resource"}
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

@@ -2,6 +2,8 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useGetBenchDashboardQuery } from "@/app/queries/employerApi";
+import { useGetBenchResourcesQuery } from "@/app/queries/benchApi";
 import {
   Users,
   TrendingUp,
@@ -20,13 +22,19 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Sparkles,
+  Filter,
+  Calendar
 } from "lucide-react";
 
 const CompanyDashboard = () => {
+  const { data: benchData } = useGetBenchResourcesQuery({ page: 1, limit: 1 });
+  const totalResources = benchData?.pagination?.total ?? 0;
+  const { data: dashboardData } = useGetBenchDashboardQuery();
   const kpiData = [
+
     {
       title: "Bench Utilization",
-      value: "72%",
+      value: dashboardData?.data?.benchUtilization ?? "0%",
       description: "Posted bench resources contracted",
       change: "+15%",
       trend: "up",
@@ -36,7 +44,7 @@ const CompanyDashboard = () => {
     },
     {
       title: "Active Resources",
-      value: "24",
+      value: String(totalResources),
       description: "Currently listed on marketplace",
       change: "+3",
       trend: "up",
@@ -46,7 +54,7 @@ const CompanyDashboard = () => {
     },
     {
       title: "Profile Views",
-      value: "156",
+      value: String(dashboardData?.data?.profileViews ?? 0),
       description: "Views this week",
       change: "+28",
       trend: "up",
@@ -56,9 +64,9 @@ const CompanyDashboard = () => {
     },
     {
       title: "Contract Requests",
-      value: "8",
+      value: "0",
       description: "Pending review",
-      change: "+2",
+      change: "+0",
       trend: "up",
       icon: Handshake,
       gradient: "from-orange-500 to-amber-600",
@@ -132,17 +140,17 @@ const CompanyDashboard = () => {
 
   const aiRecommendations = [
     {
-      title: "Review pending matches",
+      title: "Pendig match review",
       description: "23 AI matches awaiting review for more than 3 days",
       priority: "high",
     },
     {
-      title: "Increase bench visibility",
+      title: "Improve visibility",
       description: "3 bench resources have low marketplace visibility",
       priority: "medium",
     },
     {
-      title: "Schedule AI interviews",
+      title: "Schedule interviews",
       description: "8 candidates passed skill tests, ready for AI interview",
       priority: "low",
     },
@@ -151,55 +159,94 @@ const CompanyDashboard = () => {
   return (
     <div className="space-y-8 animate-fade-in p-2">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-            Bench Dashboard
-          </h1>
-          <p className="text-slate-500 mt-1">
-            Welcome back! Here's your talent acquisition overview.
-          </p>
-        </div>
-        <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/25 rounded-xl h-11 px-6">
-          <FileText className="h-4 w-4 mr-2" />
-          Generate Report
-        </Button>
-      </div>
+      {/* Page Header */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="h-4 w-4 text-teal-500" />
+              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                Bench performance
+              </span>
+            </div>
+            <h1 className="text-3xl font-bold text-slate-800 mb-1">
+              Bench Dashboard
+            </h1>
+            <p className="text-slate-400 text-sm mb-4">
+              Overview of your available talent, pipeline performance, and actionable AI-driven match recommendations.
+            </p>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                <Users className="h-4 w-4 text-slate-400" />
+                <span className="font-medium text-slate-700">{kpiData[1]?.value}</span>&nbsp;Active
+              </div>
+              <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                <FileText className="h-4 w-4 text-slate-400" />
+                <span className="font-medium text-slate-700">{kpiData[3]?.value}</span>&nbsp;Contracted
+              </div>
+              <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                <Clock className="h-4 w-4 text-slate-400" />
+                Updated just now
+              </div>
+            </div>
+          </div>
 
-      {/* KPI Cards - Single row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        {kpiData.map((kpi, index) => (
-          <Card
-            key={index}
-            className={`border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-gradient-to-br ${kpi.bgGradient} group`}
-          >
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between mb-4">
-                <div
-                  className={`p-3 rounded-xl bg-gradient-to-br ${kpi.gradient} shadow-lg`}
-                >
-                  <kpi.icon className="h-5 w-5 text-white" />
-                </div>
-                <div
-                  className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-                    kpi.trend === "up"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {kpi.trend === "up" ? (
-                    <ArrowUpRight className="h-3 w-3" />
-                  ) : (
-                    <ArrowDownRight className="h-3 w-3" />
-                  )}
-                  {kpi.change}
+          {/* Right side: Donut + Utilization — hidden on mobile */}
+          <div className="hidden sm:flex flex-col items-end gap-4">
+
+            {/* Donut Chart */}
+            <div className="flex items-center gap-3">
+              <div className="relative w-20 h-20">
+                <svg viewBox="0 0 36 36" className="w-20 h-20 -rotate-90">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" strokeWidth="3" />
+                  <circle
+                    cx="18" cy="18" r="15.9" fill="none"
+                    stroke="#14b8a6" strokeWidth="3"
+                    strokeDasharray={`${parseFloat(kpiData[0]?.value) || 0}, 100`}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-lg font-bold text-slate-800">{kpiData[0]?.value}</span>
                 </div>
               </div>
-              <p className="text-3xl font-bold text-slate-800 mb-1">
-                {kpi.value}
-              </p>
-              <p className="text-sm font-medium text-slate-700">{kpi.title}</p>
-              <p className="text-xs text-slate-500 mt-1">{kpi.description}</p>
+              <span className="text-sm text-slate-400 font-medium">Utilization</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+
+
+
+
+
+      {/* KPI Cards - Single row */}
+      {/* KPI Cards - Single row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {kpiData.slice(1).map((kpi, index) => (
+          <Card
+            key={index}
+            className="border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 bg-white"
+          >
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-medium text-slate-500">{kpi.title}</p>
+                <kpi.icon className="h-5 w-5 text-slate-300" />
+              </div>
+              <p className="text-3xl font-bold text-slate-800 mb-1">{kpi.value}</p>
+              <div className="flex items-center gap-1 mt-2">
+                {kpi.trend === "up" ? (
+                  <ArrowUpRight className="h-3.5 w-3.5 text-teal-500" />
+                ) : (
+                  <ArrowDownRight className="h-3.5 w-3.5 text-red-400" />
+                )}
+                <span className={`text-xs font-medium ${kpi.trend === "up" ? "text-teal-500" : "text-red-400"}`}>
+                  {kpi.change}
+                </span>
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -207,76 +254,174 @@ const CompanyDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Hiring Funnel */}
-        <Card className="lg:col-span-2 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-800">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
-                <TrendingUp className="h-4 w-4 text-white" />
-              </div>
-              Talent Acquisition Funnel
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="space-y-5">
-              {hiringFunnel.map((stage, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-slate-700">
-                      {stage.stage}
-                    </span>
-                    <span className="text-slate-500 font-medium">
-                      {stage.count}{" "}
-                      <span className="text-slate-400">
-                        ({stage.percentage}%)
+        <div className="relative lg:col-span-2">
+          <Card className="lg:col-span-2 border-0 shadow-lg bg-white/80 backdrop-blur-sm h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-800">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
+                  <Filter className="h-4 w-4 text-white" />
+                </div>
+                Talent Acquisition Funnel
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="space-y-5">
+                {hiringFunnel.map((stage, index) => (
+                  <div key={index} className="space-y-2">
+
+                    <div className="flex items-center justify-between text-sm">
+
+                      {/* Stage Name */}
+                      <span className="font-semibold text-slate-700">
+                        {stage.stage}
                       </span>
-                    </span>
+
+                      {/* Count + Percentage */}
+                      <span className="flex items-center gap-3">
+                        <span className="font-bold text-slate-800">
+                          {stage.count}
+                        </span>
+                        <span className="text-slate-400">
+                          {stage.percentage}%
+                        </span>
+                      </span>
+
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-teal-400 rounded-full transition-all duration-500"
+                        style={{ width: `${stage.percentage}%` }}
+                      />
+                    </div>
+
                   </div>
-                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${stage.color} rounded-full transition-all duration-500`}
-                      style={{ width: `${stage.percentage}%` }}
-                    />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Coming Soon Overlay */}
+          {/* <div className="absolute inset-0 rounded-xl backdrop-blur-sm bg-white/60 flex flex-col items-center justify-center z-10">
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl px-8 py-5 shadow-lg border border-white/50 text-center">
+              <span className="text-2xl font-bold text-slate-700 tracking-wide">Coming Soon</span>
+              <p className="text-sm text-slate-400 mt-1">
+                This feature is under development
+              </p>
+            </div>
+          </div> */}
+        </div>
+
+        {/* AI Recommendations */}
+        <div className="relative h-full">
+          <Card className="border border-slate-200 shadow-sm rounded-xl bg-white h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-800">
+                <div className="p-1.5 rounded-lg bg-teal-50">
+                  <Bot className="h-4 w-4 text-teal-500" />
+                </div>
+                AI Recommendations
+              </CardTitle>
+              <p className="text-sm text-slate-500">Actionable insights to boost placements.</p>
+            </CardHeader>
+            <CardContent className="pt-2 space-y-0">
+              {aiRecommendations.map((rec, index) => (
+                <div
+                  key={index}
+                  className="py-4 border-t border-slate-100 cursor-pointer"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-teal-50 shrink-0">
+                      {index === 0 ? <Users className="h-4 w-4 text-teal-500" />
+                        : index === 1 ? <Eye className="h-4 w-4 text-teal-500" />
+                          : <Calendar className="h-4 w-4 text-teal-500" />}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-slate-800">
+                        {rec.title}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">{rec.description}</p>
+                      <p className="text-xs text-teal-500 font-medium mt-2 flex items-center gap-1">
+                        <div className="p-2 rounded-lg  shrink-0">
+                          {index === 0 && "Review Matches →"}
+                          {index === 1 && "Update Profile →"}
+                          {index === 2 && "Schedule Now →"}
+                        </div>
+
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* AI Recommendations */}
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-800">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600">
-                <Bot className="h-4 w-4 text-white" />
-              </div>
-              AI Recommendations
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4">
-            {aiRecommendations.map((rec, index) => (
-              <div
-                key={index}
-                className={`p-4 rounded-xl border-l-4 hover:shadow-md transition-all cursor-pointer ${
-                  rec.priority === "high"
-                    ? "bg-gradient-to-r from-red-50 to-orange-50 border-red-500"
-                    : rec.priority === "medium"
-                      ? "bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-500"
-                      : "bg-gradient-to-r from-green-50 to-emerald-50 border-green-500"
-                }`}
-              >
-                <p className="font-medium text-sm text-slate-800">
-                  {rec.title}
-                </p>
-                <p className="text-xs text-slate-500 mt-1">{rec.description}</p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+          {/* Coming Soon Overlay */}
+          {/* <div className="absolute inset-0 rounded-xl backdrop-blur-sm bg-white/60 flex flex-col items-center justify-center z-10">
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl px-8 py-5 shadow-lg border border-white/50 text-center">
+              <span className="text-2xl font-bold text-slate-700 tracking-wide">Coming Soon</span>
+              <p className="text-sm text-slate-400 mt-1">
+                This feature is under development
+              </p>
+            </div>
+          </div> */}
+        </div>
       </div>
 
-      {/* Recent Activity */}
-      <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+
+
+
+
+
+      {/* Recent Activity 
+      
+{aiRecommendations.map((rec, index) => (
+  <div
+    key={index}
+    className="flex gap-3 p-4 rounded-xl border border-slate-100 hover:shadow-md transition-all bg-white"
+  >
+    <div className="flex-shrink-0 w-9 h-9 rounded-full bg-teal-50 flex items-center justify-center mt-1">
+      <rec.icon className="h-4 w-4 text-teal-500" />
+    </div>
+    <div>
+      <p className="font-semibold text-sm text-slate-800">{rec.title}</p>
+      <p className="text-xs text-slate-500 mt-1">{rec.description}</p>
+      <button
+        disabled
+        className="mt-2 text-xs font-medium text-teal-500 flex items-center gap-1 cursor-not-allowed opacity-70"
+      >
+        {rec.action} →
+      </button>
+    </div>
+  </div>
+))}
+      
+      
+      
+      
+      */}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      {/* <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2 text-lg font-semibold text-slate-800">
@@ -321,7 +466,7 @@ const CompanyDashboard = () => {
             ))}
           </div>
         </CardContent>
-      </Card>
+      </Card>*/}
     </div>
   );
 };

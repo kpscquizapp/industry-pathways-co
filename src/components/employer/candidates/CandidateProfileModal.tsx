@@ -125,6 +125,12 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
         <div className="flex flex-col lg:flex-row">
           {/* Left Sidebar */}
           <div className="lg:w-80 bg-card border-r border-border p-6 flex-shrink-0">
+            <button
+              onClick={onClose}
+              className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors mb-4"
+            >
+              ← Back
+            </button>
             {/* Profile Header */}
             <div className="text-center mb-6">
               <Avatar className="h-24 w-24 mx-auto mb-4 border-4 border-background shadow-lg">
@@ -233,6 +239,22 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
               </div>
             </div>
 
+            {candidate.requireNonSolicitation && (
+              <div className="mt-6">
+                <div className="flex items-center gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+                  <span className="text-base">🔒</span>
+                  <div>
+                    <p className="text-xs font-semibold text-amber-800">
+                      Non-Solicitation Required
+                    </p>
+                    <p className="text-xs text-amber-600 mt-0.5">
+                      12 months post-contract
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Certifications */}
             {candidate.certifications &&
               candidate.certifications.length > 0 && (
@@ -263,6 +285,7 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
 
           {/* Right Content */}
           <div className="flex-1 p-6">
+
             <Tabs defaultValue="overview">
               <TabsList className="bg-muted/50 rounded-xl p-1 mb-6">
                 <TabsTrigger

@@ -78,7 +78,7 @@ const MockTestReport = () => {
       : null;
 
   return (
-    <div className="flex flex-col gap-6 py-4 sm:px-2 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 max-w-full mx-auto w-full font-inter">
+    <div className="flex flex-col gap-6 py-6 sm:py-10 px-6 sm:px-9 md:px-8 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 max-w-full mx-auto w-full font-inter">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
@@ -96,18 +96,42 @@ const MockTestReport = () => {
               {report.test.difficulty}
             </span>
             <span className="hidden sm:inline">•</span>
+            <span>
+              Completed On:{" "}
+              {report.test.submittedAt
+                ? new Date(report.test.submittedAt).toLocaleDateString()
+                : "N/A"}
+            </span>
+            <span className="hidden sm:inline">•</span>
             <span>Duration: {report.test.duration} mins</span>
           </div>
         </div>
 
         {/* Score Circle */}
-        <div className="flex items-center justify-center shrink-0">
-          <div className="w-[84px] h-[84px] rounded-full border-[4px] border-[#22c55e] flex items-center justify-center bg-white shadow-sm">
-            <div className="w-full h-full rounded-full border-4 border-transparent flex items-center justify-center text-[22px] font-black text-[#22c55e]">
-              {report.test.overallScore}%
+        {(() => {
+          const scoreVal = Number(report.test.overallScore ?? 0);
+          const scoreColor =
+            scoreVal >= 70
+              ? "#22c55e" // green  70–100
+              : scoreVal >= 40
+                ? "#f59e0b" // yellow 40–69
+                : "#ef4444"; // red   0–39
+          return (
+            <div className="flex items-center justify-center shrink-0">
+              <div
+                className="w-[84px] h-[84px] rounded-full border-[4px] flex items-center justify-center bg-white shadow-sm"
+                style={{ borderColor: scoreColor }}
+              >
+                <div
+                  className="text-[22px] font-black"
+                  style={{ color: scoreColor }}
+                >
+                  {report.test.overallScore}%
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
       </div>
 
       {/* Tabs */}
@@ -385,18 +409,16 @@ const MockTestReport = () => {
 
                   <div className="space-y-8">
                     <div>
-                      {
-                        currentQuestion.explanation && (
-                          <div className="bg-[#f0f9ff] rounded-xl p-5 border border-[#bae6fd]">
-                            <div className="text-[10px] font-bold text-[#0ea5e9] mb-4 tracking-wider uppercase border-b border-[#bae6fd] pb-2">
-                              Explanation
-                            </div>
-                            <p className="text-slate-700 text-[13px] leading-relaxed p-2">
-                              {currentQuestion.explanation}
-                            </p>
+                      {currentQuestion.explanation && (
+                        <div className="bg-[#f0f9ff] rounded-xl p-5 border border-[#bae6fd]">
+                          <div className="text-[10px] font-bold text-[#0ea5e9] mb-4 tracking-wider uppercase border-b border-[#bae6fd] pb-2">
+                            Explanation
                           </div>
-                        )
-                      }
+                          <p className="text-slate-700 text-[13px] leading-relaxed p-2">
+                            {currentQuestion.explanation}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     {currentQuestion.submittedCode && (
                       <div className="bg-[#0F172A] rounded-xl p-5 overflow-hidden border border-slate-800">

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import HirionLogo from "../assets/White Option.png";
+import DarkLogo from "../assets/Dark Option.png";
 import { Label } from "@/components/ui/label";
 import {
-  Sparkles,
   ArrowRight,
   Mail,
   Lock,
@@ -162,211 +162,304 @@ const BenchLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
+    <div
+      className="login-page"
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        width: "100%",
+        fontFamily: "'Inter', sans-serif",
+        background: "#f3f5f8",
+        overflowX: "hidden",
+      }}
+    >
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes floatY {
+          0%, 100% { transform: translateY(0); }
+          50%      { transform: translateY(-20px); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.15; }
+          50%      { opacity: 0.35; }
+        }
+        .login-page * { box-sizing: border-box; }
+        .login-left-panel {
+          display: none;
+          flex: 0 0 50%;
+          width: 50%;
+          max-width: 50%;
+          min-height: 100vh;
+          overflow: hidden;
+        }
+        .login-right-panel {
+          flex: 1 1 auto;
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          max-width: 100%;
+          padding: 24px 14px;
+          overflow-y: auto;
+          overflow-x: hidden;
+          background: #fff;
+          min-width: 0;
+          min-height: 100vh;
+        }
+        .login-mobile-brand {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 24px;
+          width: 100%;
+          animation: fadeUp 0.6s ease;
+        }
+        .login-mobile-brand img {
+          width: 180px;
+          height: auto;
+          display: block;
+          max-width: 70vw;
+        }
+        .login-mobile-brand span {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: #6b7280;
+        }
+        @media (min-width: 1025px) {
+          .login-left-panel {
+            display: flex;
+          }
+          .login-right-panel {
+            flex: 0 0 50%;
+            width: 50%;
+            max-width: 50%;
+            padding: 60px 70px;
+            background: #fff;
+          }
+          .login-mobile-brand {
+            display: none;
+          }
+        }
+        .animate-fade-up {
+          animation: fadeUp 0.6s ease forwards;
+        }
+        .animate-float {
+          animation: floatY 6s ease-in-out infinite;
+        }
+        .animate-pulse-slow {
+          animation: pulse 4s ease-in-out infinite;
+        }
+      `}</style>
+
       {/* Left Panel - Immersive Branding */}
-      <div className="hidden lg:flex lg:w-[50%] bg-[#080b14] p-12 flex-col justify-between relative overflow-hidden shrink-0 border-r border-white/5">
-        <div className="absolute top-[-10%] right-[-10%] w-[80%] h-[80%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-500/10 rounded-full blur-[100px]" />
+      <div className="login-left-panel bg-[#080b20] px-16 py-8 flex-col justify-center relative shrink-0 border-r border-white/5">
+        {/* Subtle Decorative Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none animate-pulse-slow">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern
+                id="dotGrid"
+                width="24"
+                height="24"
+                patternUnits="userSpaceOnUse"
+              >
+                <circle cx="2" cy="2" r="1" fill="#fff" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dotGrid)" />
+          </svg>
+        </div>
+        <div className="absolute bottom-[-15%] right-[-10%] w-[350px] h-[350px] border border-white/[0.03] rounded-full animate-float" />
+        <div
+          className="absolute bottom-[-20%] right-[-15%] w-[500px] h-[500px] border border-white/[0.02] rounded-full animate-float"
+          style={{ animationDelay: "1s" }}
+        />
 
-        <div className="relative z-10">
-          <Link to="/" className="flex items-center gap-3 mb-20 group">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white tracking-tight">
-              HIRION
-            </span>
+        <div className="absolute top-10 left-16 z-20 animate-fade-up">
+          <Link to="/" className="flex items-center gap-3 group">
+            <img src={HirionLogo} alt="company logo" className="w-44 h-auto" />
           </Link>
+        </div>
 
+        <div className="relative z-10 animate-fade-up">
           <div className="space-y-8 max-w-lg">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-              <span className="text-white/80 text-[10px] font-bold tracking-[0.1em] uppercase">
-                Staffing Partner Hub
+            <div className="inline-flex items-center gap-2">
+              <span className="text-[#4DD9E8] text-[11px] font-semibold tracking-[0.15em] uppercase">
+                BENCH DASHBOARD
               </span>
             </div>
 
-            <h1 className="text-5xl xl:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
-              Welcome Back,
+            <h1 className="text-[44px] font-bold text-white leading-[1.2] tracking-tight">
+              Welcome back,
               <br />
-              <span className="bg-gradient-to-r from-primary via-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Partner
+              <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                let's build.
               </span>
             </h1>
 
-            <p className="text-xl text-white/50 leading-relaxed font-light">
-              Access your bench talent dashboard and manage your resource
-              listings.
+            <p className="text-[16px] text-white/40 leading-relaxed max-w-sm">
+              Access your projects, track interviews, and manage your bench
+              profile — all in one place.
             </p>
-          </div>
-        </div>
-
-        <div className="relative z-10 space-y-6">
-          <div className="grid gap-4">
-            {FEATURES.map((feature, index) => (
-              <div
-                key={index}
-                className="group flex items-start gap-4 p-5 bg-white/[0.02] backdrop-blur-sm border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300"
-              >
-                <div
-                  className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
-                >
-                  <feature.icon className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-white text-lg mb-1">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-white/40 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>
 
       {/* Right Panel - Premium Login Section */}
-      <div className="flex-1 flex flex-col bg-[#fafafa] dark:bg-[#030303] overflow-y-auto">
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 xl:p-16">
-          <div className="w-full max-w-[500px]">
-            <div className="lg:hidden mb-12 flex flex-col items-center">
-              <Link to="/" className="flex items-center gap-2 mb-6">
-                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-xl shadow-primary/20">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-xl font-bold tracking-tighter text-slate-900 dark:text-white">
-                  HIRION
-                </span>
-              </Link>
+      <div className="login-right-panel flex flex-col overflow-y-auto">
+        {/* Mobile Brand Logo */}
+        <div className="login-mobile-brand">
+          <img src={DarkLogo} alt="company logo" className="mb-1" />
+          <span>BENCH DASHBOARD</span>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="w-full max-w-[420px] animate-fade-up [animation-delay:150ms]">
+            <div className="w-full flex flex-col mb-10">
+              <h3 className="text-4xl font-bold text-[#1a1a2e] mb-3 lg:text-left text-center">
+                Sign In
+              </h3>
+              <p className="text-slate-400 font-medium lg:text-left text-center text-sm">
+                Enter your partner credentials below.
+              </p>
             </div>
 
-            <div className="relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 to-emerald-500/10 rounded-[36px] blur-xl opacity-50 dark:opacity-20" />
-
-              <div className="relative bg-white dark:bg-[#0a0a0a] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-white/[0.05] p-8 md:p-10">
-                <div className="mb-10 text-center lg:text-left">
-                  <h3 className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
-                    Sign In
-                  </h3>
-                  <p className="text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
-                    Enter your partner credentials below.
-                  </p>
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
+              {/* Email Field */}
+              <div className="flex flex-col gap-1.5 min-w-0">
+                <Label
+                  htmlFor="email"
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "#1a1a2e",
+                    letterSpacing: "0.02em",
+                  }}
+                  className="ml-1"
+                >
+                  Email Address
+                </Label>
+                <div
+                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                    touched.email && fieldErrors.email
+                      ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
+                      : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                  }`}
+                >
+                  <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="bench@example.com"
+                    autoComplete="email"
+                    className="flex-1 min-w-0 border-none bg-transparent outline-none h-full p-0 text-sm focus-visible:ring-0 shadow-none font-normal"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    onBlur={() => handleBlur("email")}
+                    required
+                  />
                 </div>
-
-                <form onSubmit={handleSubmit} noValidate className="space-y-6">
-                  {/* Email Field */}
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                      Work Email
-                    </Label>
-                    <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300 z-10" />
-                      <Input
-                        name="email"
-                        type="email"
-                        placeholder="hr@agency.com"
-                        autoComplete="email"
-                        className={`h-12 pl-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                          fieldErrors.email && touched.email
-                            ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
-                            : ""
-                        }`}
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        onBlur={() => handleBlur("email")}
-                        required
-                      />
-                    </div>
-                    {touched.email && (
-                      <ErrorMessage error={fieldErrors.email} />
-                    )}
-                  </div>
-
-                  {/* Password Field */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
-                        Password
-                      </Label>
-                      <Link
-                        to="/forgot-password"
-                        title="Forgot Password"
-                        className="text-xs font-bold text-primary dark:text-emerald-400 hover:opacity-80 transition-opacity uppercase"
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-all duration-300 z-10" />
-                      <Input
-                        name="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        autoComplete="current-password"
-                        className={`h-12 pl-12 pr-12 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.08] rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-medium ${
-                          fieldErrors.password && touched.password
-                            ? "border-red-500 dark:border-red-500 focus:ring-red-500/10"
-                            : ""
-                        }`}
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        onBlur={() => handleBlur("password")}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors z-10"
-                        aria-label={
-                          showPassword ? "Hide password" : "Show password"
-                        }
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                    {touched.password && (
-                      <ErrorMessage error={fieldErrors.password} />
-                    )}
-                  </div>
-
-                  {/* Submit Button */}
-                  <Button
-                    type="submit"
-                    className="w-full h-14 text-lg font-bold mt-4 rounded-2xl bg-primary dark:bg-primary text-white hover:opacity-90 shadow-2xl shadow-primary/10 transition-all active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center gap-3">
-                        <SpinnerLoader className="w-5 h-5 text-current" />
-                        <span>Logging you in...</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span>Sign In to Dashboard</span>
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    )}
-                  </Button>
-                </form>
-
-                <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/[0.03] flex flex-col items-center gap-4">
-                  <p className="text-[14px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">
-                    New to Hirion?{" "}
-                    <Link
-                      to="/bench-registration"
-                      className="text-primary hover:text-primary/80 transition-colors underline-offset-8 underline decoration-primary/30"
-                    >
-                      Bench Signup
-                    </Link>
-                  </p>
-                </div>
+                {touched.email && <ErrorMessage error={fieldErrors.email} />}
               </div>
+
+              {/* Password Field */}
+              <div className="flex flex-col gap-1.5 min-w-0">
+                <div className="flex items-center justify-between ml-1">
+                  <Label
+                    htmlFor="password"
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "#1a1a2e",
+                      letterSpacing: "0.02em",
+                    }}
+                  >
+                    Password
+                  </Label>
+                  <Link
+                    to="/forgot-password"
+                    title="Forgot Password"
+                    className="text-xs font-semibold text-slate-400 hover:text-teal-600 transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <div
+                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                    touched.password && fieldErrors.password
+                      ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
+                      : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                  }`}
+                >
+                  <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                    className="flex-1 min-w-0 border-none bg-transparent outline-none h-full p-0 text-sm focus-visible:ring-0 shadow-none font-normal"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    onBlur={() => handleBlur("password")}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-[#999] hover:text-slate-500 transition-colors shrink-0"
+                  >
+                    {showPassword ? (
+                      <Eye className="w-4.5 h-4.5" />
+                    ) : (
+                      <EyeOff className="w-4.5 h-4.5" />
+                    )}
+                  </button>
+                </div>
+                {touched.password && (
+                  <ErrorMessage error={fieldErrors.password} />
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                style={{
+                  background: "linear-gradient(135deg, #4DD9E8, #0ea5e9)",
+                  boxShadow: "0 4px 20px rgba(77,217,232,0.35)",
+                }}
+                className="w-full h-[52px] text-[15px] font-bold rounded-xl text-white hover:opacity-90 transition-all active:scale-[0.98] group disabled:opacity-50 mt-4"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-3">
+                    <SpinnerLoader className="w-5 h-5 text-current" />
+                    <span>Logging you in...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-3">
+                    <span>Sign In to Dashboard</span>
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                )}
+              </Button>
+            </form>
+
+            <div className="mt-12 text-center text-sm font-medium text-slate-400">
+              New to QuickRekruit?{" "}
+              <Link
+                to="/bench-registration"
+                className="text-teal-500 font-bold hover:underline"
+              >
+                Bench Signup
+              </Link>
             </div>
           </div>
         </div>

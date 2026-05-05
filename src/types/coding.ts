@@ -9,8 +9,6 @@ export enum SupportedLanguage {
   TYPESCRIPT = "typescript",
   PYTHON = "python",
   JAVA = "java",
-  CPP = "cpp",
-  C = "c",
   GO = "go",
 }
 
@@ -19,6 +17,8 @@ export interface TestCase {
   input: string;
   expectedOutput: string;
   actualOutput?: string;
+  compile_output?: string;
+  stderr?: string;
   passed?: boolean;
   runtime?: number;
   memory?: number;
@@ -37,6 +37,7 @@ export interface CodingProblem {
   constraints?: string[];
   baseCode?: Record<string, string>;
   starterCode?: Record<SupportedLanguage, string>;
+  test_cases?: TestCase[];
   testcases?: TestCase[];
   testCases?: TestCase[];
 }
