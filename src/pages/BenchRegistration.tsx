@@ -21,11 +21,14 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   useCheckExistingEmailMutation,
   useRegisterHrMutation,
+  useSendVerificationOtpMutation,
+  useVerifyOtpMutation,
 } from "@/app/queries/loginApi";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import RegistrationStepIndicator from "@/components/auth/RegistrationStepIndicator";
@@ -38,15 +41,18 @@ const BenchRegistration = () => {
   const [registerHr, { isLoading }] = useRegisterHrMutation();
   const [checkExistingEmail, { isLoading: isCheckingEmail }] =
     useCheckExistingEmailMutation();
+  const [sendVerificationOtp, { isLoading: isSendingOtp }] =
+    useSendVerificationOtpMutation();
+  const [verifyOtp, { isLoading: isVerifyingOtp }] = useVerifyOtpMutation();
+
+  const [otp, setOtp] = useState("");
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
 
-  const stepInfo = [
-    { title: "Account", desc: "Start your enterprise journey" },
-    { title: "Details", desc: "Tell us about your organization" },
-    { title: "Verify", desc: "Upload business documents" },
-  ];
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -58,6 +64,45 @@ const BenchRegistration = () => {
     confirmPassword: "",
   });
 
+  const handleSendOtp = React.useCallback(async () => {
+    try {
+      await sendVerificationOtp({ email: formData.email }).unwrap();
+      toast.success("Verification code sent to your email.");
+      setResendCooldown(60);
+    } catch (err) {
+      toast.error("Failed to send verification code. Please try again.");
+    }
+  }, [formData.email, sendVerificationOtp]);
+
+  const handleVerifyOtp = React.useCallback(async () => {
+    if (!otp || otp.length !== 6) {
+      toast.error("Please enter a valid 6-digit code.");
+      return;
+    }
+    try {
+      await verifyOtp({ email: formData.email, otp }).unwrap();
+      setIsEmailVerified(true);
+      toast.success("Email verified successfully!");
+    } catch (err) {
+      toast.error("Invalid verification code. Please check and try again.");
+    }
+  }, [formData.email, otp, verifyOtp]);
+
+  React.useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  const stepInfo = [
+    { title: "Account", desc: "Start your enterprise journey" },
+    { title: "Details", desc: "Tell us about your organization" },
+    { title: "Verify", desc: "Upload business documents" },
+  ];
+
+
+
   const [companyDocument, setCompanyDocument] = useState<File | null>(null);
 
   // Field-level errors for better UX
@@ -67,6 +112,12 @@ const BenchRegistration = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
+
+    // Reset email verification when email changes
+    if (name === "email" && value !== formData.email && isEmailVerified) {
+      setIsEmailVerified(false);
+      setOtp("");
+    }
 
     // Clear field error when user starts typing
     if (fieldErrors[name]) {
@@ -174,6 +225,11 @@ const BenchRegistration = () => {
       );
       if (confirmPasswordError) errors.confirmPassword = confirmPasswordError;
     } else if (currentStep === 2) {
+      // Validate email verification
+      if (!isEmailVerified) {
+        errors.otp = "Please verify your email to proceed";
+      }
+
       // Validate company name
       const companyNameError = VALIDATION.companyName.validate(
         formData.companyName,
@@ -207,6 +263,9 @@ const BenchRegistration = () => {
 
   const nextStep = async () => {
     if (await validateStep()) {
+      if (currentStep === 1 && !isEmailVerified) {
+        handleSendOtp();
+      }
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     }
   };
@@ -540,6 +599,118 @@ const BenchRegistration = () => {
 
                 {currentStep === 2 && (
                   <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
+                    {/* Email Verification Section */}
+                    <div
+                      className={`rounded-2xl p-5 border-[1.5px] transition-all duration-200 ${isEmailVerified
+                        ? "bg-emerald-50/30 border-emerald-100"
+                        : "bg-[#f8f9fb] border-[#e8eaef]"
+                        }`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isEmailVerified
+                              ? "bg-emerald-500 text-white"
+                              : "bg-slate-200 text-slate-500"
+                              }`}
+                          >
+                            {isEmailVerified ? (
+                              <Check className="w-5 h-5" />
+                            ) : (
+                              <Mail className="w-5 h-5" />
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="text-[15px] font-bold text-[#1a1a2e]">
+                              Email Verification
+                            </h4>
+                            <p className="text-[12px] text-slate-400">
+                              {formData.email}
+                            </p>
+                          </div>
+                        </div>
+                        {isEmailVerified && (
+                          <span className="text-[12px] font-bold text-emerald-600 bg-emerald-100 px-2.5 py-1 rounded-full">
+                            Verified
+                          </span>
+                        )}
+                      </div>
+
+                      {!isEmailVerified && (
+                        <div className="space-y-4">
+                          <div className="flex flex-col gap-1.5">
+                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                              Enter 6-digit Code
+                            </Label>
+                            <div className="flex gap-3">
+                              <div
+                                className={`flex-1 flex items-center gap-2.5 bg-white border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.otp
+                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                  }`}
+                              >
+                                <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                                <input
+                                  placeholder="000000"
+                                  maxLength={6}
+                                  className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-medium tracking-[0.2em]"
+                                  value={otp}
+                                  onChange={(e) => {
+                                    setOtp(
+                                      e.target.value.replace(/\D/g, ""),
+                                    );
+                                    if (fieldErrors.otp) {
+                                      setFieldErrors((prev) => {
+                                        const newErrors = { ...prev };
+                                        delete newErrors.otp;
+                                        return newErrors;
+                                      });
+                                    }
+                                  }}
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                onClick={handleVerifyOtp}
+                                disabled={
+                                  isVerifyingOtp || otp.length !== 6
+                                }
+                                className="h-[46px] px-6 bg-[#1a1a2e] hover:bg-[#2a2a4e] text-white font-bold rounded-[10px] transition-all"
+                              >
+                                {isVerifyingOtp ? (
+                                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                  "Verify"
+                                )}
+                              </Button>
+                            </div>
+                            <ErrorMessage error={fieldErrors.otp} />
+                          </div>
+
+                          <div className="flex items-center justify-between text-[12px]">
+                            <span className="text-slate-400">
+                              Didn't receive the code?
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleSendOtp}
+                              disabled={isSendingOtp || resendCooldown > 0}
+                              className={`font-bold transition-colors ${isSendingOtp || resendCooldown > 0
+                                ? "text-slate-300 cursor-not-allowed"
+                                : "text-[#4DD9E8] hover:text-[#0e8a96] underline"
+                                }`}
+                            >
+                              {isSendingOtp
+                                ? "Sending..."
+                                : resendCooldown > 0
+                                  ? `Resend in ${resendCooldown}s`
+                                  : "Resend Code"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="flex flex-col gap-1.5">
                       <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
                         ORGANIZATION NAME<span className="text-[#4DD9E8]">*</span>
