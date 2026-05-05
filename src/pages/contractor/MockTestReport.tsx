@@ -72,13 +72,13 @@ const MockTestReport = () => {
   const questions = Array.isArray(report?.questions) ? report.questions : [];
   const currentQuestion =
     questions.length > 0 &&
-    activeQuestionIndex >= 0 &&
-    activeQuestionIndex < questions.length
+      activeQuestionIndex >= 0 &&
+      activeQuestionIndex < questions.length
       ? questions[activeQuestionIndex]
       : null;
 
   return (
-    <div className="flex flex-col gap-6 py-4 sm:px-2 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 max-w-full mx-auto w-full font-inter">
+    <div className="flex flex-col gap-6 py-6 sm:py-10 px-6 sm:px-9 md:px-8 font-sans animate-in fade-in slide-in-from-bottom-3 duration-500 max-w-full mx-auto w-full font-inter">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
@@ -376,7 +376,7 @@ const MockTestReport = () => {
                         currentQuestion.status === "Correct"
                           ? "bg-[#f0fdfa] border-[#ccfbf1]"
                           : currentQuestion.status === "Incorrect" ||
-                              currentQuestion.status === "Failed"
+                            currentQuestion.status === "Failed"
                             ? "bg-red-50 border-red-100"
                             : "bg-slate-50 border-slate-200",
                       )}

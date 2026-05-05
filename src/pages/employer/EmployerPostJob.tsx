@@ -322,15 +322,15 @@ const EmployerPostJob = () => {
 
   return (
     <div className="min-h-full bg-[#f2f5fa] font-sans">
-      <div className="max-w-[1000px] w-full mx-auto py-6 md:py-10 px-4 md:px-6 space-y-8 flex-1">
+      <div className="max-w-full mx-auto py-6 md:py-10 px-6 md:px-8 space-y-8 flex-1">
         {/* ═══════════════ HEADER ═══════════════ */}
         <div>
           <h1 className="text-[26px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
             {isEditing ? "Edit Job" : "Post New Job"}
           </h1>
           <p className="text-gray-400 text-[15px] mt-1">
-            {isEditing 
-              ? "Update and republish your job listing." 
+            {isEditing
+              ? "Update and republish your job listing."
               : "Create and publish a new role to get AI-ranked matches instantly."}
           </p>
         </div>
