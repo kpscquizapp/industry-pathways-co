@@ -921,6 +921,10 @@ const EmployerAIShortlists = () => {
         talentSource: candidate.talentSource ?? "candidate",
       })
         .unwrap()
+        .then(() => {
+          // Invalidate the matches query to force a fresh fetch with updated isShortlisted status
+          dispatch(aiShortlistApi.util.invalidateTags(["AiShortlistMatches"]));
+        })
         .catch(() => {
           // Rollback on error
           setShortlistedIds((prev) => [...prev, candidate.id]);
@@ -937,6 +941,10 @@ const EmployerAIShortlists = () => {
         talentSource: candidate.talentSource ?? "candidate",
       })
         .unwrap()
+        .then(() => {
+          // Invalidate the matches query to force a fresh fetch with updated isShortlisted status
+          dispatch(aiShortlistApi.util.invalidateTags(["AiShortlistMatches"]));
+        })
         .catch(() => {
           // Rollback on error
           setShortlistedIds((prev) =>

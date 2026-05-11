@@ -830,7 +830,7 @@ function ManualEntryForm({
         candidateRole: defaultRole,
         testType: defaultCategory,
         testDuration: testDuration ? parseInt(testDuration) : 60,
-        problemIds: problemIds,
+        questions: validQuestions,
       };
 
       console.log("schedulePayload:", schedulePayload);
