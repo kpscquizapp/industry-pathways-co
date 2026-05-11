@@ -478,11 +478,46 @@ const PostBenchResource = () => {
                     <p className="text-sm font-medium text-slate-800">Auto-fill details from resume</p>
                     <p className="text-xs text-slate-500 mt-0.5">Our AI will automatically extract skills, experience, and summary.</p>
                   </div>
-                  <Switch
-                    checked={autoFill}
-                    onCheckedChange={setAutoFill}
-                    className="data-[state=checked]:bg-blue-500"
-                  />
+                  {/* Native toggle switch — replaces shadcn Switch to fix mobile sizing */}
+                  <label
+                    style={{
+                      position: "relative",
+                      display: "inline-block",
+                      width: 44,
+                      height: 24,
+                      flexShrink: 0,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={autoFill}
+                      onChange={(e) => setAutoFill(e.target.checked)}
+                      style={{ opacity: 0, width: 0, height: 0, position: "absolute" }}
+                    />
+                    <span
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        borderRadius: 24,
+                        background: autoFill ? "#3b82f6" : "#cbd5e1",
+                        transition: "background 0.2s",
+                      }}
+                    />
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: 3,
+                        left: autoFill ? 23 : 3,
+                        width: 18,
+                        height: 18,
+                        borderRadius: "50%",
+                        background: "#fff",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                        transition: "left 0.2s",
+                      }}
+                    />
+                  </label>
                 </div>
               </CardContent>
             </Card>
@@ -729,7 +764,7 @@ const PostBenchResource = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, minimumDuration: e.target.value })
                     }
-                    className="h-12 w-[22rem] px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none rounded-xl text-sm text-slate-600 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] bg-[length:1.2em_1.2em] pr-10"
+                    className="h-12 w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none rounded-xl text-sm text-slate-600 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] bg-[length:1.2em_1.2em] pr-10"
                   >
                     {[
                       { value: "1", label: "1 Month" },
@@ -771,21 +806,53 @@ const PostBenchResource = () => {
                         key={loc.id}
                         className="flex items-center gap-2 bg-slate-50 px-2 py-1.5 rounded-lg md:px-4 md:py-2.5 md:rounded-xl"
                       >
-                        <Checkbox
+                        {/* Hidden checkbox — logic unchanged, visual replaced by circular indicator below */}
+                        <input
+                          type="checkbox"
                           id={loc.id}
                           checked={loc.checked}
-                          onCheckedChange={(checked) =>
+                          onChange={(e) =>
                             setFormData({
                               ...formData,
                               locationPreferences: {
                                 ...formData.locationPreferences,
-                                [loc.id]: checked === true,
+                                [loc.id]: e.target.checked,
                               },
                             })
                           }
-                          className="h-4 w-4 rounded-full bg-slate-50 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
-
+                          style={{ position: "absolute", opacity: 0, width: 0, height: 0, pointerEvents: "none" }}
                         />
+                        {/* Circular visual indicator */}
+                        <label
+                          htmlFor={loc.id}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 18,
+                            height: 18,
+                            minWidth: 18,
+                            minHeight: 18,
+                            borderRadius: "50%",
+                            border: loc.checked ? "2px solid #3b82f6" : "2px solid #94a3b8",
+                            background: loc.checked ? "#3b82f6" : "#fff",
+                            cursor: "pointer",
+                            flexShrink: 0,
+                            transition: "background 0.15s, border-color 0.15s",
+                          }}
+                        >
+                          {loc.checked && (
+                            <span
+                              style={{
+                                width: 7,
+                                height: 7,
+                                borderRadius: "50%",
+                                background: "#fff",
+                                display: "block",
+                              }}
+                            />
+                          )}
+                        </label>
                         <label
                           htmlFor={loc.id}
                           className="text-sm cursor-pointer text-slate-600 font-medium whitespace-nowrap"
@@ -806,16 +873,51 @@ const PostBenchResource = () => {
                       Clients must agree not to hire this resource directly for 12 months post-contract.
                     </p>
                   </div>
-                  <Switch
-                    checked={formData.requireNonSolicitation}
-                    onCheckedChange={(checked) =>
-                      setFormData({
-                        ...formData,
-                        requireNonSolicitation: checked === true,
-                      })
-                    }
-                    className="data-[state=checked]:bg-blue-500 scale-75 md:scale-100"
-                  />
+                  {/* Native toggle switch — replaces shadcn Switch to fix mobile sizing */}
+                  <label
+                    style={{
+                      position: "relative",
+                      display: "inline-block",
+                      width: 44,
+                      height: 24,
+                      flexShrink: 0,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.requireNonSolicitation}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          requireNonSolicitation: e.target.checked,
+                        })
+                      }
+                      style={{ opacity: 0, width: 0, height: 0, position: "absolute" }}
+                    />
+                    <span
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        borderRadius: 24,
+                        background: formData.requireNonSolicitation ? "#3b82f6" : "#cbd5e1",
+                        transition: "background 0.2s",
+                      }}
+                    />
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: 3,
+                        left: formData.requireNonSolicitation ? 23 : 3,
+                        width: 18,
+                        height: 18,
+                        borderRadius: "50%",
+                        background: "#fff",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                        transition: "left 0.2s",
+                      }}
+                    />
+                  </label>
                 </div>
               </CardContent>
             </Card>

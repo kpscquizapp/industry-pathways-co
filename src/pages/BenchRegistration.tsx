@@ -358,6 +358,126 @@ const BenchRegistration = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
+      <style>{`
+        .bench-right-panel {
+          flex: 1 1 auto;
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          max-width: 100%;
+          padding: 40px 24px;
+          overflow-y: auto;
+          overflow-x: hidden;
+          background: #fff;
+          min-width: 0;
+          min-height: 100vh;
+          box-sizing: border-box;
+        }
+        .bench-form-shell {
+          max-width: 520px;
+          width: 100%;
+          margin: 0 auto;
+          min-width: 0;
+          box-sizing: border-box;
+        }
+        .bench-actions {
+          display: flex;
+          gap: 12px;
+          padding-top: 16px;
+        }
+        .bench-otp-row {
+          display: flex;
+          gap: 10px;
+          align-items: flex-end;
+          flex-wrap: wrap;
+        }
+        .bench-otp-input {
+          flex: 1 1 160px;
+          min-width: 0;
+        }
+        .bench-otp-btn {
+          flex-shrink: 0;
+          height: 46px;
+          padding: 0 20px;
+          border-radius: 10px;
+          background: #1a1a2e;
+          color: #fff;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          border: none;
+          font-family: inherit;
+          transition: background 0.2s;
+          white-space: nowrap;
+        }
+        .bench-otp-btn:hover:not(:disabled) { background: #2a2a4e; }
+        .bench-otp-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        @media (min-width: 1025px) {
+          .bench-right-panel {
+            flex: 0 0 50%;
+            width: 50%;
+            max-width: 50%;
+            padding: 60px 70px;
+            justify-content: center;
+          }
+        }
+        @media (min-width: 641px) and (max-width: 1024px) {
+          .bench-right-panel {
+            padding: 40px 48px;
+          }
+          .bench-form-shell {
+            max-width: 520px;
+          }
+        }
+        @media (max-width: 640px) {
+          .bench-right-panel {
+            padding: 20px 14px;
+            min-height: 100vh;
+          }
+          .bench-form-shell {
+            max-width: 100%;
+            background: rgba(255,255,255,0.97);
+            border-radius: 14px;
+            padding: 24px 16px;
+            box-shadow: 0 10px 32px rgba(15,23,42,0.06);
+            border: 1px solid rgba(200,210,220,0.2);
+            margin: 0;
+          }
+          .bench-form-shell .justify-start {
+            justify-content: center !important;
+          }
+          .bench-actions {
+            flex-direction: column-reverse;
+            gap: 10px;
+            padding-top: 16px;
+          }
+          .bench-actions > button {
+            width: 100%;
+          }
+          .bench-otp-row {
+            flex-wrap: wrap;
+            gap: 8px;
+          }
+          .bench-otp-btn {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+        @media (max-width: 480px) {
+          .bench-right-panel {
+            padding: 12px 10px;
+          }
+          .bench-form-shell {
+            padding: 20px 12px;
+          }
+          .bench-actions {
+            gap: 8px;
+          }
+          .stepper-label {
+            display: none;
+          }
+        }
+      `}</style>
       {/* Left Panel - Immersive Branding */}
       <div className="hidden lg:flex lg:w-[50%] px-16 py-8 flex-col justify-center relative overflow-hidden shrink-0 border-r border-white/5" style={{ background: "linear-gradient(160deg, rgb(13, 17, 23) 0%, rgb(17, 24, 39) 40%, rgb(12, 26, 42) 100%)" }}>
         {[
@@ -452,415 +572,418 @@ const BenchRegistration = () => {
 
       </div>
 
-      {/* Right Panel - Premium Form Section */}
       {/* Right Panel */}
-      <div className="flex-1 flex flex-col overflow-y-auto bg-white">
-        <div className="flex-1 flex flex-col items-center justify-center sm:py-6 px-6 lg:px-12">
-          <div className="w-full max-w-[540px] px-2 md:px-0 animate-fade-up">
+      <div className="bench-right-panel">
+        <div className="bench-form-shell animate-fade-up">
 
-            <div className="lg:hidden mb-12 flex flex-col items-center">
-              <Link to="/" className="flex items-center gap-2 mb-2">
-                <img src={HirionLogo} alt="Hirion Logo" className="w-[180px] h-12 object-contain invert" />
-              </Link>
-              <p className="text-xs text-gray-400 uppercase tracking-widest">Hiring Partner Onboarding</p>
+          <div className="lg:hidden mb-8 flex flex-col items-center">
+            <Link to="/" className="flex items-center gap-2 mb-2">
+              <img src={HirionLogo} alt="Hirion Logo" className="w-[180px] h-12 object-contain invert" />
+            </Link>
+            <p className="text-xs text-gray-400 uppercase tracking-widest">Hiring Partner Onboarding</p>
+          </div>
+
+          <div>
+            <RegistrationStepIndicator
+              currentStep={currentStep}
+              steps={stepInfo}
+              totalSteps={totalSteps}
+            />
+
+            <div className="mb-8 lg:text-left text-center" >
+              <h3 className="text-3xl sm:text-4xl font-bold text-[#1a1a2e] mb-2 sm:mb-3">
+                {currentStep === 1
+                  ? "Bench Signup"
+                  : currentStep === 2
+                    ? "Company Details"
+                    : "Verification"}
+              </h3>
+              <p className="text-slate-400 text-sm sm:text-[15px]">
+                {currentStep === 1
+                  ? "Start your enterprise journey here."
+                  : currentStep === 2
+                    ? "Tell us more about your staffing company."
+                    : "Upload documents for account verification."}
+              </p>
             </div>
 
-            <div className="relative py-8 px-4 md:px-0">
-              <RegistrationStepIndicator
-                currentStep={currentStep}
-                steps={stepInfo}
-                totalSteps={totalSteps}
-              />
-
-              <div className="mb-8 lg:text-left text-center" >
-                <h3 className="text-3xl sm:text-4xl font-bold text-[#1a1a2e] mb-2 sm:mb-3">
-                  {currentStep === 1
-                    ? "Bench Signup"
-                    : currentStep === 2
-                      ? "Company Details"
-                      : "Verification"}
-                </h3>
-                <p className="text-slate-400 text-sm sm:text-[15px]">
-                  {currentStep === 1
-                    ? "Start your enterprise journey here."
-                    : currentStep === 2
-                      ? "Tell us more about your staffing company."
-                      : "Upload documents for account verification."}
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} noValidate className="space-y-6">
-                {currentStep === 1 && (
-                  <div className="space-y-5 ">
-                    <div className="grid md:grid-cols-2 gap-5">
-                      <div className="flex flex-col gap-1.5">
-                        <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                          First Name <span className="text-[#4DD9E8]">*</span>
-                        </Label>
-                        <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.firstName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
-                          <User className="w-4 h-4 text-[#aaa] shrink-0" />
-                          <input
-                            name="firstName"
-                            placeholder="John"
-                            className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
-                            value={formData.firstName}
-                            onChange={handleInputChange}
-                            required
-                          />
-                        </div>
-                        <ErrorMessage error={fieldErrors.firstName} />
-                      </div>
-                      <div className="flex flex-col gap-1.5">
-                        <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                          Last Name <span className="text-[#4DD9E8]">*</span>
-                        </Label>
-                        <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.lastName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
-                          <User className="w-4 h-4 text-[#aaa] shrink-0" />
-                          <input
-                            name="lastName"
-                            placeholder="Smith"
-                            className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            required
-                          />
-                        </div>
-                        <ErrorMessage error={fieldErrors.lastName} />
-                      </div>
-                    </div>
-
+            <form onSubmit={handleSubmit} noValidate className="space-y-6">
+              {currentStep === 1 && (
+                <div className="space-y-5 ">
+                  <div className="grid md:grid-cols-2 gap-5">
                     <div className="flex flex-col gap-1.5">
                       <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                        Work Email <span className="text-[#4DD9E8]">*</span>
+                        First Name <span className="text-[#4DD9E8]">*</span>
                       </Label>
-                      <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.email ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
-                        <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
+                      <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.firstName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                        <User className="w-4 h-4 text-[#aaa] shrink-0" />
                         <input
-                          name="email"
-                          type="email"
-                          placeholder="bench@example.com"
+                          name="firstName"
+                          placeholder="John"
                           className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
-                          value={formData.email}
+                          value={formData.firstName}
                           onChange={handleInputChange}
                           required
                         />
                       </div>
-                      {isCheckingEmail && (
-                        <div className="text-sm text-slate-500 flex items-center gap-2">
-                          <SpinnerLoader />
-                          <span>Checking availability...</span>
-                        </div>
-                      )}
-                      <ErrorMessage error={fieldErrors.email} />
+                      <ErrorMessage error={fieldErrors.firstName} />
                     </div>
-
-                    <div className="grid md:grid-cols-2 gap-5">
-                      <div className="flex flex-col gap-1.5">
-                        <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                          Password <span className="text-[#4DD9E8]">*</span>
-                        </Label>
-                        <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.password ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
-                          <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
-                          <input
-                            name="password"
-                            type="password"
-                            placeholder="••••••••"
-                            className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            required
-                          />
-                        </div>
-                        <ErrorMessage error={fieldErrors.password} />
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                        Last Name <span className="text-[#4DD9E8]">*</span>
+                      </Label>
+                      <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.lastName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                        <User className="w-4 h-4 text-[#aaa] shrink-0" />
+                        <input
+                          name="lastName"
+                          placeholder="Smith"
+                          className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                          value={formData.lastName}
+                          onChange={handleInputChange}
+                          required
+                        />
                       </div>
-                      <div className="flex flex-col gap-1.5">
-                        <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                          Confirm Password <span className="text-[#4DD9E8]">*</span>
-                        </Label>
-                        <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.confirmPassword ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
-                          <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
-                          <input
-                            name="confirmPassword"
-                            type="password"
-                            placeholder="••••••••"
-                            className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
-                            value={formData.confirmPassword}
-                            onChange={handleInputChange}
-                            required
-                          />
-                        </div>
-                        <ErrorMessage error={fieldErrors.confirmPassword} />
-                      </div>
+                      <ErrorMessage error={fieldErrors.lastName} />
                     </div>
-
-
                   </div>
-                )}
 
-                {currentStep === 2 && (
-                  <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
-                    {/* Email Verification Section */}
-                    <div
-                      className={`rounded-2xl p-5 border-[1.5px] transition-all duration-200 ${isEmailVerified
-                        ? "bg-emerald-50/30 border-emerald-100"
-                        : "bg-[#f8f9fb] border-[#e8eaef]"
-                        }`}
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isEmailVerified
-                              ? "bg-emerald-500 text-white"
-                              : "bg-slate-200 text-slate-500"
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                      Work Email <span className="text-[#4DD9E8]">*</span>
+                    </Label>
+                    <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.email ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                      <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
+                      <input
+                        name="email"
+                        type="email"
+                        placeholder="bench@example.com"
+                        className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                    {isCheckingEmail && (
+                      <div className="text-sm text-slate-500 flex items-center gap-2">
+                        <SpinnerLoader />
+                        <span>Checking availability...</span>
+                      </div>
+                    )}
+                    <ErrorMessage error={fieldErrors.email} />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                        Password <span className="text-[#4DD9E8]">*</span>
+                      </Label>
+                      <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.password ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                        <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                        <input
+                          name="password"
+                          type="password"
+                          placeholder="••••••••"
+                          className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                      <ErrorMessage error={fieldErrors.password} />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                        Confirm Password <span className="text-[#4DD9E8]">*</span>
+                      </Label>
+                      <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.confirmPassword ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                        <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                        <input
+                          name="confirmPassword"
+                          type="password"
+                          placeholder="••••••••"
+                          className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
+                          value={formData.confirmPassword}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                      <ErrorMessage error={fieldErrors.confirmPassword} />
+                    </div>
+                  </div>
+
+
+                </div>
+              )}
+
+              {currentStep === 2 && (
+                <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
+                  {/* Email Verification Section */}
+                  <div
+                    className={`rounded-2xl p-5 border-[1.5px] transition-all duration-200 ${isEmailVerified
+                      ? "bg-emerald-50/30 border-emerald-100"
+                      : "bg-[#f8f9fb] border-[#e8eaef]"
+                      }`}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isEmailVerified
+                            ? "bg-emerald-500 text-white"
+                            : "bg-slate-200 text-slate-500"
+                            }`}
+                        >
+                          {isEmailVerified ? (
+                            <Check className="w-5 h-5" />
+                          ) : (
+                            <Mail className="w-5 h-5" />
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="text-[15px] font-bold text-[#1a1a2e]">
+                            Email Verification
+                          </h4>
+                          <p className="text-[12px] text-slate-400">
+                            {formData.email}
+                          </p>
+                        </div>
+                      </div>
+                      {isEmailVerified && (
+                        <span className="text-[12px] font-bold text-emerald-600 bg-emerald-100 px-2.5 py-1 rounded-full">
+                          Verified
+                        </span>
+                      )}
+                    </div>
+
+                    {!isEmailVerified && (
+                      <div className="space-y-4">
+                        <div className="flex flex-col gap-1.5">
+                          <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                            Enter 6-digit Code
+                          </Label>
+                          <div className="bench-otp-row">
+                            <div
+                              className={`bench-otp-input flex items-center gap-2.5 bg-white border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.otp
+                                ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                }`}
+                            >
+                              <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
+                              <input
+                                placeholder="000000"
+                                maxLength={6}
+                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-medium tracking-[0.2em]"
+                                value={otp}
+                                onChange={(e) => {
+                                  setOtp(
+                                    e.target.value.replace(/\D/g, ""),
+                                  );
+                                  if (fieldErrors.otp) {
+                                    setFieldErrors((prev) => {
+                                      const newErrors = { ...prev };
+                                      delete newErrors.otp;
+                                      return newErrors;
+                                    });
+                                  }
+                                }}
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleVerifyOtp}
+                              disabled={isVerifyingOtp || otp.length !== 6}
+                              className="bench-otp-btn"
+                            >
+                              {isVerifyingOtp ? (
+                                <span className="inline-flex items-center gap-2">
+                                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+                                  Verifying
+                                </span>
+                              ) : (
+                                "Verify"
+                              )}
+                            </button>
+                          </div>
+                          <ErrorMessage error={fieldErrors.otp} />
+                        </div>
+
+                        <div className="flex items-center justify-between text-[12px]">
+                          <button
+                            type="button"
+                            onClick={handleSendOtp}
+                            disabled={isSendingOtp || resendCooldown > 0}
+                            className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer disabled:cursor-not-allowed"
+                          >
+                            Didn't receive the code?
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleSendOtp}
+                            disabled={isSendingOtp || resendCooldown > 0}
+                            className={`font-bold transition-colors ${isSendingOtp || resendCooldown > 0
+                              ? "text-slate-300 cursor-not-allowed"
+                              : "text-[#4DD9E8] hover:text-[#0e8a96] underline"
                               }`}
                           >
-                            {isEmailVerified ? (
-                              <Check className="w-5 h-5" />
-                            ) : (
-                              <Mail className="w-5 h-5" />
-                            )}
+                            {isSendingOtp
+                              ? "Sending..."
+                              : resendCooldown > 0
+                                ? `Resend in ${resendCooldown}s`
+                                : "Resend Code"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                      ORGANIZATION NAME<span className="text-[#4DD9E8]">*</span>
+                    </Label>
+                    <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.companyName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                      <Building2 className="w-4 h-4 text-[#aaa] shrink-0" />
+                      <input
+                        name="companyName"
+                        placeholder="Company Co."
+                        className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
+                        value={formData.companyName}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                    <ErrorMessage error={fieldErrors.companyName} />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                      ORGANIZATION DETAILS (OPTIONAL)
+                    </Label>
+                    <Textarea
+                      name="companyDetails"
+                      placeholder="Tell us about your staffing capabilities..."
+                      maxLength={1000}
+                      className={`min-h-[150px] bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 transition-all duration-200 text-sm focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none ${fieldErrors.companyDetails ? "border-red-500" : "border-[#e8eaef] focus:border-[#4DD9E8] focus:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}
+                      value={formData.companyDetails}
+                      onChange={handleInputChange}
+                    />
+                    <p className="text-xs text-slate-500 mt-2 ml-1">
+                      {formData.companyDetails.length}/1000 characters
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 3 && (
+                <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                      COMPANY DOCUMENT (ID/VERIFICATION) <span className="text-[#4DD9E8]">*</span>
+                    </Label>
+                    {!companyDocument ? (
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            fileInputRef.current?.click();
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Upload company document"
+                        className={`group relative border-2 border-dashed rounded-[10px] p-12 transition-all hover:bg-slate-50 cursor-pointer flex flex-col items-center justify-center gap-4 ${fieldErrors.companyDocument ? "border-red-500" : "border-[#e8eaef] hover:border-[#4DD9E8]"}`}
+                      >
+                        <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                          <Upload className={`w-8 h-8 ${fieldErrors.companyDocument ? "text-red-500" : "text-slate-400 group-hover:text-[#4DD9E8]"}`} />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-extrabold text-slate-600">Select business document</p>
+                          <p className="text-[11px] text-slate-400 mt-1 uppercase tracking-widest">PDF, DOC, DOCX up to 10MB</p>
+                        </div>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileChange}
+                          accept=".pdf,.doc,.docx"
+                          className="hidden"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between p-6 bg-[#4DD9E8]/5 border border-[#4DD9E8]/20 rounded-[10px] relative overflow-hidden group">
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#4DD9E8]" />
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-[#4DD9E8]/10 rounded-xl flex items-center justify-center">
+                            <FileIcon className="w-6 h-6 text-[#4DD9E8]" />
                           </div>
                           <div>
-                            <h4 className="text-[15px] font-bold text-[#1a1a2e]">
-                              Email Verification
-                            </h4>
-                            <p className="text-[12px] text-slate-400">
-                              {formData.email}
+                            <p className="text-sm font-bold text-slate-700 truncate max-w-[250px]">{companyDocument.name}</p>
+                            <p className="text-[11px] font-bold text-[#4DD9E8]/60 uppercase">
+                              {(companyDocument.size / 1024 / 1024).toFixed(2)} MB
                             </p>
                           </div>
                         </div>
-                        {isEmailVerified && (
-                          <span className="text-[12px] font-bold text-emerald-600 bg-emerald-100 px-2.5 py-1 rounded-full">
-                            Verified
-                          </span>
-                        )}
-                      </div>
-
-                      {!isEmailVerified && (
-                        <div className="space-y-4">
-                          <div className="flex flex-col gap-1.5">
-                            <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                              Enter 6-digit Code
-                            </Label>
-                            <div className="flex gap-3">
-                              <div
-                                className={`flex-1 flex items-center gap-2.5 bg-white border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.otp
-                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                                  }`}
-                              >
-                                <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
-                                <input
-                                  placeholder="000000"
-                                  maxLength={6}
-                                  className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-medium tracking-[0.2em]"
-                                  value={otp}
-                                  onChange={(e) => {
-                                    setOtp(
-                                      e.target.value.replace(/\D/g, ""),
-                                    );
-                                    if (fieldErrors.otp) {
-                                      setFieldErrors((prev) => {
-                                        const newErrors = { ...prev };
-                                        delete newErrors.otp;
-                                        return newErrors;
-                                      });
-                                    }
-                                  }}
-                                />
-                              </div>
-                              <Button
-                                type="button"
-                                onClick={handleVerifyOtp}
-                                disabled={
-                                  isVerifyingOtp || otp.length !== 6
-                                }
-                                className="h-[46px] px-6 bg-[#1a1a2e] hover:bg-[#2a2a4e] text-white font-bold rounded-[10px] transition-all"
-                              >
-                                {isVerifyingOtp ? (
-                                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                ) : (
-                                  "Verify"
-                                )}
-                              </Button>
-                            </div>
-                            <ErrorMessage error={fieldErrors.otp} />
-                          </div>
-
-                          <div className="flex items-center justify-between text-[12px]">
-                            <span className="text-slate-400">
-                              Didn't receive the code?
-                            </span>
-                            <button
-                              type="button"
-                              onClick={handleSendOtp}
-                              disabled={isSendingOtp || resendCooldown > 0}
-                              className={`font-bold transition-colors ${isSendingOtp || resendCooldown > 0
-                                ? "text-slate-300 cursor-not-allowed"
-                                : "text-[#4DD9E8] hover:text-[#0e8a96] underline"
-                                }`}
-                            >
-                              {isSendingOtp
-                                ? "Sending..."
-                                : resendCooldown > 0
-                                  ? `Resend in ${resendCooldown}s`
-                                  : "Resend Code"}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                        ORGANIZATION NAME<span className="text-[#4DD9E8]">*</span>
-                      </Label>
-                      <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.companyName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
-                        <Building2 className="w-4 h-4 text-[#aaa] shrink-0" />
-                        <input
-                          name="companyName"
-                          placeholder="Company Co."
-                          className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
-                          value={formData.companyName}
-                          onChange={handleInputChange}
-                          required
-                        />
-                      </div>
-                      <ErrorMessage error={fieldErrors.companyName} />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                        ORGANIZATION DETAILS (OPTIONAL)
-                      </Label>
-                      <Textarea
-                        name="companyDetails"
-                        placeholder="Tell us about your staffing capabilities..."
-                        maxLength={1000}
-                        className={`min-h-[150px] bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 transition-all duration-200 text-sm focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none ${fieldErrors.companyDetails ? "border-red-500" : "border-[#e8eaef] focus:border-[#4DD9E8] focus:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}
-                        value={formData.companyDetails}
-                        onChange={handleInputChange}
-                      />
-                      <p className="text-xs text-slate-500 mt-2 ml-1">
-                        {formData.companyDetails.length}/1000 characters
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {currentStep === 3 && (
-                  <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
-                    <div className="flex flex-col gap-1.5">
-                      <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                        COMPANY DOCUMENT (ID/VERIFICATION) <span className="text-[#4DD9E8]">*</span>
-                      </Label>
-                      {!companyDocument ? (
-                        <div
-                          onClick={() => fileInputRef.current?.click()}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              fileInputRef.current?.click();
-                            }
-                          }}
-                          role="button"
-                          tabIndex={0}
-                          aria-label="Upload company document"
-                          className={`group relative border-2 border-dashed rounded-[10px] p-12 transition-all hover:bg-slate-50 cursor-pointer flex flex-col items-center justify-center gap-4 ${fieldErrors.companyDocument ? "border-red-500" : "border-[#e8eaef] hover:border-[#4DD9E8]"}`}
+                        <button
+                          type="button"
+                          onClick={removeFile}
+                          aria-label="Remove uploaded document"
+                          className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
                         >
-                          <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
-                            <Upload className={`w-8 h-8 ${fieldErrors.companyDocument ? "text-red-500" : "text-slate-400 group-hover:text-[#4DD9E8]"}`} />
-                          </div>
-                          <div className="text-center">
-                            <p className="text-sm font-extrabold text-slate-600">Select business document</p>
-                            <p className="text-[11px] text-slate-400 mt-1 uppercase tracking-widest">PDF, DOC, DOCX up to 10MB</p>
-                          </div>
-                          <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            accept=".pdf,.doc,.docx"
-                            className="hidden"
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-between p-6 bg-[#4DD9E8]/5 border border-[#4DD9E8]/20 rounded-[10px] relative overflow-hidden group">
-                          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#4DD9E8]" />
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-[#4DD9E8]/10 rounded-xl flex items-center justify-center">
-                              <FileIcon className="w-6 h-6 text-[#4DD9E8]" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold text-slate-700 truncate max-w-[250px]">{companyDocument.name}</p>
-                              <p className="text-[11px] font-bold text-[#4DD9E8]/60 uppercase">
-                                {(companyDocument.size / 1024 / 1024).toFixed(2)} MB
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={removeFile}
-                            aria-label="Remove uploaded document"
-                            className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
-                          >
-                            <X className="w-5 h-5" />
-                          </button>
-                        </div>
-                      )}
-                      <ErrorMessage error={fieldErrors.companyDocument} />
-                    </div>
-
-                    <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
-                      By submitting this application, you agree to Hirion's staffing partner terms and permit us to verify your company credentials.
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-3 pt-4">
-                  {currentStep > 1 && (
-                    <Button
-                      type="button"
-                      onClick={prevStep}
-                      variant="outline"
-                      className="flex-1 h-[52px] font-bold rounded-xl border-slate-200 hover:bg-slate-50 transition-all text-slate-600 hover:text-slate-900"
-                    >
-                      <ChevronLeft className="w-5 h-5 mr-1" />
-                      Back
-                    </Button>
-                  )}
-                  <Button
-                    type="submit"
-                    className="flex-1 h-[52px] bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center gap-3">
-                        <SpinnerLoader className="w-5 h-5 text-current" />
-                        <span>Processing...</span>
+                          <X className="w-5 h-5" />
+                        </button>
                       </div>
-                    ) : (
-                      <>
-                        <span>{currentStep === totalSteps ? "Sign Up" : "Next Step"}</span>
-                        {currentStep < totalSteps ? (
-                          <ChevronRight className="w-5 h-5" />
-                        ) : (
-                          <ArrowRight className="w-5 h-5" />
-                        )}
-                      </>
                     )}
-                  </Button>
-                </div>
-              </form>
+                    <ErrorMessage error={fieldErrors.companyDocument} />
+                  </div>
 
-              <div className="mt-10 text-center text-[14px] sm:text-sm font-medium text-slate-400">
-                Already have an account?{" "}
-                <Link
-                  to="/bench-login"
-                  className="text-teal-600 font-semibold hover:underline"
+                  <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    By submitting this application, you agree to Hirion's staffing partner terms and permit us to verify your company credentials.
+                  </div>
+                </div>
+              )}
+
+              <div className="bench-actions">
+                {currentStep > 1 && (
+                  <Button
+                    type="button"
+                    onClick={prevStep}
+                    variant="outline"
+                    className="flex-1 h-[52px] font-bold rounded-xl border-slate-200 hover:bg-slate-50 transition-all text-slate-600 hover:text-slate-900"
+                  >
+                    <ChevronLeft className="w-5 h-5 mr-1" />
+                    Back
+                  </Button>
+                )}
+                <Button
+                  type="submit"
+                  className="flex-1 h-[52px] bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+                  disabled={isLoading}
                 >
-                  Sign In to Dashboard
-                </Link>
+                  {isLoading ? (
+                    <div className="flex items-center gap-3">
+                      <SpinnerLoader className="w-5 h-5 text-current" />
+                      <span>Processing...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <span>{currentStep === totalSteps ? "Sign Up" : "Next Step"}</span>
+                      {currentStep < totalSteps ? (
+                        <ChevronRight className="w-5 h-5" />
+                      ) : (
+                        <ArrowRight className="w-5 h-5" />
+                      )}
+                    </>
+                  )}
+                </Button>
               </div>
+            </form>
+
+            <div className="mt-8 text-center text-[14px] sm:text-sm font-medium text-slate-400">
+              Already have an account?{" "}
+              <Link
+                to="/bench-login"
+                className="text-teal-600 font-semibold hover:underline"
+              >
+                Sign In to Dashboard
+              </Link>
             </div>
           </div>
         </div>

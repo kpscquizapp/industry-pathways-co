@@ -31,7 +31,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
-import { useGetEmployerProfileImageQuery } from "@/app/queries/employerApi";
+import { useGetEmployerProfileImageQuery, useGetEmployerProfileQuery } from "@/app/queries/employerApi";
 import { skipToken } from "@reduxjs/toolkit/query";
 import useLogout from "@/hooks/useLogout";
 
@@ -82,6 +82,7 @@ const HrSidebarContent = () => {
   const { currentData: profileImage } = useGetEmployerProfileImageQuery(
     token && user?.id != null ? user.id : skipToken
   );
+  const { currentData: profileData } = useGetEmployerProfileQuery();
 
   return (
     <Sidebar
@@ -192,7 +193,7 @@ const HrSidebarContent = () => {
                 <>
                   <div className="text-left flex-1 min-w-0 pr-1">
                     <p className="text-[15px] font-semibold text-white truncate leading-tight">
-                      {user?.firstName} {user?.lastName}
+                      {profileData?.data?.firstName || user?.firstName} {profileData?.data?.lastName || user?.lastName}
                     </p>
                     <p className="text-[13px] text-slate-400 truncate mt-0.5">
                       Bench Resource

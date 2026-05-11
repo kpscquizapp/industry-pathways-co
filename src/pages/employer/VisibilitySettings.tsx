@@ -262,10 +262,11 @@ const VisibilitySettings = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const user = useSelector((state: RootState) => state.user.userDetails);
-  const { data: employerProfileData, isFetching: isProfileLoading, refetch: refetchProfile } = useGetEmployerProfileQuery();
+  const { data: employerProfileData, isLoading: isProfileLoading, refetch: refetchProfile } = useGetEmployerProfileQuery();
   const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
     user?.id as any,
   );
+  const [isSavingPersonal, setIsSavingPersonal] = useState(false);
   const [updateProfile, { isLoading: isSaving }] = useUpdateEmployerProfileMutation();
 
   const [personalInfo, setPersonalInfo] = useState({
@@ -369,6 +370,7 @@ const VisibilitySettings = () => {
 
   const handleSavePersonal = async (e?: React.MouseEvent) => {
     e?.preventDefault();
+    setIsSavingPersonal(true);
     try {
       await updateProfile({
         firstName: personalInfo.firstName,
@@ -381,6 +383,9 @@ const VisibilitySettings = () => {
     } catch (err) {
       console.error("Failed to save personal information:", err);
       toast.error("Failed to save personal information. Please try again.");
+    }
+    finally {
+      setIsSavingPersonal(false);
     }
   };
 
@@ -631,8 +636,8 @@ const VisibilitySettings = () => {
 
                           {/* Save */}
                           <div className="flex justify-end pt-1">
-                            <Button onClick={handleSavePersonal} className="bg-[#0eb5b9] hover:bg-[#0da0a3] text-white rounded-lg px-7 h-10 font-semibold">
-                              Save Changes
+                            <Button type="button" onClick={handleSavePersonal} className="bg-[#0eb5b9] hover:bg-[#0da0a3] text-white rounded-lg px-7 h-10 font-semibold">
+                              {isSavingPersonal ? "Saving..." : "Save Changes"}
                             </Button>
                           </div>
 
@@ -718,6 +723,7 @@ const VisibilitySettings = () => {
 
                           <div className="flex justify-end pt-1">
                             <Button
+                              type="button"
                               onClick={handleSaveCompany}
                               disabled={isSaving}
                               className="bg-[#0eb5b9] hover:bg-[#0da0a3] text-white rounded-lg px-6 h-10 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
@@ -769,7 +775,7 @@ const VisibilitySettings = () => {
                         </div>
 
                         <div className="pt-2">
-                          <Button onClick={handleChangePassword} disabled={isChangingPassword} className="bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-lg px-8 h-11 font-medium shadow-sm transition-all hover:shadow-md">
+                          <Button type="button" onClick={handleChangePassword} disabled={isChangingPassword} className="bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-lg px-8 h-11 font-medium shadow-sm transition-all hover:shadow-md">
                             {isChangingPassword ? "Updating..." : "Update Password"}
                           </Button>
                         </div>
