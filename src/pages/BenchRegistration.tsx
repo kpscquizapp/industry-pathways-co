@@ -22,6 +22,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -53,6 +55,8 @@ const BenchRegistration = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -681,13 +685,22 @@ const BenchRegistration = () => {
                         <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                         <input
                           name="password"
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
                           className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
                           value={formData.password}
                           onChange={handleInputChange}
                           required
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((p) => !p)}
+                          style={{ display: "flex", cursor: "pointer", color: "#aaa", flexShrink: 0 }}
+                          tabIndex={-1}
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                        </button>
                       </div>
                       <ErrorMessage error={fieldErrors.password} />
                     </div>
@@ -699,13 +712,22 @@ const BenchRegistration = () => {
                         <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                         <input
                           name="confirmPassword"
-                          type="password"
+                          type={showConfirmPassword ? "text" : "password"}
                           placeholder="••••••••"
                           className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
                           value={formData.confirmPassword}
                           onChange={handleInputChange}
                           required
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword((p) => !p)}
+                          style={{ display: "flex", cursor: "pointer", color: "#aaa", flexShrink: 0 }}
+                          tabIndex={-1}
+                          aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                        >
+                          {showConfirmPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                        </button>
                       </div>
                       <ErrorMessage error={fieldErrors.confirmPassword} />
                     </div>
