@@ -541,7 +541,7 @@ const BenchRegistration = () => {
             <div className="inline-flex items-center gap-2">
               <span className="text-[#4DD9E8] text-[11.5px] font-semibold tracking-[0.15em] uppercase">
 
-                HIRING PARTNER REGISTRATION</span></div>
+                BENCH REGISTRATION</span></div>
 
             <h1 className="text-[44px] font-bold text-white leading-[1.1] tracking-tight">
               Ready to build your<br />
