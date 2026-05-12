@@ -470,21 +470,22 @@ const VisibilitySettings = () => {
 
       {/* Top Header Bar */}
       <div className="bg-white border-b border-slate-200 py-4 flex items-center gap-3 px-4 sm:px-6">
-        <div className="w-full">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger
-              className="text-muted-foreground hover:bg-[#0b1221]/10"
-              title="Toggle Sidebar"
-            />
-            <h1 className="text-lg font-bold text-slate-800 leading-tight">Settings</h1>
-          </div>
-          <p className="text-slate-400 text-sm ml-7">Manage your account preferences, company profile, and team settings.</p>
-        </div>
+        <SidebarTrigger
+          className="text-muted-foreground hover:bg-[#0b1221]/10"
+          title="Toggle Sidebar"
+        />
       </div>
 
       {/* Page Content */}
       <div className="flex-1 mb-3">
         <div className="max-w-6xl px-4 sm:px-6">
+
+          {/* Page Title */}
+          <div className="mt-6 mb-1">
+            <h1 className="text-2xl font-bold text-slate-800 leading-tight">Settings</h1>
+            <p className="text-slate-500 text-sm mt-1">Manage your account preferences, company profile, and team settings.</p>
+          </div>
+
           <div className="flex flex-col md:flex-row gap-6 mt-5">
 
             {/* Left Navigation */}
@@ -631,6 +632,7 @@ const VisibilitySettings = () => {
                               onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
                               type="email"
                               className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700"
+                              readOnly
                             />
                           </div>
 
