@@ -82,8 +82,9 @@ const HrSidebarContent = () => {
   const { currentData: profileImage } = useGetEmployerProfileImageQuery(
     token && user?.id != null ? user.id : skipToken
   );
-  const { currentData: profileData } = useGetEmployerProfileQuery();
-
+  const { currentData: profileData } = useGetEmployerProfileQuery(
+    token && user?.id ? undefined : skipToken
+  );
   return (
     <Sidebar
       collapsible="icon"

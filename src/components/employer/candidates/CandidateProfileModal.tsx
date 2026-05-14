@@ -387,8 +387,9 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                             <span>Min. Contract Duration</span>
                           </div>
                           <span className="font-semibold text-foreground">
-                            {candidate.minimumContractDuration}{" "}
-                            {Number(candidate.minimumContractDuration) === 1 ? "Month" : "Months"}
+                            {isFinite(Number(candidate.minimumContractDuration)) && candidate.minimumContractDuration !== "" && candidate.minimumContractDuration != null
+                              ? `${candidate.minimumContractDuration} ${Number(candidate.minimumContractDuration) === 1 ? "Month" : "Months"}`
+                              : candidate.minimumContractDuration || "N/A"}
                           </span>
                         </div>
                       )}

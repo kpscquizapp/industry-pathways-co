@@ -1,0 +1,135 @@
+.bench-right-panel {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    padding: 40px 24px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #fff;
+    min-width: 0;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.bench-form-shell {
+    max-width: 520px;
+    width: 100%;
+    margin: 0 auto;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.bench-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 16px;
+}
+
+.bench-otp-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.bench-otp-btn {
+    flex-shrink: 0;
+    height: 46px;
+    padding: 0 20px;
+    border-radius: 10px;
+    background: #1a1a2e;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.bench-otp-btn:hover:not(:disabled) {
+    background: #2a2a4e;
+}
+
+.bench-otp-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (min-width: 1025px) {
+    .bench-right-panel {
+        flex: 0 0 50%;
+        width: 50%;
+        max-width: 50%;
+        padding: 60px 70px;
+        justify-content: center;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+    .bench-right-panel {
+        padding: 40px 48px;
+    }
+
+    .bench-form-shell {
+        max-width: 520px;
+    }
+}
+
+@media (max-width: 640px) {
+    .bench-right-panel {
+        padding: 20px 14px;
+        min-height: 100vh;
+    }
+
+    .bench-form-shell {
+        max-width: 100%;
+        background: rgba(255, 255, 255, 0.97);
+        border-radius: 14px;
+        padding: 24px 16px;
+        box-shadow: 0 10px 32px rgba(15, 23, 42, 0.06);
+        border: 1px solid rgba(200, 210, 220, 0.2);
+        margin: 0;
+    }
+
+    .bench-actions {
+        flex-direction: column-reverse;
+        gap: 10px;
+        padding-top: 16px;
+    }
+
+    .bench-actions>button {
+        width: 100%;
+    }
+
+    .bench-otp-row {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .bench-otp-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .bench-right-panel {
+        padding: 12px 10px;
+    }
+
+    .bench-form-shell {
+        padding: 20px 12px;
+    }
+
+    .bench-actions {
+        gap: 8px;
+    }
+
+    .stepper-label {
+        display: none;
+    }
+}

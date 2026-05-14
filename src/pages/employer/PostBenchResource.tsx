@@ -6,8 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox, } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -634,7 +632,7 @@ const PostBenchResource = () => {
 
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Type skill and press enter..."
+                      placeholder="Add skills..."
                       value={skillInput}
                       onChange={(e) => setSkillInput(e.target.value)}
                       onKeyDown={handleKeyDown}
@@ -820,7 +818,7 @@ const PostBenchResource = () => {
                               },
                             })
                           }
-                          style={{ position: "absolute", opacity: 0, width: 0, height: 0, pointerEvents: "none" }}
+                          style={{ position: "absolute", opacity: 0, width: 1, height: 1 }}
                         />
                         {/* Circular visual indicator */}
                         <label
