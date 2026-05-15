@@ -72,8 +72,8 @@ const MockTestReport = () => {
   const questions = Array.isArray(report?.questions) ? report.questions : [];
   const currentQuestion =
     questions.length > 0 &&
-      activeQuestionIndex >= 0 &&
-      activeQuestionIndex < questions.length
+    activeQuestionIndex >= 0 &&
+    activeQuestionIndex < questions.length
       ? questions[activeQuestionIndex]
       : null;
 
@@ -376,7 +376,7 @@ const MockTestReport = () => {
                         currentQuestion.status === "Correct"
                           ? "bg-[#f0fdfa] border-[#ccfbf1]"
                           : currentQuestion.status === "Incorrect" ||
-                            currentQuestion.status === "Failed"
+                              currentQuestion.status === "Failed"
                             ? "bg-red-50 border-red-100"
                             : "bg-slate-50 border-slate-200",
                       )}
@@ -431,26 +431,26 @@ const MockTestReport = () => {
                       </div>
                     )}
 
-                    {currentQuestion.aiImprovedCode && (
+                    {currentQuestion.qwenaiImprovedCode && (
                       <div className="bg-[#f0f9ff] rounded-xl p-5 overflow-hidden border border-[#bae6fd]">
                         <div className="text-[10px] font-bold text-[#0ea5e9] mb-4 tracking-wider uppercase border-b border-[#bae6fd] pb-2">
                           AI-Improved Version
                         </div>
                         <pre className="text-slate-700 text-[13px] font-mono leading-relaxed overflow-x-auto whitespace-pre p-2">
-                          {currentQuestion.aiImprovedCode}
+                          {currentQuestion.qwenaiImprovedCode}
                         </pre>
                       </div>
                     )}
 
                     <div className="bg-slate-50 rounded-2xl p-6 md:p-8 border border-slate-100">
-                      {currentQuestion.aiFeedback && (
+                      {currentQuestion.qwenaiFeedback && (
                         <div className="bg-slate-50 rounded-2xl p-6 md:p-5 border border-slate-100">
                           <h5 className="text-[14px] font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <LayoutGrid size={16} className="text-[#0ea5e9]" />
                             AI Evaluation Feedback
                           </h5>
                           <div className="text-[13.5px] font-medium text-slate-600 leading-relaxed whitespace-pre-wrap">
-                            {currentQuestion.aiFeedback}
+                            {currentQuestion.qwenaiFeedback}
                           </div>
                         </div>
                       )}

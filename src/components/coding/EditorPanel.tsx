@@ -193,6 +193,15 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
     }
   };
 
+  const selectedLanguageValue = React.useMemo(() => {
+    const key = getDropdownLanguageKey(language?.name);
+    if (!key) return language?.id?.toString();
+
+    return filteredLanguages
+      .find((candidate) => getDropdownLanguageKey(candidate.name) === key)
+      ?.id.toString();
+  }, [filteredLanguages, language]);
+
   return (
     <Card
       className={`h-full border-none rounded-none shadow-none flex flex-col ${
@@ -203,7 +212,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
       <div className="border-b border-border px-4 py-2 flex items-center justify-between gap-4 bg-card flex-shrink-0">
         <div className="flex items-center gap-3">
           <Select
-            value={language?.id.toString()}
+            value={selectedLanguageValue}
             onValueChange={(val) => {
               const selected = filteredLanguages.find(
                 (l) => l.id.toString() === val,
