@@ -581,7 +581,7 @@ const BenchRegistration = () => {
                                                     tabIndex={0}
                                                     aria-label={showPassword ? "Hide password" : "Show password"}
                                                 >
-                                                    {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                                                    {showPassword ? <Eye className="w-4 h-10 ml-5" /> : <EyeOff className="w-4 h-10 ml-5" />}
                                                 </button>
                                             </div>
                                             <ErrorMessage error={fieldErrors.password} />
@@ -608,7 +608,7 @@ const BenchRegistration = () => {
                                                     tabIndex={0}
                                                     aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                                                 >
-                                                    {showConfirmPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                                                    {showConfirmPassword ? <Eye className="w-4 h-10 ml-5" /> : <EyeOff className="w-4 h-10 ml-5" />}
                                                 </button>
                                             </div>
                                             <ErrorMessage error={fieldErrors.confirmPassword} />
@@ -675,7 +675,7 @@ const BenchRegistration = () => {
                                                             <input
                                                                 placeholder="000000"
                                                                 maxLength={6}
-                                                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-medium tracking-[0.2em]"
+                                                                className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-medium tracking-[0.2em] w-full"
                                                                 value={otp}
                                                                 onChange={(e) => {
                                                                     setOtp(
