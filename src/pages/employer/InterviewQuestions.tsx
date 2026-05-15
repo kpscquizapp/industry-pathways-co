@@ -7,8 +7,12 @@ import {
   useUpdateShortlistStageMutation,
   useGetCustomTestsByEmployerQuery,
   useDeleteCustomQuestionMutation,
+  useGetProblemsQuery,
   useGetJobMatchesQuery,
 } from "@/app/queries/aiShortlistApi";
+import { useScheduleTestForCandidateMutation } from "@/app/queries/assessmentApi";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -114,6 +118,9 @@ export default function InterviewQuestions() {
   const name = searchParams.get("candidateName");
   const email = searchParams.get("candidateEmail") || "";
   const category = searchParams.get("testType") || "";
+  const testId = searchParams.get("testId") || "";
+  const testDate = searchParams.get("testDate") || "";
+  const testDuration = searchParams.get("testDuration") || "";
   const jobId = searchParams.get("jobId") || "";
   const candidateId = searchParams.get("candidateId") || "";
   const talentSource = (searchParams.get("talentSource") || "candidate") as
@@ -126,11 +133,19 @@ export default function InterviewQuestions() {
   const [savedQuestions, setSavedQuestions] = useState<Question[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const user = useSelector((state: RootState) => state.user.userDetails);
+  const employerEmail = user?.email || "";
+
   const {
     data: employerTestData,
     isLoading: isLoadingExisting,
     refetch: refetchLibrary,
   } = useGetCustomTestsByEmployerQuery();
+  const { data: problemsData, isLoading: isLoadingProblems } =
+    useGetProblemsQuery(
+      { employerEmail: employerEmail },
+      { skip: !employerEmail },
+    );
   const [deleteCustomQuestion] = useDeleteCustomQuestionMutation();
 
   // Fetch matches for this job to count invited candidates
@@ -154,24 +169,30 @@ export default function InterviewQuestions() {
     setValidationAlert({ show: true, title, message });
   };
 
-  // Seed savedQuestions with ALL questions created by this employer across all candidates
+  // Seed savedQuestions with questions specifically associated with this employer email
   useEffect(() => {
-    if (
-      employerTestData?.success &&
-      Array.isArray(employerTestData.data?.allQuestions)
-    ) {
-      const loaded = (employerTestData.data.allQuestions as any[]).map(
-        (q, i) => ({
-          ...q,
-          id: Date.now() + i,
-          expanded: false,
-          role: q.role || role,
-          category: q.category || category,
-        }),
+    if (problemsData?.success && Array.isArray(problemsData.data)) {
+      console.log(
+        "🔍 DEBUG: Raw problemsData from backend:",
+        problemsData.data,
       );
+      console.log("🔍 DEBUG: First question structure:", problemsData.data[0]);
+
+      const loaded = (problemsData.data as any[]).map((q, i) => ({
+        ...q,
+        id: q.id || q.problemId || q.problem_id || Date.now() + i,
+        difficulty: (q.difficulty?.charAt(0).toUpperCase() +
+          q.difficulty?.slice(1)) as "Easy" | "Medium" | "Hard",
+        starter_code: q.baseCode || defaultStarterCode(),
+        expanded: false,
+        role: q.role || role,
+        category: q.category || category,
+      }));
+
+      console.log("🔍 DEBUG: Loaded questions after mapping:", loaded);
       setSavedQuestions(loaded);
     }
-  }, [employerTestData]);
+  }, [problemsData, role, category]);
 
   return (
     <div className="min-h-full bg-[#f2f5fa] font-sans">
@@ -250,6 +271,9 @@ export default function InterviewQuestions() {
                 setQuestions={setQuestions}
                 onSaved={setSavedQuestions}
                 showAlert={showAlert}
+                testId={testId}
+                testDuration={testDuration}
+                candidateName={name || "Candidate"}
               />
             )}
             {activeTab === "ai" && (
@@ -303,9 +327,9 @@ export default function InterviewQuestions() {
                 }}
                 onAdd={(q) => {
                   // Add this question to the active test with safe fallback arrays
+                  // IMPORTANT: Keep the original q.id from the problem table - don't override it!
                   const safeQ = {
                     ...q,
-                    id: Date.now(),
                     examples: q.examples || [],
                     constraints: q.constraints || [],
                     test_cases: q.test_cases || [],
@@ -347,15 +371,17 @@ export default function InterviewQuestions() {
               />
             ))}
           {activeTab === "ai" && <GeneratedQuestionsList />}
-          {activeTab === "bulk" && <ImportedQuestionsList />}
+          {activeTab === "bulk" && (
+            <ImportedQuestionsList
+              questions={problemsData?.data || []}
+              isLoading={isLoadingProblems}
+            />
+          )}
         </div>
 
         {/* Right Column - Preview (Sidebar) */}
         <div className="hidden lg:block w-[360px] xl:w-[420px] shrink-0 bg-white border-l border-gray-200">
-          <AIInterviewPreview
-            role={role}
-            category={category}
-          />
+          <AIInterviewPreview role={role} category={category} />
         </div>
       </div>
       <AlertDialog
@@ -396,6 +422,9 @@ function ManualEntryForm({
   setQuestions,
   onSaved,
   showAlert,
+  testId,
+  testDuration,
+  candidateName,
 }: {
   defaultRole?: string;
   defaultCategory?: string;
@@ -407,6 +436,9 @@ function ManualEntryForm({
   setQuestions: React.Dispatch<React.SetStateAction<any[]>>;
   onSaved: (qs: any[]) => void;
   showAlert: (title: string, message: string) => void;
+  testId?: string;
+  testDuration?: string;
+  candidateName?: string;
 }) {
   type Example = { input: string; output: string; explanation?: string };
   type TestCase = { input: string; expected_output: string };
@@ -466,26 +498,31 @@ function ManualEntryForm({
   >({});
   const [isSaved, setIsSaved] = useState(false);
   const [inviteSent, setInviteSent] = useState(false);
-  const [testId, setTestId] = useState<number | null>(null);
+  const [localTestId, setLocalTestId] = useState<number | null>(
+    testId ? parseInt(testId) : null,
+  );
 
-  // Sync testId if editing an existing assessment
+  // Sync localTestId if editing an existing assessment
   useEffect(() => {
     if (questions.length > 0 && questions[0]._testId) {
-      setTestId(questions[0]._testId);
-    } else if (questions.length === 1 && !questions[0]._testId) {
-      // New fresh form, reset testId
-      setTestId(null);
+      setLocalTestId(questions[0]._testId);
+    } else if (questions.length === 1 && !questions[0]._testId && !testId) {
+      // New fresh form, reset localTestId
+      setLocalTestId(null);
     }
-  }, [questions[0]?._testId]);
+  }, [questions[0]?._testId, testId]);
 
   const [createCustomTest, { isLoading: isCreating }] =
     useCreateCustomTestMutation();
   const [updateCustomTest, { isLoading: isUpdating }] =
     useUpdateCustomTestMutation();
-  const isSaving = isCreating || isUpdating;
   const [sendInvite, { isLoading: isInviting }] = useSendInviteEmailMutation();
+  const [scheduleTestForCandidate, { isLoading: isScheduling }] =
+    useScheduleTestForCandidateMutation();
   const [updateShortlistStage] = useUpdateShortlistStageMutation();
   const { refetch: refetchLibrary } = useGetCustomTestsByEmployerQuery();
+
+  const isSaving = isCreating || isUpdating;
 
   const addQuestion = () => {
     const id = Date.now();
@@ -686,7 +723,7 @@ function ManualEntryForm({
         setQuestions(questions.filter((question) => question.id !== qId));
 
         // Update the global testId for the invite button
-        setTestId(savedTestId);
+        setLocalTestId(savedTestId);
 
         refetchLibrary();
         return savedTestId as number;
@@ -768,50 +805,50 @@ function ManualEntryForm({
     }
 
     try {
-      let inviteTestId = testId;
+      // Extract problem IDs from selected questions (from the problem table)
+      const problemIds = validQuestions
+        .map((q: any) => q.id)
+        .filter((id: any) => id !== undefined);
 
-      // If there's multiple questions, or the single question isn't saved, we must create a new test record to send to the candidate.
-      if (
-        validQuestions.length > 1 ||
-        (validQuestions.length === 1 && !validQuestions[0]._testId)
-      ) {
-        const testResponse = await createCustomTest({
-          title: `${defaultRole} - Interview Assessment`,
-          questions: validQuestions.map(
-            ({
-              expanded,
-              id,
-              _testId,
-              _testTitle,
-              _testStatus,
-              _questionIndex,
-              ...q
-            }: any) => q,
-          ),
-          candidateEmail: defaultEmail,
-        }).unwrap();
+      console.log("=== DEBUG scheduleTestForCandidate ===");
+      console.log("validQuestions:", validQuestions);
+      console.log("extracted problemIds:", problemIds);
 
-        if (!testResponse.success) {
-          showAlert(
-            "Assessment Failed",
-            "Failed to create the test assessment for this invite.",
-          );
-          return;
-        }
-        inviteTestId = testResponse.data.id;
-        refetchLibrary();
-      } else if (validQuestions.length === 1 && validQuestions[0]._testId) {
-        inviteTestId = validQuestions[0]._testId;
-      }
-
-      if (!inviteTestId) {
+      if (!problemIds || problemIds.length === 0) {
         showAlert(
-          "Configuration Error",
-          "Could not determine the test ID. Please try saving the questions first.",
+          "No Questions Selected",
+          "Please select at least one question from the saved questions library.",
         );
         return;
       }
 
+      // Schedule the test directly (creates test in ScheduleCandidate with CodingTestProblem links)
+      const schedulePayload = {
+        candidateName: candidateName || "Candidate",
+        candidateEmail: defaultEmail,
+        candidateId: candidateId ? parseInt(candidateId) : undefined,
+        candidateRole: defaultRole,
+        testType: defaultCategory,
+        testDuration: testDuration ? parseInt(testDuration) : 60,
+        problemIds: problemIds,
+      };
+
+      console.log("schedulePayload:", schedulePayload);
+
+      const scheduleResponse =
+        await scheduleTestForCandidate(schedulePayload).unwrap();
+
+      const inviteTestId = scheduleResponse?.data?.id;
+
+      if (!inviteTestId) {
+        showAlert(
+          "Scheduling Error",
+          "Failed to create the test. Please try again.",
+        );
+        return;
+      }
+
+      // Send invite using the scheduled test ID
       const response = await sendInvite({
         codingTestId: inviteTestId.toString(),
         candidateEmail: defaultEmail,
@@ -842,7 +879,8 @@ function ManualEntryForm({
       console.error("Error sending invite:", error);
       showAlert(
         "Invite Error",
-        "A network error occurred while sending the invite.",
+        error?.data?.message ||
+          "A network error occurred while sending the invite.",
       );
     }
   };
@@ -1317,7 +1355,9 @@ function ManualEntryForm({
           {questions.length > 0 && (
             <Button
               onClick={handleInvite}
-              disabled={isInviting || inviteSent || !defaultEmail}
+              disabled={
+                isInviting || isScheduling || inviteSent || !defaultEmail
+              }
               title={
                 !defaultEmail
                   ? "No candidate email — go back and select a candidate first"
@@ -1325,11 +1365,13 @@ function ManualEntryForm({
               }
               className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-sm px-6 h-11 font-bold animate-in fade-in slide-in-from-right-4 duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isInviting
-                ? "Sending..."
-                : inviteSent
-                  ? "Invite Sent ✓"
-                  : "Send Invite"}
+              {isScheduling
+                ? "Scheduling..."
+                : isInviting
+                  ? "Sending..."
+                  : inviteSent
+                    ? "Invite Sent ✓"
+                    : "Send Invite"}
             </Button>
           )}
         </div>
@@ -1965,27 +2007,49 @@ function GeneratedQuestionsList() {
   );
 }
 
-function ImportedQuestionsList() {
+function ImportedQuestionsList({
+  questions = [],
+  isLoading = false,
+}: {
+  questions?: any[];
+  isLoading?: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-4 mt-2 animate-pulse">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-24 bg-gray-100 rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 mt-2">
       <div className="grid grid-cols-3 gap-4 mb-2">
         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col gap-1 text-center">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Rows detected
+            Questions Found
           </span>
-          <span className="text-2xl font-bold text-gray-900">124</span>
+          <span className="text-2xl font-bold text-gray-900">
+            {questions.length}
+          </span>
         </div>
         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col gap-1 text-center">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Valid questions
+            Difficulty: Easy
           </span>
-          <span className="text-2xl font-bold text-gray-900">118</span>
+          <span className="text-2xl font-bold text-gray-900">
+            {questions.filter((q) => q.difficulty === "easy").length}
+          </span>
         </div>
         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col gap-1 text-center">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Needs review
+            Difficulty: Med/Hard
           </span>
-          <span className="text-2xl font-bold text-gray-900">6</span>
+          <span className="text-2xl font-bold text-gray-900">
+            {questions.filter((q) => q.difficulty !== "easy").length}
+          </span>
         </div>
       </div>
 
@@ -2014,67 +2078,41 @@ function ImportedQuestionsList() {
                 All Categories
               </DropdownMenuItem>
               <DropdownMenuItem className="py-2 px-3 cursor-pointer focus:bg-blue-50 focus:text-blue-600 font-medium text-sm rounded-lg outline-none transition-colors">
-                System Design
-              </DropdownMenuItem>
-              <DropdownMenuItem className="py-2 px-3 cursor-pointer focus:bg-blue-50 focus:text-blue-600 font-medium text-sm rounded-lg outline-none transition-colors">
                 Coding
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex items-center justify-between gap-2 pl-3 pr-2 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none hover:bg-gray-50 transition-all min-w-[140px]">
-                <span>Review status</span>
-                <ChevronDown className="w-4 h-4 text-gray-400" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-48 rounded-xl shadow-2xl border-slate-100 p-2 bg-white"
-            >
-              <DropdownMenuItem className="py-2 px-3 cursor-pointer focus:bg-blue-50 focus:text-blue-600 font-medium text-sm rounded-lg outline-none transition-colors">
-                Review status
-              </DropdownMenuItem>
-              <DropdownMenuItem className="py-2 px-3 cursor-pointer focus:bg-blue-50 focus:text-blue-600 font-medium text-sm rounded-lg outline-none transition-colors">
-                Validated
-              </DropdownMenuItem>
-              <DropdownMenuItem className="py-2 px-3 cursor-pointer focus:bg-blue-50 focus:text-blue-600 font-medium text-sm rounded-lg outline-none transition-colors">
-                Needs review
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
 
-      <QuestionCard
-        text="Describe how you would evaluate a candidate's proficiency in React performance optimization when working on a fast-moving product team."
-        tags={[
-          { label: "Bulk Upload", color: "teal" },
-          { label: "Frontend", color: "gray" },
-          { label: "Performance", color: "gray" },
-          { label: "Validated", color: "green" },
-        ]}
-        isActive
-        activeColor="teal"
-      />
-      <QuestionCard
-        text="How would you assess whether a product designer can balance research insights with shipping speed during a hiring sprint?"
-        tags={[
-          { label: "Bulk Upload", color: "teal" },
-          { label: "Design", color: "gray" },
-          { label: "Hiring process", color: "gray" },
-          { label: "Needs review", color: "orange-solid" },
-        ]}
-      />
-      <QuestionCard
-        text="Tell me how you would measure backend ownership, API reliability, and communication quality for a senior engineering manager candidate."
-        tags={[
-          { label: "Bulk Upload", color: "teal" },
-          { label: "Backend", color: "gray" },
-          { label: "Leadership", color: "gray" },
-          { label: "Validated", color: "green" },
-        ]}
-      />
+      {questions.length === 0 ? (
+        <div className="py-12 text-center bg-white rounded-xl border border-dashed border-gray-200">
+          <p className="text-gray-400">
+            No custom questions found for your account.
+          </p>
+        </div>
+      ) : (
+        questions.map((q) => (
+          <QuestionCard
+            key={q.id}
+            text={q.title}
+            description={q.description}
+            tags={[
+              { label: "Custom", color: "teal" },
+              {
+                label: q.difficulty?.toUpperCase() || "EASY",
+                color:
+                  q.difficulty === "hard"
+                    ? "red"
+                    : q.difficulty === "medium"
+                      ? "orange"
+                      : "green",
+              },
+              { label: "Stored", color: "gray" },
+            ]}
+          />
+        ))
+      )}
     </div>
   );
 }

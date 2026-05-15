@@ -171,6 +171,16 @@ const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
                           </code>
                         </div>
                       )}
+                      {
+                        testCase.compile_output && (
+                          <div>
+                            <p className="text-muted-foreground mb-1">Compile Output:</p>
+                            <code className="bg-muted/50 px-2 py-1 rounded text-foreground whitespace-pre-wrap break-all block">
+                              {testCase.compile_output}
+                            </code>
+                          </div>
+                        )
+                      }
                     </div>
                   </div>
                 );

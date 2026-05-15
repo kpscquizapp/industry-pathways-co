@@ -83,6 +83,26 @@ export const assessmentApi = createApi({
         params: token ? { token } : undefined,
       }),
     }),
+    scheduleTestForCandidate: builder.mutation<
+      any,
+      {
+        candidateName: string;
+        candidateEmail: string;
+        candidateId?: string | number;
+        candidateRole?: string;
+        testType?: string;
+        testDuration?: number;
+        problemIds?: number[];
+        questions?: any[];
+      }
+    >({
+      query: (body) => ({
+        url: "coding/tests/schedule-candidate",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Test"],
+    }),
 
     // ── Session management ──────────────────────────────────────────
     startSession: builder.mutation<
@@ -201,6 +221,7 @@ export const {
   useLazyGetTestProblemsQuery,
   useStartTestMutation,
   useEndTestMutation,
+  useScheduleTestForCandidateMutation,
   useStartSessionMutation,
   useEndSessionMutation,
   useLogViolationMutation,

@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { RootState } from "@/app/store";
 import {
   Calendar,
   Clock,
@@ -41,8 +39,6 @@ import { toast } from "sonner";
 import {
   useGetEmployerJobsQuery,
   useGetJobMatchesQuery,
-  useCreateCodingTestMutation,
-  useSendInviteEmailMutation,
 } from "@/app/queries/aiShortlistApi";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 
@@ -65,9 +61,6 @@ const EmployerSkillTests = () => {
   const [selectedJobId, setSelectedJobId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Get auth token from Redux store
-  const token = useSelector((state: RootState) => state.user.token);
-
   // Modals
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
@@ -85,7 +78,6 @@ const EmployerSkillTests = () => {
   const [sessionScheduled, setSessionScheduled] = useState<
     Record<string, Candidate>
   >({});
-  const [isSchedulingTest, setIsSchedulingTest] = useState(false);
 
   // Queries
   const { data: jobsResponse, isLoading: jobsLoading } =
@@ -112,11 +104,6 @@ const EmployerSkillTests = () => {
     { id: selectedJobId, page: 1, limit: 100 },
     { skip: !selectedJobId },
   );
-
-  const [createCodingTest, { isLoading: isCreating }] =
-    useCreateCodingTestMutation();
-  const [sendInviteEmail, { isLoading: isInviting }] =
-    useSendInviteEmailMutation();
 
   // Only show candidates that have been shortlisted for this job by the employer.
   // isShortlisted is returned by GET /jobs/:id/matches (annotated by the backend).
@@ -201,82 +188,34 @@ const EmployerSkillTests = () => {
       return;
     }
 
-    setIsSchedulingTest(true);
-
-    try {
-      // Get auth token from Redux store
-      if (!token) {
-        toast.error("Not authenticated. Please login again.");
-        setIsSchedulingTest(false);
-        return;
-      }
-
-      // Call the backend API to schedule the test
-      const response = await fetch("/api/v1/coding/tests/schedule-candidate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          candidateName: selectedCandidate.name,
-          candidateEmail: selectedCandidate.email || "",
-          candidateRole: selectedCandidate.role || "Professional",
-          testType: scheduleData.testType || "Technical Assessment",
-          problemIds: [1, 2, 3], // TODO: Allow selecting specific problems from UI
-          testDuration: parseInt(scheduleData.duration),
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        toast.error(error.message || "Failed to schedule test");
-        setIsSchedulingTest(false);
-        return;
-      }
-
-      const data = await response.json();
-      const testId = data.data?.id;
-
-      if (!testId) {
-        toast.error("Failed to create test - no test ID returned");
-        setIsSchedulingTest(false);
-        return;
-      }
-
-      // Update session state
-      setSessionScheduled((prev) => ({
-        ...prev,
-        [selectedCandidate.id]: {
-          ...selectedCandidate,
-          status: "scheduled" as const,
-          testDate: scheduleData.date,
-        },
-      }));
-
-      toast.success(
-        `Test scheduled successfully for ${selectedCandidate.name}`,
-      );
-      setShowScheduleModal(false);
-
-      // Navigate to interview questions with the test ID
-      const params = new URLSearchParams({
-        testId: testId.toString(),
-        candidateId: selectedCandidate.id.toString(),
-        candidateName: selectedCandidate.name,
-        candidateRole: selectedCandidate.role || "Professional",
-        candidateEmail: selectedCandidate.email || "",
-        testType: scheduleData.testType || "Technical Assessment",
+    // Update session scheduled candidates
+    setSessionScheduled((prev) => ({
+      ...prev,
+      [selectedCandidate.id]: {
+        ...selectedCandidate,
+        status: "scheduled" as const,
         testDate: scheduleData.date,
-      });
+      },
+    }));
 
-      navigate(`/hire-talent/interview-questions?${params.toString()}`);
-    } catch (error) {
-      console.error("Error scheduling test:", error);
-      toast.error("An error occurred while scheduling the test");
-    } finally {
-      setIsSchedulingTest(false);
-    }
+    toast.success("Test scheduled successfully!");
+    setShowScheduleModal(false);
+
+    // Navigate to interview questions page
+    // The actual API scheduling happens there after employer selects questions
+    const params = new URLSearchParams({
+      candidateId: selectedCandidate.id.toString(),
+      candidateName: selectedCandidate.name,
+      candidateRole: selectedCandidate.role || "Professional",
+      candidateEmail: selectedCandidate.email || "",
+      testType: scheduleData.testType || "Technical Assessment",
+      testDate: scheduleData.date,
+      testDuration: scheduleData.duration,
+      jobId: selectedJobId,
+      talentSource: "candidate",
+    });
+
+    navigate(`/hire-talent/interview-questions?${params.toString()}`);
   };
 
   return (
@@ -836,18 +775,11 @@ const EmployerSkillTests = () => {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-[2] rounded-xl h-11 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-bold shadow-sm"
+                  className="flex-[2] rounded-xl h-11 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-bold shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                   onClick={handleScheduleTest}
-                  disabled={isSchedulingTest}
                 >
-                  {isSchedulingTest ? (
-                    <SpinnerLoader className="w-5 h-5" />
-                  ) : (
-                    <>
-                      <Play className="h-4 w-4 mr-2" />
-                      Send Questions
-                    </>
-                  )}
+                  <Play className="h-4 w-4 mr-2" />
+                  Send Questions
                 </Button>
               </div>
             </div>
