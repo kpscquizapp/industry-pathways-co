@@ -253,8 +253,10 @@ const CodingChallenge: React.FC = () => {
   // Prefer previously saved language for the current problem, else prefer Go,
   // falling back to the first available language.
   useEffect(() => {
-    if (!language && filteredLanguages.length > 0 && problems.length > 0) {
-      const current = problems[0];
+    if (language || filteredLanguages.length === 0) return;
+
+    if (problems.length > 0) {
+      const current = problems[activeProblemIndex] ?? problems[0];
 
       // 1) If user already has saved code for this problem, restore that language
       let savedLangName: string | null = null;
@@ -272,35 +274,16 @@ const CodingChallenge: React.FC = () => {
           return;
         }
       }
-
-      // 2) Prefer Go when no saved code exists (first-time visit behavior)
-      const goLang = filteredLanguages.find(
-        (l) =>
-          getLanguageKey(l.name) === "go" ||
-          l.name.toLowerCase().startsWith("go"),
-      );
-      if (goLang) {
-        setLanguage(goLang);
-        return;
-      }
-
-      // 3) Fallback to first available
-      setLanguage(filteredLanguages[0]);
-    } else if (
-      !language &&
-      filteredLanguages.length > 0 &&
-      problems.length === 0
-    ) {
-      // If problems not yet loaded, still prefer Go as an early default
-      const goLang = filteredLanguages.find(
-        (l) =>
-          getLanguageKey(l.name) === "go" ||
-          l.name.toLowerCase().startsWith("go"),
-      );
-      if (goLang) setLanguage(goLang);
-      else setLanguage(filteredLanguages[0]);
     }
-  }, [filteredLanguages, language, problems]);
+    // 2) Prefer Go when no saved code exists (or while problems load)
+    const goLang = filteredLanguages.find(
+      (l) =>
+        getLanguageKey(l.name) === "go" ||
+        l.name.toLowerCase().startsWith("go"),
+    );
+    setLanguage(goLang ?? filteredLanguages[0]);
+  }, [filteredLanguages, language, problems, activeProblemIndex]);
+
   const user = useAppSelector((state) => state.user.userDetails);
 
   const hasMountedRef = useRef(false);
@@ -443,45 +426,44 @@ const CodingChallenge: React.FC = () => {
     const unsubmitted = problems.filter(
       (p) => !submittedProblemIdsRef.current.has(p.id),
     );
-    const languageId = getLanguageId(language);
 
     if (unsubmitted.length > 0) {
-      if (languageId === null) {
-        toast.error(
-          "Could not auto-submit remaining problems: no valid language selected.",
-        );
-      } else {
-        toast.info(
-          `Auto-submitting ${unsubmitted.length} remaining problem(s)...`,
-        );
-        await Promise.allSettled(
-          unsubmitted.map(async (problem) => {
-            // Prefer saved code from localStorage, fall back to empty string
-            const savedCode = (() => {
-              // Try all possible language keys from localStorage
-              for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith(`code_${problem.id}_`)) {
-                  return localStorage.getItem(key) || "";
-                }
-              }
-              return "";
-            })();
-
-            try {
-              await submitSolution({
-                problemId: Number(problem.id),
-                code: savedCode, // empty string or baseCode → backend marks as failed
-                languageId,
-                testId: Number(testId),
-              }).unwrap();
-              submittedProblemIdsRef.current.add(problem.id);
-            } catch {
-              // Silently swallow — best-effort, never block test ending
+      toast.info(
+        `Auto-submitting ${unsubmitted.length} remaining problem(s)...`,
+      );
+      await Promise.allSettled(
+        unsubmitted.map(async (problem) => {
+          // Recover both the saved source AND the language it was written in.
+          const prefix = `code_${problem.id}_`;
+          let savedCode = "";
+          let savedLangName: string | null = null;
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(prefix)) {
+              savedCode = localStorage.getItem(key) || "";
+              savedLangName = key.slice(prefix.length);
+              break;
             }
-          }),
-        );
-      }
+          }
+          const matchedLang = savedLangName
+            ? filteredLanguages.find((l) => l.name === savedLangName)
+            : undefined;
+          const langId = getLanguageId(matchedLang) ?? getLanguageId(language);
+          if (langId === null) return; // nothing valid to submit
+
+          try {
+            await submitSolution({
+              problemId: Number(problem.id),
+              code: savedCode,
+              languageId: langId,
+              testId: Number(testId),
+            }).unwrap();
+            submittedProblemIdsRef.current.add(problem.id);
+          } catch {
+            // Silently swallow — best-effort, never block test ending
+          }
+        }),
+      );
     }
 
     const success = await performCleanup();
@@ -491,7 +473,14 @@ const CodingChallenge: React.FC = () => {
     } else {
       toast.error("Failed to submit test");
     }
-  }, [performCleanup, problems, submitSolution, language, testId]);
+  }, [
+    performCleanup,
+    problems,
+    submitSolution,
+    language,
+    testId,
+    filteredLanguages,
+  ]);
 
   // Back-button & page-close guard
   useEffect(() => {

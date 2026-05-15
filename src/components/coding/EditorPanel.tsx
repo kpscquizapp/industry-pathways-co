@@ -10,12 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Language } from "@/app/queries/assessmentApi";
-import {
-  Settings,
-  Maximize2,
-  Minimize2,
-  RotateCcw,
-} from "lucide-react";
+import { Settings, Maximize2, Minimize2, RotateCcw } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,7 +38,12 @@ const getMonacoLanguage = (name?: string): string => {
   if (normalized.startsWith("python")) return "python";
   if (normalized.startsWith("java") && !normalized.startsWith("javascript"))
     return "java";
-  if (normalized.startsWith("c++") || normalized === "c" || normalized.startsWith("c ") || normalized.startsWith("c(")) {
+  if (
+    normalized.startsWith("c++") ||
+    normalized === "c" ||
+    normalized.startsWith("c ") ||
+    normalized.startsWith("c(")
+  ) {
     return "cpp";
   }
   if (normalized.startsWith("go ") || normalized.startsWith("go(")) return "go";
@@ -56,17 +56,23 @@ const getDropdownLanguageKey = (name?: string): string | null => {
   if (normalized.startsWith("javascript")) return "javascript";
   if (normalized.startsWith("typescript")) return "typescript";
   if (normalized.startsWith("python")) return "python";
-  if (normalized.startsWith("java") && !normalized.startsWith("javascript")) return "java";
-  if (normalized.startsWith("go ") || normalized.startsWith("go(")) return "go";
+  if (normalized.startsWith("java") && !normalized.startsWith("javascript"))
+    return "java";
+  if (
+    normalized === "go" ||
+    normalized.startsWith("go ") ||
+    normalized.startsWith("go(")
+  )
+    return "go";
   return null;
 };
 
 const DROPDOWN_LANGUAGE_LABELS: Record<string, string> = {
   go: "Go",
   java: "Java",
-  javascript: "Javascript",
+  javascript: "JavaScript",
   python: "Python",
-  typescript: "typescript",
+  typescript: "TypeScript",
 };
 
 const extractVersionTuple = (name?: string): number[] => {
@@ -116,9 +122,15 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
 
       const nextVersion = extractVersionTuple(lang.name);
       const existingVersion = extractVersionTuple(existing.name);
-      const versionComparison = compareVersionTuples(nextVersion, existingVersion);
+      const versionComparison = compareVersionTuples(
+        nextVersion,
+        existingVersion,
+      );
 
-      if (versionComparison > 0 || (versionComparison === 0 && lang.id > existing.id)) {
+      if (
+        versionComparison > 0 ||
+        (versionComparison === 0 && lang.id > existing.id)
+      ) {
         byKey.set(key, lang);
       }
     });
@@ -183,8 +195,9 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
 
   return (
     <Card
-      className={`h-full border-none rounded-none shadow-none flex flex-col ${isFullscreen ? "fixed inset-0 z-50" : ""
-        }`}
+      className={`h-full border-none rounded-none shadow-none flex flex-col ${
+        isFullscreen ? "fixed inset-0 z-50" : ""
+      }`}
     >
       {/* Toolbar */}
       <div className="border-b border-border px-4 py-2 flex items-center justify-between gap-4 bg-card flex-shrink-0">
@@ -192,7 +205,9 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
           <Select
             value={language?.id.toString()}
             onValueChange={(val) => {
-              const selected = filteredLanguages.find((l) => l.id.toString() === val);
+              const selected = filteredLanguages.find(
+                (l) => l.id.toString() === val,
+              );
               if (selected) onLanguageChange(selected);
             }}
           >
