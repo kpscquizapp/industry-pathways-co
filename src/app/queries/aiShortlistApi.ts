@@ -136,7 +136,7 @@ export const aiShortlistApi = createApi({
     getJobMatches: builder.query<JobMatchesResponse, GetJobMatchesArgs>({
       query: ({ id, page, limit }) => ({
         method: "GET",
-        url: `jobs/${id}/matches`,
+        url: `jobs/${id}/matches-ai`,
         params: { page: resolvePage(page), limit: resolveLimit(limit) },
       }),
       providesTags: (_result, _error, { id }) => [
@@ -193,6 +193,8 @@ export const aiShortlistApi = createApi({
         url: `coding/tests/${codingTestId}/invite`,
         body,
       }),
+      // Refresh matches after invite so the invited count updates in EmployerSkillTests
+      invalidatesTags: ["AiShortlistMatches"],
     }),
     createCustomTest: builder.mutation<
       any,
@@ -236,6 +238,13 @@ export const aiShortlistApi = createApi({
         url: `coding/tests/${testId}/questions/${questionIndex}`,
       }),
     }),
+    getProblems: builder.query<any, any>({
+      query: (params) => ({
+        url: "coding/problems",
+        method: "GET",
+        params,
+      }),
+    }),
     updateShortlistStage: builder.mutation<
       { success: boolean; message?: string },
       {
@@ -272,4 +281,5 @@ export const {
   useGetCustomTestByCandidateQuery,
   useGetCustomTestsByEmployerQuery,
   useDeleteCustomQuestionMutation,
+  useGetProblemsQuery,
 } = aiShortlistApi;
