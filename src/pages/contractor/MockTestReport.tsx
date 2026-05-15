@@ -36,7 +36,7 @@ const MockTestReport = () => {
   const tabs = [
     { id: "overview", label: "Overview", icon: LayoutGrid },
     { id: "detailed", label: "Detailed Review", icon: ListChecks },
-    { id: "liveReview", label: "Live Review", icon: Video },
+    // { id: "liveReview", label: "Live Review", icon: Video },
   ];
 
   if (isLoading) {
@@ -463,9 +463,9 @@ const MockTestReport = () => {
         </div>
       )}
 
-      {activeTab === "liveReview" && (
+      {/* {activeTab === "liveReview" && (
         <LiveReviewTab sessionId={report.session?.id || report.sessionId} />
-      )}
+      )} */}
     </div>
   );
 };

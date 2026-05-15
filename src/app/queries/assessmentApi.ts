@@ -209,9 +209,10 @@ export const assessmentApi = createApi({
     }),
     getAllLanguages: builder.query<Language[], void>({
       query: () => ({
-        url: "http://44.222.35.138:2358/languages",
+        url: "coding/languages",
         method: "GET",
       }),
+      transformResponse: (response: any) => response?.data ?? [],
     }),
   }),
 });

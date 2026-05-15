@@ -9,15 +9,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { SupportedLanguage } from "@/types/coding";
 import { Language } from "@/app/queries/assessmentApi";
 import {
   Settings,
   Maximize2,
   Minimize2,
   RotateCcw,
-  Copy,
-  Check,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -41,12 +38,57 @@ interface EditorPanelProps {
 const getMonacoLanguage = (name?: string): string => {
   if (!name) return "javascript";
   const normalized = name.toLowerCase();
-  if (normalized.includes("javascript")) return "javascript";
-  if (normalized.includes("typescript")) return "typescript";
-  if (normalized.includes("python")) return "python";
-  if (normalized.includes("java") && !normalized.includes("javascript"))
+  if (normalized.startsWith("javascript")) return "javascript";
+  if (normalized.startsWith("typescript")) return "typescript";
+  if (normalized.startsWith("python")) return "python";
+  if (normalized.startsWith("java") && !normalized.startsWith("javascript"))
     return "java";
+  if (normalized.startsWith("c++") || normalized === "c" || normalized.startsWith("c ") || normalized.startsWith("c(")) {
+    return "cpp";
+  }
+  if (normalized.startsWith("go ") || normalized.startsWith("go(")) return "go";
   return normalized;
+};
+
+const getDropdownLanguageKey = (name?: string): string | null => {
+  if (!name) return null;
+  const normalized = name.toLowerCase().trim();
+  if (normalized.startsWith("javascript")) return "javascript";
+  if (normalized.startsWith("typescript")) return "typescript";
+  if (normalized.startsWith("python")) return "python";
+  if (normalized.startsWith("java") && !normalized.startsWith("javascript")) return "java";
+  if (normalized.startsWith("go ") || normalized.startsWith("go(")) return "go";
+  return null;
+};
+
+const DROPDOWN_LANGUAGE_LABELS: Record<string, string> = {
+  go: "Go",
+  java: "Java",
+  javascript: "Javascript",
+  python: "Python",
+  typescript: "typescript",
+};
+
+const extractVersionTuple = (name?: string): number[] => {
+  if (!name) return [0];
+  const match = name.match(/\(([^)]+)\)/);
+  if (!match?.[1]) return [0];
+
+  const versionMatch = match[1].match(/(\d+(?:\.\d+)*)/);
+  if (!versionMatch?.[1]) return [0];
+
+  return versionMatch[1].split(".").map((part) => Number(part));
+};
+
+const compareVersionTuples = (a: number[], b: number[]): number => {
+  const maxLength = Math.max(a.length, b.length);
+  for (let i = 0; i < maxLength; i += 1) {
+    const left = a[i] ?? 0;
+    const right = b[i] ?? 0;
+    if (left > right) return 1;
+    if (left < right) return -1;
+  }
+  return 0;
 };
 
 const EditorPanel: React.FC<EditorPanelProps> = ({
@@ -59,6 +101,35 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
   allLanguages,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const filteredLanguages = React.useMemo(() => {
+    const byKey = new Map<string, Language>();
+
+    allLanguages.forEach((lang) => {
+      const key = getDropdownLanguageKey(lang.name);
+      if (!key || !DROPDOWN_LANGUAGE_LABELS[key]) return;
+
+      const existing = byKey.get(key);
+      if (!existing) {
+        byKey.set(key, lang);
+        return;
+      }
+
+      const nextVersion = extractVersionTuple(lang.name);
+      const existingVersion = extractVersionTuple(existing.name);
+      const versionComparison = compareVersionTuples(nextVersion, existingVersion);
+
+      if (versionComparison > 0 || (versionComparison === 0 && lang.id > existing.id)) {
+        byKey.set(key, lang);
+      }
+    });
+
+    return Array.from(byKey.values()).sort((a, b) => {
+      const aKey = getDropdownLanguageKey(a.name) || "";
+      const bKey = getDropdownLanguageKey(b.name) || "";
+      return aKey.localeCompare(bKey);
+    });
+  }, [allLanguages]);
+
   useEffect(() => {
     if (!isFullscreen) return;
     const handleEsc = (e: KeyboardEvent) => {
@@ -88,12 +159,14 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
 
     const getLanguageKey = (name?: string): string => {
       if (!name) return "";
-      const n = name.toLowerCase();
-      if (n.includes("javascript")) return "javascript";
-      if (n.includes("typescript")) return "typescript";
-      if (n.includes("python")) return "python";
-      if (n.includes("java") && !n.includes("javascript")) return "java";
-      if (n.includes("go")) return "go";
+      const n = name.toLowerCase().trim();
+      if (n.startsWith("javascript")) return "javascript";
+      if (n.startsWith("typescript")) return "typescript";
+      if (n.startsWith("python")) return "python";
+      if (n.startsWith("java") && !n.startsWith("javascript")) return "java";
+      if (n.startsWith("go ") || n.startsWith("go(")) return "go";
+      if (n.startsWith("c++")) return "cpp";
+      if (n === "c" || n.startsWith("c ") || n.startsWith("c(")) return "c";
       return n;
     };
 
@@ -108,17 +181,6 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
     }
   };
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Optionally surface a toast/notification
-      console.error("Failed to copy to clipboard");
-    }
-  };
-
   return (
     <Card
       className={`h-full border-none rounded-none shadow-none flex flex-col ${isFullscreen ? "fixed inset-0 z-50" : ""
@@ -130,7 +192,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
           <Select
             value={language?.id.toString()}
             onValueChange={(val) => {
-              const selected = allLanguages.find((l) => l.id.toString() === val);
+              const selected = filteredLanguages.find((l) => l.id.toString() === val);
               if (selected) onLanguageChange(selected);
             }}
           >
@@ -138,11 +200,16 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
               <SelectValue placeholder="Select Language" />
             </SelectTrigger>
             <SelectContent>
-              {allLanguages.map((lang) => (
-                <SelectItem key={lang.id} value={lang.id.toString()}>
-                  {lang.name}
-                </SelectItem>
-              ))}
+              {filteredLanguages.map((lang) => {
+                const key = getDropdownLanguageKey(lang.name);
+                const label = key ? DROPDOWN_LANGUAGE_LABELS[key] : lang.name;
+
+                return (
+                  <SelectItem key={lang.id} value={lang.id.toString()}>
+                    {label}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
 
@@ -154,20 +221,6 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleCopy}
-            className="h-9"
-          >
-            {copied ? (
-              <Check className="h-4 w-4 mr-2" />
-            ) : (
-              <Copy className="h-4 w-4 mr-2" />
-            )}
-            {copied ? "Copied!" : "Copy"}
           </Button>
         </div>
 
