@@ -233,7 +233,7 @@ const mapMatchToCandidate = (match: Match): CandidateProfileWithMeta | null => {
     id: matchId,
     name: match.name || "Unknown",
     role: match.role || "Unknown Role",
-    matchScore: typeof match.matchScore === "number" ? match.matchScore : 0,
+    aiScore: typeof match.aiScore === "number" ? match.aiScore : 0,
     skills: normalizeSkills(match.skills),
     experience:
       parsedExperience !== undefined && !Number.isNaN(parsedExperience)
@@ -1177,22 +1177,22 @@ const EmployerAIShortlists = () => {
               )}
 
               {filteredCandidates.map((candidate: CandidateListItem) => {
-                const scoreColor = candidate.matchScore >= 90 ? "text-[#08b8cc]" : candidate.matchScore >= 80 ? "text-[#3b82f6]" : "text-[#f59e0b]";
-                const scoreBorder = candidate.matchScore >= 90 ? "border-[#08b8cc]" : candidate.matchScore >= 80 ? "border-[#3b82f6]" : "border-[#f59e0b]";
+                const scoreColor = candidate.aiScore >= 90 ? "text-[#08b8cc]" : candidate.aiScore >= 80 ? "text-[#3b82f6]" : "text-[#f59e0b]";
+                const scoreBorder = candidate.aiScore >= 90 ? "border-[#08b8cc]" : candidate.aiScore >= 80 ? "border-[#3b82f6]" : "border-[#f59e0b]";
 
                 let badgeUI;
                 if (candidate.stage === "invited") {
                   badgeUI = <Badge className="bg-[#e0e7ff] text-[#4f46e5] hover:bg-[#e0e7ff] border-none px-2.5 py-0.5 font-semibold text-[11px] rounded-sm">Invited</Badge>;
                 } else if (candidate.stage === "shortlisted") {
                   badgeUI = <Badge className="bg-[#ccfbf1] text-[#0f766e] hover:bg-[#ccfbf1] border-none px-2.5 py-0.5 font-semibold text-[11px] rounded-sm">Shortlisted</Badge>;
-                } else if (candidate.matchScore >= 90) {
+                } else if (candidate.aiScore >= 90) {
                   badgeUI = (
                     <div className="flex flex-col gap-1.5 items-center">
                       <Badge className="bg-[#f3e8ff] hover:bg-[#f3e8ff] text-[#7e22ce] border-none px-2.5 py-0.5 font-semibold text-[11px] rounded-sm">Interview Done</Badge>
                       <div className="text-[10px] text-gray-500 font-medium flex items-center gap-1 border border-gray-200 bg-white rounded px-1.5 py-0.5 whitespace-nowrap"><div className="w-1.5 h-1.5 rounded-full bg-[#08b8cc]"></div> Test: 92%</div>
                     </div>
                   );
-                } else if (candidate.matchScore >= 80) {
+                } else if (candidate.aiScore >= 80) {
                   badgeUI = <Badge className="bg-[#e0f2fe] text-[#0369a1] hover:bg-[#e0f2fe] border-none px-2.5 py-0.5 font-semibold text-[11px] rounded-sm">New Match</Badge>;
                 } else {
                   badgeUI = null;
@@ -1234,7 +1234,7 @@ const EmployerAIShortlists = () => {
 
                     <div className="flex flex-col items-center justify-center min-w-[80px]">
                       <div className={`w-11 h-11 rounded-full border-2 ${scoreBorder} flex items-center justify-center`}>
-                        <span className={`font-bold text-[13px] ${scoreColor}`}>{Math.round(candidate.matchScore)}%</span>
+                        <span className={`font-bold text-[13px] ${scoreColor}`}>{Math.round(candidate.aiScore)}%</span>
                       </div>
                       <span className="text-[10px] text-gray-400 font-medium mt-1">AI Match</span>
                     </div>

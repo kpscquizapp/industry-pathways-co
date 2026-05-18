@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   useCreateCustomTestMutation,
@@ -172,27 +172,33 @@ export default function InterviewQuestions() {
   // Seed savedQuestions with questions specifically associated with this employer email
   useEffect(() => {
     if (problemsData?.success && Array.isArray(problemsData.data)) {
-      console.log(
-        "🔍 DEBUG: Raw problemsData from backend:",
-        problemsData.data,
-      );
-      console.log("🔍 DEBUG: First question structure:", problemsData.data[0]);
+      // Helper: decode __role__ and __category__ from the JSONB tags array
+      const decodeTag = (tags: string[] | null, prefix: string): string | undefined => {
+        if (!tags) return undefined;
+        const match = tags.find((t) => t.startsWith(prefix));
+        return match ? match.slice(prefix.length) || undefined : undefined;
+      };
 
-      const loaded = (problemsData.data as any[]).map((q, i) => ({
-        ...q,
-        id: q.id || q.problemId || q.problem_id || Date.now() + i,
-        difficulty: (q.difficulty?.charAt(0).toUpperCase() +
-          q.difficulty?.slice(1)) as "Easy" | "Medium" | "Hard",
-        starter_code: q.baseCode || defaultStarterCode(),
-        expanded: false,
-        role: q.role || role,
-        category: q.category || category,
-      }));
+      const loaded = (problemsData.data as any[]).map((q, i) => {
+        const tags: string[] | null = q.tags || null;
+        const decodedRole = decodeTag(tags, "__role__:") || q.role;
+        const decodedCategory = decodeTag(tags, "__category__:") || q.category;
 
-      console.log("🔍 DEBUG: Loaded questions after mapping:", loaded);
+        return {
+          ...q,
+          id: q.id || q.problemId || q.problem_id || Date.now() + i,
+          difficulty: (q.difficulty?.charAt(0).toUpperCase() +
+            q.difficulty?.slice(1)) as "Easy" | "Medium" | "Hard",
+          starter_code: q.baseCode || defaultStarterCode(),
+          expanded: false,
+          role: decodedRole,
+          category: decodedCategory,
+        };
+      });
+
       setSavedQuestions(loaded);
     }
-  }, [problemsData, role, category]);
+  }, [problemsData]);
 
   return (
     <div className="min-h-full bg-[#f2f5fa] font-sans">
@@ -514,6 +520,10 @@ function ManualEntryForm({
 
   const [createCustomTest, { isLoading: isCreating }] =
     useCreateCustomTestMutation();
+
+  // Get employer email from Redux store so we can tag saved questions
+  const user = useSelector((state: RootState) => state.user.userDetails);
+  const employerEmail = user?.email || "";
   const [updateCustomTest, { isLoading: isUpdating }] =
     useUpdateCustomTestMutation();
   const [sendInvite, { isLoading: isInviting }] = useSendInviteEmailMutation();
@@ -712,6 +722,7 @@ function ManualEntryForm({
           title: q.title || `${defaultRole} - Question`,
           questions: [questionData],
           ...(defaultEmail ? { candidateEmail: defaultEmail } : {}),
+          ...(employerEmail ? { employerEmail } : {}),
         }).unwrap();
       }
 
@@ -830,7 +841,8 @@ function ManualEntryForm({
         candidateRole: defaultRole,
         testType: defaultCategory,
         testDuration: testDuration ? parseInt(testDuration) : 60,
-        questions: validQuestions,
+        problemIds,
+        jobId: jobId ? parseInt(jobId) : undefined,
       };
 
       console.log("schedulePayload:", schedulePayload);

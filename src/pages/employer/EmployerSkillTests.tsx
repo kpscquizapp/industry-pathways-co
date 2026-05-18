@@ -49,7 +49,7 @@ interface Candidate {
   role: string;
   matchScore: number;
   skills: string[];
-  status: "available" | "scheduled" | "completed";
+  status: "available" | "scheduled" | "invited" | "completed";
   testDate?: string;
   testScore?: number;
   profilePicture?: string;
@@ -107,6 +107,7 @@ const EmployerSkillTests = () => {
 
   // Only show candidates that have been shortlisted for this job by the employer.
   // isShortlisted is returned by GET /jobs/:id/matches (annotated by the backend).
+  // Full pool of candidates mapped from matches
   const candidatesList = useMemo<Candidate[]>(() => {
     if (!matchesResponse?.data) return [];
     return matchesResponse.data
@@ -121,12 +122,12 @@ const EmployerSkillTests = () => {
           : typeof match.skills === "string"
             ? match.skills.split(",")
             : [],
-        status: "available",
+        status: (match.stage === "invited" || match.stage === "completed") ? match.stage : "available",
         email: match.email || "candidate@example.com",
       }));
   }, [matchesResponse]);
 
-  // Aggregate with session data (e.g. ones we've already scheduled)
+  // Aggregate with session data (e.g. ones we've manually scheduled right now)
   const fullCandidates = useMemo(() => {
     return candidatesList.map((c) => {
       if (sessionScheduled[c.id]) {
@@ -139,32 +140,20 @@ const EmployerSkillTests = () => {
   const availableCandidates = fullCandidates.filter(
     (c) => c.status === "available",
   );
+  
   const scheduledCandidates = fullCandidates.filter(
     (c) => c.status === "scheduled",
   );
+
+  const invitedCandidates = fullCandidates.filter(
+    (c) => c.status === "invited",
+  );
+
   const completedCandidates = fullCandidates.filter(
     (c) => c.status === "completed",
   );
 
-  // Invited candidates — backend now returns stage === 'invited' on the match record
-  const invitedCandidates = useMemo<Candidate[]>(() => {
-    if (!matchesResponse?.data) return [];
-    return matchesResponse.data
-      .filter((m: any) => m.stage === "invited")
-      .map((m: any) => ({
-        id: m.id,
-        name: m.name || "Unknown Candidate",
-        role: m.role || "Professional",
-        matchScore: m.matchScore || 0,
-        skills: Array.isArray(m.skills)
-          ? m.skills
-          : typeof m.skills === "string"
-            ? m.skills.split(",")
-            : [],
-        status: "scheduled" as const,
-        email: m.email || "",
-      }));
-  }, [matchesResponse]);
+
 
   const [activeView, setActiveView] = useState<
     "shortlisted" | "invited" | "completed"

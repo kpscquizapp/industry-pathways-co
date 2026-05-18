@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  X, Save, Send, Sparkles, Trash2,
+  X, Save, Send, Sparkles, Trash2, PencilLine, Check, Plus, Code,
   Sparkles as SparklesIcon, MapPin, Bold, Italic, Underline as UnderlineIcon,
   AlignLeft, List, ListOrdered, Link, CheckCircle, Loader2,
 } from "lucide-react";
@@ -79,7 +79,12 @@ const EmployerPostJob = () => {
   const { data: jobDetailsData, isLoading: jobDetailsLoading } = useGetJobsByIdQuery(isEditing ? { id: jobId } : skipToken);
 
   const [skills, setSkills] = useState<string[]>([]);
+  const [niceToHaveSkills, setNiceToHaveSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
+  const [newNiceToHaveSkill, setNewNiceToHaveSkill] = useState("");
+  const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [editingSkillIndex, setEditingSkillIndex] = useState<number | null>(null);
+  const [editingSkillValue, setEditingSkillValue] = useState("");
   const [postingAction, setPostingAction] = useState<"post" | "postAndShow" | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [formData, setFormData] = useState({ ...INITIAL_FORM_DATA });
@@ -133,9 +138,13 @@ const EmployerPostJob = () => {
         ? job.skills.map((s: { name?: string } | string) => typeof s === "string" ? s : (s.name ?? "")).map((s) => s.trim()).filter(Boolean)
         : [];
       setSkills(normalizedSkills);
+      const normalizedNiceToHave = Array.isArray(job.niceToHaveSkills)
+        ? job.niceToHaveSkills.map((s: { name?: string } | string) => typeof s === "string" ? s : (s.name ?? "")).map((s) => s.trim()).filter(Boolean)
+        : [];
+      setNiceToHaveSkills(normalizedNiceToHave);
       if (normalizedSkills.length > 0) setSkillsExtracted(true);
     } else if (!isEditing) {
-      setFormData({ ...INITIAL_FORM_DATA }); setSkills([]);
+      setFormData({ ...INITIAL_FORM_DATA }); setSkills([]); setNiceToHaveSkills([]);
     }
   }, [isEditing, jobDetailsData]);
 
@@ -219,11 +228,53 @@ const EmployerPostJob = () => {
       equalOpportunityEmployer: formData.equalOpportunityEmployer,
       dataPrivacyPolicies: formData.dataPrivacyPolicies, termsAndConditions: formData.termsAndConditions,
       skills: skills.map((skill) => ({ name: skill })),
+      niceToHaveSkills: niceToHaveSkills.map((skill) => ({ name: skill })),
     };
   };
 
-  const addSkill = () => { if (newSkill.trim() && !skills.includes(newSkill.trim())) { setSkills([...skills, newSkill.trim()]); setNewSkill(""); } };
-  const removeSkill = (s: string) => setSkills(skills.filter((sk) => sk !== s));
+  const addSkill = () => {
+    const trimmed = newSkill.trim();
+    if (trimmed && !skills.some((s) => s.toLowerCase() === trimmed.toLowerCase()) && !niceToHaveSkills.some((s) => s.toLowerCase() === trimmed.toLowerCase())) {
+      setSkills([...skills, trimmed]); setNewSkill("");
+      if (fieldErrors.skills) setFieldErrors((p) => ({ ...p, skills: false }));
+    }
+  };
+  const removeSkill = (s: string) => {
+    if (skills.length <= 1) { return; }
+    setSkills(skills.filter((sk) => sk !== s));
+  };
+  const addNiceToHaveSkill = () => {
+    const trimmed = newNiceToHaveSkill.trim();
+    if (trimmed && !niceToHaveSkills.some((s) => s.toLowerCase() === trimmed.toLowerCase()) && !skills.some((s) => s.toLowerCase() === trimmed.toLowerCase())) {
+      setNiceToHaveSkills([...niceToHaveSkills, trimmed]); setNewNiceToHaveSkill("");
+    }
+  };
+  const removeNiceToHaveSkill = (s: string) => setNiceToHaveSkills(niceToHaveSkills.filter((sk) => sk !== s));
+
+  const moveToSecondary = (skill: string) => {
+    if (skills.length <= 1) return;
+    setSkills(skills.filter((s) => s !== skill));
+    if (!niceToHaveSkills.some((s) => s.toLowerCase() === skill.toLowerCase())) {
+      setNiceToHaveSkills([...niceToHaveSkills, skill]);
+    }
+  };
+  const moveToPrimary = (skill: string) => {
+    setNiceToHaveSkills(niceToHaveSkills.filter((s) => s !== skill));
+    if (!skills.some((s) => s.toLowerCase() === skill.toLowerCase())) {
+      setSkills([...skills, skill]);
+    }
+  };
+  const saveSkillEdit = (originalSkill: string, isPrimary: boolean) => {
+    const trimmed = editingSkillValue.trim();
+    if (!trimmed) return;
+    if (isPrimary) {
+      setSkills(skills.map((s) => s === originalSkill ? trimmed : s));
+    } else {
+      setNiceToHaveSkills(niceToHaveSkills.map((s) => s === originalSkill ? trimmed : s));
+    }
+    setEditingSkillIndex(null); setEditingSkillValue("");
+  };
+
 
   const getErrorMessage = (error: unknown, fallback: string): string => {
     if (typeof error === "string" && error.trim()) return error;
@@ -464,36 +515,161 @@ const EmployerPostJob = () => {
                 </div>
               </div>
 
-              {/* ── Section: Required Skills ── */}
+              {/* ── Section: Skills ── */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <Label className={`text-sm font-bold ${fieldErrors.skills ? "text-destructive" : "text-foreground"}`}>
-                    Required Skills <span className="text-destructive">*</span>
-                  </Label>
-                  {skillsExtracted && (
-                    <div className="flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-xs font-semibold">
-                      <CheckCircle className="h-3.5 w-3.5" /> Skills Extracted Successfully
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+                      <Code className="w-4 h-4 text-indigo-600" />
                     </div>
+                    <Label className={`text-lg font-bold ${fieldErrors.skills ? "text-destructive" : "text-foreground"}`}>
+                      Skills <span className="text-destructive">*</span>
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {skillsExtracted && (
+                      <div className="flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-xs font-semibold">
+                        <CheckCircle className="h-3.5 w-3.5" /> AI Extracted
+                      </div>
+                    )}
+                    <Button
+                      type="button"
+                      onClick={() => { setIsEditingSkills((prev) => !prev); setEditingSkillIndex(null); setEditingSkillValue(""); }}
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 rounded-xl transition text-sm shadow-none font-semibold"
+                    >
+                      <PencilLine className="w-4 h-4" />
+                      {isEditingSkills ? "Done Editing" : "Edit Skills"}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* ── Editing Mode: Primary/Secondary Grid ── */}
+                {isEditingSkills && (
+                  <div className="mb-6 p-4 bg-indigo-50/60 border border-indigo-200 rounded-xl">
+                    <div className="flex items-center gap-2 mb-3">
+                      <h4 className="text-sm font-semibold text-indigo-900">
+                        Edit Skills (Checked = Required)
+                      </h4>
+                      <p className="text-xs text-gray-500">
+                        Uncheck a required skill to move it to nice-to-have
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Required skills */}
+                      {skills.map((skillName, idx) => (
+                        <div key={`req-${skillName}-${idx}`} className="flex items-center gap-3 p-3 bg-white border border-indigo-100 rounded-xl">
+                          <input
+                            type="checkbox" checked={true}
+                            onChange={() => moveToSecondary(skillName)}
+                            className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 accent-indigo-600 min-h-0 min-w-0"
+                          />
+                          {editingSkillIndex === idx && editingSkillValue !== null ? (
+                            <div className="flex-1 flex gap-2 items-center">
+                              <input type="text" value={editingSkillValue} onChange={(e) => setEditingSkillValue(e.target.value)} autoFocus
+                                className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded outline-none focus:border-indigo-400" />
+                              <button type="button" onClick={() => saveSkillEdit(skillName, true)} className="text-green-500 hover:text-green-600 transition-colors"><Check className="w-4 h-4" /></button>
+                              <button type="button" onClick={() => { setEditingSkillIndex(null); setEditingSkillValue(""); }} className="text-gray-400 hover:text-gray-500 transition-colors"><X className="w-4 h-4" /></button>
+                            </div>
+                          ) : (
+                            <div className="flex-1 flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-700">{skillName}</span>
+                              <div className="flex items-center gap-2">
+                                <button type="button" onClick={() => { setEditingSkillIndex(idx); setEditingSkillValue(skillName); }} className="text-gray-400 hover:text-indigo-500 transition-colors"><PencilLine className="w-4 h-4" /></button>
+                                <button type="button" onClick={() => removeSkill(skillName)} className="text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {/* Nice-to-have skills */}
+                      {niceToHaveSkills.map((skillName, idx) => (
+                        <div key={`nth-${skillName}-${idx}`} className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl">
+                          <input
+                            type="checkbox" checked={false}
+                            onChange={() => moveToPrimary(skillName)}
+                            className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 accent-indigo-600 min-h-0 min-w-0"
+                          />
+                          <div className="flex-1 flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-500">{skillName}</span>
+                            <button type="button" onClick={() => removeNiceToHaveSkill(skillName)} className="text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {skills.length > 0 && (
+                      <p className="text-xs font-medium text-indigo-600 mt-3">{skills.length} required skill{skills.length !== 1 && "s"} selected</p>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Read-Only: Required Skills Display ── */}
+                {!isEditingSkills && skills.length > 0 && (
+                  <div className="mb-6 p-4 bg-indigo-50/40 border border-indigo-200 rounded-xl">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3">Required Skills</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {skills.map((skill, index) => (
+                        <div key={`${skill}-${index}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100/70 text-indigo-700 rounded-lg text-sm font-medium">
+                          {skill}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Nice-to-Have Skills ── */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Nice-to-Have Skills</h4>
+                  <div className="flex gap-2 mb-4">
+                    <Input
+                      type="text" value={newNiceToHaveSkill} onChange={(e) => setNewNiceToHaveSkill(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addNiceToHaveSkill(); } }}
+                      maxLength={50} placeholder="Add a nice-to-have skill (e.g., TypeScript)"
+                      className="flex-1 h-11 rounded-xl border-transparent bg-[#f2f5fa] text-sm font-medium focus-visible:ring-1 focus-visible:ring-ring"
+                    />
+                    <Button type="button" onClick={addNiceToHaveSkill} className="px-4 h-11 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-sm">
+                      <Plus className="w-5 h-5" />
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    {niceToHaveSkills.map((name, index) => (
+                      <div key={`${name}-${index}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">
+                        {name}
+                        <button type="button" onClick={() => removeNiceToHaveSkill(name)} className="hover:text-red-500 transition-colors bg-white/50 rounded-full p-0.5 min-w-0 min-h-0" aria-label={`Remove ${name}`}>
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                    {niceToHaveSkills.length === 0 && (
+                      <p className="text-sm text-gray-400 italic">No nice-to-have skills added yet.</p>
+                    )}
+                  </div>
+                  {niceToHaveSkills.length > 0 && (
+                    <p className="text-xs font-medium text-gray-400 mt-3">{niceToHaveSkills.length} nice-to-have skill{niceToHaveSkills.length !== 1 && "s"} added</p>
                   )}
                 </div>
-                <div className={`flex flex-wrap items-center gap-2 p-3 rounded-xl bg-white border transition-all min-h-[56px] focus-within:border-indigo-200 focus-within:ring-2 focus-within:ring-indigo-100 ${fieldErrors.skills ? "border-destructive" : "border-border"}`}>
-                  {skills.map((skill, index) => {
-                    const c = SKILL_COLORS[index % SKILL_COLORS.length];
-                    return (
-                      <Badge key={skill} variant="secondary" className={`${c.bg} ${c.text} border-none px-2.5 py-1 text-xs font-semibold rounded-md flex items-center gap-1.5`}>
-                        {skill}
-                        <button type="button" aria-label={`Remove ${skill}`} onClick={() => removeSkill(skill)} className={`${c.close} transition-colors`}>
-                          <X className="h-3 w-3 stroke-[2.5px]" />
-                        </button>
-                      </Badge>
-                    );
-                  })}
-                  <Input value={newSkill} onChange={(e) => { setNewSkill(e.target.value); if (fieldErrors.skills) setFieldErrors((p) => ({ ...p, skills: false })); }}
-                    placeholder="Type a skill and press Enter..."
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(); if (fieldErrors.skills) setFieldErrors((p) => ({ ...p, skills: false })); } }}
-                    className="flex-1 min-w-[180px] bg-transparent border-none focus-visible:ring-0 shadow-none h-8 px-2 text-sm" />
+
+                {/* ── Add Required Skill Input (always visible) ── */}
+                <div className="mt-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Add Required Skill</h4>
+                  <div className={`flex flex-wrap items-center gap-2 p-3 rounded-xl bg-white border transition-all min-h-[56px] focus-within:border-indigo-200 focus-within:ring-2 focus-within:ring-indigo-100 ${fieldErrors.skills ? "border-destructive" : "border-border"}`}>
+                    {skills.map((skill, index) => {
+                      const c = SKILL_COLORS[index % SKILL_COLORS.length];
+                      return (
+                        <Badge key={skill} variant="secondary" className={`${c.bg} ${c.text} border-none px-2.5 py-1 text-xs font-semibold rounded-md flex items-center gap-1.5`}>
+                          {skill}
+                          <button type="button" aria-label={`Remove ${skill}`} onClick={() => removeSkill(skill)} className={`${c.close} transition-colors`}>
+                            <X className="h-3 w-3 stroke-[2.5px]" />
+                          </button>
+                        </Badge>
+                      );
+                    })}
+                    <Input value={newSkill} onChange={(e) => { setNewSkill(e.target.value); if (fieldErrors.skills) setFieldErrors((p) => ({ ...p, skills: false })); }}
+                      placeholder="Type a required skill and press Enter..."
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }}
+                      className="flex-1 min-w-[180px] bg-transparent border-none focus-visible:ring-0 shadow-none h-8 px-2 text-sm" />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground/80 mt-2.5">Review and adjust the AI-extracted skills above to improve candidate matching accuracy.</p>
+                <p className="text-xs text-muted-foreground/80 mt-2.5">Use "Edit Skills" to reorganize between Required and Nice-to-Have categories for better matching accuracy.</p>
               </div>
 
               {/* ── Section: Additional Details ── */}

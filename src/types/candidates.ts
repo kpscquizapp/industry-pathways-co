@@ -5,7 +5,7 @@ export interface CandidateProfile {
   name: string;
   role: string;
   avatar?: string;
-  matchScore?: number;
+  aiScore?: number;
   technicalScore?: number;
   communicationScore?: number;
   problemSolvingScore?: number;

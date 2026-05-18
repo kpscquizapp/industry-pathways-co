@@ -94,6 +94,7 @@ export const assessmentApi = createApi({
         testDuration?: number;
         problemIds?: number[];
         questions?: any[];
+        jobId?: number;
       }
     >({
       query: (body) => ({

@@ -198,7 +198,7 @@ export const aiShortlistApi = createApi({
     }),
     createCustomTest: builder.mutation<
       any,
-      { title: string; questions: any[]; candidateEmail?: string }
+      { title: string; questions: any[]; candidateEmail?: string; employerEmail?: string }
     >({
       query: (body) => ({
         url: "/coding/tests/custom",
