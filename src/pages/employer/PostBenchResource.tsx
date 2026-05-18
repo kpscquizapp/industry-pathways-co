@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { parseResume } from "@/lib/resumeParser";
 import {
   Select,
   SelectContent,
@@ -34,6 +35,7 @@ import {
 } from "@/app/queries/benchApi";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { currencySymbols, getCurrencySymbol } from "@/lib/currency";
+import { useSelector } from 'react-redux';
 
 const PostBenchResource = () => {
   const navigate = useNavigate();
@@ -41,6 +43,7 @@ const PostBenchResource = () => {
   const editId = searchParams.get("edit");
   const editIdNumber = editId && !isNaN(Number(editId)) ? Number(editId) : null;
   const isEditMode = !!editIdNumber;
+  const token = useSelector((state: any) => state.user?.token);
 
   const [extractResume, { isLoading: isExtracting }] =
     useExtractResumeMutation();
@@ -215,24 +218,35 @@ const PostBenchResource = () => {
           toast.error("Failed to extract data from resume");
         }
       } catch (error) {
-        console.error("OCR API error:", error);
-        toast.error("Error connecting to OCR service");
-        setFormData((prev) => ({ ...prev, resumeFile: null }));
-        input.value = "";
+        console.error("OCR API error, trying Gemini fallback:", error);
+        try {
+          toast.info("ATS service unavailable, using AI parser...");
+          const parsed = await parseResume(file, token);
+          setFormData((prev) => ({
+            ...prev,
+            resourceName: parsed.resourceName || prev.resourceName,
+            professionalSummary: parsed.professionalSummary || prev.professionalSummary,
+            skills: parsed.technicalSkills.length > 0 ? parsed.technicalSkills : prev.skills,
+            totalExperience: parsed.totalExperience || prev.totalExperience,
+          }));
+          toast.success("Resume processed with AI!", {
+            description: "Form fields have been populated from your resume.",
+          });
+        } catch (geminiError) {
+          console.error("Gemini fallback also failed:", geminiError);
+          toast.error("Could not extract resume data. Please fill manually.");
+          setFormData((prev) => ({ ...prev, resumeFile: null }));
+          input.value = "";
+        }
       }
-    } else {
-      toast.success("Resume uploaded successfully!", {
-        description: "Auto-fill is disabled. Please fill in the details manually.",
-      });
     }
-  };
 
-  const handleSaveDraft = () => {
-    toast.success("This feature is under development", {
-      description: "",
-    });
-  };
-
+    const handleSaveDraft = () => {
+      toast.success("This feature is under development", {
+        description: "",
+      });
+    };
+  }
   const handleProceed = async () => {
     const trimmedResourceName = formData.resourceName.trim();
     if (!trimmedResourceName) {

@@ -219,7 +219,9 @@ import {
   Shield,
   Trash2,
   Lock,
-  LayoutGrid
+  LayoutGrid,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -261,13 +263,17 @@ const VisibilitySettings = () => {
   const [removeProfileImage] = useRemoveProfileImageMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const user = useSelector((state: RootState) => state.user.userDetails);
+  const user = useSelector((state: any) => state.user?.userDetails);
   const { data: employerProfileData, isLoading: isProfileLoading, refetch: refetchProfile } = useGetEmployerProfileQuery();
   const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
     user?.id as any,
   );
   const [isSavingPersonal, setIsSavingPersonal] = useState(false);
   const [updateProfile, { isLoading: isSaving }] = useUpdateEmployerProfileMutation();
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [personalInfo, setPersonalInfo] = useState({
     firstName: "",
@@ -594,7 +600,18 @@ const VisibilitySettings = () => {
                                   Upload new image
                                 </Button>
                                 <button
-                                  onClick={handleRemoveImage}
+                                  onClick={() => {
+                                    toast("Are you sure you want to remove your profile photo?", {
+                                      action: {
+                                        label: "Yes, Remove",
+                                        onClick: () => handleRemoveImage(),
+                                      },
+                                      cancel: {
+                                        label: "Cancel",
+                                        onClick: () => { },
+                                      },
+                                    });
+                                  }}
                                   className="text-sm text-red-500 font-medium hover:text-red-500 transition-colors"
                                 >
                                   Remove
@@ -760,18 +777,33 @@ const VisibilitySettings = () => {
                       <div className="space-y-6 pt-2">
                         <div className="space-y-1.5 ">
                           <Label className="text-sm font-semibold text-slate-700">Current Password</Label>
-                          <Input type="password" placeholder="Enter Current Password" value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
+                          <div className="relative">
+                            <Input type={showCurrentPassword ? "text" : "password"} placeholder="Enter Current Password" value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 pr-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
+                            <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                              {showCurrentPassword ? <Eye className="h-4 w-4 ml-4" /> : <EyeOff className="h-4 w-4 ml-4" />}
+                            </button>
+                          </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-1.5 ">
                             <Label className="text-sm font-semibold text-slate-700">New Password</Label>
-                            <Input type="password" placeholder="Enter New Password" value={passwordData.newPassword} onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
+                            <div className="relative">
+                              <Input type={showNewPassword ? "text" : "password"} placeholder="Enter New Password" value={passwordData.newPassword} onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 pr-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
+                              <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                                {showNewPassword ? <Eye className="h-4 w-4 ml-4" /> : <EyeOff className="h-4 w-4 ml-4" />}
+                              </button>
+                            </div>
 
                           </div>
                           <div className="space-y-1.5 ">
                             <Label className="text-sm font-semibold text-slate-700">Confirm New Password</Label>
-                            <Input type="password" placeholder="Enter Confirm New Password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
+                            <div className="relative">
+                              <Input type={showConfirmPassword ? "text" : "password"} placeholder="Enter Confirm New Password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 pr-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
+                              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                                {showConfirmPassword ? <Eye className="h-4 w-4 ml-4" /> : <EyeOff className="h-4 w-4 ml-4" />}
+                              </button>
+                            </div>
 
                           </div>
                         </div>
