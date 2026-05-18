@@ -23,7 +23,12 @@ import {
   Airplay,
   Layers,
 } from "lucide-react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import {
+  useNavigate,
+  useParams,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import { cn } from "@/lib/utils";
 import ProblemPanel from "@/components/coding/ProblemPanel";
 import EditorPanel from "@/components/coding/EditorPanel";
@@ -160,6 +165,11 @@ const mapApiResults = (raw: any[], knownTCs: TestCase[]): TestCase[] => {
 // ---------------------------------------------------------------------------
 
 const CodingChallenge: React.FC = () => {
+  // check for token param to determine if this is a token-based test link or mock test without token.
+  const [searchParams] = useSearchParams();
+
+  const isToken = !!searchParams.get("token");
+
   const navigate = useNavigate();
   const location = useLocation();
   const { challengeId: testId } = useParams();
@@ -169,6 +179,7 @@ const CodingChallenge: React.FC = () => {
   // State
   const [testStatus, setTestStatus] = useState<TestStatus>("loading");
   const [metadata, setMetadata] = useState<TestMetadata | null>(null);
+  const [testStartTime, setTestStartTime] = useState<string | null>(null);
   const [problems, setProblems] = useState<CodingProblem[]>([]);
   const [activeProblemIndex, setActiveProblemIndex] = useState(0);
   const [code, setCode] = useState<string>("");
@@ -595,10 +606,23 @@ const CodingChallenge: React.FC = () => {
         if (problemsData.success) {
           setProblems(problemsData.data);
           if (testMeta.startedAt) {
+            setTestStartTime(testMeta.startedAt);
             setTestStatus("active");
             setIsInterviewActive(true);
             setIsMonitoringActive(true);
             // Re-initialize session for active test if not already present
+            if (!sessionIdRef.current) {
+              initializeSession(String(testMeta.id));
+            }
+          } else if (!isToken) {
+            // For mock tests (without token), start immediately with local timestamp
+            const localStartTime = new Date().toISOString();
+            setTestStartTime(localStartTime);
+            setTestStatus("active");
+            // Mock tests don't require camera/screen monitoring
+            setIsInterviewActive(true);
+            setIsMonitoringActive(false);
+            // Initialize session for mock test
             if (!sessionIdRef.current) {
               initializeSession(String(testMeta.id));
             }
@@ -622,6 +646,9 @@ const CodingChallenge: React.FC = () => {
       const data = await startTestMutation({ testId: testId!, token }).unwrap();
       if (data.success) {
         setMetadata(data.data);
+        // For mock tests (without token), set local start time if not provided by API
+        const startTime = data.data?.startedAt || new Date().toISOString();
+        setTestStartTime(startTime);
         // Start session
         const sid = await initializeSession(
           data.data?.id ? String(data.data.id) : undefined,
@@ -651,28 +678,6 @@ const CodingChallenge: React.FC = () => {
       toast.error("Failed to start test");
     }
   };
-
-  // Auto-start guard: ensure `handleStartTest` runs only once and only
-  // after initial data load indicates we're on the instructions screen
-  const startCalledRef = useRef(false);
-  useEffect(() => {
-    if (!testId) return;
-    if (startCalledRef.current) return;
-    // Only auto-start when initial load placed us on the instructions screen
-    if (testStatus !== "instructions") return;
-    if (!metadata) return;
-    if (metadata.startedAt) return; // already started
-    if (problems.length === 0) return; // wait until problems loaded
-
-    startCalledRef.current = true;
-    (async () => {
-      try {
-        await handleStartTest();
-      } catch (e) {
-        // handleStartTest handles user-facing errors via toasts
-      }
-    })();
-  }, [testId, testStatus, metadata, problems.length, handleStartTest]);
 
   // ── Violation event listeners (were missing before!) ────────────
   useEffect(() => {
@@ -1003,242 +1008,245 @@ const CodingChallenge: React.FC = () => {
     );
   }
 
-  // if (testStatus === "instructions") {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-[#f8f9fb] p-3 sm:p-4 font-inter">
-  //       <div className="max-w-[850px] w-full bg-white rounded-[24px] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-[#e8eaef] overflow-hidden flex flex-col md:flex-row my-4">
-  //         {/* Left Side: Brand / Welcome */}
-  //         <div className="md:w-[40%] bg-[#080b20] p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden shrink-0">
-  //           {/* Background elements */}
-  //           <div className="absolute top-[-20%] left-[-20%] w-[250px] h-[250px] bg-gradient-to-br from-[#4DD9E8]/20 to-transparent rounded-full blur-3xl pointer-events-none" />
-  //           <div className="absolute bottom-[-10%] right-[-10%] w-[200px] h-[200px] bg-gradient-to-tl from-[#0ea5e9]/20 to-transparent rounded-full blur-3xl pointer-events-none" />
+  if (isToken && testStatus === "instructions") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f8f9fb] p-3 sm:p-4 font-inter">
+        <div className="max-w-[850px] w-full bg-white rounded-[24px] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-[#e8eaef] overflow-hidden flex flex-col md:flex-row my-4">
+          {/* Left Side: Brand / Welcome */}
+          <div className="md:w-[40%] bg-[#080b20] p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden shrink-0">
+            {/* Background elements */}
+            <div className="absolute top-[-20%] left-[-20%] w-[250px] h-[250px] bg-gradient-to-br from-[#4DD9E8]/20 to-transparent rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[200px] h-[200px] bg-gradient-to-tl from-[#0ea5e9]/20 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-  //           <div className="relative z-10">
-  //             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/10 border border-white/10 mb-6 backdrop-blur-sm">
-  //               <Code2 className="w-6 h-6 text-[#4DD9E8]" />
-  //             </div>
-  //             <h1 className="text-[28px] font-bold text-white leading-[1.2] tracking-tight mb-4">
-  //               {metadata?.title || "Coding Assessment"}
-  //             </h1>
-  //             <p className="text-white/60 text-[14px] leading-relaxed">
-  //               Demonstrate your technical skills in a secure environment.
-  //               Please ensure you are in a quiet room with a stable internet
-  //               connection.
-  //             </p>
-  //           </div>
+            <div className="relative z-10">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/10 border border-white/10 mb-6 backdrop-blur-sm">
+                <Code2 className="w-6 h-6 text-[#4DD9E8]" />
+              </div>
+              <h1 className="text-[28px] font-bold text-white leading-[1.2] tracking-tight mb-4">
+                {metadata?.title || "Coding Assessment"}
+              </h1>
+              <p className="text-white/60 text-[14px] leading-relaxed">
+                Demonstrate your technical skills in a secure environment.
+                Please ensure you are in a quiet room with a stable internet
+                connection.
+              </p>
+            </div>
 
-  //           <div className="relative z-10 mt-8 md:mt-12 space-y-5">
-  //             <div className="flex items-center gap-4 text-white/80">
-  //               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/5">
-  //                 <Clock className="w-4 h-4 text-[#4DD9E8]" />
-  //               </div>
-  //               <div>
-  //                 <div className="text-[11px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">
-  //                   Duration
-  //                 </div>
-  //                 <div className="font-medium text-[13px]">
-  //                   {metadata?.totalTime || 0} Minutes
-  //                 </div>
-  //               </div>
-  //             </div>
-  //             <div className="flex items-center gap-4 text-white/80">
-  //               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/5">
-  //                 <Layers className="w-4 h-4 text-[#4DD9E8]" />
-  //               </div>
-  //               <div>
-  //                 <div className="text-[11px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">
-  //                   Questions
-  //                 </div>
-  //                 <div className="font-medium text-[13px]">
-  //                   {problems.length}{" "}
-  //                   {problems.length === 1 ? "Problem" : "Problems"}
-  //                 </div>
-  //               </div>
-  //             </div>
-  //             <div className="flex items-center gap-4 text-white/80">
-  //               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/5">
-  //                 <ShieldCheck className="w-4 h-4 text-[#4DD9E8]" />
-  //               </div>
-  //               <div>
-  //                 <div className="text-[11px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">
-  //                   Proctoring
-  //                 </div>
-  //                 <div className="font-medium text-[13px] text-[#4DD9E8]">
-  //                   Strictly Enabled
-  //                 </div>
-  //               </div>
-  //             </div>
-  //           </div>
-  //         </div>
+            <div className="relative z-10 mt-8 md:mt-12 space-y-5">
+              <div className="flex items-center gap-4 text-white/80">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/5">
+                  <Clock className="w-4 h-4 text-[#4DD9E8]" />
+                </div>
+                <div>
+                  <div className="text-[11px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">
+                    Duration
+                  </div>
+                  <div className="font-medium text-[13px]">
+                    {metadata?.totalTime || 0} Minutes
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-white/80">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/5">
+                  <Layers className="w-4 h-4 text-[#4DD9E8]" />
+                </div>
+                <div>
+                  <div className="text-[11px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">
+                    Questions
+                  </div>
+                  <div className="font-medium text-[13px]">
+                    {problems.length}{" "}
+                    {problems.length === 1 ? "Problem" : "Problems"}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-white/80">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/5">
+                  <ShieldCheck className="w-4 h-4 text-[#4DD9E8]" />
+                </div>
+                <div>
+                  <div className="text-[11px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">
+                    Proctoring
+                  </div>
+                  <div className="font-medium text-[13px] text-[#4DD9E8]">
+                    Strictly Enabled
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-  //         {/* Right Side: Setup & Permissions */}
-  //         <div className="md:w-[60%] p-6 sm:p-10 bg-white flex flex-col justify-center">
-  //           <h3 className="text-[20px] font-bold text-[#1a1a2e] mb-2">
-  //             System Check
-  //           </h3>
-  //           <p className="text-[14px] text-slate-500 mb-8">
-  //             Please grant the necessary permissions to begin the assessment.
-  //             Your camera and screen will be monitored.
-  //           </p>
+          {/* Right Side: Setup & Permissions */}
+          <div className="md:w-[60%] p-6 sm:p-10 bg-white flex flex-col justify-center">
+            <h3 className="text-[20px] font-bold text-[#1a1a2e] mb-2">
+              System Check
+            </h3>
+            <p className="text-[14px] text-slate-500 mb-8">
+              Please grant the necessary permissions to begin the assessment.
+              Your camera and screen will be monitored.
+            </p>
 
-  //           <div className="space-y-4 mb-8">
-  //             <button
-  //               className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${hasWebcamPermission
-  //                   ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
-  //                   : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
-  //                 }`}
-  //               onClick={async () => {
-  //                 if (hasWebcamPermission) return;
-  //                 try {
-  //                   const stream = await navigator.mediaDevices.getUserMedia({
-  //                     video: true,
-  //                     audio: true,
-  //                   });
-  //                   initialWebcamStreamRef.current = stream;
-  //                   setInitialWebcamStream(stream);
-  //                   setHasWebcamPermission(true);
-  //                   toast.success("Camera access granted");
-  //                 } catch {
-  //                   toast.error("Please grant camera access to proceed");
-  //                 }
-  //               }}
-  //             >
-  //               <div className="flex items-center gap-4">
-  //                 <div
-  //                   className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${hasWebcamPermission ? "bg-[#4DD9E8] text-white" : "bg-[#f8f9fb] border border-[#e8eaef] text-slate-500 group-hover:text-[#4DD9E8]"}`}
-  //                 >
-  //                   <Video className="w-5 h-5" />
-  //                 </div>
-  //                 <div className="text-left">
-  //                   <div
-  //                     className={`font-semibold text-[14px] ${hasWebcamPermission ? "text-[#1a1a2e]" : "text-slate-700"}`}
-  //                   >
-  //                     Camera & Mic
-  //                   </div>
-  //                   <div className="text-[12px] text-slate-500 mt-0.5">
-  //                     Required for verification
-  //                   </div>
-  //                 </div>
-  //               </div>
-  //               {hasWebcamPermission ? (
-  //                 <div className="px-3 py-1 bg-[#4DD9E8]/10 text-[#0ea5e9] text-[11px] uppercase tracking-wider font-bold rounded-full">
-  //                   Granted
-  //                 </div>
-  //               ) : (
-  //                 <div className="px-4 py-1.5 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-full group-hover:bg-[#4DD9E8] group-hover:text-white transition-colors shadow-sm">
-  //                   Grant
-  //                 </div>
-  //               )}
-  //             </button>
+            <div className="space-y-4 mb-8">
+              <button
+                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${
+                  hasWebcamPermission
+                    ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
+                    : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
+                }`}
+                onClick={async () => {
+                  if (hasWebcamPermission) return;
+                  try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                      video: true,
+                      audio: true,
+                    });
+                    initialWebcamStreamRef.current = stream;
+                    setInitialWebcamStream(stream);
+                    setHasWebcamPermission(true);
+                    toast.success("Camera access granted");
+                  } catch {
+                    toast.error("Please grant camera access to proceed");
+                  }
+                }}
+              >
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${hasWebcamPermission ? "bg-[#4DD9E8] text-white" : "bg-[#f8f9fb] border border-[#e8eaef] text-slate-500 group-hover:text-[#4DD9E8]"}`}
+                  >
+                    <Video className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <div
+                      className={`font-semibold text-[14px] ${hasWebcamPermission ? "text-[#1a1a2e]" : "text-slate-700"}`}
+                    >
+                      Camera & Mic
+                    </div>
+                    <div className="text-[12px] text-slate-500 mt-0.5">
+                      Required for verification
+                    </div>
+                  </div>
+                </div>
+                {hasWebcamPermission ? (
+                  <div className="px-3 py-1 bg-[#4DD9E8]/10 text-[#0ea5e9] text-[11px] uppercase tracking-wider font-bold rounded-full">
+                    Granted
+                  </div>
+                ) : (
+                  <div className="px-4 py-1.5 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-full group-hover:bg-[#4DD9E8] group-hover:text-white transition-colors shadow-sm">
+                    Grant
+                  </div>
+                )}
+              </button>
 
-  //             <button
-  //               className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${isScreenSelected
-  //                   ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
-  //                   : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
-  //                 }`}
-  //               onClick={async () => {
-  //                 if (isScreenSelected) return;
-  //                 try {
-  //                   const stream = await navigator.mediaDevices.getDisplayMedia(
-  //                     { video: true },
-  //                   );
-  //                   initialScreenStreamRef.current = stream;
-  //                   setInitialScreenStream(stream);
-  //                   setIsScreenSelected(true);
-  //                   toast.success("Screen sharing verified");
-  //                 } catch {
-  //                   toast.error("Please select a screen to share to proceed");
-  //                 }
-  //               }}
-  //             >
-  //               <div className="flex items-center gap-4">
-  //                 <div
-  //                   className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${isScreenSelected ? "bg-[#4DD9E8] text-white" : "bg-[#f8f9fb] border border-[#e8eaef] text-slate-500 group-hover:text-[#4DD9E8]"}`}
-  //                 >
-  //                   <Airplay className="w-5 h-5" />
-  //                 </div>
-  //                 <div className="text-left">
-  //                   <div
-  //                     className={`font-semibold text-[14px] ${isScreenSelected ? "text-[#1a1a2e]" : "text-slate-700"}`}
-  //                   >
-  //                     Screen Share
-  //                   </div>
-  //                   <div className="text-[12px] text-slate-500 mt-0.5">
-  //                     Select entire screen
-  //                   </div>
-  //                 </div>
-  //               </div>
-  //               {isScreenSelected ? (
-  //                 <div className="px-3 py-1 bg-[#4DD9E8]/10 text-[#0ea5e9] text-[11px] uppercase tracking-wider font-bold rounded-full">
-  //                   Granted
-  //                 </div>
-  //               ) : (
-  //                 <div className="px-4 py-1.5 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-full group-hover:bg-[#4DD9E8] group-hover:text-white transition-colors shadow-sm">
-  //                   Grant
-  //                 </div>
-  //               )}
-  //             </button>
-  //           </div>
+              <button
+                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${
+                  isScreenSelected
+                    ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
+                    : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
+                }`}
+                onClick={async () => {
+                  if (isScreenSelected) return;
+                  try {
+                    const stream = await navigator.mediaDevices.getDisplayMedia(
+                      { video: true },
+                    );
+                    initialScreenStreamRef.current = stream;
+                    setInitialScreenStream(stream);
+                    setIsScreenSelected(true);
+                    toast.success("Screen sharing verified");
+                  } catch {
+                    toast.error("Please select a screen to share to proceed");
+                  }
+                }}
+              >
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${isScreenSelected ? "bg-[#4DD9E8] text-white" : "bg-[#f8f9fb] border border-[#e8eaef] text-slate-500 group-hover:text-[#4DD9E8]"}`}
+                  >
+                    <Airplay className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <div
+                      className={`font-semibold text-[14px] ${isScreenSelected ? "text-[#1a1a2e]" : "text-slate-700"}`}
+                    >
+                      Screen Share
+                    </div>
+                    <div className="text-[12px] text-slate-500 mt-0.5">
+                      Select entire screen
+                    </div>
+                  </div>
+                </div>
+                {isScreenSelected ? (
+                  <div className="px-3 py-1 bg-[#4DD9E8]/10 text-[#0ea5e9] text-[11px] uppercase tracking-wider font-bold rounded-full">
+                    Granted
+                  </div>
+                ) : (
+                  <div className="px-4 py-1.5 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-full group-hover:bg-[#4DD9E8] group-hover:text-white transition-colors shadow-sm">
+                    Grant
+                  </div>
+                )}
+              </button>
+            </div>
 
-  //           <div className="bg-[#fffbeb] border border-[#fef3c7] p-4 rounded-xl mb-8">
-  //             <h4 className="text-[#b45309] text-[13px] font-semibold mb-2 flex items-center gap-2">
-  //               <AlertTriangle className="w-4 h-4" />
-  //               Anti-Cheat Policies
-  //             </h4>
-  //             <ul className="text-[12px] text-[#92400e] space-y-1.5 list-none ml-0 pl-0">
-  //               <li className="flex items-start gap-2">
-  //                 <span className="w-1 h-1 rounded-full bg-[#fbbf24] mt-1.5 shrink-0" />
-  //                 Your camera and screen will be recorded seamlessly.
-  //               </li>
-  //               <li className="flex items-start gap-2">
-  //                 <span className="w-1 h-1 rounded-full bg-[#fbbf24] mt-1.5 shrink-0" />
-  //                 Switching tabs or leaving full-screen may flag your
-  //                 submission.
-  //               </li>
-  //               <li className="flex items-start gap-2">
-  //                 <span className="w-1 h-1 rounded-full bg-[#fbbf24] mt-1.5 shrink-0" />
-  //                 Copying/pasting or external aids are strictly prohibited.
-  //               </li>
-  //             </ul>
-  //           </div>
+            <div className="bg-[#fffbeb] border border-[#fef3c7] p-4 rounded-xl mb-8">
+              <h4 className="text-[#b45309] text-[13px] font-semibold mb-2 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Anti-Cheat Policies
+              </h4>
+              <ul className="text-[12px] text-[#92400e] space-y-1.5 list-none ml-0 pl-0">
+                <li className="flex items-start gap-2">
+                  <span className="w-1 h-1 rounded-full bg-[#fbbf24] mt-1.5 shrink-0" />
+                  Your camera and screen will be recorded seamlessly.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1 h-1 rounded-full bg-[#fbbf24] mt-1.5 shrink-0" />
+                  Switching tabs or leaving full-screen may flag your
+                  submission.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1 h-1 rounded-full bg-[#fbbf24] mt-1.5 shrink-0" />
+                  Copying/pasting or external aids are strictly prohibited.
+                </li>
+              </ul>
+            </div>
 
-  //           <div className="mt-auto pt-2">
-  //             <Button
-  //               style={{
-  //                 background:
-  //                   !hasWebcamPermission || !isScreenSelected
-  //                     ? "#f1f5f9"
-  //                     : "linear-gradient(135deg, #4DD9E8, #0ea5e9)",
-  //                 boxShadow:
-  //                   !hasWebcamPermission || !isScreenSelected
-  //                     ? "none"
-  //                     : "0 4px 20px rgba(77,217,232,0.35)",
-  //                 color:
-  //                   !hasWebcamPermission || !isScreenSelected
-  //                     ? "#94a3b8"
-  //                     : "white",
-  //                 border:
-  //                   !hasWebcamPermission || !isScreenSelected
-  //                     ? "1px solid #e2e8f0"
-  //                     : "none",
-  //               }}
-  //               className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${!hasWebcamPermission || !isScreenSelected
-  //                   ? "cursor-not-allowed opacity-100"
-  //                   : "hover:opacity-90"
-  //                 }`}
-  //               disabled={!hasWebcamPermission || !isScreenSelected}
-  //               onClick={handleStartTest}
-  //             >
-  //               {!hasWebcamPermission || !isScreenSelected
-  //                 ? "Complete Setup to Start"
-  //                 : "Start Assessment"}
-  //             </Button>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+            <div className="mt-auto pt-2">
+              <Button
+                style={{
+                  background:
+                    !hasWebcamPermission || !isScreenSelected
+                      ? "#f1f5f9"
+                      : "linear-gradient(135deg, #4DD9E8, #0ea5e9)",
+                  boxShadow:
+                    !hasWebcamPermission || !isScreenSelected
+                      ? "none"
+                      : "0 4px 20px rgba(77,217,232,0.35)",
+                  color:
+                    !hasWebcamPermission || !isScreenSelected
+                      ? "#94a3b8"
+                      : "white",
+                  border:
+                    !hasWebcamPermission || !isScreenSelected
+                      ? "1px solid #e2e8f0"
+                      : "none",
+                }}
+                className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${
+                  !hasWebcamPermission || !isScreenSelected
+                    ? "cursor-not-allowed opacity-100"
+                    : "hover:opacity-90"
+                }`}
+                disabled={!hasWebcamPermission || !isScreenSelected}
+                onClick={handleStartTest}
+              >
+                {!hasWebcamPermission || !isScreenSelected
+                  ? "Complete Setup to Start"
+                  : "Start Assessment"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -1291,13 +1299,13 @@ const CodingChallenge: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-6">
-          {metadata?.startedAt && (
+          {(metadata?.startedAt || testStartTime) && (
             <div
               className={cn("flex flex-col items-end", isMobile && "scale-90")}
             >
               <TestTimer
-                startedAt={metadata.startedAt}
-                totalMinutes={metadata.totalTime}
+                startedAt={metadata?.startedAt || testStartTime || new Date().toISOString()}
+                totalMinutes={metadata?.totalTime || 0}
                 onTimeUp={handleEndTest}
               />
             </div>
@@ -1406,46 +1414,21 @@ const CodingChallenge: React.FC = () => {
         )}
       </div>
 
-      {/* Camera monitoring floating window */}
-      {/* <div
-        ref={popupRef}
-        className="fixed z-50 cursor-move select-none hidden"
-        style={{
-          left: popupPosition.x,
-          top: popupPosition.y,
-          transform: `scale(${isMobile ? 0.7 : 1}) ${isDragging ? "scale(1.02)" : ""}`,
-          transformOrigin: "top left",
-          transition: isDragging ? "none" : "transform 0.2s ease",
-          maxWidth: isMobile ? "180px" : "320px",
-        }}
-        onMouseDown={(e) => {
-          setIsDragging(true);
-          setDragOffset({
-            x: e.clientX - popupPosition.x,
-            y: e.clientY - popupPosition.y,
-          });
-        }}
-        onTouchStart={(e) => {
-          setIsDragging(true);
-          setDragOffset({
-            x: e.touches[0].clientX - popupPosition.x,
-            y: e.touches[0].clientY - popupPosition.y,
-          });
-        }}
-      > */}
       <div className="relative rounded-lg shadow-2xl max-w-sm">
-        {/* <WebcamFeed
-          apiBaseUrl={import.meta.env.VITE_API_BASE_URL}
-          isInterviewActive={isInterviewActive}
-          totalViolations={totalViolations}
-          onScreenShareStart={handleScreenShareStart}
-          onRecordingStart={handleRecordingStart}
-          onRecordingStop={handleRecordingStop}
-          onCameraError={handleCameraError}
-          sessionId={sessionId}
-          initialStream={initialWebcamStream}
-          initialScreenStream={initialScreenStream}
-        /> */}
+        {isToken && (
+          <WebcamFeed
+            apiBaseUrl={import.meta.env.VITE_API_BASE_URL}
+            isInterviewActive={isInterviewActive}
+            totalViolations={totalViolations}
+            onScreenShareStart={handleScreenShareStart}
+            onRecordingStart={handleRecordingStart}
+            onRecordingStop={handleRecordingStop}
+            onCameraError={handleCameraError}
+            sessionId={sessionId}
+            initialStream={initialWebcamStream}
+            initialScreenStream={initialScreenStream}
+          />
+        )}
       </div>
       {/* </div> */}
     </div>

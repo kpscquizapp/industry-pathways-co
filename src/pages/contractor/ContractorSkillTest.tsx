@@ -305,7 +305,7 @@ const ContractorSkillTest = () => {
               "px-4 md:px-6 py-2 rounded-full text-[12px] md:text-[13px] font-bold transition-all duration-300 border",
               filter === f.k
                 ? "border-[#4DD9E8] bg-white text-[#0EA5E9] shadow-sm"
-                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300",
+                : "border-slate-200 bg-white text-slate-500 hover:border-cyan-400",
             )}
           >
             {f.l}
@@ -628,8 +628,8 @@ const ContractorSkillTest = () => {
                                 Completed on:{" "}
                                 {res.submittedAt
                                   ? new Date(
-                                    res.submittedAt,
-                                  ).toLocaleDateString()
+                                      res.submittedAt,
+                                    ).toLocaleDateString()
                                   : "N/A"}
                               </span>
                               <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
