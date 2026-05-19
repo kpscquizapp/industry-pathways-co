@@ -585,12 +585,6 @@ const ContractorSkillTest = () => {
                       <Card
                         className={cn(
                           "p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200",
-                          <div
-                            className="text-[14px] md:text-[17px] font-black"
-                            style={{ color: scoreColor }}
-                          >
-                            {scoreVal}%
-                          </div>,
                         )}
                       >
                         <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">

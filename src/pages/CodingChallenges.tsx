@@ -609,14 +609,17 @@ const CodingChallenge: React.FC = () => {
             setTestStartTime(testMeta.startedAt);
             setTestStatus("active");
             setIsInterviewActive(true);
-            setIsMonitoringActive(true);
+            setIsMonitoringActive(isToken);
             // Re-initialize session for active test if not already present
             if (!sessionIdRef.current) {
               initializeSession(String(testMeta.id));
             }
           } else if (!isToken) {
             // For mock tests (without token), start immediately with local timestamp
-            const localStartTime = new Date().toISOString();
+            const storageKey = `coding-test-started-at:${testId}`;
+            const localStartTime =
+              sessionStorage.getItem(storageKey) ?? new Date().toISOString();
+            sessionStorage.setItem(storageKey, localStartTime);
             setTestStartTime(localStartTime);
             setTestStatus("active");
             // Mock tests don't require camera/screen monitoring
@@ -647,7 +650,12 @@ const CodingChallenge: React.FC = () => {
       if (data.success) {
         setMetadata(data.data);
         // For mock tests (without token), set local start time if not provided by API
-        const startTime = data.data?.startedAt || new Date().toISOString();
+        const storageKey = `coding-test-started-at:${testId}`;
+        const startTime =
+          data.data?.startedAt ??
+          sessionStorage.getItem(storageKey) ??
+          new Date().toISOString();
+        sessionStorage.setItem(storageKey, startTime);
         setTestStartTime(startTime);
         // Start session
         const sid = await initializeSession(
@@ -1149,6 +1157,24 @@ const CodingChallenge: React.FC = () => {
                     const stream = await navigator.mediaDevices.getDisplayMedia(
                       { video: true },
                     );
+
+                    const [track] = stream.getVideoTracks();
+                    const surface = track?.getSettings().displaySurface;
+
+                    if (surface && surface !== "monitor") {
+                      stream.getTracks().forEach((t) => t.stop());
+                      toast.error(
+                        "Please select your entire screen to proceed",
+                      );
+                      return;
+                    }
+
+                    track?.addEventListener("ended", () => {
+                      initialScreenStreamRef.current = null;
+                      setInitialScreenStream(null);
+                      setIsScreenSelected(false);
+                    });
+
                     initialScreenStreamRef.current = stream;
                     setInitialScreenStream(stream);
                     setIsScreenSelected(true);
@@ -1304,7 +1330,11 @@ const CodingChallenge: React.FC = () => {
               className={cn("flex flex-col items-end", isMobile && "scale-90")}
             >
               <TestTimer
-                startedAt={metadata?.startedAt || testStartTime || new Date().toISOString()}
+                startedAt={
+                  metadata?.startedAt ||
+                  testStartTime ||
+                  new Date().toISOString()
+                }
                 totalMinutes={metadata?.totalTime || 0}
                 onTimeUp={handleEndTest}
               />
