@@ -118,41 +118,24 @@ const SectionTitle = memo(
 const FormField = memo(
   ({
     label,
+    htmlFor,
     required,
     children,
   }: {
     label: string;
+    htmlFor?: string;
     required?: boolean;
     children: React.ReactNode;
   }) => (
     <div className="flex flex-col gap-2 w-full">
-      <label className="text-[13px] font-bold text-slate-700 ml-1 uppercase tracking-wider">
+      <label
+        htmlFor={htmlFor}
+        className="text-[13px] font-bold text-slate-700 ml-1 uppercase tracking-wider"
+      >
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       {children}
     </div>
-  ),
-);
-
-const TextInput = memo(
-  ({
-    placeholder,
-    value,
-    onChange,
-    type = "text",
-  }: {
-    placeholder?: string;
-    value?: string;
-    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    type?: string;
-  }) => (
-    <input
-      type={type}
-      placeholder={placeholder}
-      value={value}
-      onChange={onChange}
-      className="w-full h-12 px-4 rounded-xl bg-slate-50 border-2 border-slate-100 outline-none transition-all duration-200 focus:border-[#4DD9E8] focus:bg-white text-slate-900 text-sm font-medium placeholder:text-slate-400"
-    />
   ),
 );
 
@@ -231,6 +214,7 @@ const ContractorSettings = () => {
       }).unwrap();
       toast.success("Password updated successfully!");
       setPasswords({ current: "", new: "", confirm: "" });
+      setShowPasswords({ current: false, new: false, confirm: false });
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to update password");
     }
@@ -307,6 +291,7 @@ const ContractorSettings = () => {
               <div className="flex items-center gap-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl px-3.5 h-12 transition-all duration-200 focus-within:border-[#4DD9E8] focus-within:bg-white">
                 <Lock className="w-4 h-4 text-slate-400 shrink-0" />
                 <input
+                  id="current-password"
                   type={showPasswords.current ? "text" : "password"}
                   placeholder="Enter Current Password"
                   value={passwords.current}
@@ -320,6 +305,12 @@ const ContractorSettings = () => {
                   onClick={() =>
                     setShowPasswords((p) => ({ ...p, current: !p.current }))
                   }
+                  aria-label={
+                    showPasswords.current
+                      ? "Hide current password"
+                      : "Show current password"
+                  }
+                  aria-pressed={showPasswords.current}
                   className="text-slate-400 hover:text-slate-600 transition-colors shrink-0 min-h-0 min-w-0"
                 >
                   {showPasswords.current ? (
@@ -331,10 +322,11 @@ const ContractorSettings = () => {
               </div>
             </FormField>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField label="New Password">
+              <FormField label="New Password" htmlFor="new-password">
                 <div className="flex items-center gap-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl px-3.5 h-12 transition-all duration-200 focus-within:border-[#4DD9E8] focus-within:bg-white">
                   <Lock className="w-4 h-4 text-slate-400 shrink-0" />
                   <input
+                    id="new-password"
                     type={showPasswords.new ? "text" : "password"}
                     placeholder="Enter New Password"
                     value={passwords.new}
@@ -348,6 +340,12 @@ const ContractorSettings = () => {
                     onClick={() =>
                       setShowPasswords((p) => ({ ...p, new: !p.new }))
                     }
+                    aria-label={
+                      showPasswords.new
+                        ? "Hide new password"
+                        : "Show new password"
+                    }
+                    aria-pressed={showPasswords.new}
                     className="text-slate-400 hover:text-slate-600 transition-colors shrink-0 min-h-0 min-w-0"
                   >
                     {showPasswords.new ? (
@@ -358,10 +356,14 @@ const ContractorSettings = () => {
                   </button>
                 </div>
               </FormField>
-              <FormField label="Confirm New Password">
+              <FormField
+                label="Confirm New Password"
+                htmlFor="confirm-password"
+              >
                 <div className="flex items-center gap-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl px-3.5 h-12 transition-all duration-200 focus-within:border-[#4DD9E8] focus-within:bg-white">
                   <Lock className="w-4 h-4 text-slate-400 shrink-0" />
                   <input
+                    id="confirm-password"
                     type={showPasswords.confirm ? "text" : "password"}
                     placeholder="Enter Confirm New Password"
                     value={passwords.confirm}
@@ -375,6 +377,12 @@ const ContractorSettings = () => {
                     onClick={() =>
                       setShowPasswords((p) => ({ ...p, confirm: !p.confirm }))
                     }
+                    aria-label={
+                      showPasswords.confirm
+                        ? "Hide confirm password"
+                        : "Show confirm password"
+                    }
+                    aria-pressed={showPasswords.confirm}
                     className="text-slate-400 hover:text-slate-600 transition-colors shrink-0 min-h-0 min-w-0"
                   >
                     {showPasswords.confirm ? (
