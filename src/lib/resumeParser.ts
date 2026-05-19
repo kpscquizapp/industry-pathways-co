@@ -27,9 +27,9 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
     return fullText;
 };
 const parseResumeWithClaude = async (resumeText: string, token?: string): Promise<ParsedResume> => {
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+    const backendUrl = import.meta.env.VITE_API_BASE_URL;
 
-    const response = await fetch(`${backendUrl}/api/v1/employers/claude/extract-resume`, {
+    const response = await fetch(`${backendUrl}/employers/claude/extract-resume`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -37,6 +37,7 @@ const parseResumeWithClaude = async (resumeText: string, token?: string): Promis
         },
         body: JSON.stringify({ resumeText }),
     });
+
 
     if (!response.ok) {
         const errorBody = await response.text();

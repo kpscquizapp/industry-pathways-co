@@ -233,7 +233,7 @@ const PostBenchResource = () => {
             description: "Form fields have been populated from your resume.",
           });
         } catch (geminiError) {
-          console.error("Gemini fallback also failed:", geminiError);
+          console.error("AI fallback also failed:", geminiError);
           toast.error("Could not extract resume data. Please fill manually.");
           setFormData((prev) => ({ ...prev, resumeFile: null }));
           input.value = "";
