@@ -305,7 +305,7 @@ const ContractorSkillTest = () => {
               "px-4 md:px-6 py-2 rounded-full text-[12px] md:text-[13px] font-bold transition-all duration-300 border",
               filter === f.k
                 ? "border-[#4DD9E8] bg-white text-[#0EA5E9] shadow-sm"
-                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300",
+                : "border-slate-200 bg-white text-slate-500 hover:border-cyan-400",
             )}
           >
             {f.l}
@@ -585,12 +585,6 @@ const ContractorSkillTest = () => {
                       <Card
                         className={cn(
                           "p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200",
-                          <div
-                            className="text-[14px] md:text-[17px] font-black"
-                            style={{ color: scoreColor }}
-                          >
-                            {scoreVal}%
-                          </div>,
                         )}
                       >
                         <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
@@ -628,8 +622,8 @@ const ContractorSkillTest = () => {
                                 Completed on:{" "}
                                 {res.submittedAt
                                   ? new Date(
-                                    res.submittedAt,
-                                  ).toLocaleDateString()
+                                      res.submittedAt,
+                                    ).toLocaleDateString()
                                   : "N/A"}
                               </span>
                               <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />

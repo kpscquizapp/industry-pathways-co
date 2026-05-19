@@ -1,8 +1,21 @@
 import React, { useState, memo } from "react";
-import { Bell, Shield, Eye, Trash2, Lock, Mail, Smartphone, Globe } from "lucide-react";
+import {
+  Bell,
+  Shield,
+  Eye,
+  EyeOff,
+  Trash2,
+  Lock,
+  Mail,
+  Smartphone,
+  Globe,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useChangePasswordMutation, useDeleteMyAccountMutation } from "@/app/queries/profileApi";
+import {
+  useChangePasswordMutation,
+  useDeleteMyAccountMutation,
+} from "@/app/queries/profileApi";
 import { useNavigate } from "react-router-dom";
 import { useLogoutMutation } from "@/app/queries/loginApi";
 import { useDispatch } from "react-redux";
@@ -45,74 +58,105 @@ const C = {
 };
 
 /* ═══════════ REUSABLE COMPONENTS ═══════════ */
-const Card = memo(({ children, className, hover, style }: { children: React.ReactNode; className?: string; hover?: boolean; style?: React.CSSProperties }) => {
-  const [hov, setHov] = useState(false);
-  return (
-    <div
-      onMouseEnter={hover ? () => setHov(true) : undefined}
-      onMouseLeave={hover ? () => setHov(false) : undefined}
-      className={cn(
-        "rounded-2xl border transition-all duration-300 overflow-hidden bg-white",
-        hov ? "shadow-2xl -translate-y-1" : "shadow-sm",
-        className
-      )}
-      style={{
-        borderColor: C.border,
-        ...style
-      }}
-    >
+const Card = memo(
+  ({
+    children,
+    className,
+    hover,
+    style,
+  }: {
+    children: React.ReactNode;
+    className?: string;
+    hover?: boolean;
+    style?: React.CSSProperties;
+  }) => {
+    const [hov, setHov] = useState(false);
+    return (
+      <div
+        onMouseEnter={hover ? () => setHov(true) : undefined}
+        onMouseLeave={hover ? () => setHov(false) : undefined}
+        className={cn(
+          "rounded-2xl border transition-all duration-300 overflow-hidden bg-white",
+          hov ? "shadow-2xl -translate-y-1" : "shadow-sm",
+          className,
+        )}
+        style={{
+          borderColor: C.border,
+          ...style,
+        }}
+      >
+        {children}
+      </div>
+    );
+  },
+);
+
+const SectionTitle = memo(
+  ({
+    icon: Icon,
+    title,
+    subtitle,
+  }: {
+    icon: any;
+    title: string;
+    subtitle?: string;
+  }) => (
+    <div className="flex items-start gap-4 mb-6">
+      <div className="w-10 h-10 rounded-xl bg-[#4DD9E8]/10 flex items-center justify-center text-[#0e8a96] shrink-0">
+        <Icon size={20} strokeWidth={2.2} />
+      </div>
+      <div>
+        <h3 className="text-lg font-bold text-slate-900 leading-tight">
+          {title}
+        </h3>
+        {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
+      </div>
+    </div>
+  ),
+);
+
+const FormField = memo(
+  ({
+    label,
+    htmlFor,
+    required,
+    children,
+  }: {
+    label: string;
+    htmlFor?: string;
+    required?: boolean;
+    children: React.ReactNode;
+  }) => (
+    <div className="flex flex-col gap-2 w-full">
+      <label
+        htmlFor={htmlFor}
+        className="text-[13px] font-bold text-slate-700 ml-1 uppercase tracking-wider"
+      >
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
       {children}
     </div>
-  );
-});
+  ),
+);
 
-const SectionTitle = memo(({ icon: Icon, title, subtitle }: { icon: any; title: string; subtitle?: string }) => (
-  <div className="flex items-start gap-4 mb-6">
-    <div className="w-10 h-10 rounded-xl bg-[#4DD9E8]/10 flex items-center justify-center text-[#0e8a96] shrink-0">
-      <Icon size={20} strokeWidth={2.2} />
-    </div>
-    <div>
-      <h3 className="text-lg font-bold text-slate-900 leading-tight">{title}</h3>
-      {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
-    </div>
-  </div>
-));
-
-const FormField = memo(({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
-  <div className="flex flex-col gap-2 w-full">
-    <label className="text-[13px] font-bold text-slate-700 ml-1 uppercase tracking-wider">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    {children}
-  </div>
-));
-
-const TextInput = memo(({ placeholder, value, onChange, type = "text" }: { placeholder?: string; value?: string; onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string }) => (
-  <input
-    type={type}
-    placeholder={placeholder}
-    value={value}
-    onChange={onChange}
-    className="w-full h-12 px-4 rounded-xl bg-slate-50 border-2 border-slate-100 outline-none transition-all duration-200 focus:border-[#4DD9E8] focus:bg-white text-slate-900 text-sm font-medium placeholder:text-slate-400"
-  />
-));
-
-const Toggle = memo(({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) => (
-  <button
-    onClick={onToggle}
-    className={cn(
-      "relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 min-h-0 min-w-0",
-      enabled ? "bg-[#4DD9E8]" : "bg-slate-200"
-    )}
-  >
-    <div
+const Toggle = memo(
+  ({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) => (
+    <button
+      onClick={onToggle}
       className={cn(
-        "absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 shadow-sm",
-        enabled ? "translate-x-5" : ""
+        "relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 min-h-0 min-w-0",
+        enabled ? "bg-[#4DD9E8]" : "bg-slate-200",
       )}
-    />
-  </button>
-));
+    >
+      <div
+        className={cn(
+          "absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 shadow-sm",
+          enabled ? "translate-x-5" : "",
+        )}
+      />
+    </button>
+  ),
+);
 
 const ContractorSettings = () => {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -124,20 +168,27 @@ const ContractorSettings = () => {
   });
   const [visibility, setVisibility] = React.useState({
     employers: true,
-    contact: true
+    contact: true,
   });
 
   const [passwords, setPasswords] = useState({
     current: "",
     new: "",
-    confirm: ""
+    confirm: "",
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
   });
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
 
   const navigate = useNavigate();
-  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
-  const [deleteMyAccount, { isLoading: isDeletingAccount }] = useDeleteMyAccountMutation();
+  const [changePassword, { isLoading: isChangingPassword }] =
+    useChangePasswordMutation();
+  const [deleteMyAccount, { isLoading: isDeletingAccount }] =
+    useDeleteMyAccountMutation();
   const [logout] = useLogoutMutation();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
@@ -159,10 +210,11 @@ const ContractorSettings = () => {
     try {
       await changePassword({
         currentPassword: passwords.current,
-        newPassword: passwords.new
+        newPassword: passwords.new,
       }).unwrap();
       toast.success("Password updated successfully!");
       setPasswords({ current: "", new: "", confirm: "" });
+      setShowPasswords({ current: false, new: false, confirm: false });
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to update password");
     }
@@ -191,7 +243,10 @@ const ContractorSettings = () => {
       localStorage.clear();
       navigate("/");
     } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to delete account. Please check your password.");
+      toast.error(
+        err?.data?.message ||
+          "Failed to delete account. Please check your password.",
+      );
       setIsDeleteDialogOpen(false);
       setDeletePassword("");
     }
@@ -206,9 +261,7 @@ const ContractorSettings = () => {
     return (
       <div className="flex items-center justify-center gap-4 h-full">
         <SpinnerLoader className="w-10 h-10" />
-        <p className="text-muted-foreground">
-          Loading your settings...
-        </p>
+        <p className="text-muted-foreground">Loading your settings...</p>
       </div>
     );
   }
@@ -217,8 +270,12 @@ const ContractorSettings = () => {
     <div className="flex flex-col gap-8 py-6 sm:py-10 px-6 sm:px-9 md:px-8 font-inter">
       {/* Header */}
       <div>
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Account Settings</h2>
-        <p className="text-muted-foreground mt-2">Manage your account preferences, security, and visibility.</p>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+          Account Settings
+        </h2>
+        <p className="text-muted-foreground mt-2">
+          Manage your account preferences, security, and visibility.
+        </p>
       </div>
 
       <div className="flex flex-col gap-6 pb-12">
@@ -231,29 +288,110 @@ const ContractorSettings = () => {
           />
           <div className="flex flex-col gap-6 max-w-full">
             <FormField label="Current Password">
-              <TextInput
-                type="password"
-                placeholder="Enter Current Password"
-                value={passwords.current}
-                onChange={(e) => setPasswords(p => ({ ...p, current: e.target.value }))}
-              />
+              <div className="flex items-center gap-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl px-3.5 h-12 transition-all duration-200 focus-within:border-[#4DD9E8] focus-within:bg-white">
+                <Lock className="w-4 h-4 text-slate-400 shrink-0" />
+                <input
+                  id="current-password"
+                  type={showPasswords.current ? "text" : "password"}
+                  placeholder="Enter Current Password"
+                  value={passwords.current}
+                  onChange={(e) =>
+                    setPasswords((p) => ({ ...p, current: e.target.value }))
+                  }
+                  className="flex-1 min-w-0 border-none bg-transparent outline-none h-full p-0 text-sm focus-visible:ring-0 shadow-none font-medium"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowPasswords((p) => ({ ...p, current: !p.current }))
+                  }
+                  aria-label={
+                    showPasswords.current
+                      ? "Hide current password"
+                      : "Show current password"
+                  }
+                  aria-pressed={showPasswords.current}
+                  className="text-slate-400 hover:text-slate-600 transition-colors shrink-0 min-h-0 min-w-0"
+                >
+                  {showPasswords.current ? (
+                    <Eye className="w-4 h-4" />
+                  ) : (
+                    <EyeOff className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </FormField>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField label="New Password">
-                <TextInput
-                  type="password"
-                  placeholder="Enter New Password"
-                  value={passwords.new}
-                  onChange={(e) => setPasswords(p => ({ ...p, new: e.target.value }))}
-                />
+              <FormField label="New Password" htmlFor="new-password">
+                <div className="flex items-center gap-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl px-3.5 h-12 transition-all duration-200 focus-within:border-[#4DD9E8] focus-within:bg-white">
+                  <Lock className="w-4 h-4 text-slate-400 shrink-0" />
+                  <input
+                    id="new-password"
+                    type={showPasswords.new ? "text" : "password"}
+                    placeholder="Enter New Password"
+                    value={passwords.new}
+                    onChange={(e) =>
+                      setPasswords((p) => ({ ...p, new: e.target.value }))
+                    }
+                    className="flex-1 min-w-0 border-none bg-transparent outline-none h-full p-0 text-sm focus-visible:ring-0 shadow-none font-medium"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowPasswords((p) => ({ ...p, new: !p.new }))
+                    }
+                    aria-label={
+                      showPasswords.new
+                        ? "Hide new password"
+                        : "Show new password"
+                    }
+                    aria-pressed={showPasswords.new}
+                    className="text-slate-400 hover:text-slate-600 transition-colors shrink-0 min-h-0 min-w-0"
+                  >
+                    {showPasswords.new ? (
+                      <Eye className="w-4 h-4" />
+                    ) : (
+                      <EyeOff className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </FormField>
-              <FormField label="Confirm New Password">
-                <TextInput
-                  type="password"
-                  placeholder="Enter Confirm New Password"
-                  value={passwords.confirm}
-                  onChange={(e) => setPasswords(p => ({ ...p, confirm: e.target.value }))}
-                />
+              <FormField
+                label="Confirm New Password"
+                htmlFor="confirm-password"
+              >
+                <div className="flex items-center gap-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl px-3.5 h-12 transition-all duration-200 focus-within:border-[#4DD9E8] focus-within:bg-white">
+                  <Lock className="w-4 h-4 text-slate-400 shrink-0" />
+                  <input
+                    id="confirm-password"
+                    type={showPasswords.confirm ? "text" : "password"}
+                    placeholder="Enter Confirm New Password"
+                    value={passwords.confirm}
+                    onChange={(e) =>
+                      setPasswords((p) => ({ ...p, confirm: e.target.value }))
+                    }
+                    className="flex-1 min-w-0 border-none bg-transparent outline-none h-full p-0 text-sm focus-visible:ring-0 shadow-none font-medium"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowPasswords((p) => ({ ...p, confirm: !p.confirm }))
+                    }
+                    aria-label={
+                      showPasswords.confirm
+                        ? "Hide confirm password"
+                        : "Show confirm password"
+                    }
+                    aria-pressed={showPasswords.confirm}
+                    className="text-slate-400 hover:text-slate-600 transition-colors shrink-0 min-h-0 min-w-0"
+                  >
+                    {showPasswords.confirm ? (
+                      <Eye className="w-4 h-4" />
+                    ) : (
+                      <EyeOff className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </FormField>
             </div>
             <button
@@ -335,10 +473,15 @@ const ContractorSettings = () => {
           />
           <div className="flex flex-col gap-4">
             <p className="text-sm text-slate-600 max-w-2xl leading-relaxed">
-              Once you delete your account, there is no going back. All your profile data, interview history, and skill assessment results will be permanently removed.
+              Once you delete your account, there is no going back. All your
+              profile data, interview history, and skill assessment results will
+              be permanently removed.
             </p>
 
-            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <AlertDialog
+              open={isDeleteDialogOpen}
+              onOpenChange={setIsDeleteDialogOpen}
+            >
               <AlertDialogTrigger asChild>
                 <button
                   disabled={isDeletingAccount}
@@ -358,14 +501,22 @@ const ContractorSettings = () => {
                     Confirm Account Deletion
                   </AlertDialogTitle>
                   <AlertDialogDescription className="text-slate-600 py-4">
-                    This action is <span className="font-bold text-red-600 uppercase tracking-tight">permanent</span> and cannot be undone.
-                    All your professional data will be wiped from our systems.
+                    This action is{" "}
+                    <span className="font-bold text-red-600 uppercase tracking-tight">
+                      permanent
+                    </span>{" "}
+                    and cannot be undone. All your professional data will be
+                    wiped from our systems.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
 
                 <div className="py-4 space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password" title="password confirmation field" className="text-sm font-semibold text-slate-700">
+                    <Label
+                      htmlFor="confirm-password"
+                      title="password confirmation field"
+                      className="text-sm font-semibold text-slate-700"
+                    >
                       To confirm, please enter your password:
                     </Label>
                     <Input

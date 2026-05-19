@@ -4,13 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import logo from "@/assets/White Option.png";
 import logo2 from "@/assets/Dark Option.png";
-import {
-  ArrowRight,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { ArrowRight, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { useLoginCandidateMutation } from "@/app/queries/loginApi";
 import { useDispatch, useSelector } from "react-redux";
@@ -293,7 +287,6 @@ const CandidateLogin = () => {
         </div>
 
         <div className="relative z-10 animate-fade-up">
-
           <div className="space-y-8 max-w-lg">
             <div className="inline-flex items-center gap-2">
               <span className="text-[#4DD9E8] text-[11px] font-semibold tracking-[0.15em] uppercase">
@@ -363,10 +356,11 @@ const CandidateLogin = () => {
                   Email Address
                 </Label>
                 <div
-                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${touched.email && fieldErrors.email
-                    ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
-                    : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                    }`}
+                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                    touched.email && fieldErrors.email
+                      ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
+                      : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                  }`}
                 >
                   <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
                   <input
@@ -407,10 +401,11 @@ const CandidateLogin = () => {
                   </Link>
                 </div>
                 <div
-                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${touched.password && fieldErrors.password
-                    ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
-                    : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                    }`}
+                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                    touched.password && fieldErrors.password
+                      ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
+                      : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                  }`}
                 >
                   <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                   <input
@@ -428,12 +423,12 @@ const CandidateLogin = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-[#999] hover:text-slate-500 transition-colors shrink-0"
+                    className="text-[#999] hover:text-slate-500 transition-colors shrink-0 min-h-0 min-w-0"
                   >
                     {showPassword ? (
-                      <Eye className="w-4.5 h-4.5" />
+                      <Eye className="w-4 h-4" />
                     ) : (
-                      <EyeOff className="w-4.5 h-4.5" />
+                      <EyeOff className="w-4 h-4" />
                     )}
                   </button>
                 </div>
