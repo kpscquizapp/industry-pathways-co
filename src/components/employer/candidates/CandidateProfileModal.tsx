@@ -121,16 +121,11 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-none w-screen h-screen border-none rounded-none overflow-y-auto p-0 gap-0">
+      <DialogContent className="max-w-none w-screen h-screen border-none rounded-none overflow-y-auto p-0 gap-0 [&>button]:hidden !rounded-none !m-0 !p-0 !inset-0 !translate-x-0 !translate-y-0 !left-0 !top-0 !max-w-none">
         <div className="flex flex-col lg:flex-row">
           {/* Left Sidebar */}
           <div className="lg:w-80 bg-card border-r border-border p-6 flex-shrink-0">
-            <button
-              onClick={onClose}
-              className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors mb-4"
-            >
-              ← Back
-            </button>
+
             {/* Profile Header */}
             <div className="text-center mb-6">
               <Avatar className="h-24 w-24 mx-auto mb-4 border-4 border-background shadow-lg">
@@ -287,22 +282,44 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
           <div className="flex-1 p-6">
 
             <Tabs defaultValue="overview">
-              <TabsList className="bg-muted/50 rounded-xl p-1 mb-6">
-                <TabsTrigger
-                  value="overview"
-                  className="rounded-lg px-6 data-[state=active]:bg-background"
+              <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <TabsList className="bg-muted/50 rounded-xl p-1">
+                    <TabsTrigger
+                      value="overview"
+                      className="rounded-lg px-6 data-[state=active]:bg-background"
+                    >
+                      Overview
+                    </TabsTrigger>
+                    {userDetails?.role === "employer" && (
+                      <TabsTrigger
+                        value="resume"
+                        className="rounded-lg px-6 data-[state=active]:bg-background"
+                      >
+                        Resume
+                      </TabsTrigger>
+                    )}
+                  </TabsList>
+                  {/* {userDetails?.role === "employer" || userDetails?.role === "hr" && (
+                    <Button
+                      variant="outline"
+                      className="h-9 rounded-xl text-sm"
+                      onClick={() => handleDownload(candidate.id)}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Resume
+                    </Button>
+                  )} */}
+                </div>
+                {/* Bigger, more visible close button */}
+                <button
+                  onClick={onClose}
+                  aria-label="Close"
+                  className="fixed top-4 right-4 z-50 w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors text-slate-600 hover:text-slate-900 shrink-0"
                 >
-                  Overview
-                </TabsTrigger>
-                {userDetails?.role === "employer" && (
-                  <TabsTrigger
-                    value="resume"
-                    className="rounded-lg px-6 data-[state=active]:bg-background"
-                  >
-                    Resume
-                  </TabsTrigger>
-                )}
-              </TabsList>
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
               <TabsContent value="overview" className="space-y-6">
                 {/* AI Matching Score */}
@@ -346,6 +363,36 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                           />
                         )}
                       </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Employee ID & Min Contract Duration */}
+                {(candidate.employeeId || candidate.minimumContractDuration != null) && (
+                  <Card className="border-border">
+                    <CardContent className="p-6 space-y-3">
+                      {candidate.employeeId && (
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Briefcase className="h-4 w-4" />
+                            <span>Employee ID</span>
+                          </div>
+                          <span className="font-semibold text-foreground">{candidate.employeeId}</span>
+                        </div>
+                      )}
+                      {candidate.minimumContractDuration != null && (
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Clock className="h-4 w-4" />
+                            <span>Min. Contract Duration</span>
+                          </div>
+                          <span className="font-semibold text-foreground">
+                            {isFinite(Number(candidate.minimumContractDuration)) && candidate.minimumContractDuration !== "" && candidate.minimumContractDuration != null
+                              ? `${candidate.minimumContractDuration} ${Number(candidate.minimumContractDuration) === 1 ? "Month" : "Months"}`
+                              : candidate.minimumContractDuration || "N/A"}
+                          </span>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 )}

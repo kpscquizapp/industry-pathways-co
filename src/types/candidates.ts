@@ -17,6 +17,8 @@ export interface CandidateProfile {
   type: "individual" | "bench";
   company?: string;
   requireNonSolicitation?: boolean;
+  employeeId?: string;
+  minimumContractDuration?: string | number;
   skills: string[];
   certifications?: { name: string; issuer: string; year: string }[];
   about?: string;

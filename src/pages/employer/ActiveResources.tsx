@@ -85,6 +85,8 @@ const ActiveResources = () => {
     technicalSkills?: string[];
     professionalSummary?: string;
     requireNonSolicitation?: boolean;
+    employeeId?: string;
+    minimumContractDuration?: string | number;
   };
 
   const clearAllFilters = () => {
@@ -154,6 +156,8 @@ const ActiveResources = () => {
       experience: `${Number(resource.totalExperience)} years`,
       type: "bench",
       requireNonSolicitation: resource.requireNonSolicitation || false,
+      employeeId: resource.employeeId || "",
+      minimumContractDuration: resource.minimumContractDuration,
       skills: resource.technicalSkills || [],
       about: resource.professionalSummary || "",
     };
@@ -375,11 +379,11 @@ const ActiveResources = () => {
               <div className="space-y-1">
                 <p className="text-xs font-medium text-slate-500">Availability Date</p>
                 <div className="relative">
-                  <Input
+                  <input
                     type="date"
                     value={availableFrom}
                     onChange={(e) => setAvailableFrom(e.target.value)}
-                    className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
+                    className="h-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none px-4 w-full"
                   />
                 </div>
               </div>
@@ -487,25 +491,25 @@ const ActiveResources = () => {
                 </Alert>
               </div>
             ) : (
-              <div className="overflow-x-auto"><Table>
+              <div className="overflow-x-auto w-full"><Table className="min-w-[700px] w-full">
                 <TableHeader>
                   <TableRow className="bg-slate-50 hover:bg-slate-50">
-                    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
-                      Resource Name & Role
+                    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide whitespace-nowrap">
+                      Resource Name &amp; Role
                     </TableHead>
-                    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide whitespace-nowrap">
                       Top Skills
                     </TableHead>
-                    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide whitespace-nowrap">
                       Exp.
                     </TableHead>
-                    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide whitespace-nowrap">
                       Rate
                     </TableHead>
-                    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide whitespace-nowrap">
                       Status
                     </TableHead>
-                    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide text-right">
+                    <TableHead className="font-semibold text-slate-500 text-xs uppercase tracking-wide text-right whitespace-nowrap">
                       Actions
                     </TableHead>
                   </TableRow>

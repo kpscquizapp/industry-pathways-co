@@ -346,11 +346,10 @@ const BenchLogin = () => {
                   Email Address
                 </Label>
                 <div
-                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
-                    touched.email && fieldErrors.email
+                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${touched.email && fieldErrors.email
                       ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
                       : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                  }`}
+                    }`}
                 >
                   <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
                   <input
@@ -392,11 +391,10 @@ const BenchLogin = () => {
                   </Link>
                 </div>
                 <div
-                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
-                    touched.password && fieldErrors.password
+                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${touched.password && fieldErrors.password
                       ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
                       : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                  }`}
+                    }`}
                 >
                   <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                   <input

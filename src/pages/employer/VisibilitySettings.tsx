@@ -219,7 +219,9 @@ import {
   Shield,
   Trash2,
   Lock,
-  LayoutGrid
+  LayoutGrid,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -261,12 +263,17 @@ const VisibilitySettings = () => {
   const [removeProfileImage] = useRemoveProfileImageMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const user = useSelector((state: RootState) => state.user.userDetails);
-  const { data: employerProfileData, isFetching: isProfileLoading, refetch: refetchProfile } = useGetEmployerProfileQuery();
+  const user = useSelector((state: any) => state.user?.userDetails);
+  const { data: employerProfileData, isLoading: isProfileLoading, refetch: refetchProfile } = useGetEmployerProfileQuery();
   const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
     user?.id as any,
   );
+  const [isSavingPersonal, setIsSavingPersonal] = useState(false);
   const [updateProfile, { isLoading: isSaving }] = useUpdateEmployerProfileMutation();
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [personalInfo, setPersonalInfo] = useState({
     firstName: "",
@@ -369,6 +376,7 @@ const VisibilitySettings = () => {
 
   const handleSavePersonal = async (e?: React.MouseEvent) => {
     e?.preventDefault();
+    setIsSavingPersonal(true);
     try {
       await updateProfile({
         firstName: personalInfo.firstName,
@@ -381,6 +389,9 @@ const VisibilitySettings = () => {
     } catch (err) {
       console.error("Failed to save personal information:", err);
       toast.error("Failed to save personal information. Please try again.");
+    }
+    finally {
+      setIsSavingPersonal(false);
     }
   };
 
@@ -465,21 +476,22 @@ const VisibilitySettings = () => {
 
       {/* Top Header Bar */}
       <div className="bg-white border-b border-slate-200 py-4 flex items-center gap-3 px-4 sm:px-6">
-        <div className="w-full">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger
-              className="text-muted-foreground hover:bg-[#0b1221]/10"
-              title="Toggle Sidebar"
-            />
-            <h1 className="text-lg font-bold text-slate-800 leading-tight">Settings</h1>
-          </div>
-          <p className="text-slate-400 text-sm ml-7">Manage your account preferences, company profile, and team settings.</p>
-        </div>
+        <SidebarTrigger
+          className="text-muted-foreground hover:bg-[#0b1221]/10"
+          title="Toggle Sidebar"
+        />
       </div>
 
       {/* Page Content */}
       <div className="flex-1 mb-3">
         <div className="max-w-6xl px-4 sm:px-6">
+
+          {/* Page Title */}
+          <div className="mt-6 mb-1">
+            <h1 className="text-2xl font-bold text-slate-800 leading-tight">Settings</h1>
+            <p className="text-slate-500 text-sm mt-1">Manage your account preferences, company profile, and team settings.</p>
+          </div>
+
           <div className="flex flex-col md:flex-row gap-6 mt-5">
 
             {/* Left Navigation */}
@@ -588,7 +600,18 @@ const VisibilitySettings = () => {
                                   Upload new image
                                 </Button>
                                 <button
-                                  onClick={handleRemoveImage}
+                                  onClick={() => {
+                                    toast("Are you sure you want to remove your profile photo?", {
+                                      action: {
+                                        label: "Yes, Remove",
+                                        onClick: () => handleRemoveImage(),
+                                      },
+                                      cancel: {
+                                        label: "Cancel",
+                                        onClick: () => { },
+                                      },
+                                    });
+                                  }}
                                   className="text-sm text-red-500 font-medium hover:text-red-500 transition-colors"
                                 >
                                   Remove
@@ -626,13 +649,14 @@ const VisibilitySettings = () => {
                               onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
                               type="email"
                               className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700"
+                              readOnly
                             />
                           </div>
 
                           {/* Save */}
                           <div className="flex justify-end pt-1">
-                            <Button onClick={handleSavePersonal} className="bg-[#0eb5b9] hover:bg-[#0da0a3] text-white rounded-lg px-7 h-10 font-semibold">
-                              Save Changes
+                            <Button type="button" onClick={handleSavePersonal} className="bg-[#0eb5b9] hover:bg-[#0da0a3] text-white rounded-lg px-7 h-10 font-semibold">
+                              {isSavingPersonal ? "Saving..." : "Save Changes"}
                             </Button>
                           </div>
 
@@ -718,6 +742,7 @@ const VisibilitySettings = () => {
 
                           <div className="flex justify-end pt-1">
                             <Button
+                              type="button"
                               onClick={handleSaveCompany}
                               disabled={isSaving}
                               className="bg-[#0eb5b9] hover:bg-[#0da0a3] text-white rounded-lg px-6 h-10 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
@@ -752,24 +777,39 @@ const VisibilitySettings = () => {
                       <div className="space-y-6 pt-2">
                         <div className="space-y-1.5 ">
                           <Label className="text-sm font-semibold text-slate-700">Current Password</Label>
-                          <Input type="password" placeholder="Enter Current Password" value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
+                          <div className="relative">
+                            <Input type={showCurrentPassword ? "text" : "password"} placeholder="Enter Current Password" value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 pr-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
+                            <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                              {showCurrentPassword ? <Eye className="h-4 w-4 ml-4" /> : <EyeOff className="h-4 w-4 ml-4" />}
+                            </button>
+                          </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-1.5 ">
                             <Label className="text-sm font-semibold text-slate-700">New Password</Label>
-                            <Input type="password" placeholder="Enter New Password" value={passwordData.newPassword} onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
+                            <div className="relative">
+                              <Input type={showNewPassword ? "text" : "password"} placeholder="Enter New Password" value={passwordData.newPassword} onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 pr-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
+                              <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                                {showNewPassword ? <Eye className="h-4 w-4 ml-4" /> : <EyeOff className="h-4 w-4 ml-4" />}
+                              </button>
+                            </div>
 
                           </div>
                           <div className="space-y-1.5 ">
                             <Label className="text-sm font-semibold text-slate-700">Confirm New Password</Label>
-                            <Input type="password" placeholder="Enter Confirm New Password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
+                            <div className="relative">
+                              <Input type={showConfirmPassword ? "text" : "password"} placeholder="Enter Confirm New Password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 pr-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
+                              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                                {showConfirmPassword ? <Eye className="h-4 w-4 ml-4" /> : <EyeOff className="h-4 w-4 ml-4" />}
+                              </button>
+                            </div>
 
                           </div>
                         </div>
 
                         <div className="pt-2">
-                          <Button onClick={handleChangePassword} disabled={isChangingPassword} className="bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-lg px-8 h-11 font-medium shadow-sm transition-all hover:shadow-md">
+                          <Button type="button" onClick={handleChangePassword} disabled={isChangingPassword} className="bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-lg px-8 h-11 font-medium shadow-sm transition-all hover:shadow-md">
                             {isChangingPassword ? "Updating..." : "Update Password"}
                           </Button>
                         </div>

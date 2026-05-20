@@ -132,7 +132,7 @@ const getMenuItems = (role: DashboardRole) => {
           // isAI: true,
         },
         // { icon: FileText, label: "Contracts", href: "/hire-talent/contracts" },
-        { icon: Settings, label: "Settings", href: "/hire-talent/settings" },
+      { icon: Settings, label: "Settings", href: "/hire-talent/settings" },
       ];
     default:
       return [];
