@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import HirionLogo from "../assets/White Option.png";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, Eye, EyeOff } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import styles from './BenchRegistration.module.css';
 import {
