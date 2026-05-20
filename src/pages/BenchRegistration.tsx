@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import HirionLogo from "../assets/White Option.png";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, Eye, EyeOff } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Building2,
@@ -48,11 +48,12 @@ const BenchRegistration = () => {
   const [otp, setOtp] = useState("");
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
-
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -90,7 +91,10 @@ const BenchRegistration = () => {
 
   React.useEffect(() => {
     if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      const timer = setTimeout(
+        () => setResendCooldown(resendCooldown - 1),
+        1000,
+      );
       return () => clearTimeout(timer);
     }
   }, [resendCooldown]);
@@ -100,8 +104,6 @@ const BenchRegistration = () => {
     { title: "Details", desc: "Tell us about your organization" },
     { title: "Verify", desc: "Upload business documents" },
   ];
-
-
 
   const [companyDocument, setCompanyDocument] = useState<File | null>(null);
 
@@ -359,97 +361,163 @@ const BenchRegistration = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
       {/* Left Panel - Immersive Branding */}
-      <div className="hidden lg:flex lg:w-[50%] px-16 py-8 flex-col justify-center relative overflow-hidden shrink-0 border-r border-white/5" style={{ background: "linear-gradient(160deg, rgb(13, 17, 23) 0%, rgb(17, 24, 39) 40%, rgb(12, 26, 42) 100%)" }}>
+      <div
+        className="hidden lg:flex lg:w-[50%] px-16 py-8 flex-col justify-center relative overflow-hidden shrink-0 border-r border-white/5"
+        style={{
+          background:
+            "linear-gradient(160deg, rgb(13, 17, 23) 0%, rgb(17, 24, 39) 40%, rgb(12, 26, 42) 100%)",
+        }}
+      >
         {[
           { left: "29.1%", top: "19.3%", size: 6, delay: "2.7s", dur: "13.5s" },
-          { left: "95.8%", top: "27.1%", size: 5.2, delay: "1.3s", dur: "14.7s" },
-          { left: "27.4%", top: "14.6%", size: 4.4, delay: "1.8s", dur: "9.8s" },
-          { left: "69.5%", top: "10.7%", size: 6.1, delay: "3.6s", dur: "9.4s" },
+          {
+            left: "95.8%",
+            top: "27.1%",
+            size: 5.2,
+            delay: "1.3s",
+            dur: "14.7s",
+          },
+          {
+            left: "27.4%",
+            top: "14.6%",
+            size: 4.4,
+            delay: "1.8s",
+            dur: "9.8s",
+          },
+          {
+            left: "69.5%",
+            top: "10.7%",
+            size: 6.1,
+            delay: "3.6s",
+            dur: "9.4s",
+          },
           { left: "1.7%", top: "8.8%", size: 3, delay: "4.9s", dur: "11.6s" },
-          { left: "31.5%", top: "30.7%", size: 5.5, delay: "3.1s", dur: "17.2s" },
+          {
+            left: "31.5%",
+            top: "30.7%",
+            size: 5.5,
+            delay: "3.1s",
+            dur: "17.2s",
+          },
           { left: "32.1%", top: "93%", size: 3.3, delay: "4.2s", dur: "10.7s" },
           { left: "95.6%", top: "7.5%", size: 5.6, delay: "5.2s", dur: "10s" },
-          { left: "43.8%", top: "50.9%", size: 3.7, delay: "3.8s", dur: "14.7s" },
+          {
+            left: "43.8%",
+            top: "50.9%",
+            size: 3.7,
+            delay: "3.8s",
+            dur: "14.7s",
+          },
           { left: "27.1%", top: "57.1%", size: 6.9, delay: "3s", dur: "11.4s" },
           { left: "76.8%", top: "5.6%", size: 4.1, delay: "5s", dur: "17.7s" },
           { left: "69.1%", top: "34.6%", size: 7, delay: "5.6s", dur: "8.8s" },
           { left: "43.3%", top: "9%", size: 4.6, delay: "0.07s", dur: "17.4s" },
-          { left: "47.8%", top: "10.1%", size: 6.4, delay: "4.8s", dur: "10.4s" },
+          {
+            left: "47.8%",
+            top: "10.1%",
+            size: 6.4,
+            delay: "4.8s",
+            dur: "10.4s",
+          },
           { left: "20.9%", top: "63.5%", size: 5, delay: "2.9s", dur: "14.4s" },
           { left: "27.4%", top: "59.5%", size: 7.9, delay: "3.1s", dur: "8s" },
-          { left: "94.7%", top: "72.1%", size: 5.5, delay: "2.9s", dur: "16.6s" },
+          {
+            left: "94.7%",
+            top: "72.1%",
+            size: 5.5,
+            delay: "2.9s",
+            dur: "16.6s",
+          },
           { left: "75.6%", top: "52.1%", size: 4.1, delay: "4s", dur: "16.4s" },
         ].map((b, i) => (
-          <div key={i} style={{
-            position: "absolute",
-            left: b.left,
-            top: b.top,
-            width: `${b.size}px`,
-            height: `${b.size}px`,
-            borderRadius: "50%",
-            background: "rgba(77, 217, 232, 0.15)",
-            animation: `floatY ${b.dur} ease-in-out ${b.delay} infinite, pulse ${b.dur} ease-in-out ${b.delay} infinite`
-          }} />
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: b.left,
+              top: b.top,
+              width: `${b.size}px`,
+              height: `${b.size}px`,
+              borderRadius: "50%",
+              background: "rgba(77, 217, 232, 0.15)",
+              animation: `floatY ${b.dur} ease-in-out ${b.delay} infinite, pulse ${b.dur} ease-in-out ${b.delay} infinite`,
+            }}
+          />
         ))}
 
-        <div style={{
-          position: "absolute",
-          bottom: "-80px",
-          right: "-80px",
-          width: "260px",
-          height: "260px",
-          borderRadius: "50%",
-          border: "1px solid rgba(77, 217, 232, 0.08)",
-          background: "radial-gradient(circle, rgba(77, 217, 232, 0.04) 0%, transparent 70%)"
-        }} />
+        <div
+          style={{
+            position: "absolute",
+            bottom: "-80px",
+            right: "-80px",
+            width: "260px",
+            height: "260px",
+            borderRadius: "50%",
+            border: "1px solid rgba(77, 217, 232, 0.08)",
+            background:
+              "radial-gradient(circle, rgba(77, 217, 232, 0.04) 0%, transparent 70%)",
+          }}
+        />
         <div className="absolute z-10 top-8 left-16 animate-fade-up">
-          <div className="relative z-10" style={{ marginBottom: "5rem", marginTop: "0.5rem", marginLeft: "-14px" }}>
-
-            <Link to="/" className="flex items-center gap-3 group" >
+          <div
+            className="relative z-10"
+            style={{
+              marginBottom: "5rem",
+              marginTop: "0.5rem",
+              marginLeft: "-14px",
+            }}
+          >
+            <Link to="/" className="flex items-center gap-3 group">
               <img src={HirionLogo} alt="Hirion Logo" className="w-44 h-auto" />
             </Link>
           </div>
 
-
-
-
           <div className="space-y-8 max-w-lg" style={{ marginTop: "5rem" }}>
             <div className="inline-flex items-center gap-2">
               <span className="text-[#4DD9E8] text-[11.5px] font-semibold tracking-[0.15em] uppercase">
-
-                BENCH REGISTRATION</span></div>
+                BENCH REGISTRATION
+              </span>
+            </div>
 
             <h1 className="text-[44px] font-bold text-white leading-[1.1] tracking-tight">
-              Ready to build your<br />
+              Ready to build your
+              <br />
               <span className="text-[#4DD9E8]">dream team?</span>
             </h1>
 
-            <p className="text-[16px] text-white/50 leading-relaxed max-w-sm">Join the ecosystem of elite companies and find the perfect match for your company's growth trajectory.</p>
+            <p className="text-[16px] text-white/50 leading-relaxed max-w-sm">
+              Join the ecosystem of elite companies and find the perfect match
+              for your company's growth trajectory.
+            </p>
 
             <div className="space-y-4 pt-4">
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center w-5 h-5 rounded-md bg-[#4DD9E8]/10 border border-[#4DD9E8]/20">
                   <CircleCheck className="w-3.5 h-3.5 text-[#4DD9E8]" />
                 </div>
-                <span className="text-white/80 text-[15px] font-medium">Access to top-tier candidates</span>
+                <span className="text-white/80 text-[15px] font-medium">
+                  Access to top-tier candidates
+                </span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center w-5 h-5 rounded-md bg-[#4DD9E8]/10 border border-[#4DD9E8]/20">
                   <CircleCheck className="w-3.5 h-3.5 text-[#4DD9E8]" />
                 </div>
-                <span className="text-white/80 text-[15px] font-medium">Build your talent pipeline</span>
+                <span className="text-white/80 text-[15px] font-medium">
+                  Build your talent pipeline
+                </span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center w-5 h-5 rounded-md bg-[#4DD9E8]/10 border border-[#4DD9E8]/20">
                   <CircleCheck className="w-3.5 h-3.5 text-[#4DD9E8]" />
                 </div>
-                <span className="text-white/80 text-[15px] font-medium">Streamlined hiring process</span>
+                <span className="text-white/80 text-[15px] font-medium">
+                  Streamlined hiring process
+                </span>
               </div>
             </div>
-
           </div>
         </div>
-
       </div>
 
       {/* Right Panel - Premium Form Section */}
@@ -457,12 +525,17 @@ const BenchRegistration = () => {
       <div className="flex-1 flex flex-col overflow-y-auto bg-white">
         <div className="flex-1 flex flex-col items-center justify-center sm:py-6 px-6 lg:px-12">
           <div className="w-full max-w-[540px] px-2 md:px-0 animate-fade-up">
-
             <div className="lg:hidden mb-12 flex flex-col items-center">
               <Link to="/" className="flex items-center gap-2 mb-2">
-                <img src={HirionLogo} alt="Hirion Logo" className="w-[180px] h-12 object-contain invert" />
+                <img
+                  src={HirionLogo}
+                  alt="Hirion Logo"
+                  className="w-[180px] h-12 object-contain invert"
+                />
               </Link>
-              <p className="text-xs text-gray-400 uppercase tracking-widest">Hiring Partner Onboarding</p>
+              <p className="text-xs text-gray-400 uppercase tracking-widest">
+                Hiring Partner Onboarding
+              </p>
             </div>
 
             <div className="relative py-8 px-4 md:px-0">
@@ -472,7 +545,7 @@ const BenchRegistration = () => {
                 totalSteps={totalSteps}
               />
 
-              <div className="mb-8 lg:text-left text-center" >
+              <div className="mb-8 lg:text-left text-center">
                 <h3 className="text-3xl sm:text-4xl font-bold text-[#1a1a2e] mb-2 sm:mb-3">
                   {currentStep === 1
                     ? "Bench Signup"
@@ -497,7 +570,9 @@ const BenchRegistration = () => {
                         <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
                           First Name <span className="text-[#4DD9E8]">*</span>
                         </Label>
-                        <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.firstName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                        <div
+                          className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.firstName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}
+                        >
                           <User className="w-4 h-4 text-[#aaa] shrink-0" />
                           <input
                             name="firstName"
@@ -514,7 +589,9 @@ const BenchRegistration = () => {
                         <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
                           Last Name <span className="text-[#4DD9E8]">*</span>
                         </Label>
-                        <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.lastName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                        <div
+                          className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.lastName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}
+                        >
                           <User className="w-4 h-4 text-[#aaa] shrink-0" />
                           <input
                             name="lastName"
@@ -533,7 +610,9 @@ const BenchRegistration = () => {
                       <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
                         Work Email <span className="text-[#4DD9E8]">*</span>
                       </Label>
-                      <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.email ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                      <div
+                        className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.email ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}
+                      >
                         <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
                         <input
                           name="email"
@@ -559,41 +638,68 @@ const BenchRegistration = () => {
                         <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
                           Password <span className="text-[#4DD9E8]">*</span>
                         </Label>
-                        <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.password ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                        <div
+                          className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.password ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}
+                        >
                           <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                           <input
                             name="password"
-                            type="password"
-                            placeholder="••••••••"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Enter your password"
                             className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
                             value={formData.password}
                             onChange={handleInputChange}
                             required
                           />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95 min-h-0 min-w-0"
+                          >
+                            {showPassword ? (
+                              <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                            ) : (
+                              <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                            )}
+                          </button>
                         </div>
                         <ErrorMessage error={fieldErrors.password} />
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                          Confirm Password <span className="text-[#4DD9E8]">*</span>
+                          Confirm Password{" "}
+                          <span className="text-[#4DD9E8]">*</span>
                         </Label>
-                        <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.confirmPassword ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                        <div
+                          className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.confirmPassword ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}
+                        >
                           <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                           <input
                             name="confirmPassword"
-                            type="password"
-                            placeholder="••••••••"
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder="Confirm password"
                             className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal w-full"
                             value={formData.confirmPassword}
                             onChange={handleInputChange}
                             required
                           />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
+                            className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95 min-h-0 min-w-0"
+                          >
+                            {showConfirmPassword ? (
+                              <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                            ) : (
+                              <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                            )}
+                          </button>
                         </div>
                         <ErrorMessage error={fieldErrors.confirmPassword} />
                       </div>
                     </div>
-
-
                   </div>
                 )}
 
@@ -601,18 +707,20 @@ const BenchRegistration = () => {
                   <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
                     {/* Email Verification Section */}
                     <div
-                      className={`rounded-2xl p-5 border-[1.5px] transition-all duration-200 ${isEmailVerified
-                        ? "bg-emerald-50/30 border-emerald-100"
-                        : "bg-[#f8f9fb] border-[#e8eaef]"
-                        }`}
+                      className={`rounded-2xl p-5 border-[1.5px] transition-all duration-200 ${
+                        isEmailVerified
+                          ? "bg-emerald-50/30 border-emerald-100"
+                          : "bg-[#f8f9fb] border-[#e8eaef]"
+                      }`}
                     >
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isEmailVerified
-                              ? "bg-emerald-500 text-white"
-                              : "bg-slate-200 text-slate-500"
-                              }`}
+                            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+                              isEmailVerified
+                                ? "bg-emerald-500 text-white"
+                                : "bg-slate-200 text-slate-500"
+                            }`}
                           >
                             {isEmailVerified ? (
                               <Check className="w-5 h-5" />
@@ -644,10 +752,11 @@ const BenchRegistration = () => {
                             </Label>
                             <div className="flex gap-3">
                               <div
-                                className={`flex-1 flex items-center gap-2.5 bg-white border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.otp
-                                  ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
-                                  : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                                  }`}
+                                className={`flex-1 flex items-center gap-2.5 bg-white border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                                  fieldErrors.otp
+                                    ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
+                                    : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
+                                }`}
                               >
                                 <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                                 <input
@@ -656,9 +765,7 @@ const BenchRegistration = () => {
                                   className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-medium tracking-[0.2em]"
                                   value={otp}
                                   onChange={(e) => {
-                                    setOtp(
-                                      e.target.value.replace(/\D/g, ""),
-                                    );
+                                    setOtp(e.target.value.replace(/\D/g, ""));
                                     if (fieldErrors.otp) {
                                       setFieldErrors((prev) => {
                                         const newErrors = { ...prev };
@@ -672,9 +779,7 @@ const BenchRegistration = () => {
                               <Button
                                 type="button"
                                 onClick={handleVerifyOtp}
-                                disabled={
-                                  isVerifyingOtp || otp.length !== 6
-                                }
+                                disabled={isVerifyingOtp || otp.length !== 6}
                                 className="h-[46px] px-6 bg-[#1a1a2e] hover:bg-[#2a2a4e] text-white font-bold rounded-[10px] transition-all"
                               >
                                 {isVerifyingOtp ? (
@@ -695,10 +800,11 @@ const BenchRegistration = () => {
                               type="button"
                               onClick={handleSendOtp}
                               disabled={isSendingOtp || resendCooldown > 0}
-                              className={`font-bold transition-colors ${isSendingOtp || resendCooldown > 0
-                                ? "text-slate-300 cursor-not-allowed"
-                                : "text-[#4DD9E8] hover:text-[#0e8a96] underline"
-                                }`}
+                              className={`font-bold transition-colors ${
+                                isSendingOtp || resendCooldown > 0
+                                  ? "text-slate-300 cursor-not-allowed"
+                                  : "text-[#4DD9E8] hover:text-[#0e8a96] underline"
+                              }`}
                             >
                               {isSendingOtp
                                 ? "Sending..."
@@ -713,9 +819,12 @@ const BenchRegistration = () => {
 
                     <div className="flex flex-col gap-1.5">
                       <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                        ORGANIZATION NAME<span className="text-[#4DD9E8]">*</span>
+                        ORGANIZATION NAME
+                        <span className="text-[#4DD9E8]">*</span>
                       </Label>
-                      <div className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.companyName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}>
+                      <div
+                        className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${fieldErrors.companyName ? "border-red-500" : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"}`}
+                      >
                         <Building2 className="w-4 h-4 text-[#aaa] shrink-0" />
                         <input
                           name="companyName"
@@ -752,7 +861,8 @@ const BenchRegistration = () => {
                   <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="flex flex-col gap-1.5">
                       <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
-                        COMPANY DOCUMENT (ID/VERIFICATION) <span className="text-[#4DD9E8]">*</span>
+                        COMPANY DOCUMENT (ID/VERIFICATION){" "}
+                        <span className="text-[#4DD9E8]">*</span>
                       </Label>
                       {!companyDocument ? (
                         <div
@@ -769,11 +879,17 @@ const BenchRegistration = () => {
                           className={`group relative border-2 border-dashed rounded-[10px] p-12 transition-all hover:bg-slate-50 cursor-pointer flex flex-col items-center justify-center gap-4 ${fieldErrors.companyDocument ? "border-red-500" : "border-[#e8eaef] hover:border-[#4DD9E8]"}`}
                         >
                           <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
-                            <Upload className={`w-8 h-8 ${fieldErrors.companyDocument ? "text-red-500" : "text-slate-400 group-hover:text-[#4DD9E8]"}`} />
+                            <Upload
+                              className={`w-8 h-8 ${fieldErrors.companyDocument ? "text-red-500" : "text-slate-400 group-hover:text-[#4DD9E8]"}`}
+                            />
                           </div>
                           <div className="text-center">
-                            <p className="text-sm font-extrabold text-slate-600">Select business document</p>
-                            <p className="text-[11px] text-slate-400 mt-1 uppercase tracking-widest">PDF, DOC, DOCX up to 10MB</p>
+                            <p className="text-sm font-extrabold text-slate-600">
+                              Select business document
+                            </p>
+                            <p className="text-[11px] text-slate-400 mt-1 uppercase tracking-widest">
+                              PDF, DOC, DOCX up to 10MB
+                            </p>
                           </div>
                           <input
                             type="file"
@@ -791,9 +907,14 @@ const BenchRegistration = () => {
                               <FileIcon className="w-6 h-6 text-[#4DD9E8]" />
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-slate-700 truncate max-w-[250px]">{companyDocument.name}</p>
+                              <p className="text-sm font-bold text-slate-700 truncate max-w-[250px]">
+                                {companyDocument.name}
+                              </p>
                               <p className="text-[11px] font-bold text-[#4DD9E8]/60 uppercase">
-                                {(companyDocument.size / 1024 / 1024).toFixed(2)} MB
+                                {(companyDocument.size / 1024 / 1024).toFixed(
+                                  2,
+                                )}{" "}
+                                MB
                               </p>
                             </div>
                           </div>
@@ -811,7 +932,9 @@ const BenchRegistration = () => {
                     </div>
 
                     <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
-                      By submitting this application, you agree to Hirion's staffing partner terms and permit us to verify your company credentials.
+                      By submitting this application, you agree to Hirion's
+                      staffing partner terms and permit us to verify your
+                      company credentials.
                     </div>
                   </div>
                 )}
@@ -840,7 +963,9 @@ const BenchRegistration = () => {
                       </div>
                     ) : (
                       <>
-                        <span>{currentStep === totalSteps ? "Sign Up" : "Next Step"}</span>
+                        <span>
+                          {currentStep === totalSteps ? "Sign Up" : "Next Step"}
+                        </span>
                         {currentStep < totalSteps ? (
                           <ChevronRight className="w-5 h-5" />
                         ) : (
@@ -866,7 +991,6 @@ const BenchRegistration = () => {
         </div>
       </div>
     </div>
-
   );
 };
 

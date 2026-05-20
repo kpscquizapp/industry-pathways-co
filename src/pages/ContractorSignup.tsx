@@ -137,7 +137,8 @@ const VALIDATION = {
   phone: {
     regex: /^\+?[1-9]\d{6,14}$/,
     validate: (phone: string | number) => {
-      if (phone === null || phone === undefined || phone === "") return "Mobile number is required";
+      if (phone === null || phone === undefined || phone === "")
+        return "Mobile number is required";
       const phoneStr = String(phone);
       const cleaned = phoneStr.replace(/[\s\-()]/g, "");
       if (!VALIDATION.phone.regex.test(cleaned)) {
@@ -1063,7 +1064,8 @@ export default function ContractorSignup(): JSX.Element {
   const [createContractor, { isLoading }] = useCreateCandidateMutation();
   const [checkExistingEmail, { isLoading: isCheckingEmail }] =
     useCheckExistingEmailMutation();
-  const [sendVerificationOtp, { isLoading: isSendingOtp }] = useSendVerificationOtpMutation();
+  const [sendVerificationOtp, { isLoading: isSendingOtp }] =
+    useSendVerificationOtpMutation();
   const [verifyOtp, { isLoading: isVerifyingOtp }] = useVerifyOtpMutation();
 
   const [step, setStep] = useState(1);
@@ -1110,7 +1112,10 @@ export default function ContractorSignup(): JSX.Element {
   /* ── Timer for OTP resend cooldown ── */
   useEffect(() => {
     if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      const timer = setTimeout(
+        () => setResendCooldown(resendCooldown - 1),
+        1000,
+      );
       return () => clearTimeout(timer);
     }
   }, [resendCooldown]);
@@ -1126,7 +1131,12 @@ export default function ContractorSignup(): JSX.Element {
     setForm((prev) => ({
       ...prev,
       // Special case: mobileNumber should remain a string to preserve leading zeros
-      [name]: (type === "number" && name !== "mobileNumber") ? (value === "" ? null : Number(value)) : value,
+      [name]:
+        type === "number" && name !== "mobileNumber"
+          ? value === ""
+            ? null
+            : Number(value)
+          : value,
     }));
   }, []);
 
@@ -1889,8 +1899,7 @@ export default function ContractorSignup(): JSX.Element {
               />
               {isCheckingEmail && (
                 <div className="text-sm text-slate-500 flex items-center gap-2">
-                  <SpinnerLoader />{" "}
-                  <span>Checking availability...</span>
+                  <SpinnerLoader /> <span>Checking availability...</span>
                 </div>
               )}
               <Input
@@ -1908,7 +1917,7 @@ export default function ContractorSignup(): JSX.Element {
                 <PasswordInput
                   label="Password"
                   name="password"
-                  placeholder="Password"
+                  placeholder="Enter your password"
                   value={form.password}
                   onChange={handleInput}
                   show={showPw}
@@ -1929,46 +1938,81 @@ export default function ContractorSignup(): JSX.Element {
             </div>
           )}
 
-
           {step === 2 && (
             <div style={S.column(22)}>
-
               <div
                 style={{
-                  background: isEmailVerified ? "rgba(77,217,232,0.05)" : "#fff9f9",
+                  background: isEmailVerified
+                    ? "rgba(77,217,232,0.05)"
+                    : "#fff9f9",
                   border: `1.5px solid ${isEmailVerified ? ACCENT : "#fee2e2"}`,
                   borderRadius: 12,
                   padding: 20,
                   marginBottom: 10,
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "50%",
-                      background: isEmailVerified ? ACCENT : "#fee2e2",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: isEmailVerified ? "#fff" : "#ef4444"
-                    }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 12,
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
+                    <div
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        background: isEmailVerified ? ACCENT : "#fee2e2",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: isEmailVerified ? "#fff" : "#ef4444",
+                      }}
+                    >
                       {isEmailVerified ? "✓" : "!"}
                     </div>
                     <div>
-                      <p style={{ fontSize: 14, fontWeight: 700, color: TEXT_PRIMARY }}>Email Verification</p>
-                      <p style={{ fontSize: 12, color: TEXT_MUTED }}>{form.email}</p>
+                      <p
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 700,
+                          color: TEXT_PRIMARY,
+                        }}
+                      >
+                        Email Verification
+                      </p>
+                      <p style={{ fontSize: 12, color: TEXT_MUTED }}>
+                        {form.email}
+                      </p>
                     </div>
                   </div>
                   {isEmailVerified && (
-                    <span style={{ fontSize: 12, fontWeight: 600, color: ACCENT_DARK }}>Verified</span>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: ACCENT_DARK,
+                      }}
+                    >
+                      Verified
+                    </span>
                   )}
                 </div>
 
                 {!isEmailVerified && (
                   <div style={S.column(12)}>
-                    <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 10,
+                        alignItems: "flex-end",
+                      }}
+                    >
                       <div style={{ flex: 1 }}>
                         <Input
                           label="Enter 6-digit Code"
@@ -1976,7 +2020,9 @@ export default function ContractorSignup(): JSX.Element {
                           placeholder="000000"
                           value={otp}
                           maxLength={6}
-                          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                          onChange={(e) =>
+                            setOtp(e.target.value.replace(/\D/g, ""))
+                          }
                           icon={LockIcon}
                           error={fieldErrors.otp}
                         />
@@ -1993,16 +2039,25 @@ export default function ContractorSignup(): JSX.Element {
                           color: "#fff",
                           fontSize: 13,
                           fontWeight: 600,
-                          cursor: (isVerifyingOtp || otp.length !== 6) ? "not-allowed" : "pointer",
-                          opacity: (isVerifyingOtp || otp.length !== 6) ? 0.7 : 1,
+                          cursor:
+                            isVerifyingOtp || otp.length !== 6
+                              ? "not-allowed"
+                              : "pointer",
+                          opacity: isVerifyingOtp || otp.length !== 6 ? 0.7 : 1,
                           border: "none",
-                          marginBottom: fieldErrors.otp ? 24 : 0
+                          marginBottom: fieldErrors.otp ? 24 : 0,
                         }}
                       >
                         {isVerifyingOtp ? "Verifying..." : "Verify"}
                       </button>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
                       <p style={{ fontSize: 12, color: TEXT_MUTED }}>
                         Didn't receive the code?
                       </p>
@@ -2013,14 +2068,24 @@ export default function ContractorSignup(): JSX.Element {
                         style={{
                           background: "none",
                           border: "none",
-                          color: (isSendingOtp || resendCooldown > 0) ? TEXT_MUTED : ACCENT_DARK,
+                          color:
+                            isSendingOtp || resendCooldown > 0
+                              ? TEXT_MUTED
+                              : ACCENT_DARK,
                           fontSize: 12,
                           fontWeight: 600,
-                          cursor: (isSendingOtp || resendCooldown > 0) ? "not-allowed" : "pointer",
-                          textDecoration: "underline"
+                          cursor:
+                            isSendingOtp || resendCooldown > 0
+                              ? "not-allowed"
+                              : "pointer",
+                          textDecoration: "underline",
                         }}
                       >
-                        {isSendingOtp ? "Sending..." : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
+                        {isSendingOtp
+                          ? "Sending..."
+                          : resendCooldown > 0
+                            ? `Resend in ${resendCooldown}s`
+                            : "Resend Code"}
                       </button>
                     </div>
                   </div>
@@ -2171,16 +2236,16 @@ export default function ContractorSignup(): JSX.Element {
               disabled={isLoading || isCheckingEmail}
               style={btnPrimary}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(15, 23, 41, 0.9)';
-                e.currentTarget.style.backgroundImage = 'none';
+                e.currentTarget.style.backgroundColor = "rgba(15, 23, 41, 0.9)";
+                e.currentTarget.style.backgroundImage = "none";
               }}
               onMouseLeave={(e) => {
                 if (isLast) {
                   e.currentTarget.style.backgroundImage = `linear-gradient(135deg, ${ACCENT} 0%, #06b6d4 100%)`;
-                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.backgroundColor = "transparent";
                 } else {
                   e.currentTarget.style.backgroundColor = TEXT_PRIMARY;
-                  e.currentTarget.style.backgroundImage = 'none';
+                  e.currentTarget.style.backgroundImage = "none";
                 }
               }}
             >
@@ -2224,7 +2289,12 @@ export default function ContractorSignup(): JSX.Element {
             }}
           >
             Already have an account?{" "}
-            <Link to="/contractor-login" className="text-teal-600 hover:underline">Sign In to Dashboard</Link>
+            <Link
+              to="/contractor-login"
+              className="text-teal-600 hover:underline"
+            >
+              Sign In to Dashboard
+            </Link>
           </p>
         </div>
       </div>
