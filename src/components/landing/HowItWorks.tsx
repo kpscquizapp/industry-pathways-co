@@ -115,7 +115,7 @@ export default function HowItWorks() {
 
         {/* Cards grid */}
         <motion.div
-          className="hiw-grid grid grid-cols-1 md:grid-cols-3 gap-7"
+          className="hiw-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -134,7 +134,7 @@ function StepCard({ step, index }) {
   return (
     <motion.div
       variants={cardVariants}
-      className="bg-white rounded-2xl py-2 flex flex-col h-full"
+      className="bg-white rounded-2xl py-2 flex flex-col h-full min-w-0"
     >
       <CardImage type={step.imgType} />
       <div className="py-4 flex-1 flex flex-col">
@@ -207,13 +207,16 @@ const MarqueeRow = ({ icons, reverse = false }) => (
 );
 
 function CardImage({ type }) {
+  const cardImageClass =
+    "card-image overflow-hidden relative w-full max-w-full min-w-0 border-[10px] md:h-[250px] border-black rounded-2xl shadow-xl";
+
   if (type === "marketplace") {
     return (
-      <div className="card-image bg-gray-100 overflow-hidden relative group h-[250px]  border-[10px] border-black rounded-2xl shadow-xl">
+      <div className={`${cardImageClass} bg-gray-100 group`}>
         <img
           src={hiw1}
           alt="Marketplace"
-          className="w-full h-full object-cover transition-transform duration-700"
+          className="block w-full max-w-full h-full object-cover transition-transform duration-700"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>
@@ -225,7 +228,9 @@ function CardImage({ type }) {
     const row2 = [Codepen, Database, Code2, Terminal, Cpu, Layers];
 
     return (
-      <div className="card-image bg-[#0f1520] rounded-xl overflow-hidden relative flex flex-col justify-center p-4 h-[250px]  border-[10px] border-black rounded-2xl shadow-xl">
+      <div
+        className={`${cardImageClass} bg-[#0f1520] flex flex-col justify-center p-4`}
+      >
         <div className="space-y-4 relative z-10 opacity-30">
           <MarqueeRow icons={row1} />
           <MarqueeRow icons={row2} reverse />
@@ -236,7 +241,7 @@ function CardImage({ type }) {
 
   // Deploy/Profiles
   return (
-    <div className="card-image bg-gray-900 rounded-xl overflow-hidden relative h-[250px] border-[10px] border-black rounded-2xl shadow-xl">
+    <div className={`${cardImageClass} bg-gray-900`}>
       <div className="absolute top-0 left-0 w-full p-4 z-20 bg-gradient-to-b from-gray-900 to-transparent">
         <div className="flex items-center justify-between">
           <span className="text-[11px] text-gray-200 font-bold uppercase tracking-wider">
@@ -264,12 +269,12 @@ function CardImage({ type }) {
           <img
             src={profilesImg}
             alt="Candidate Profiles"
-            className="w-full rounded-lg shadow-sm"
+            className="block w-full max-w-full rounded-lg shadow-sm"
           />
           <img
             src={profilesImg}
             alt="Candidate Profiles"
-            className="w-full rounded-lg shadow-sm"
+            className="block w-full max-w-full rounded-lg shadow-sm"
           />
         </motion.div>
       </div>

@@ -470,6 +470,7 @@ body {
   @apply w-full rounded-2xl overflow-hidden relative;
   aspect-ratio: 1 / 0.85;
   background: #1a1a1a;
+  height: auto;
 }
 
 /* ═══════════════════════════════════════
@@ -493,8 +494,7 @@ body {
   }
 
   .hiw-grid {
-    grid-template-columns: 1fr !important;
-    max-width: 420px;
+    /* grid-template-columns: 1fr !important; */
     margin: 0 auto;
   }
 }
