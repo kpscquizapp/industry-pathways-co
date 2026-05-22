@@ -29,6 +29,9 @@ const parseResumeWithClaude = async (
   token?: string,
 ): Promise<ParsedResume> => {
   const backendUrl = import.meta.env.VITE_API_BASE_URL;
+  if (!backendUrl) {
+    throw new Error("Missing VITE_API_BASE_URL");
+  }
 
   const response = await fetch(
     `${backendUrl}/employers/claude/extract-resume`,
@@ -51,7 +54,7 @@ const parseResumeWithClaude = async (
 
   const data = await response.json();
 
-  if (!data.success) {
+  if (!data?.success || !data?.data || typeof data.data !== "object") {
     throw new Error("Claude extraction failed on backend");
   }
 

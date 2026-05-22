@@ -73,8 +73,10 @@ const BenchRegistration = () => {
       await sendVerificationOtp({ email: formData.email }).unwrap();
       toast.success("Verification code sent to your email.");
       setResendCooldown(60);
+      return true;
     } catch (err) {
       toast.error("Failed to send verification code. Please try again.");
+      return false;
     }
   }, [formData.email, sendVerificationOtp]);
 
@@ -269,7 +271,8 @@ const BenchRegistration = () => {
   const nextStep = async () => {
     if (await validateStep()) {
       if (currentStep === 1 && !isEmailVerified) {
-        handleSendOtp();
+        const otpSent = await handleSendOtp();
+        if (!otpSent) return;
       }
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     }
@@ -568,7 +571,10 @@ const BenchRegistration = () => {
                 <div className="space-y-5 ">
                   <div className="grid md:grid-cols-2 gap-5">
                     <div className="flex flex-col gap-1.5">
-                      <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                      <Label
+                        className="text-[13px] font-semibold text-[#1a1a2e] ml-1"
+                        htmlFor="firstName"
+                      >
                         First Name <span className="text-[#4DD9E8]">*</span>
                       </Label>
                       <div
@@ -576,6 +582,8 @@ const BenchRegistration = () => {
                       >
                         <User className="w-4 h-4 text-[#aaa] shrink-0" />
                         <input
+                          type="text"
+                          id="firstName"
                           name="firstName"
                           placeholder="John"
                           className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
@@ -587,7 +595,10 @@ const BenchRegistration = () => {
                       <ErrorMessage error={fieldErrors.firstName} />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                      <Label
+                        className="text-[13px] font-semibold text-[#1a1a2e] ml-1"
+                        htmlFor="lastName"
+                      >
                         Last Name <span className="text-[#4DD9E8]">*</span>
                       </Label>
                       <div
@@ -595,6 +606,8 @@ const BenchRegistration = () => {
                       >
                         <User className="w-4 h-4 text-[#aaa] shrink-0" />
                         <input
+                          type="text"
+                          id="lastName"
                           name="lastName"
                           placeholder="Smith"
                           className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
@@ -608,7 +621,10 @@ const BenchRegistration = () => {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                    <Label
+                      className="text-[13px] font-semibold text-[#1a1a2e] ml-1"
+                      htmlFor="email"
+                    >
                       Work Email <span className="text-[#4DD9E8]">*</span>
                     </Label>
                     <div
@@ -618,6 +634,7 @@ const BenchRegistration = () => {
                       <input
                         name="email"
                         type="email"
+                        id="email"
                         placeholder="bench@example.com"
                         className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
                         value={formData.email}
@@ -636,7 +653,10 @@ const BenchRegistration = () => {
 
                   <div className="grid md:grid-cols-2 gap-5">
                     <div className="flex flex-col gap-1.5">
-                      <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                      <Label
+                        className="text-[13px] font-semibold text-[#1a1a2e] ml-1"
+                        htmlFor="password"
+                      >
                         Password <span className="text-[#4DD9E8]">*</span>
                       </Label>
                       <div
@@ -644,6 +664,7 @@ const BenchRegistration = () => {
                       >
                         <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                         <input
+                          id="password"
                           name="password"
                           type={showPassword ? "text" : "password"}
                           placeholder="Enter your password"
@@ -676,7 +697,10 @@ const BenchRegistration = () => {
                       <ErrorMessage error={fieldErrors.password} />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                      <Label
+                        className="text-[13px] font-semibold text-[#1a1a2e] ml-1"
+                        htmlFor="confirmPassword"
+                      >
                         Confirm Password{" "}
                         <span className="text-[#4DD9E8]">*</span>
                       </Label>
@@ -685,6 +709,7 @@ const BenchRegistration = () => {
                       >
                         <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                         <input
+                          id="confirmPassword"
                           name="confirmPassword"
                           type={showConfirmPassword ? "text" : "password"}
                           placeholder="Confirm password"
@@ -766,7 +791,10 @@ const BenchRegistration = () => {
                     {!isEmailVerified && (
                       <div className="space-y-4">
                         <div className="flex flex-col gap-1.5">
-                          <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                          <Label
+                            className="text-[13px] font-semibold text-[#1a1a2e] ml-1"
+                            htmlFor="otp"
+                          >
                             Enter 6-digit Code
                           </Label>
                           <div className={styles["bench-otp-row"]}>
@@ -779,6 +807,8 @@ const BenchRegistration = () => {
                             >
                               <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                               <input
+                                type="number"
+                                id="otp"
                                 placeholder="000000"
                                 maxLength={6}
                                 className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-medium tracking-[0.2em] w-full"
@@ -845,7 +875,10 @@ const BenchRegistration = () => {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                    <Label
+                      className="text-[13px] font-semibold text-[#1a1a2e] ml-1"
+                      htmlFor="companyName"
+                    >
                       Organization Name<span className="text-[#4DD9E8]">*</span>
                     </Label>
                     <div
@@ -853,6 +886,8 @@ const BenchRegistration = () => {
                     >
                       <Building2 className="w-4 h-4 text-[#aaa] shrink-0" />
                       <input
+                        type="text"
+                        id="companyName"
                         name="companyName"
                         placeholder="Company Co."
                         className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-normal"
@@ -865,10 +900,14 @@ const BenchRegistration = () => {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                    <Label
+                      className="text-[13px] font-semibold text-[#1a1a2e] ml-1"
+                      htmlFor="companyDetails"
+                    >
                       Organization Details (Optional)
                     </Label>
                     <Textarea
+                      id="companyDetails"
                       name="companyDetails"
                       placeholder="Tell us about your staffing capabilities..."
                       maxLength={1000}
@@ -876,6 +915,7 @@ const BenchRegistration = () => {
                       value={formData.companyDetails}
                       onChange={handleInputChange}
                     />
+                    <ErrorMessage error={fieldErrors.companyDetails} />
                     <p className="text-xs text-slate-500 mt-2 ml-1">
                       {formData.companyDetails.length}/1000 characters
                     </p>
@@ -886,7 +926,10 @@ const BenchRegistration = () => {
               {currentStep === 3 && (
                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
                   <div className="flex flex-col gap-1.5">
-                    <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
+                    <Label
+                      className="text-[13px] font-semibold text-[#1a1a2e] ml-1"
+                      htmlFor="companyDocument"
+                    >
                       Company Document <span className="text-[#4DD9E8]">*</span>
                     </Label>
                     {!companyDocument ? (
@@ -917,6 +960,7 @@ const BenchRegistration = () => {
                           </p>
                         </div>
                         <input
+                          id="companyDocument"
                           type="file"
                           ref={fileInputRef}
                           onChange={handleFileChange}
