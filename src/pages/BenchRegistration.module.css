@@ -31,7 +31,6 @@
     display: flex;
     gap: 10px;
     align-items: flex-end;
-    flex-wrap: wrap;
 }
 
 .bench-otp-btn {
@@ -64,7 +63,7 @@
         flex: 0 0 50%;
         width: 50%;
         max-width: 50%;
-        padding: 60px 70px;
+        padding: 60px 36px;
         justify-content: center;
     }
 }
@@ -96,7 +95,6 @@
     }
 
     .bench-actions {
-        flex-direction: column-reverse;
         gap: 10px;
         padding-top: 16px;
     }

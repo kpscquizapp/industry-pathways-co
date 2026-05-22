@@ -296,16 +296,16 @@ const BenchLogin = () => {
             </div>
 
             <h1 className="text-[44px] font-bold text-white leading-[1.2] tracking-tight">
-              Welcome back,
+              Welcome back to your
               <br />
               <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                let's build.
+                bench command center.
               </span>
             </h1>
 
             <p className="text-[16px] text-white/40 leading-relaxed max-w-sm">
-              Access your projects, track interviews, and manage your bench
-              profile — all in one place.
+              Review listed resources, respond to demand, and keep every
+              deployment-ready profile moving toward billable work.
             </p>
           </div>
         </div>
