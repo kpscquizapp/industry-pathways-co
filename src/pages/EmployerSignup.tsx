@@ -875,7 +875,6 @@ const EmployerSignup = () => {
                                   >
                                     <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                                     <input
-                                      type="number"
                                       placeholder="000000"
                                       maxLength={6}
                                       className="flex-1 bg-transparent outline-none h-full p-0 text-sm font-medium tracking-[0.2em]"

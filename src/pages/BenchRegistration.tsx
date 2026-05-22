@@ -807,7 +807,6 @@ const BenchRegistration = () => {
                             >
                               <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                               <input
-                                type="number"
                                 id="otp"
                                 placeholder="000000"
                                 maxLength={6}

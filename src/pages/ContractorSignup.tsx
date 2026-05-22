@@ -1961,7 +1961,6 @@ export default function ContractorSignup(): JSX.Element {
                       <div style={{ flex: 1 }}>
                         <Input
                           label="Enter 6-digit Code"
-                          type="number"
                           name="otp"
                           placeholder="000000"
                           value={otp}
