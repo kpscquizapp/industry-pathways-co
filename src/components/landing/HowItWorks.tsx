@@ -74,9 +74,13 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="py-24 px-6 bg-white overflow-hidden scroll-mt-10"
+      className="py-24 px-6 bg-white overflow-hidden scroll-mt-[84px] lg:scroll-mt-10"
     >
-      <span id="features" className="block h-0 scroll-mt-10" aria-hidden="true" />
+      <span
+        id="features"
+        className="block h-0 scroll-mt-[84px] lg:scroll-mt-10"
+        aria-hidden="true"
+      />
       <div className="max-w-[1240px] mx-auto">
         {/* Header */}
         <div className="text-center mb-20">
