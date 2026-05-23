@@ -1165,9 +1165,43 @@ const CandidateProfileUpdate = (): JSX.Element => {
     }
   };
 
-  const handleSaveSkillsOnly = async (
-    secondarySkillsOverride: string[] = formData.secondarySkills,
+  const getMergedSecondarySkills = (
+    baseSecondarySkills: string[] = formData.secondarySkills,
   ) => {
+    const seen = new Set(
+      baseSecondarySkills.map((s) => normalizeSkill(s)),
+    );
+    const mergedSecondarySkills = [...baseSecondarySkills];
+
+    extractedSkills.forEach((skill) => {
+      if (skill.isPrimary) return;
+
+      const normalized = normalizeSkill(skill.name);
+      const inPrimary = formData.primarySkills.some(
+        (primarySkill) => normalizeSkill(primarySkill) === normalized,
+      );
+
+      if (!seen.has(normalized) && !inPrimary) {
+        seen.add(normalized);
+        mergedSecondarySkills.push(skill.name);
+      }
+    });
+
+    return mergedSecondarySkills;
+  };
+
+  const markResumeExtractionHandled = () => {
+    if (Array.isArray(resumeData)) {
+      processedResumeDataRef.current = [...resumeData];
+    }
+    setShowPrimarySkillsDisplay(false);
+  };
+
+  const handleSaveSkillsOnly = async (secondarySkillsOverride?: string[]) => {
+    const secondarySkillsToPersist = getMergedSecondarySkills(
+      secondarySkillsOverride ?? formData.secondarySkills,
+    );
+
     if (!formData.preferredJobLocations.length) {
       setFieldErrors((prev) => ({
         ...prev,
@@ -1196,7 +1230,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
       primaryJobRole: formData.primaryJobRole.trim(),
       bio: formData.bio.trim(),
       primarySkills: formData.primarySkills,
-      secondarySkills: secondarySkillsOverride,
+      secondarySkills: secondarySkillsToPersist,
       preferredJobLocations: formData.preferredJobLocations,
       hourlyRateMin:
         formData.hourlyRateMin === "" ? null : Number(formData.hourlyRateMin),
@@ -1258,6 +1292,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
 
     try {
       await updateProfile(payload).unwrap();
+      setFormData((prev) => ({
+        ...prev,
+        secondarySkills: secondarySkillsToPersist,
+      }));
+      markResumeExtractionHandled();
       toast.success("Skills updated successfully!");
     } catch (err: unknown) {
       const error = err as { data?: { message?: string }; message?: string };
@@ -1271,36 +1310,15 @@ const CandidateProfileUpdate = (): JSX.Element => {
 
   const handleUpdateSkillExtraction = async () => {
     // 1. Mark as processed to hide the banner persistently (until a new resume is uploaded)
-    if (Array.isArray(resumeData)) {
-      processedResumeDataRef.current = [...resumeData];
-    }
+    markResumeExtractionHandled();
 
-    // 2. Hide the top banner immediately
-    setShowPrimarySkillsDisplay(false);
-
-    // 3. Compute locally the merged secondary skills
-    const seen = new Set(
-      formData.secondarySkills.map((s) => s.toLowerCase().trim()),
-    );
-    const newSecondary = [...formData.secondarySkills];
-
-    extractedSkills.forEach((s) => {
-      if (!s.isPrimary) {
-        const normalized = s.name.toLowerCase().trim();
-        const inPrimary = formData.primarySkills.some(
-          (p) => p.toLowerCase().trim() === normalized,
-        );
-        if (!seen.has(normalized) && !inPrimary) {
-          seen.add(normalized);
-          newSecondary.push(s.name);
-        }
-      }
-    });
+    // 2. Compute locally the merged secondary skills
+    const newSecondary = getMergedSecondarySkills();
 
     // Update the local state for UI immediately
     setFormData((prev) => ({ ...prev, secondarySkills: newSecondary }));
 
-    // 4. Save updates to the backend explicitly without full form validation
+    // 3. Save updates to the backend explicitly without full form validation
     await handleSaveSkillsOnly(newSecondary);
   };
 
