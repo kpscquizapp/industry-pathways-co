@@ -17,11 +17,11 @@ const SOCIALS = [
 ];
 
 export default function Footer() {
-
-
   const userDetails = useSelector((state: RootState) => state.user.userDetails);
   const isCandidate = userDetails?.role === "candidate";
-  const loginPath = isCandidate ? "/contractor/dashboard" : "/contractor-signup";
+  const loginPath = isCandidate
+    ? "/contractor/dashboard"
+    : "/contractor-signup";
 
   const FOOTER_COLS: { heading: string; links: FooterLink[] }[] = [
     {
@@ -45,7 +45,10 @@ export default function Footer() {
     {
       heading: "Support",
       links: [
-        { label: "hello@quickrekruit.com", href: "mailto:hello@quickrekruit.com" },
+        {
+          label: "hello@quickrekruit.com",
+          href: "mailto:hello@quickrekruit.com",
+        },
         { label: "+91 7736805150", href: "tel:+917736805150" },
       ],
     },
@@ -58,11 +61,10 @@ export default function Footer() {
     },
   ];
 
-
   return (
     <footer
       id="contact"
-      className="border-t border-gray-100 overflow-hidden scroll-mt-10 bg-[#121212]"
+      className="border-t border-gray-100 overflow-hidden scroll-mt-[84px] lg:scroll-mt-10 bg-[#121212]"
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}

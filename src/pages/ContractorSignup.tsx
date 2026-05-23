@@ -1349,7 +1349,7 @@ export default function ContractorSignup(): JSX.Element {
 
   const btnPrimary: CSSProperties = useMemo(
     () => ({
-      flex: 1,
+      width: "100%",
       padding: "14px 28px",
       borderRadius: 10,
       border: "none",
@@ -1648,84 +1648,27 @@ export default function ContractorSignup(): JSX.Element {
             gap: 12px;
           }
           .contractor-actions {
-            flex-direction: column-reverse;
+            flex-direction: row;
             gap: 10px;
             margin-top: 24px;
           }
           .contractor-actions > button {
-            width: 100%;
+            flex: 1;
+            height: 52px !important;
             padding: 12px 20px !important;
             font-size: 13px !important;
           }
         }
-        @media (max-width: 640px) {
-          .contractor-right-panel {
-            padding: 12px 10px;
-          }
-          .contractor-mobile-brand {
-            display: flex;
-            margin-bottom: 14px;
-          }
-          .contractor-mobile-brand img {
-            width: 150px;
-          }
-          .contractor-mobile-brand span {
-            font-size: 10px;
-            letter-spacing: 0.18em;
-          }
-          .contractor-stepper {
-            margin-bottom: 16px;
-            padding: 10px 10px;
-            gap: 4px;
-            border-radius: 14px;
-          }
-          .contractor-stepper-item {
-            min-width: auto;
-          }
-          .contractor-stepper-step {
-            gap: 5px;
-          }
-          .contractor-stepper-circle {
-            width: 24px;
-            height: 24px;
-            min-width: 24px;
-            font-size: 10px;
-          }
-          .contractor-stepper-label {
-            font-size: 9px;
-            letter-spacing: 0.08em;
-            max-width: 50px;
-          }
-          .contractor-stepper-connector {
-            flex: 0 1 32px;
-            min-width: 24px;
-            margin: 0 4px;
-          }
-          .contractor-form-shell {
-            max-width: 100%;
-            padding: 24px 16px;
-            border-radius: 16px;
-            box-shadow: 0 12px 40px rgba(15,23,42,0.08);
-            border: 1px solid rgba(200,210,220,0.3);
-          }
-          .contractor-form-shell > h2 {
-            font-size: 16px;
-            letter-spacing: -0.01em;
-          }
-          .contractor-form-shell > p {
-            font-size: 12px;
-            margin-bottom: 16px;
-          }
-          .contractor-step-grid {
-            gap: 11px;
-          }
+        @media (max-width: 480px) {
           .contractor-actions {
-            margin-top: 20px;
-            gap: 9px;
+            flex-direction: row;
+            gap: 8px;
+            margin-top: 24px;
           }
           .contractor-actions > button {
-            padding: 11px 16px !important;
-            font-size: 12px !important;
+            height: 52px !important;
+            padding: 10px 14px !important;
+            font-size: 11px !important;
           }
         }
         @media (max-width: 480px) {
@@ -1791,8 +1734,9 @@ export default function ContractorSignup(): JSX.Element {
             gap: 8px;
           }
           .contractor-actions > button {
+            flex: 1;
             padding: 10px 14px !important;
-            font-size: 11px !important;
+            font-size: 14px !important;
           }
         }
       `}</style>
@@ -2012,6 +1956,7 @@ export default function ContractorSignup(): JSX.Element {
                         gap: 10,
                         alignItems: "flex-end",
                       }}
+                      className="sm:flex-nowrap flex-wrap"
                     >
                       <div style={{ flex: 1 }}>
                         <Input
@@ -2031,6 +1976,7 @@ export default function ContractorSignup(): JSX.Element {
                         type="button"
                         onClick={handleVerifyOtp}
                         disabled={isVerifyingOtp || otp.length !== 6}
+                        className="w-full sm:w-fit"
                         style={{
                           height: 46,
                           padding: "0 20px",
@@ -2208,11 +2154,12 @@ export default function ContractorSignup(): JSX.Element {
                 onClick={prevStep}
                 disabled={isLoading || isCheckingEmail}
                 style={{
+                  width: "100%",
                   padding: "14px 28px",
                   borderRadius: 10,
                   border: "1.5px solid #e0e2e8",
                   background: "#fff",
-                  fontSize: 14,
+                  fontSize: 16,
                   fontWeight: 600,
                   color: TEXT_SECONDARY,
                   cursor: "pointer",
