@@ -773,9 +773,12 @@ const CandidateProfileUpdate = (): JSX.Element => {
     // If it's completely new, it evaluates auto-promote logic.
     const currentPrimaryCount = currentPrimary.length;
     let autoCheckedCount = checkedCount;
+    const seenResumeSkills = new Set<string>();
 
     for (const skill of validResumeSkills) {
       const normalized = normalizeSkill(skill);
+      if (seenResumeSkills.has(normalized)) continue;
+
       const inPrimary = currentPrimary.some(
         (p) => normalizeSkill(p) === normalized,
       );
@@ -788,6 +791,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
         if (currentPrimaryCount - currentPrimaryCount + autoCheckedCount < 5) {
           // simplify to autoCheckedCount < 5
           newPrimarySkills.push(skill);
+          seenResumeSkills.add(normalized);
           newExtractedObjects.push({
             id: createLocalId("ext"),
             name: skill,
@@ -795,12 +799,15 @@ const CandidateProfileUpdate = (): JSX.Element => {
           });
           autoCheckedCount++;
         } else {
+          seenResumeSkills.add(normalized);
           newExtractedObjects.push({
             id: createLocalId("ext"),
             name: skill,
             isPrimary: false,
           });
         }
+      } else {
+        seenResumeSkills.add(normalized);
       }
     }
 
@@ -1161,6 +1168,16 @@ const CandidateProfileUpdate = (): JSX.Element => {
   const handleSaveSkillsOnly = async (
     secondarySkillsOverride: string[] = formData.secondarySkills,
   ) => {
+    if (!formData.preferredJobLocations.length) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        preferredJobLocations:
+          "At least one preferred job location is required",
+      }));
+      toast.error("At least one preferred job location is required");
+      return;
+    }
+
     const cleanDate = (date: string | null | undefined) => {
       if (!date || date.trim() === "") return null;
       return date.trim();

@@ -470,7 +470,6 @@ body {
   @apply w-full rounded-2xl overflow-hidden relative;
   aspect-ratio: 1 / 0.85;
   background: #1a1a1a;
-  height: auto;
 }
 
 /* ═══════════════════════════════════════
