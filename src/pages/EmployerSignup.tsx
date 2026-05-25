@@ -767,6 +767,12 @@ const EmployerSignup = () => {
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95 min-h-0 min-w-0"
+                                aria-label={
+                                  showPassword
+                                    ? "Hide password"
+                                    : "Show password"
+                                }
+                                aria-pressed={showPassword}
                               >
                                 {showPassword ? (
                                   <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
@@ -804,6 +810,12 @@ const EmployerSignup = () => {
                                   setShowConfirmPassword(!showConfirmPassword)
                                 }
                                 className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95 min-h-0 min-w-0"
+                                aria-label={
+                                  showConfirmPassword
+                                    ? "Hide confirm password"
+                                    : "Show confirm password"
+                                }
+                                aria-pressed={showConfirmPassword}
                               >
                                 {showConfirmPassword ? (
                                   <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />

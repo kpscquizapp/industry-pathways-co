@@ -163,11 +163,11 @@ const VALIDATION = {
   },
   skills: {
     minCount: 1,
-    maxCount: 20,
+    maxCount: 5,
     maxLength: 50,
     validate: (skills: string[]) => {
       if (skills.length === 0) return "Please add at least one skill";
-      if (skills.length > 20) return "You can add a maximum of 20 skills";
+      if (skills.length > 5) return "You can add a maximum of 5 skills";
       const invalidSkill = skills.find((s) => s.length > 50);
       if (invalidSkill) return "Each skill must be less than 50 characters";
       return null;

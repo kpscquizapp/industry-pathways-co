@@ -2051,20 +2051,20 @@ const CandidateProfileUpdate = (): JSX.Element => {
   };
 
   const handleRemoveImage = async () => {
-    toast("Are you sure you want to remove profile image?", {
+    toast("Are you sure you want to delete profile image?", {
       action: {
         label: "Delete",
         onClick: async () => {
           try {
             await removeProfileImage(data.id).unwrap();
             await refetchCandidateProfileImage();
-            toast.success("Image removed successfully.");
+            toast.success("Image delete successfully.");
           } catch (error) {
             const message =
               typeof error === "object" && error != null && "data" in error
                 ? (error as { data?: { message?: string } }).data?.message
                 : undefined;
-            toast.error(message || "Failed to remove image.");
+            toast.error(message || "Failed to delete image.");
           }
         },
       },
@@ -2183,13 +2183,13 @@ const CandidateProfileUpdate = (): JSX.Element => {
               <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">
                 Select up to 5 primary skills from your extracted resume.
                 Unchecked skills are kept as secondary skills. <br />
-                {extractedSkills.filter((s) => s.isPrimary).length > 0 && (
-                  <p className="text-xs font-medium text-gray-400 mt-4">
-                    {extractedSkills.filter((s) => s.isPrimary).length} / 5
-                    primary skills selected from resume
-                  </p>
-                )}
               </p>
+              {extractedSkills.filter((s) => s.isPrimary).length > 0 && (
+                <p className="text-xs font-medium text-gray-400 mt-4 my-3">
+                  {extractedSkills.filter((s) => s.isPrimary).length} / 5
+                  primary skills selected from resume
+                </p>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {extractedSkills.map((skill) => {
                   const isChecked = skill.isPrimary;

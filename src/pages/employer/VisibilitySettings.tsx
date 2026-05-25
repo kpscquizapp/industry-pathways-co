@@ -350,6 +350,18 @@ const VisibilitySettings = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const MAX_SIZE_MB = 2;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      toast.error(`File size must be under ${MAX_SIZE_MB}MB.`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    // Revoke previous blob URL if exists
+    if (profileImage?.startsWith("blob:")) {
+      URL.revokeObjectURL(profileImage);
+    }
+
     const url = URL.createObjectURL(file);
     setProfileImage(url);
 
@@ -404,8 +416,6 @@ const VisibilitySettings = () => {
 
   const handleSaveCompany = async (e?: React.MouseEvent) => {
     e?.preventDefault();
-    console.log("Save clicked");
-    console.log("Saving company details...", companyDetails);
     try {
       const payload = {
         companyName: companyDetails.companyName,
@@ -415,7 +425,6 @@ const VisibilitySettings = () => {
         website: companyDetails.website,
         description: companyDetails.description,
       };
-      console.log("Executing updateProfile mutation with:", payload);
       await updateProfile(payload).unwrap();
 
       // Refetch to reflect the updated profile data
@@ -465,6 +474,10 @@ const VisibilitySettings = () => {
   };
 
   const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      toast.error("Please enter your password to confirm deletion.");
+      return;
+    }
     try {
       await deleteMyAccount({ password: deletePassword }).unwrap();
       setShowDeleteModal(false);
@@ -475,13 +488,10 @@ const VisibilitySettings = () => {
       sessionStorage.clear();
       window.location.href = "/bench-login";
     } catch (err: any) {
-      toast.error(err?.data?.message);
+      toast.error(
+        err?.data?.message || "Failed to delete account. Please try again.",
+      );
     }
-  };
-
-  // Keep a generic handleSave for other uses
-  const handleSave = () => {
-    toast.success("Settings saved successfully!");
   };
 
   return (
@@ -630,10 +640,10 @@ const VisibilitySettings = () => {
                                 <button
                                   onClick={() => {
                                     toast(
-                                      "Are you sure you want to remove your profile photo?",
+                                      "Are you sure you want to delete your profile photo?",
                                       {
                                         action: {
-                                          label: "Yes, Remove",
+                                          label: "Yes, Delete",
                                           onClick: () => handleRemoveImage(),
                                         },
                                         cancel: {
@@ -643,9 +653,9 @@ const VisibilitySettings = () => {
                                       },
                                     );
                                   }}
-                                  className="text-sm text-red-500 font-medium hover:text-red-500 transition-colors"
+                                  className="text-sm text-red-500 font-medium hover:text-red-500 transition-colors ml-2 bg-red-300/20 px-4 py-2 rounded-md hover:bg-red-300/40"
                                 >
-                                  Remove
+                                  Delete
                                 </button>
                               </div>
                               <p className="text-xs text-slate-400">
@@ -909,9 +919,9 @@ const VisibilitySettings = () => {
                               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                             >
                               {showCurrentPassword ? (
-                                <EyeOff className="h-4 w-4 ml-4" />
+                                <EyeOff className="h-4 w-4" />
                               ) : (
-                                <Eye className="h-4 w-4 ml-4" />
+                                <Eye className="h-4 w-4" />
                               )}
                             </button>
                           </div>
@@ -943,9 +953,9 @@ const VisibilitySettings = () => {
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                               >
                                 {showNewPassword ? (
-                                  <EyeOff className="h-4 w-4 ml-4" />
+                                  <EyeOff className="h-4 w-4" />
                                 ) : (
-                                  <Eye className="h-4 w-4 ml-4" />
+                                  <Eye className="h-4 w-4" />
                                 )}
                               </button>
                             </div>
@@ -975,9 +985,9 @@ const VisibilitySettings = () => {
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                               >
                                 {showConfirmPassword ? (
-                                  <EyeOff className="h-4 w-4 ml-4" />
+                                  <EyeOff className="h-4 w-4" />
                                 ) : (
-                                  <Eye className="h-4 w-4 ml-4" />
+                                  <Eye className="h-4 w-4" />
                                 )}
                               </button>
                             </div>

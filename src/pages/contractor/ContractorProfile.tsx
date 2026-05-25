@@ -243,7 +243,7 @@ const ContractorProfile = () => {
             Skills & Tech
           </h4>
           <div className="flex flex-wrap gap-2">
-            {skills ? (
+            {skills.length > 0 ? (
               skills.map((skill: any, index: number) => {
                 const name = typeof skill === "string" ? skill : skill.name;
                 if (!name) return null;
