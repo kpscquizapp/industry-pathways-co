@@ -688,9 +688,9 @@ const BenchRegistration = () => {
                           }
                         >
                           {showPassword ? (
-                            <Eye className="w-4 h-10 ml-5" />
-                          ) : (
                             <EyeOff className="w-4 h-10 ml-5" />
+                          ) : (
+                            <Eye className="w-4 h-10 ml-5" />
                           )}
                         </button>
                       </div>
@@ -735,9 +735,9 @@ const BenchRegistration = () => {
                           }
                         >
                           {showConfirmPassword ? (
-                            <Eye className="w-4 h-10 ml-5" />
-                          ) : (
                             <EyeOff className="w-4 h-10 ml-5" />
+                          ) : (
+                            <Eye className="w-4 h-10 ml-5" />
                           )}
                         </button>
                       </div>

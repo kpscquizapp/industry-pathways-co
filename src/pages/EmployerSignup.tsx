@@ -769,9 +769,9 @@ const EmployerSignup = () => {
                                 className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95 min-h-0 min-w-0"
                               >
                                 {showPassword ? (
-                                  <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
-                                ) : (
                                   <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                                ) : (
+                                  <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
                                 )}
                               </button>
                             </div>
@@ -806,9 +806,9 @@ const EmployerSignup = () => {
                                 className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95 min-h-0 min-w-0"
                               >
                                 {showConfirmPassword ? (
-                                  <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
-                                ) : (
                                   <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                                ) : (
+                                  <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
                                 )}
                               </button>
                             </div>

@@ -395,8 +395,8 @@ const EyeIcon: FC<{ open: boolean }> = memo(({ open }) =>
       stroke="#999"
       strokeWidth="1.8"
     >
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" />
-      <circle cx="12" cy="12" r="3" />
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
     </svg>
   ) : (
     <svg
@@ -407,8 +407,8 @@ const EyeIcon: FC<{ open: boolean }> = memo(({ open }) =>
       stroke="#999"
       strokeWidth="1.8"
     >
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-      <line x1="1" y1="1" x2="23" y2="23" />
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" />
+      <circle cx="12" cy="12" r="3" />
     </svg>
   ),
 );
@@ -616,8 +616,8 @@ const SkillTags: FC<SkillTagsProps> = memo(
         toast.error("Skill name must be less than 50 characters");
         return;
       }
-      if (skills.length >= 20) {
-        toast.error("You can add a maximum of 20 skills");
+      if (skills.length >= 5) {
+        toast.error("You can add a maximum of 5 skills");
         return;
       }
       if (skills.some((s) => s.toLowerCase() === trimmed.toLowerCase())) {
@@ -641,7 +641,11 @@ const SkillTags: FC<SkillTagsProps> = memo(
 
     return (
       <div style={S.column(6)}>
-        <FormLabel text="Primary Skills" required hint="(Press Enter to add)" />
+        <FormLabel
+          text="Primary Skills"
+          required
+          hint="(Enter your top 5 skills.)"
+        />
         <div
           style={{
             ...S.fieldWrap(!!error),
@@ -729,7 +733,7 @@ const SkillTags: FC<SkillTagsProps> = memo(
         )}
         {skills.length > 0 && (
           <p style={{ fontSize: 12, color: TEXT_MUTED, margin: 0 }}>
-            {skills.length} / 20 skills added
+            {skills.length} / 5 skills added
           </p>
         )}
         <FieldError error={error} />

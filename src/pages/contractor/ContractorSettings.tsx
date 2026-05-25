@@ -314,9 +314,9 @@ const ContractorSettings = () => {
                   className="text-slate-400 hover:text-slate-600 transition-colors shrink-0 min-h-0 min-w-0"
                 >
                   {showPasswords.current ? (
-                    <Eye className="w-4 h-4" />
-                  ) : (
                     <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
                   )}
                 </button>
               </div>
@@ -349,9 +349,9 @@ const ContractorSettings = () => {
                     className="text-slate-400 hover:text-slate-600 transition-colors shrink-0 min-h-0 min-w-0"
                   >
                     {showPasswords.new ? (
-                      <Eye className="w-4 h-4" />
-                    ) : (
                       <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
                     )}
                   </button>
                 </div>
@@ -386,9 +386,9 @@ const ContractorSettings = () => {
                     className="text-slate-400 hover:text-slate-600 transition-colors shrink-0 min-h-0 min-w-0"
                   >
                     {showPasswords.confirm ? (
-                      <Eye className="w-4 h-4" />
-                    ) : (
                       <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
                     )}
                   </button>
                 </div>

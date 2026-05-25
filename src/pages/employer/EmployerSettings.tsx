@@ -655,9 +655,9 @@ const EmployerSettings = () => {
                           className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 "
                         >
                           {showPasswords.currentPassword ? (
-                            <Eye className="w-4 h-4" />
-                          ) : (
                             <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
                           )}
                         </button>
                       </div>
@@ -700,9 +700,9 @@ const EmployerSettings = () => {
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 min-h-0 min-w-0"
                           >
                             {showPasswords.newPassword ? (
-                              <Eye className="w-4 h-4" />
-                            ) : (
                               <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
                             )}
                           </button>
                         </div>
@@ -745,9 +745,9 @@ const EmployerSettings = () => {
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 min-h-0 min-w-0"
                           >
                             {showPasswords.confirmPassword ? (
-                              <Eye className="w-4 h-4" />
-                            ) : (
                               <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
                             )}
                           </button>
                         </div>

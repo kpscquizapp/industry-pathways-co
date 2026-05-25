@@ -48,7 +48,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { skipToken } from "@reduxjs/toolkit/query";
@@ -56,6 +56,7 @@ import ResumeManager, { type Resume } from "../ResumeManager";
 import { currencySymbols, getCurrencySymbol } from "@/lib/currency";
 import { useNavigate } from "react-router-dom";
 import BarLoader from "@/components/loader/BarLoader";
+import { clearExtractedSkills } from "@/app/slices/extractResumeSkills";
 
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -438,6 +439,7 @@ const SectionTitle = ({
 const CandidateProfileUpdate = (): JSX.Element => {
   // API calls
   const { token, userDetails } = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch();
   const { data: response, isLoading: isLoadingProfile } = useGetProfileQuery(
     undefined,
     { skip: !token },
@@ -788,7 +790,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
 
       if (!inPrimary && !inSecondary) {
         // Completely new extracted skill
-        if (currentPrimaryCount - currentPrimaryCount + autoCheckedCount < 5) {
+        if (autoCheckedCount < 5) {
           // simplify to autoCheckedCount < 5
           newPrimarySkills.push(skill);
           seenResumeSkills.add(normalized);
@@ -1168,9 +1170,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
   const getMergedSecondarySkills = (
     baseSecondarySkills: string[] = formData.secondarySkills,
   ) => {
-    const seen = new Set(
-      baseSecondarySkills.map((s) => normalizeSkill(s)),
-    );
+    const seen = new Set(baseSecondarySkills.map((s) => normalizeSkill(s)));
     const mergedSecondarySkills = [...baseSecondarySkills];
 
     extractedSkills.forEach((skill) => {
@@ -1191,26 +1191,15 @@ const CandidateProfileUpdate = (): JSX.Element => {
   };
 
   const markResumeExtractionHandled = () => {
-    if (Array.isArray(resumeData)) {
-      processedResumeDataRef.current = [...resumeData];
-    }
+    processedResumeDataRef.current = null;
     setShowPrimarySkillsDisplay(false);
+    dispatch(clearExtractedSkills());
   };
 
   const handleSaveSkillsOnly = async (secondarySkillsOverride?: string[]) => {
     const secondarySkillsToPersist = getMergedSecondarySkills(
       secondarySkillsOverride ?? formData.secondarySkills,
     );
-
-    if (!formData.preferredJobLocations.length) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        preferredJobLocations:
-          "At least one preferred job location is required",
-      }));
-      toast.error("At least one preferred job location is required");
-      return;
-    }
 
     const cleanDate = (date: string | null | undefined) => {
       if (!date || date.trim() === "") return null;
@@ -2193,7 +2182,13 @@ const CandidateProfileUpdate = (): JSX.Element => {
               />
               <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">
                 Select up to 5 primary skills from your extracted resume.
-                Unchecked skills are kept as secondary skills.
+                Unchecked skills are kept as secondary skills. <br />
+                {extractedSkills.filter((s) => s.isPrimary).length > 0 && (
+                  <p className="text-xs font-medium text-gray-400 mt-4">
+                    {extractedSkills.filter((s) => s.isPrimary).length} / 5
+                    primary skills selected from resume
+                  </p>
+                )}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {extractedSkills.map((skill) => {
@@ -2270,16 +2265,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                   );
                 })}
               </div>
-              <div className="flex items-center justify-between mt-4">
-                {extractedSkills.filter((s) => s.isPrimary).length > 0 && (
-                  <p className="text-xs font-medium text-gray-400 mt-4">
-                    {extractedSkills.filter((s) => s.isPrimary).length} / 5
-                    primary skills selected from resume
-                  </p>
-                )}
+              <div className="flex items-center justify-end mt-4">
                 <button
                   onClick={handleUpdateSkillExtraction}
-                  className="inline-flex items-center px-4 py-2 bg-[#1a1a2e] hover:bg-[#1a1a2e]/90 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 text-sm md:text-base"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1a1a2e] dark:bg-[#4DD9E8]/10 hover:bg-[#1a1a2e]/90 dark:hover:bg-[#4DD9E8]/20 text-white dark:text-[#4DD9E8] font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 text-sm"
                 >
                   Update Skills
                 </button>
@@ -2818,10 +2807,6 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-200">
                   Edit Skills (Select up to 5 as Primary)
                 </h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  (to update the primary skills please click the update profile
-                  button after done editing)
-                </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Show all primary skills */}
