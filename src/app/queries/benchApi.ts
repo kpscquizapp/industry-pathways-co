@@ -17,6 +17,8 @@ export interface BenchResourceRawDto {
   country?: string;
   skills?: string | string[];
   technicalSkills?: string | string[];
+  primarySkills?: string[];
+  secondarySkills?: string[];
   experienceYears?: number | string;
   experience?: number | string;
   totalExperience?: string;

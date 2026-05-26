@@ -83,6 +83,8 @@ const ActiveResources = () => {
     totalExperience: number;
     isActive: boolean;
     technicalSkills?: string[];
+    primarySkills?: string[];
+    secondarySkills?: string[];
     professionalSummary?: string;
     requireNonSolicitation?: boolean;
     employeeId?: string;
@@ -158,10 +160,22 @@ const ActiveResources = () => {
       requireNonSolicitation: resource.requireNonSolicitation || false,
       employeeId: resource.employeeId || "",
       minimumContractDuration: resource.minimumContractDuration,
-      skills: resource.technicalSkills || [],
+      skills: (() => {
+        const primary = resource.primarySkills?.length
+          ? resource.primarySkills
+          : [];
+        const secondary = resource.secondarySkills?.length
+          ? resource.secondarySkills
+          : [];
+        const combined = [...primary, ...secondary];
+        // fallback for old resources
+        return combined.length > 0
+          ? combined
+          : resource.technicalSkills || [];
+      })(),
       about: resource.professionalSummary || "",
     };
-  };
+  }
 
   const queryParams = {
     page,
@@ -533,21 +547,23 @@ const ActiveResources = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {resource.technicalSkills
+                          {(resource.primarySkills?.length > 0
+                            ? resource.primarySkills
+                            : resource.technicalSkills)
                             ?.slice(0, 2)
                             .map((skill: string) => (
                               <Badge
                                 key={skill}
                                 className="bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-normal"
-                              >
-                                {skill}
-                              </Badge>
+                              >{skill}</Badge>
                             ))}
-                          {resource.technicalSkills?.length > 2 && (
-                            <Badge className="bg-slate-100 text-slate-600 text-xs font-normal">
-                              +{resource.technicalSkills.length - 2}
-                            </Badge>
-                          )}
+                          {(resource.primarySkills?.length > 0
+                            ? resource.primarySkills
+                            : resource.technicalSkills)?.length > 2 && (
+                              <Badge className="bg-slate-100 text-slate-600 text-xs font-normal">+{(resource.primarySkills?.length > 0
+                                ? resource.primarySkills
+                                : resource.technicalSkills).length - 2}</Badge>
+                            )}
                         </div>
                       </TableCell>
                       <TableCell className="text-slate-600">
