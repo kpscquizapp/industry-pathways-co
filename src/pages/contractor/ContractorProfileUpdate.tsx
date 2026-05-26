@@ -1197,9 +1197,27 @@ const CandidateProfileUpdate = (): JSX.Element => {
   };
 
   const handleSaveSkillsOnly = async (secondarySkillsOverride?: string[]) => {
-    const secondarySkillsToPersist = getMergedSecondarySkills(
-      secondarySkillsOverride ?? formData.secondarySkills,
-    );
+    // Sync extractedSkills state back to formData before saving
+    // This ensures deletions in the Edit Primary section are reflected
+    const syncedPrimarySkills = extractedSkills
+      .filter((s) => s.isPrimary)
+      .map((s) => s.name);
+
+    const syncedSecondarySkills = extractedSkills
+      .filter((s) => !s.isPrimary)
+      .map((s) => s.name);
+
+    // Use synced skills if we have extractedSkills, otherwise use formData
+    const primarySkillsToSave =
+      extractedSkills.length > 0 ? syncedPrimarySkills : formData.primarySkills;
+
+    const baseSecondarySkills =
+      extractedSkills.length > 0
+        ? syncedSecondarySkills
+        : (secondarySkillsOverride ?? formData.secondarySkills);
+
+    const secondarySkillsToPersist =
+      getMergedSecondarySkills(baseSecondarySkills);
 
     const cleanDate = (date: string | null | undefined) => {
       if (!date || date.trim() === "") return null;
@@ -1218,7 +1236,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
       city: formData.city?.trim() || null,
       primaryJobRole: formData.primaryJobRole.trim(),
       bio: formData.bio.trim(),
-      primarySkills: formData.primarySkills,
+      primarySkills: primarySkillsToSave,
       secondarySkills: secondarySkillsToPersist,
       preferredJobLocations: formData.preferredJobLocations,
       hourlyRateMin:
@@ -1283,10 +1301,12 @@ const CandidateProfileUpdate = (): JSX.Element => {
       await updateProfile(payload).unwrap();
       setFormData((prev) => ({
         ...prev,
+        primarySkills: primarySkillsToSave, // Update formData with synced skills
         secondarySkills: secondarySkillsToPersist,
       }));
       markResumeExtractionHandled();
       toast.success("Skills updated successfully!");
+      setIsEditingPrimarySkills(false);
     } catch (err: unknown) {
       const error = err as { data?: { message?: string }; message?: string };
       const errorMessage =
@@ -2069,7 +2089,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
           try {
             await removeProfileImage(data.id).unwrap();
             await refetchCandidateProfileImage();
-            toast.success("Image delete successfully.");
+            toast.success("Image deleted successfully.");
           } catch (error) {
             const message =
               typeof error === "object" && error != null && "data" in error
@@ -2278,10 +2298,19 @@ const CandidateProfileUpdate = (): JSX.Element => {
               </div>
               <div className="flex items-center justify-end mt-4">
                 <button
+                  type="button"
                   onClick={handleUpdateSkillExtraction}
+                  disabled={isUpdating}
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1a1a2e] dark:bg-[#4DD9E8]/10 hover:bg-[#1a1a2e]/90 dark:hover:bg-[#4DD9E8]/20 text-white dark:text-[#4DD9E8] font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 text-sm"
                 >
-                  Update Skills
+                  {isUpdating ? (
+                    <>
+                      <SpinnerLoader className="w-4 h-4" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Update Skills"
+                  )}
                 </button>
               </div>
             </DashCard>
@@ -3028,7 +3057,27 @@ const CandidateProfileUpdate = (): JSX.Element => {
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => removeSecondarySkill(skillName)}
+                            onClick={() => {
+                              // Check if this would leave the user with zero skills
+                              const totalSkills =
+                                formData.primarySkills.length +
+                                formData.secondarySkills.length;
+
+                              if (totalSkills <= 1) {
+                                toast.warning(
+                                  "You must keep at least one skill.",
+                                );
+                                return;
+                              }
+
+                              // If there's an extracted skill, delete it from extractedSkills
+                              if (extractedSkill) {
+                                deleteExtractedSkill(extractedSkill.id);
+                              } else {
+                                // Otherwise just remove from secondary skills
+                                removeSecondarySkill(skillName);
+                              }
+                            }}
                             className="text-gray-400 hover:text-red-500 transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />

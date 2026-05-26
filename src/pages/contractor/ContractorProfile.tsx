@@ -238,7 +238,8 @@ const ContractorProfile = () => {
             Primary Skills
           </h4>
           <div className="flex flex-wrap gap-2">
-            {profile?.primarySkills.length > 0 ? (
+            {Array.isArray(profile?.primarySkills) &&
+            profile.primarySkills.length > 0 ? (
               profile.primarySkills.map((skill: any, index: number) => {
                 const name = typeof skill === "string" ? skill : skill.name;
                 if (!name) return null;
@@ -254,7 +255,8 @@ const ContractorProfile = () => {
             Secondary Skills
           </h4>
           <div className="flex flex-wrap gap-2">
-            {profile?.secondarySkills.length > 0 ? (
+            {Array.isArray(profile?.secondarySkills) &&
+            profile.secondarySkills.length > 0 ? (
               profile.secondarySkills.map((skill: any, index: number) => {
                 const name = typeof skill === "string" ? skill : skill.name;
                 if (!name) return null;
