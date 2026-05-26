@@ -431,26 +431,26 @@ const MockTestReport = () => {
                       </div>
                     )}
 
-                    {currentQuestion.qwenaiImprovedCode && (
+                    {currentQuestion.aiImprovedCode && (
                       <div className="bg-[#f0f9ff] rounded-xl p-5 overflow-hidden border border-[#bae6fd]">
                         <div className="text-[10px] font-bold text-[#0ea5e9] mb-4 tracking-wider uppercase border-b border-[#bae6fd] pb-2">
                           AI-Improved Version
                         </div>
                         <pre className="text-slate-700 text-[13px] font-mono leading-relaxed overflow-x-auto whitespace-pre p-2">
-                          {currentQuestion.qwenaiImprovedCode}
+                          {currentQuestion.aiImprovedCode}
                         </pre>
                       </div>
                     )}
 
                     <div className="bg-slate-50 rounded-2xl p-6 md:p-8 border border-slate-100">
-                      {currentQuestion.qwenaiFeedback && (
+                      {currentQuestion.openaiFeedback && (
                         <div className="bg-slate-50 rounded-2xl p-6 md:p-5 border border-slate-100">
                           <h5 className="text-[14px] font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <LayoutGrid size={16} className="text-[#0ea5e9]" />
                             AI Evaluation Feedback
                           </h5>
                           <div className="text-[13.5px] font-medium text-slate-600 leading-relaxed whitespace-pre-wrap">
-                            {currentQuestion.qwenaiFeedback}
+                            {currentQuestion.openaiFeedback}
                           </div>
                         </div>
                       )}

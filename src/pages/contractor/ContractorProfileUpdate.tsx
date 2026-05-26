@@ -1360,7 +1360,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
     if (!skill) return;
 
     const totalSkills =
-      formData.primarySkills.length + formData.secondarySkills.length;
+      formData.primarySkills.length + getMergedSecondarySkills().length;
     if (totalSkills <= 1) {
       toast.warning("You must keep at least one skill.");
       return;

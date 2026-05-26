@@ -86,11 +86,6 @@ const ContractorProfile = () => {
   const profile = data?.candidateProfile;
   const hasAvatar = !!data?.avatar;
 
-  const skills = [
-    ...(profile?.primarySkills ?? []),
-    ...(profile?.secondarySkills ?? []),
-  ];
-
   const { currentData: profileImage, isLoading: isLoadingImage } =
     useGetCandidateProfileImageQuery(
       hasAvatar ? (data?.id ?? skipToken) : skipToken,
@@ -240,18 +235,34 @@ const ContractorProfile = () => {
 
         <DashCard>
           <h4 className="text-[14px] font-bold text-gray-900 mb-3">
-            Skills & Tech
+            Primary Skills
           </h4>
           <div className="flex flex-wrap gap-2">
-            {skills.length > 0 ? (
-              skills.map((skill: any, index: number) => {
+            {profile?.primarySkills.length > 0 ? (
+              profile.primarySkills.map((skill: any, index: number) => {
                 const name = typeof skill === "string" ? skill : skill.name;
                 if (!name) return null;
                 return <SkillChip key={index} label={name} />;
               })
             ) : (
               <span className="text-[13px] text-gray-500">
-                No skills listed
+                No primary skills listed
+              </span>
+            )}
+          </div>
+          <h4 className="text-[14px] font-bold text-gray-900 mb-3 mt-5">
+            Secondary Skills
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {profile?.secondarySkills.length > 0 ? (
+              profile.secondarySkills.map((skill: any, index: number) => {
+                const name = typeof skill === "string" ? skill : skill.name;
+                if (!name) return null;
+                return <SkillChip key={index} label={name} />;
+              })
+            ) : (
+              <span className="text-[13px] text-gray-500">
+                No secondary skills listed
               </span>
             )}
           </div>

@@ -35,6 +35,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
+import Cookies from "js-cookie";
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -240,7 +241,10 @@ const ContractorSettings = () => {
 
       dispatch(removeUser());
       queryClient.clear();
+      Cookies.remove("userInfo");
+      Cookies.remove("userInfo", { path: "/" });
       localStorage.clear();
+      sessionStorage.clear();
       navigate("/contractor-login");
     } catch (err: any) {
       toast.error(
