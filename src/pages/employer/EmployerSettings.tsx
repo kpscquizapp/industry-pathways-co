@@ -39,7 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import {
   useGetEmployerProfileQuery,
@@ -58,6 +58,8 @@ import {
   useDeleteMyAccountMutation,
 } from "@/app/queries/profileApi";
 import { useLogoutMutation } from "@/app/queries/loginApi";
+import Cookies from "js-cookie";
+import { removeUser } from "@/app/slices/userAuth";
 import useLogout from "@/hooks/useLogout";
 
 interface SettingsUser {
@@ -71,6 +73,7 @@ interface SettingsUser {
 
 const EmployerSettings = () => {
   const [activeNav, setActiveNav] = useState("General Account");
+  const dispatch = useDispatch();
 
   const { token, userDetails } = useSelector((state: RootState) => state.user);
   const user = userDetails as SettingsUser;
@@ -273,6 +276,12 @@ const EmployerSettings = () => {
       await deleteAccount({ password: deletePassword }).unwrap();
       toast.success("Account deleted successfully");
       handleLogout();
+      dispatch(removeUser());
+      Cookies.remove("userInfo");
+      Cookies.remove("userInfo", { path: "/" });
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "/hire-talent-login";
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to delete account");
       setIsDeleteDialogOpen(false);
@@ -655,9 +664,9 @@ const EmployerSettings = () => {
                           className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 "
                         >
                           {showPasswords.currentPassword ? (
-                            <Eye className="w-4 h-4" />
-                          ) : (
                             <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
                           )}
                         </button>
                       </div>
@@ -700,9 +709,9 @@ const EmployerSettings = () => {
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 min-h-0 min-w-0"
                           >
                             {showPasswords.newPassword ? (
-                              <Eye className="w-4 h-4" />
-                            ) : (
                               <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
                             )}
                           </button>
                         </div>
@@ -745,9 +754,9 @@ const EmployerSettings = () => {
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 min-h-0 min-w-0"
                           >
                             {showPasswords.confirmPassword ? (
-                              <Eye className="w-4 h-4" />
-                            ) : (
                               <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
                             )}
                           </button>
                         </div>

@@ -221,7 +221,7 @@ import {
   Lock,
   LayoutGrid,
   Eye,
-  EyeOff
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -246,7 +246,10 @@ import {
   useUploadProfileImageMutation,
 } from "@/app/queries/employerApi";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useChangePasswordMutation, useDeleteMyAccountMutation } from "@/app/queries/profileApi";
+import {
+  useChangePasswordMutation,
+  useDeleteMyAccountMutation,
+} from "@/app/queries/profileApi";
 import Cookies from "js-cookie";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -255,7 +258,8 @@ const VisibilitySettings = () => {
   const [activeTab, setActiveTab] = useState("general");
   const [searchParams] = useSearchParams();
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
+  const [changePassword, { isLoading: isChangingPassword }] =
+    useChangePasswordMutation();
   const [deleteMyAccount, { isLoading: isDeletingAccount }] =
     useDeleteMyAccountMutation();
   const [uploadProfileImage, { isLoading: isUploadingProfileImage }] =
@@ -264,12 +268,17 @@ const VisibilitySettings = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const user = useSelector((state: any) => state.user?.userDetails);
-  const { data: employerProfileData, isLoading: isProfileLoading, refetch: refetchProfile } = useGetEmployerProfileQuery();
+  const {
+    data: employerProfileData,
+    isLoading: isProfileLoading,
+    refetch: refetchProfile,
+  } = useGetEmployerProfileQuery();
   const { data: employerProfileImage } = useGetEmployerProfileImageQuery(
     user?.id as any,
   );
   const [isSavingPersonal, setIsSavingPersonal] = useState(false);
-  const [updateProfile, { isLoading: isSaving }] = useUpdateEmployerProfileMutation();
+  const [updateProfile, { isLoading: isSaving }] =
+    useUpdateEmployerProfileMutation();
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -298,7 +307,6 @@ const VisibilitySettings = () => {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
-
 
   React.useEffect(() => {
     if (user) {
@@ -341,6 +349,18 @@ const VisibilitySettings = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const MAX_SIZE_MB = 2;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      toast.error(`File size must be under ${MAX_SIZE_MB}MB.`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    // Revoke previous blob URL if exists
+    if (profileImage?.startsWith("blob:")) {
+      URL.revokeObjectURL(profileImage);
+    }
 
     const url = URL.createObjectURL(file);
     setProfileImage(url);
@@ -389,16 +409,13 @@ const VisibilitySettings = () => {
     } catch (err) {
       console.error("Failed to save personal information:", err);
       toast.error("Failed to save personal information. Please try again.");
-    }
-    finally {
+    } finally {
       setIsSavingPersonal(false);
     }
   };
 
   const handleSaveCompany = async (e?: React.MouseEvent) => {
     e?.preventDefault();
-    console.log("Save clicked");
-    console.log("Saving company details...", companyDetails);
     try {
       const payload = {
         companyName: companyDetails.companyName,
@@ -408,7 +425,6 @@ const VisibilitySettings = () => {
         website: companyDetails.website,
         description: companyDetails.description,
       };
-      console.log("Executing updateProfile mutation with:", payload);
       await updateProfile(payload).unwrap();
 
       // Refetch to reflect the updated profile data
@@ -421,10 +437,13 @@ const VisibilitySettings = () => {
     }
   };
 
-
   const handleChangePassword = async (e?: React.MouseEvent) => {
     e?.preventDefault();
-    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+    if (
+      !passwordData.currentPassword ||
+      !passwordData.newPassword ||
+      !passwordData.confirmPassword
+    ) {
       toast.error("Please fill in all password fields.");
       return;
     }
@@ -442,13 +461,23 @@ const VisibilitySettings = () => {
         newPassword: passwordData.newPassword,
       }).unwrap();
       toast.success("Password updated successfully!");
-      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
     } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to update password. Please try again.");
+      toast.error(
+        err?.data?.message || "Failed to update password. Please try again.",
+      );
     }
   };
 
   const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      toast.error("Please enter your password to confirm deletion.");
+      return;
+    }
     try {
       await deleteMyAccount({ password: deletePassword }).unwrap();
       setShowDeleteModal(false);
@@ -459,21 +488,14 @@ const VisibilitySettings = () => {
       sessionStorage.clear();
       window.location.href = "/bench-login";
     } catch (err: any) {
-      toast.error(err?.data?.message);
+      toast.error(
+        err?.data?.message || "Failed to delete account. Please try again.",
+      );
     }
-  };
-
-
-
-
-  // Keep a generic handleSave for other uses
-  const handleSave = () => {
-    toast.success("Settings saved successfully!");
   };
 
   return (
     <div className="min-h-screen bg-[#f0f2f5] flex flex-col">
-
       {/* Top Header Bar */}
       <div className="bg-white border-b border-slate-200 py-4 flex items-center gap-3 px-4 sm:px-6">
         <SidebarTrigger
@@ -485,34 +507,39 @@ const VisibilitySettings = () => {
       {/* Page Content */}
       <div className="flex-1 mb-3">
         <div className="max-w-6xl px-4 sm:px-6">
-
           {/* Page Title */}
           <div className="mt-6 mb-1">
-            <h1 className="text-2xl font-bold text-slate-800 leading-tight">Settings</h1>
-            <p className="text-slate-500 text-sm mt-1">Manage your account preferences, company profile, and team settings.</p>
+            <h1 className="text-2xl font-bold text-slate-800 leading-tight">
+              Settings
+            </h1>
+            <p className="text-slate-500 text-sm mt-1">
+              Manage your account preferences, company profile, and team
+              settings.
+            </p>
           </div>
 
           <div className="flex flex-col md:flex-row gap-6 mt-5">
-
             {/* Left Navigation */}
             <div className="w-full md:w-56 flex-shrink-0 px-1">
               <nav className="space-y-1">
                 <button
                   onClick={() => setActiveTab("general")}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === "general"
-                    ? "bg-white text-[#0eb5b9] shadow-sm"
-                    : "text-slate-500 hover:bg-white hover:text-slate-700 hover:shadow-sm"
-                    }`}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                    activeTab === "general"
+                      ? "bg-white text-[#0eb5b9] shadow-sm"
+                      : "text-slate-500 hover:bg-white hover:text-slate-700 hover:shadow-sm"
+                  }`}
                 >
                   <User className="h-4 w-4" />
                   General Account
                 </button>
                 <button
                   onClick={() => setActiveTab("security")}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === "security"
-                    ? "bg-white text-[#0eb5b9] shadow-sm"
-                    : "text-slate-500 hover:bg-white hover:text-slate-700 hover:shadow-sm"
-                    }`}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                    activeTab === "security"
+                      ? "bg-white text-[#0eb5b9] shadow-sm"
+                      : "text-slate-500 hover:bg-white hover:text-slate-700 hover:shadow-sm"
+                  }`}
                 >
                   <LayoutGrid className="h-4 w-4" />
                   Account Settings
@@ -522,12 +549,14 @@ const VisibilitySettings = () => {
 
             {/* Right Content Area */}
             <div className="flex-1 space-y-6">
-
-              {activeTab === "general" && (
-                isProfileLoading ? (
+              {activeTab === "general" &&
+                (isProfileLoading ? (
                   <div className="space-y-6">
                     {[1, 2].map((i) => (
-                      <div key={i} className="bg-white rounded-xl border border-slate-200 p-7 space-y-4 animate-pulse">
+                      <div
+                        key={i}
+                        className="bg-white rounded-xl border border-slate-200 p-7 space-y-4 animate-pulse"
+                      >
                         <div className="h-4 w-48 bg-gray-200 rounded" />
                         <div className="h-3 w-72 bg-gray-100 rounded" />
                         <div className="grid grid-cols-2 gap-5 pt-4">
@@ -540,24 +569,29 @@ const VisibilitySettings = () => {
                   </div>
                 ) : (
                   <div className="space-y-6">
-
                     {/* Personal Information */}
                     <div>
                       <Card className="border border-slate-200 shadow-sm rounded-xl bg-white overflow-hidden">
                         <CardContent className="p-4 sm:p-7 space-y-6">
-
                           {/* Header */}
                           <div>
-                            <h2 className="text-[15px] font-bold text-slate-800 uppercase">PERSONAL INFORMATION</h2>
-                            <p className="text-[13px] text-slate-400 mt-1 mb-6">Update your personal profile details and email address.</p>
+                            <h2 className="text-[15px] font-bold text-slate-800 uppercase">
+                              PERSONAL INFORMATION
+                            </h2>
+                            <p className="text-[13px] text-slate-400 mt-1 mb-6">
+                              Update your personal profile details and email
+                              address.
+                            </p>
                           </div>
 
                           {/* Avatar Upload */}
                           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                             <div className="h-[76px] w-[76px] bg-[#0b1b33] rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center shadow-md relative">
-                              {(profileImage || employerProfileImage) ? (
+                              {profileImage || employerProfileImage ? (
                                 <img
-                                  src={profileImage || employerProfileImage || ""}
+                                  src={
+                                    profileImage || employerProfileImage || ""
+                                  }
                                   alt="Profile preview"
                                   className="w-full h-full object-cover"
                                 />
@@ -565,7 +599,11 @@ const VisibilitySettings = () => {
                                 <div className="w-full h-full flex flex-col justify-between p-2">
                                   <div className="space-y-[3px]">
                                     {[100, 100, 80, 100, 65].map((w, i) => (
-                                      <div key={i} className="h-[3px] rounded-sm bg-white/25" style={{ width: `${w}%` }} />
+                                      <div
+                                        key={i}
+                                        className="h-[3px] rounded-sm bg-white/25"
+                                        style={{ width: `${w}%` }}
+                                      />
                                     ))}
                                   </div>
                                   <div className="flex gap-[3px]">
@@ -601,41 +639,60 @@ const VisibilitySettings = () => {
                                 </Button>
                                 <button
                                   onClick={() => {
-                                    toast("Are you sure you want to remove your profile photo?", {
-                                      action: {
-                                        label: "Yes, Remove",
-                                        onClick: () => handleRemoveImage(),
+                                    toast(
+                                      "Are you sure you want to delete your profile photo?",
+                                      {
+                                        action: {
+                                          label: "Yes, Delete",
+                                          onClick: () => handleRemoveImage(),
+                                        },
+                                        cancel: {
+                                          label: "Cancel",
+                                          onClick: () => {},
+                                        },
                                       },
-                                      cancel: {
-                                        label: "Cancel",
-                                        onClick: () => { },
-                                      },
-                                    });
+                                    );
                                   }}
-                                  className="text-sm text-red-500 font-medium hover:text-red-500 transition-colors"
+                                  className="text-sm text-red-500 font-medium hover:text-red-500 transition-colors ml-2 bg-red-300/20 px-4 py-2 rounded-md hover:bg-red-300/40"
                                 >
-                                  Remove
+                                  Delete
                                 </button>
                               </div>
-                              <p className="text-xs text-slate-400">Recommended size is 256x256px. Max 2MB.</p>
+                              <p className="text-xs text-slate-400">
+                                Recommended size is 256x256px. Max 2MB.
+                              </p>
                             </div>
                           </div>
 
                           {/* Name Fields */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-10">
                             <div className="space-y-1.5">
-                              <Label className="text-sm font-semibold text-slate-700">First Name</Label>
+                              <Label className="text-sm font-semibold text-slate-700">
+                                First Name
+                              </Label>
                               <Input
                                 value={personalInfo.firstName}
-                                onChange={(e) => setPersonalInfo({ ...personalInfo, firstName: e.target.value })}
+                                onChange={(e) =>
+                                  setPersonalInfo({
+                                    ...personalInfo,
+                                    firstName: e.target.value,
+                                  })
+                                }
                                 className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700"
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-sm font-semibold text-slate-700">Last Name</Label>
+                              <Label className="text-sm font-semibold text-slate-700">
+                                Last Name
+                              </Label>
                               <Input
                                 value={personalInfo.lastName}
-                                onChange={(e) => setPersonalInfo({ ...personalInfo, lastName: e.target.value })}
+                                onChange={(e) =>
+                                  setPersonalInfo({
+                                    ...personalInfo,
+                                    lastName: e.target.value,
+                                  })
+                                }
                                 className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700"
                               />
                             </div>
@@ -643,10 +700,17 @@ const VisibilitySettings = () => {
 
                           {/* Email */}
                           <div className="space-y-1.5">
-                            <Label className="text-sm font-semibold text-slate-700">Email Address</Label>
+                            <Label className="text-sm font-semibold text-slate-700">
+                              Email Address
+                            </Label>
                             <Input
                               value={personalInfo.email}
-                              onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
+                              onChange={(e) =>
+                                setPersonalInfo({
+                                  ...personalInfo,
+                                  email: e.target.value,
+                                })
+                              }
                               type="email"
                               className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700"
                               readOnly
@@ -655,49 +719,72 @@ const VisibilitySettings = () => {
 
                           {/* Save */}
                           <div className="flex justify-end pt-1">
-                            <Button type="button" onClick={handleSavePersonal} className="bg-[#0eb5b9] hover:bg-[#0da0a3] text-white rounded-lg px-7 h-10 font-semibold">
+                            <Button
+                              type="button"
+                              onClick={handleSavePersonal}
+                              className="bg-[#0eb5b9] hover:bg-[#0da0a3] text-white rounded-lg px-7 h-10 font-semibold"
+                            >
                               {isSavingPersonal ? "Saving..." : "Save Changes"}
                             </Button>
                           </div>
-
                         </CardContent>
                       </Card>
                     </div>
 
-
-
-
-
                     {/* Company Details */}
                     <div>
-
                       <Card className="border border-slate-200 shadow-sm rounded-xl bg-white overflow-hidden">
                         <CardContent className="p-4 sm:p-7 space-y-5">
                           <div>
-                            <h2 className="text-[15px] font-bold text-slate-800 uppercase mb-1">COMPANY DETAILS</h2>
-                            <p className="text-[13px] text-slate-400 mb-6">These details will be visible to candidates during the interview process.</p>
+                            <h2 className="text-[15px] font-bold text-slate-800 uppercase mb-1">
+                              COMPANY DETAILS
+                            </h2>
+                            <p className="text-[13px] text-slate-400 mb-6">
+                              These details will be visible to candidates during
+                              the interview process.
+                            </p>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 ">
                             <div className="space-y-1.5">
-                              <Label className="text-sm font-semibold text-slate-700">Company Name</Label>
+                              <Label className="text-sm font-semibold text-slate-700">
+                                Company Name
+                              </Label>
                               <Input
                                 value={companyDetails.companyName}
-                                onChange={(e) => setCompanyDetails({ ...companyDetails, companyName: e.target.value })}
+                                onChange={(e) =>
+                                  setCompanyDetails({
+                                    ...companyDetails,
+                                    companyName: e.target.value,
+                                  })
+                                }
                                 className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700"
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-sm font-semibold text-slate-700">Company Size</Label>
+                              <Label className="text-sm font-semibold text-slate-700">
+                                Company Size
+                              </Label>
                               <select
                                 value={companyDetails.companySize}
-                                onChange={(e) => setCompanyDetails({ ...companyDetails, companySize: e.target.value })}
+                                onChange={(e) =>
+                                  setCompanyDetails({
+                                    ...companyDetails,
+                                    companySize: e.target.value,
+                                  })
+                                }
                                 className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none text-sm text-slate-700"
                               >
                                 <option value="1-10">1 - 10 employees</option>
                                 <option value="11-50">11 - 50 employees</option>
-                                <option value="51-200">51 - 200 employees</option>
-                                <option value="201-500">201 - 500 employees</option>
-                                <option value="501-1000">501 - 1000 employees</option>
+                                <option value="51-200">
+                                  51 - 200 employees
+                                </option>
+                                <option value="201-500">
+                                  201 - 500 employees
+                                </option>
+                                <option value="501-1000">
+                                  501 - 1000 employees
+                                </option>
                                 <option value="1000+">1000+ employees</option>
                               </select>
                             </div>
@@ -705,37 +792,65 @@ const VisibilitySettings = () => {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="space-y-1.5">
-                              <Label className="text-sm font-semibold text-slate-700">Industry</Label>
+                              <Label className="text-sm font-semibold text-slate-700">
+                                Industry
+                              </Label>
                               <Input
                                 value={companyDetails.industry}
-                                onChange={(e) => setCompanyDetails({ ...companyDetails, industry: e.target.value })}
+                                onChange={(e) =>
+                                  setCompanyDetails({
+                                    ...companyDetails,
+                                    industry: e.target.value,
+                                  })
+                                }
                                 className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700"
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-sm font-semibold text-slate-700">Location</Label>
+                              <Label className="text-sm font-semibold text-slate-700">
+                                Location
+                              </Label>
                               <Input
                                 value={companyDetails.location}
-                                onChange={(e) => setCompanyDetails({ ...companyDetails, location: e.target.value })}
+                                onChange={(e) =>
+                                  setCompanyDetails({
+                                    ...companyDetails,
+                                    location: e.target.value,
+                                  })
+                                }
                                 className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700"
                               />
                             </div>
                           </div>
 
                           <div className="space-y-1.5">
-                            <Label className="text-sm font-semibold text-slate-700">Company Website</Label>
+                            <Label className="text-sm font-semibold text-slate-700">
+                              Company Website
+                            </Label>
                             <Input
                               value={companyDetails.website}
-                              onChange={(e) => setCompanyDetails({ ...companyDetails, website: e.target.value })}
+                              onChange={(e) =>
+                                setCompanyDetails({
+                                  ...companyDetails,
+                                  website: e.target.value,
+                                })
+                              }
                               className="h-12 w-full px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700"
                             />
                           </div>
 
                           <div className="space-y-1.5">
-                            <Label className="text-sm font-semibold text-slate-700">Company Description</Label>
+                            <Label className="text-sm font-semibold text-slate-700">
+                              Company Description
+                            </Label>
                             <Textarea
                               value={companyDetails.description}
-                              onChange={(e) => setCompanyDetails({ ...companyDetails, description: e.target.value })}
+                              onChange={(e) =>
+                                setCompanyDetails({
+                                  ...companyDetails,
+                                  description: e.target.value,
+                                })
+                              }
                               className="min-h-[130px] w-full px-4 py-3 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700 resize-none"
                             />
                           </div>
@@ -753,64 +868,157 @@ const VisibilitySettings = () => {
                         </CardContent>
                       </Card>
                     </div>
-
                   </div>
-                )
-              )}
+                ))}
 
               {activeTab === "security" && (
                 <div className="space-y-6 animate-fade-in fade-in zoom-in duration-300">
-
                   {/* Account Security */}
                   <Card className="border-none shadow-sm rounded-2xl bg-white overflow-hidden">
                     <CardContent className="p-5 sm:p-8 space-y-6">
                       <div className="flex items-start gap-4">
                         <div className="h-12 w-12 rounded-xl bg-[#e6f7f8] text-[#0eb5b9] flex items-center justify-center shrink-0">
-                          <Shield className="h-6 w-6 text-[#0eb5b9]" strokeWidth={2} />
+                          <Shield
+                            className="h-6 w-6 text-[#0eb5b9]"
+                            strokeWidth={2}
+                          />
                         </div>
                         <div>
-                          <h2 className="text-lg font-bold text-slate-800">Account Security</h2>
-                          <p className="text-sm text-slate-500 mt-0.5">Secure your account with a strong password</p>
+                          <h2 className="text-lg font-bold text-slate-800">
+                            Account Security
+                          </h2>
+                          <p className="text-sm text-slate-500 mt-0.5">
+                            Secure your account with a strong password
+                          </p>
                         </div>
                       </div>
 
                       <div className="space-y-6 pt-2">
                         <div className="space-y-1.5 ">
-                          <Label className="text-sm font-semibold text-slate-700">Current Password</Label>
+                          <Label className="text-sm font-semibold text-slate-700">
+                            Current Password
+                          </Label>
                           <div className="relative">
-                            <Input type={showCurrentPassword ? "text" : "password"} placeholder="Enter Current Password" value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 pr-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
-                            <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                              {showCurrentPassword ? <Eye className="h-4 w-4 ml-4" /> : <EyeOff className="h-4 w-4 ml-4" />}
+                            <Input
+                              type={showCurrentPassword ? "text" : "password"}
+                              placeholder="Enter Current Password"
+                              value={passwordData.currentPassword}
+                              onChange={(e) =>
+                                setPasswordData({
+                                  ...passwordData,
+                                  currentPassword: e.target.value,
+                                })
+                              }
+                              className="h-12 w-full px-4 py-2.5 pr-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setShowCurrentPassword(!showCurrentPassword)
+                              }
+                              aria-label={
+                                showCurrentPassword
+                                  ? "Hide current password"
+                                  : "Show current password"
+                              }
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                              {showCurrentPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
                             </button>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-1.5 ">
-                            <Label className="text-sm font-semibold text-slate-700">New Password</Label>
+                            <Label className="text-sm font-semibold text-slate-700">
+                              New Password
+                            </Label>
                             <div className="relative">
-                              <Input type={showNewPassword ? "text" : "password"} placeholder="Enter New Password" value={passwordData.newPassword} onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 pr-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
-                              <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                                {showNewPassword ? <Eye className="h-4 w-4 ml-4" /> : <EyeOff className="h-4 w-4 ml-4" />}
+                              <Input
+                                type={showNewPassword ? "text" : "password"}
+                                placeholder="Enter New Password"
+                                value={passwordData.newPassword}
+                                onChange={(e) =>
+                                  setPasswordData({
+                                    ...passwordData,
+                                    newPassword: e.target.value,
+                                  })
+                                }
+                                className="h-12 w-full px-4 py-2.5 pr-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700"
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setShowNewPassword(!showNewPassword)
+                                }
+                                aria-label={
+                                  showNewPassword
+                                    ? "Hide new password"
+                                    : "Show new password"
+                                }
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                              >
+                                {showNewPassword ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
                               </button>
                             </div>
-
                           </div>
                           <div className="space-y-1.5 ">
-                            <Label className="text-sm font-semibold text-slate-700">Confirm New Password</Label>
+                            <Label className="text-sm font-semibold text-slate-700">
+                              Confirm New Password
+                            </Label>
                             <div className="relative">
-                              <Input type={showConfirmPassword ? "text" : "password"} placeholder="Enter Confirm New Password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} className="h-12 w-full px-4 py-2.5 pr-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700" />
-                              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                                {showConfirmPassword ? <Eye className="h-4 w-4 ml-4" /> : <EyeOff className="h-4 w-4 ml-4" />}
+                              <Input
+                                type={showConfirmPassword ? "text" : "password"}
+                                placeholder="Enter Confirm New Password"
+                                value={passwordData.confirmPassword}
+                                onChange={(e) =>
+                                  setPasswordData({
+                                    ...passwordData,
+                                    confirmPassword: e.target.value,
+                                  })
+                                }
+                                className="h-12 w-full px-4 py-2.5 pr-10 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none text-slate-700"
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setShowConfirmPassword(!showConfirmPassword)
+                                }
+                                aria-label={
+                                  showConfirmPassword
+                                    ? "Hide confirm new password"
+                                    : "Show confirm new password"
+                                }
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                              >
+                                {showConfirmPassword ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
                               </button>
                             </div>
-
                           </div>
                         </div>
 
                         <div className="pt-2">
-                          <Button type="button" onClick={handleChangePassword} disabled={isChangingPassword} className="bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-lg px-8 h-11 font-medium shadow-sm transition-all hover:shadow-md">
-                            {isChangingPassword ? "Updating..." : "Update Password"}
+                          <Button
+                            type="button"
+                            onClick={handleChangePassword}
+                            disabled={isChangingPassword}
+                            className="bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-lg px-8 h-11 font-medium shadow-sm transition-all hover:shadow-md"
+                          >
+                            {isChangingPassword
+                              ? "Updating..."
+                              : "Update Password"}
                           </Button>
                         </div>
                       </div>
@@ -822,16 +1030,25 @@ const VisibilitySettings = () => {
                     <CardContent className="p-5 sm:p-8 space-y-5">
                       <div className="flex items-start gap-4">
                         <div className="h-10 w-10 rounded-full bg-white text-red-500 border border-red-100 flex items-center justify-center shrink-0">
-                          <Trash2 className="h-5 w-5 text-red-500/80" strokeWidth={2} />
+                          <Trash2
+                            className="h-5 w-5 text-red-500/80"
+                            strokeWidth={2}
+                          />
                         </div>
                         <div>
-                          <h2 className="text-lg font-bold text-slate-800">Danger Zone</h2>
-                          <p className="text-sm text-slate-600 mt-0.5">Permanently delete your account and data</p>
+                          <h2 className="text-lg font-bold text-slate-800">
+                            Danger Zone
+                          </h2>
+                          <p className="text-sm text-slate-600 mt-0.5">
+                            Permanently delete your account and data
+                          </p>
                         </div>
                       </div>
 
                       <p className="text-sm text-slate-600 max-w-3xl leading-relaxed">
-                        Once you delete your account, there is no going back. All your profile data, interview history, and skill assessment results will be permanently removed.
+                        Once you delete your account, there is no going back.
+                        All your profile data, interview history, and skill
+                        assessment results will be permanently removed.
                       </p>
 
                       <div className="pt-2">
@@ -845,19 +1062,16 @@ const VisibilitySettings = () => {
                       </div>
                     </CardContent>
                   </Card>
-
                 </div>
               )}
-
             </div>
           </div>
-        </div >
-      </div >
+        </div>
+      </div>
 
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/80 z-50">
           <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-[425px] translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-lg duration-200 animate-in fade-in-0 zoom-in-95 slide-in-from-left-1/2 slide-in-from-top-[48%] sm:rounded-lg">
-
             <div className="flex flex-col space-y-2 text-center sm:text-left">
               <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                 <Trash2 className="h-6 w-6 text-red-500" />
@@ -865,8 +1079,11 @@ const VisibilitySettings = () => {
               </h2>
               <p className="text-sm text-slate-600 py-4">
                 This action is{" "}
-                <span className="font-bold text-red-600 uppercase tracking-tight">permanent</span>{" "}
-                and cannot be undone. All your professional data will be wiped from our systems.
+                <span className="font-bold text-red-600 uppercase tracking-tight">
+                  permanent
+                </span>{" "}
+                and cannot be undone. All your professional data will be wiped
+                from our systems.
               </p>
             </div>
 
@@ -905,7 +1122,6 @@ const VisibilitySettings = () => {
                 {isDeletingAccount ? "Deleting..." : "Confirm Deletion"}
               </button>
             </div>
-
           </div>
         </div>
       )}
@@ -914,4 +1130,3 @@ const VisibilitySettings = () => {
 };
 
 export default VisibilitySettings;
-
