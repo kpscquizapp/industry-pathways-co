@@ -1298,16 +1298,13 @@ const CandidateProfileUpdate = (): JSX.Element => {
   };
 
   const handleUpdateSkillExtraction = async () => {
-    // 1. Mark as processed to hide the banner persistently (until a new resume is uploaded)
-    markResumeExtractionHandled();
-
-    // 2. Compute locally the merged secondary skills
+    // 1. Compute locally the merged secondary skills
     const newSecondary = getMergedSecondarySkills();
 
     // Update the local state for UI immediately
     setFormData((prev) => ({ ...prev, secondarySkills: newSecondary }));
 
-    // 3. Save updates to the backend explicitly without full form validation
+    // 2. Save updates to the backend explicitly without full form validation
     await handleSaveSkillsOnly(newSecondary);
   };
 
@@ -1345,6 +1342,13 @@ const CandidateProfileUpdate = (): JSX.Element => {
           normalizeSkill(s) === normalizeSkill(skill.name) ? newName : s,
         ),
       }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        secondarySkills: prev.secondarySkills.map((s) =>
+          normalizeSkill(s) === normalizeSkill(skill.name) ? newName : s,
+        ),
+      }));
     }
 
     setEditingExtractedSkillId(null);
@@ -1373,6 +1377,13 @@ const CandidateProfileUpdate = (): JSX.Element => {
       setFormData((prev) => ({
         ...prev,
         primarySkills: prev.primarySkills.filter(
+          (s) => normalizeSkill(s) !== normalizeSkill(skill.name),
+        ),
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        secondarySkills: prev.secondarySkills.filter(
           (s) => normalizeSkill(s) !== normalizeSkill(skill.name),
         ),
       }));

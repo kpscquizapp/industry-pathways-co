@@ -916,6 +916,11 @@ const VisibilitySettings = () => {
                               onClick={() =>
                                 setShowCurrentPassword(!showCurrentPassword)
                               }
+                              aria-label={
+                                showCurrentPassword
+                                  ? "Hide current password"
+                                  : "Show current password"
+                              }
                               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                             >
                               {showCurrentPassword ? (
@@ -950,6 +955,11 @@ const VisibilitySettings = () => {
                                 onClick={() =>
                                   setShowNewPassword(!showNewPassword)
                                 }
+                                aria-label={
+                                  showNewPassword
+                                    ? "Hide new password"
+                                    : "Show new password"
+                                }
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                               >
                                 {showNewPassword ? (
@@ -981,6 +991,11 @@ const VisibilitySettings = () => {
                                 type="button"
                                 onClick={() =>
                                   setShowConfirmPassword(!showConfirmPassword)
+                                }
+                                aria-label={
+                                  showConfirmPassword
+                                    ? "Hide confirm new password"
+                                    : "Show confirm new password"
                                 }
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                               >

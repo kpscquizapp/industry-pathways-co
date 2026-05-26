@@ -241,7 +241,7 @@ const ContractorSettings = () => {
       dispatch(removeUser());
       queryClient.clear();
       localStorage.clear();
-      navigate("/");
+      navigate("/contractor-login");
     } catch (err: any) {
       toast.error(
         err?.data?.message ||
