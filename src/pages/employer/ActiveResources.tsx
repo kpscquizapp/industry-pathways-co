@@ -173,6 +173,8 @@ const ActiveResources = () => {
           ? combined
           : resource.technicalSkills || [];
       })(),
+      primarySkills: resource.primarySkills || [],
+      secondarySkills: resource.secondarySkills || [],
       about: resource.professionalSummary || "",
     };
   }
@@ -546,25 +548,34 @@ const ActiveResources = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {(resource.primarySkills?.length > 0
-                            ? resource.primarySkills
-                            : resource.technicalSkills)
-                            ?.slice(0, 2)
-                            .map((skill: string) => (
-                              <Badge
-                                key={skill}
-                                className="bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-normal"
-                              >{skill}</Badge>
-                            ))}
-                          {(resource.primarySkills?.length > 0
-                            ? resource.primarySkills
-                            : resource.technicalSkills)?.length > 2 && (
-                              <Badge className="bg-slate-100 text-slate-600 text-xs font-normal">+{(resource.primarySkills?.length > 0
-                                ? resource.primarySkills
-                                : resource.technicalSkills).length - 2}</Badge>
-                            )}
-                        </div>
+                        {(() => {
+                          const skills = [
+                            ...(resource.primarySkills || []),
+                            ...(resource.secondarySkills || []),
+                          ].filter(Boolean).length > 0
+                            ? [
+                              ...(resource.primarySkills || []),
+                              ...(resource.secondarySkills || []),
+                            ]
+                            : resource.technicalSkills || [];
+                          return (
+                            <div className="flex flex-wrap gap-1">
+                              {skills.slice(0, 2).map((skill: string) => (
+                                <Badge
+                                  key={skill}
+                                  className="bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-normal"
+                                >
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {skills.length > 2 && (
+                                <Badge className="bg-slate-100 text-slate-600 text-xs font-normal">
+                                  +{skills.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell className="text-slate-600">
                         {Number(resource.totalExperience)} Yrs

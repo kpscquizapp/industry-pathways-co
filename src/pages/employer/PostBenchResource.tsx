@@ -153,14 +153,16 @@ const PostBenchResource = () => {
         // First 5 → primary, rest → secondary (temporary until BE splits them)
         // ADD THIS
         primarySkills: (() => {
-          if (Array.isArray(resource.primarySkills)) return resource.primarySkills;
-          try { return JSON.parse(resource.primarySkills || "[]"); }
-          catch { return []; }
+          const arr = Array.isArray(resource.primarySkills)
+            ? resource.primarySkills
+            : (() => { try { return JSON.parse(resource.primarySkills || "[]"); } catch { return []; } })();
+          return arr.map((item: any) => typeof item === "string" ? item : item?.name || "").filter(Boolean);
         })(),
         secondarySkills: (() => {
-          if (Array.isArray(resource.secondarySkills)) return resource.secondarySkills;
-          try { return JSON.parse(resource.secondarySkills || "[]"); }
-          catch { return []; }
+          const arr = Array.isArray(resource.secondarySkills)
+            ? resource.secondarySkills
+            : (() => { try { return JSON.parse(resource.secondarySkills || "[]"); } catch { return []; } })();
+          return arr.map((item: any) => typeof item === "string" ? item : item?.name || "").filter(Boolean);
         })(),
         professionalSummary: resource.professionalSummary || "",
         hourlyRate: resource.hourlyRate?.toString() || "",
@@ -243,7 +245,10 @@ const PostBenchResource = () => {
         if (!newPrimary.some((s) => normalizeSkill(s) === normalizeSkill(skill.name))) {
           newPrimary.push(skill.name);
         }
-        return { ...prev, primarySkills: newPrimary };
+        const newSecondary = prev.secondarySkills.filter(
+          (s) => normalizeSkill(s) !== normalizeSkill(skill.name)
+        );
+        return { ...prev, primarySkills: newPrimary, secondarySkills: newSecondary };
       });
       setExtractedSkills((prev) =>
         prev.map((s) => (s.id === id ? { ...s, isPrimary: true } : s))
@@ -256,6 +261,9 @@ const PostBenchResource = () => {
       setFormData((prev) => ({
         ...prev,
         primarySkills: prev.primarySkills.filter(
+          (s) => normalizeSkill(s) !== normalizeSkill(skill.name)
+        ),
+        secondarySkills: prev.secondarySkills.filter(
           (s) => normalizeSkill(s) !== normalizeSkill(skill.name)
         ),
       }));
@@ -399,12 +407,12 @@ const PostBenchResource = () => {
         const result = await extractResume(file).unwrap();
 
         if (result.success && result.data) {
-          setFormData((prev) => ({
-            ...prev,
-            resourceName: result.data.resourceName || prev.resourceName,
-            professionalSummary: result.data.professionalSummary || prev.professionalSummary,
-            totalExperience: result.data.totalExperience ?? prev.totalExperience,
-          }));
+          // setFormData((prev) => ({
+          //   ...prev,
+          //   resourceName: result.data.resourceName || prev.resourceName,
+          //   professionalSummary: result.data.professionalSummary || prev.professionalSummary,
+          //   totalExperience: result.data.totalExperience ?? prev.totalExperience,
+          // }));
           processExtractedSkills(result.data.technicalSkills || []);
           toast.success("Resume processed successfully!", {
             description: "Form fields have been populated from your resume.",
@@ -415,14 +423,20 @@ const PostBenchResource = () => {
       } catch (error) {
         console.error("OCR API error, trying AI fallback:", error);
         try {
+          if (file.type !== "application/pdf") {
+            toast.error("Fallback parser only supports PDF. Please upload a PDF file.");
+            setFormData((prev) => ({ ...prev, resumeFile: null }));
+            input.value = "";
+            return;
+          }
           toast.info("ATS service unavailable, using AI parser...");
           const parsed = await parseResume(file, token);
-          setFormData((prev) => ({
-            ...prev,
-            resourceName: parsed.resourceName || prev.resourceName,
-            professionalSummary: parsed.professionalSummary || prev.professionalSummary,
-            totalExperience: parsed.totalExperience || prev.totalExperience,
-          }));
+          // setFormData((prev) => ({
+          //   ...prev,
+          //   resourceName: parsed.resourceName || prev.resourceName,
+          //   professionalSummary: parsed.professionalSummary || prev.professionalSummary,
+          //   totalExperience: parsed.totalExperience || prev.totalExperience,
+          // }));
           processExtractedSkills(
             parsed.technicalSkills.length > 0 ? parsed.technicalSkills : []
           );
@@ -630,7 +644,7 @@ const PostBenchResource = () => {
                 <div>
                   <p className="text-sm font-medium text-slate-800">Auto-fill details from resume</p>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Our AI will automatically extract skills, experience, and summary.
+                    Our AI will automatically extract skills.
                   </p>
                 </div>
                 <label style={{ position: "relative", display: "inline-block", width: 44, height: 24, flexShrink: 0, cursor: "pointer" }}>
