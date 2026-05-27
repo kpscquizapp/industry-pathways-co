@@ -195,7 +195,7 @@ export default function InterviewQuestions() {
   }, [problemsData, role, category]);
 
   return (
-    <div className="min-h-full bg-[#f2f5fa] font-sans">
+    <div className="min-h-full bg-gray-50 font-inter">
       <div className="flex flex-1 w-full mx-auto relative items-stretch">
         {/* Left Column - Forms & Lists */}
         <div className="flex-1 flex flex-col gap-8 p-6 lg:p-8 min-w-0 max-w-[1400px] mx-auto w-full">

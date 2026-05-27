@@ -295,7 +295,7 @@ const EmployerSettings = () => {
   ];
 
   return (
-    <div className="min-h-full bg-[#f2f5fa] font-sans pb-12">
+    <div className="min-h-full bg-gray-50 font-inter pb-12">
       <div className="px-4 md:px-8 py-6 md:py-10 max-w-[1400px] mx-auto space-y-8">
         {/* ═══════════════ HEADER ═══════════════ */}
         <div>

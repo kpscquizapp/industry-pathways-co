@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -104,17 +103,7 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: [
-     
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "San Francisco",
-          "Segoe UI",
-          "Roboto",
-          "Helvetica Neue",
-          "sans-serif",
-        ],
-    
+        inter: ["Inter", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {
@@ -189,9 +178,10 @@ export default {
         xs: "2px",
       },
       boxShadow: {
-        'premium': '0 1px 3px hsl(222 47% 11% / 0.04), 0 8px 24px -4px hsl(222 47% 11% / 0.06)',
-        'premium-lg': '0 4px 20px -4px hsl(222 47% 11% / 0.08)',
-        'glow': '0 0 40px hsl(142 76% 36% / 0.15)',
+        premium:
+          "0 1px 3px hsl(222 47% 11% / 0.04), 0 8px 24px -4px hsl(222 47% 11% / 0.06)",
+        "premium-lg": "0 4px 20px -4px hsl(222 47% 11% / 0.08)",
+        glow: "0 0 40px hsl(142 76% 36% / 0.15)",
       },
     },
   },
