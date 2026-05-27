@@ -20,6 +20,8 @@ export interface CandidateProfile {
   employeeId?: string;
   minimumContractDuration?: string | number;
   skills: string[];
+  primarySkills?: string[];
+  secondarySkills?: string[];
   certifications?: { name: string; issuer: string; year: string }[];
   about?: string;
   workExperience?: {

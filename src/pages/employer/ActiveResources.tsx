@@ -83,6 +83,8 @@ const ActiveResources = () => {
     totalExperience: number;
     isActive: boolean;
     technicalSkills?: string[];
+    primarySkills?: string[];
+    secondarySkills?: string[];
     professionalSummary?: string;
     requireNonSolicitation?: boolean;
     employeeId?: string;
@@ -158,10 +160,24 @@ const ActiveResources = () => {
       requireNonSolicitation: resource.requireNonSolicitation || false,
       employeeId: resource.employeeId || "",
       minimumContractDuration: resource.minimumContractDuration,
-      skills: resource.technicalSkills || [],
+      skills: (() => {
+        const primary = resource.primarySkills?.length
+          ? resource.primarySkills
+          : [];
+        const secondary = resource.secondarySkills?.length
+          ? resource.secondarySkills
+          : [];
+        const combined = [...primary, ...secondary];
+        // fallback for old resources
+        return combined.length > 0
+          ? combined
+          : resource.technicalSkills || [];
+      })(),
+      primarySkills: resource.primarySkills || [],
+      secondarySkills: resource.secondarySkills || [],
       about: resource.professionalSummary || "",
     };
-  };
+  }
 
   const queryParams = {
     page,
@@ -532,23 +548,34 @@ const ActiveResources = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {resource.technicalSkills
-                            ?.slice(0, 2)
-                            .map((skill: string) => (
-                              <Badge
-                                key={skill}
-                                className="bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-normal"
-                              >
-                                {skill}
-                              </Badge>
-                            ))}
-                          {resource.technicalSkills?.length > 2 && (
-                            <Badge className="bg-slate-100 text-slate-600 text-xs font-normal">
-                              +{resource.technicalSkills.length - 2}
-                            </Badge>
-                          )}
-                        </div>
+                        {(() => {
+                          const skills = [
+                            ...(resource.primarySkills || []),
+                            ...(resource.secondarySkills || []),
+                          ].filter(Boolean).length > 0
+                            ? [
+                              ...(resource.primarySkills || []),
+                              ...(resource.secondarySkills || []),
+                            ]
+                            : resource.technicalSkills || [];
+                          return (
+                            <div className="flex flex-wrap gap-1">
+                              {skills.slice(0, 2).map((skill: string) => (
+                                <Badge
+                                  key={skill}
+                                  className="bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-normal"
+                                >
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {skills.length > 2 && (
+                                <Badge className="bg-slate-100 text-slate-600 text-xs font-normal">
+                                  +{skills.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell className="text-slate-600">
                         {Number(resource.totalExperience)} Yrs

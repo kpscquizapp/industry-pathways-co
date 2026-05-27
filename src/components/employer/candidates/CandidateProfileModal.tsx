@@ -218,20 +218,31 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
 
             {/* Skills */}
             <div className="mt-6">
-              <h3 className="font-semibold text-foreground mb-3">
-                Skills & Tech
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {candidate.skills.map((skill) => (
-                  <Badge
-                    key={skill}
-                    variant="secondary"
-                    className="bg-muted text-muted-foreground"
-                  >
-                    {skill}
-                  </Badge>
-                ))}
-              </div>
+              {candidate.primarySkills && candidate.primarySkills.length > 0 && (
+                <>
+                  <p className="text-sm font-semibold text-foreground mb-2">Primary skills</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {candidate.primarySkills.map((skill, index) => (
+                      <Badge key={`primary-${skill}-${index}`} className="bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-100">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {candidate.secondarySkills && candidate.secondarySkills.length > 0 && (
+                <>
+                  <p className="text-sm font-semibold text-foreground mb-2">Secondary skills</p>
+                  <div className="flex flex-wrap gap-2">
+                    {candidate.secondarySkills.map((skill, index) => (
+                      <Badge key={`secondary-${skill}-${index}`} className="bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-100">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             {candidate.requireNonSolicitation && (
