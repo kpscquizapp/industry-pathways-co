@@ -291,6 +291,13 @@ const PostBenchResource = () => {
           normalizeSkill(s) === normalizeSkill(skill.name) ? newName : s
         ),
       }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        secondarySkills: prev.secondarySkills.map((s) =>
+          normalizeSkill(s) === normalizeSkill(skill.name) ? newName : s
+        ),
+      }));
     }
     setEditingExtractedSkillId(null);
     setEditingExtractedSkillName("");
@@ -308,6 +315,13 @@ const PostBenchResource = () => {
       setFormData((prev) => ({
         ...prev,
         primarySkills: prev.primarySkills.filter(
+          (s) => normalizeSkill(s) !== normalizeSkill(skill.name)
+        ),
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        secondarySkills: prev.secondarySkills.filter(
           (s) => normalizeSkill(s) !== normalizeSkill(skill.name)
         ),
       }));
@@ -415,7 +429,7 @@ const PostBenchResource = () => {
           // }));
           processExtractedSkills(result.data.technicalSkills || []);
           toast.success("Resume processed successfully!", {
-            description: "Form fields have been populated from your resume.",
+            description: "Skills has been populated from your resume.",
           });
         } else {
           toast.error("Failed to extract data from resume");
@@ -441,7 +455,7 @@ const PostBenchResource = () => {
             parsed.technicalSkills.length > 0 ? parsed.technicalSkills : []
           );
           toast.success("Resume processed with AI!", {
-            description: "Form fields have been populated from your resume.",
+            description: "Skills have been populated from your resume.",
           });
         } catch (geminiError) {
           console.error("AI fallback also failed:", geminiError);
