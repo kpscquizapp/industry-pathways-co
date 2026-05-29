@@ -201,7 +201,7 @@ const HiringDashboardNew = () => {
     const run = async () => {
       const results = await Promise.all(
         activeJobs.map((job) =>
-          getJobMatches({ id: String(job.id), page: 1, limit: 1000 })
+          getJobMatches({ id: String(job.id), page: 1, limit: 5 })
             .unwrap()
             .catch(() => null),
         ),
@@ -384,7 +384,7 @@ const HiringDashboardNew = () => {
             </div>
             <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2">
               {isMatchCountsLoading ? (
-                <span className="text-gray-300 animate-pulse">...</span>
+                <span className="text-gray-300 animate-pulse">Loading...</span>
               ) : (
                 totalTestsDone.toLocaleString()
               )}
@@ -407,7 +407,7 @@ const HiringDashboardNew = () => {
             </div>
             <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2">
               {isMatchCountsLoading ? (
-                <span className="text-gray-300 animate-pulse">...</span>
+                <span className="text-gray-300 animate-pulse">Loading...</span>
               ) : (
                 matchCounts[selectedJobId] || 0
               )}
@@ -455,7 +455,7 @@ const HiringDashboardNew = () => {
                       : job.status === "closed"
                         ? "Paused"
                         : (job.status ?? "").charAt(0).toUpperCase() +
-                          (job.status ?? "").slice(1);
+                        (job.status ?? "").slice(1);
                   const statusColor = isActive
                     ? "bg-emerald-50 text-emerald-500 border-emerald-200"
                     : statusLabel === "Draft"
@@ -465,11 +465,10 @@ const HiringDashboardNew = () => {
                   return (
                     <div
                       key={job.id}
-                      className={`px-6 py-5 cursor-pointer hover:bg-gray-50/50 transition-colors ${
-                        idx < Math.min(activeJobs.length, 3) - 1
-                          ? "border-b border-gray-100"
-                          : ""
-                      }`}
+                      className={`px-6 py-5 cursor-pointer hover:bg-gray-50/50 transition-colors ${idx < Math.min(activeJobs.length, 3) - 1
+                        ? "border-b border-gray-100"
+                        : ""
+                        }`}
                       onClick={() =>
                         navigate(`/hire-talent/ai-shortlists?jobId=${job.id}`)
                       }
@@ -574,13 +573,11 @@ const HiringDashboardNew = () => {
                     return (
                       <div
                         key={candidate.id}
-                        className={`px-6 py-5 hover:bg-gray-50/40 transition-colors relative ${
-                          isShortlisted ? "bg-teal-50/30" : ""
-                        } ${
-                          idx < Math.min(topCandidates.length, 3) - 1
+                        className={`px-6 py-5 hover:bg-gray-50/40 transition-colors relative ${isShortlisted ? "bg-teal-50/30" : ""
+                          } ${idx < Math.min(topCandidates.length, 3) - 1
                             ? "border-b border-gray-100"
                             : ""
-                        }`}
+                          }`}
                       >
                         {/* Main row: Avatar | Info | Ring | Actions */}
                         <div className="flex items-center gap-4">
@@ -623,11 +620,10 @@ const HiringDashboardNew = () => {
                           <div className="flex items-center gap-2 shrink-0">
                             {/* Shortlist Button */}
                             <button
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
-                                isShortlisted
-                                  ? "bg-emerald-50 text-emerald-600 border-2 border-emerald-500 shadow-sm"
-                                  : "bg-white text-gray-400 border border-gray-200 hover:text-emerald-500 hover:border-emerald-200 hover:bg-emerald-50"
-                              }`}
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${isShortlisted
+                                ? "bg-emerald-50 text-emerald-600 border-2 border-emerald-500 shadow-sm"
+                                : "bg-white text-gray-400 border border-gray-200 hover:text-emerald-500 hover:border-emerald-200 hover:bg-emerald-50"
+                                }`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (!isShortlisted)
@@ -640,11 +636,10 @@ const HiringDashboardNew = () => {
 
                             {/* Remove/Reject Button */}
                             <button
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
-                                isShortlisted
-                                  ? "bg-white text-gray-400 border border-gray-200 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50"
-                                  : "bg-white text-gray-400 border border-gray-200 hover:text-gray-600 hover:bg-gray-50"
-                              }`}
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${isShortlisted
+                                ? "bg-white text-gray-400 border border-gray-200 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50"
+                                : "bg-white text-gray-400 border border-gray-200 hover:text-gray-600 hover:bg-gray-50"
+                                }`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (isShortlisted)

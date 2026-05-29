@@ -16,11 +16,21 @@ import {
   Link,
   CheckCircle,
   Loader2,
+  Plus,
+  Check,
+  PencilLine,
+  CheckSquare,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+type ExtractedSkill = {
+  id: string;
+  name: string;
+  isPrimary: boolean;
+};
 
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -175,8 +185,14 @@ const EmployerPostJob = () => {
   const { data: jobDetailsData, isLoading: jobDetailsLoading } =
     useGetJobsByIdQuery(isEditing ? { id: jobId } : skipToken);
 
-  const [skills, setSkills] = useState<string[]>([]);
-  const [newSkill, setNewSkill] = useState("");
+  const [primarySkills, setPrimarySkills] = useState<string[]>([]);
+  const [optionalSkills, setOptionalSkills] = useState<string[]>([]);
+  const [extractedSkills, setExtractedSkills] = useState<ExtractedSkill[]>([]);
+  const [isEditingPrimarySkills, setIsEditingPrimarySkills] = useState(false);
+  const [showPrimarySkillsDisplay, setShowPrimarySkillsDisplay] = useState(false);
+  const [editingExtractedSkillId, setEditingExtractedSkillId] = useState<string | null>(null);
+  const [editingExtractedSkillName, setEditingExtractedSkillName] = useState("");
+  const [skillInput, setSkillInput] = useState("");
   const [postingAction, setPostingAction] = useState<
     "post" | "postAndShow" | null
   >(null);
@@ -246,19 +262,47 @@ const EmployerPostJob = () => {
         dataPrivacyPolicies: job.dataPrivacyPolicies || false,
         termsAndConditions: job.termsAndConditions || false,
       });
-      const normalizedSkills = Array.isArray(job.skills)
-        ? job.skills
-            .map((s: { name?: string } | string) =>
-              typeof s === "string" ? s : (s.name ?? ""),
-            )
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [];
-      setSkills(normalizedSkills);
-      if (normalizedSkills.length > 0) setSkillsExtracted(true);
+      let normalizedPrimary: string[] = [];
+      let normalizedOptional: string[] = [];
+
+      if (Array.isArray(job.skills)) {
+        job.skills.forEach((s: any) => {
+          const name = (typeof s === "string" ? s : s.name ?? "").trim();
+          if (!name) return;
+          const level = typeof s === "object" && s !== null ? s.proficiencyLevel : "";
+          if (level === "intermediate") {
+            normalizedOptional.push(name);
+          } else {
+            normalizedPrimary.push(name);
+          }
+        });
+      }
+
+      if (Array.isArray(job.optionalSkills)) {
+        job.optionalSkills.forEach((s: any) => {
+          const name = (typeof s === "string" ? s : s.name ?? "").trim();
+          if (name && !normalizedOptional.includes(name)) {
+            normalizedOptional.push(name);
+          }
+        });
+      }
+
+      // If we got some skills, but no optional skills and primary is > 5, split them (first 5 as primary, rest as optional)
+      if (normalizedPrimary.length > 5 && normalizedOptional.length === 0) {
+        normalizedOptional = normalizedPrimary.slice(5);
+        normalizedPrimary = normalizedPrimary.slice(0, 5);
+      }
+
+      setPrimarySkills(normalizedPrimary);
+      setOptionalSkills(normalizedOptional);
+      if (normalizedPrimary.length > 0 || normalizedOptional.length > 0) {
+        setSkillsExtracted(true);
+      }
     } else if (!isEditing) {
       setFormData({ ...INITIAL_FORM_DATA });
-      setSkills([]);
+      setPrimarySkills([]);
+      setOptionalSkills([]);
+      setExtractedSkills([]);
     }
   }, [isEditing, jobDetailsData]);
 
@@ -333,14 +377,14 @@ const EmployerPostJob = () => {
     const salaryMax = parseOptionalNumber(formData.salaryMax);
     const normalizedSalaryMin =
       salaryMin !== undefined &&
-      salaryMax !== undefined &&
-      salaryMin > salaryMax
+        salaryMax !== undefined &&
+        salaryMin > salaryMax
         ? salaryMax
         : salaryMin;
     const normalizedSalaryMax =
       salaryMin !== undefined &&
-      salaryMax !== undefined &&
-      salaryMin > salaryMax
+        salaryMax !== undefined &&
+        salaryMin > salaryMax
         ? salaryMin
         : salaryMax;
     const { minExperience, maxExperience } = mapExperienceLevelToYears(
@@ -405,17 +449,228 @@ const EmployerPostJob = () => {
       equalOpportunityEmployer: formData.equalOpportunityEmployer,
       dataPrivacyPolicies: formData.dataPrivacyPolicies,
       termsAndConditions: formData.termsAndConditions,
-      skills: skills.map((skill) => ({ name: skill })),
+      skills: primarySkills.map((skill) => ({
+        name: skill,
+        proficiencyLevel: "beginner",
+      })),
+      optionalSkills: optionalSkills.map((skill) => ({
+        name: skill,
+        proficiencyLevel: "beginner",
+      })),
     };
   };
 
-  const addSkill = () => {
-    if (newSkill.trim() && !skills.includes(newSkill.trim())) {
-      setSkills([...skills, newSkill.trim()]);
-      setNewSkill("");
+  const normalizeSkill = (value: string) => value.toLowerCase().trim();
+
+  const createLocalId = (prefix = "local") =>
+    `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  const handleToggleExtractedSkill = (id: string, check: boolean) => {
+    const skill = extractedSkills.find((s) => s.id === id);
+    if (!skill) return;
+
+    if (check) {
+      if (primarySkills.length >= 5) {
+        toast.error(
+          "You can only select up to 5 primary skills. Please uncheck one first.",
+        );
+        return;
+      }
+
+      setPrimarySkills((prev) => {
+        const newPrimary = [...prev];
+        if (!newPrimary.some((s) => normalizeSkill(s) === normalizeSkill(skill.name))) {
+          newPrimary.push(skill.name);
+        }
+        return newPrimary;
+      });
+      setExtractedSkills((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, isPrimary: true } : s)),
+      );
+    } else {
+      if (primarySkills.length <= 1) {
+        toast.warning("You must have at least one primary skill overall");
+        return;
+      }
+      setPrimarySkills((prev) =>
+        prev.filter((s) => normalizeSkill(s) !== normalizeSkill(skill.name)),
+      );
+      setExtractedSkills((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, isPrimary: false } : s)),
+      );
     }
   };
-  const removeSkill = (s: string) => setSkills(skills.filter((sk) => sk !== s));
+
+  const getMergedSecondarySkills = (
+    baseSecondarySkills: string[] = optionalSkills,
+  ) => {
+    const seen = new Set(baseSecondarySkills.map((s) => normalizeSkill(s)));
+    const mergedSecondarySkills = [...baseSecondarySkills];
+
+    extractedSkills.forEach((skill) => {
+      if (skill.isPrimary) return;
+
+      const normalized = normalizeSkill(skill.name);
+      const inPrimary = primarySkills.some(
+        (primarySkill) => normalizeSkill(primarySkill) === normalized,
+      );
+
+      if (!seen.has(normalized) && !inPrimary) {
+        seen.add(normalized);
+        mergedSecondarySkills.push(skill.name);
+      }
+    });
+
+    return mergedSecondarySkills;
+  };
+
+  const handleUpdateSkillExtraction = () => {
+    const syncedPrimarySkills = extractedSkills
+      .filter((s) => s.isPrimary)
+      .map((s) => s.name);
+
+    const syncedSecondarySkills = extractedSkills
+      .filter((s) => !s.isPrimary)
+      .map((s) => s.name);
+
+    setPrimarySkills(syncedPrimarySkills);
+    setOptionalSkills(syncedSecondarySkills);
+
+    setShowPrimarySkillsDisplay(false);
+    toast.success("Skills updated successfully!");
+  };
+
+  const saveExtractedSkillEdit = (id: string) => {
+    const skill = extractedSkills.find((s) => s.id === id);
+    if (!skill) return;
+    const newName = editingExtractedSkillName.trim();
+    if (!newName) {
+      toast.error("Skill name cannot be empty");
+      return;
+    }
+    if (newName.length > 50) {
+      toast.error("Skill name must be less than 50 characters");
+      return;
+    }
+
+    if (
+      extractedSkills.some(
+        (s) =>
+          s.id !== id && normalizeSkill(s.name) === normalizeSkill(newName),
+      )
+    ) {
+      toast.error("This skill already exists in extracted skills");
+      return;
+    }
+
+    setExtractedSkills((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, name: newName } : s)),
+    );
+
+    if (skill.isPrimary) {
+      setPrimarySkills((prev) =>
+        prev.map((s) =>
+          normalizeSkill(s) === normalizeSkill(skill.name) ? newName : s,
+        ),
+      );
+    } else {
+      setOptionalSkills((prev) =>
+        prev.map((s) =>
+          normalizeSkill(s) === normalizeSkill(skill.name) ? newName : s,
+        ),
+      );
+    }
+
+    setEditingExtractedSkillId(null);
+    setEditingExtractedSkillName("");
+  };
+
+  const deleteExtractedSkill = (id: string) => {
+    const skill = extractedSkills.find((s) => s.id === id);
+    if (!skill) return;
+
+    const totalSkills =
+      primarySkills.length + getMergedSecondarySkills().length;
+    if (totalSkills <= 1) {
+      toast.warning("You must keep at least one skill.");
+      return;
+    }
+
+    if (skill.isPrimary && primarySkills.length <= 1) {
+      toast.warning("You must have at least one primary skill overall");
+      return;
+    }
+
+    setExtractedSkills((prev) => prev.filter((s) => s.id !== id));
+
+    if (skill.isPrimary) {
+      setPrimarySkills((prev) =>
+        prev.filter((s) => normalizeSkill(s) !== normalizeSkill(skill.name)),
+      );
+    } else {
+      setOptionalSkills((prev) =>
+        prev.filter((s) => normalizeSkill(s) !== normalizeSkill(skill.name)),
+      );
+    }
+  };
+
+  const addSecondarySkill = () => {
+    const name = skillInput.trim();
+
+    if (!name) {
+      toast.error("Please enter a skill name");
+      return;
+    }
+
+    if (name.length > 50) {
+      toast.error("Skill name must be less than 50 characters");
+      return;
+    }
+
+    if (optionalSkills.length >= 50) {
+      toast.error("You can add a maximum of 50 optional skills");
+      return;
+    }
+
+    if (
+      optionalSkills.some(
+        (skill) => skill.toLowerCase() === name.toLowerCase(),
+      )
+    ) {
+      toast.error("This skill has already been added to optional skills");
+      return;
+    }
+
+    if (
+      primarySkills.some(
+        (skill) => skill.toLowerCase() === name.toLowerCase(),
+      )
+    ) {
+      toast.error("This skill is already in primary skills");
+      return;
+    }
+
+    setOptionalSkills((prev) => [...prev, name]);
+    setSkillInput("");
+
+    if (fieldErrors.skills) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.skills;
+        return newErrors;
+      });
+    }
+  };
+
+  const removeSecondarySkill = (skillToRemove: string) => {
+    if (primarySkills.length + optionalSkills.length <= 1) {
+      toast.warning("You must keep at least one skill.");
+      return;
+    }
+    setOptionalSkills((prev) =>
+      prev.filter((s) => s.toLowerCase() !== skillToRemove.toLowerCase()),
+    );
+  };
 
   const getErrorMessage = (error: unknown, fallback: string): string => {
     if (typeof error === "string" && error.trim()) return error;
@@ -454,7 +709,7 @@ const EmployerPostJob = () => {
     if (!formData.description.trim()) errors.description = true;
     if (!formData.employmentType.trim()) errors.employmentType = true;
     if (!formData.workMode.trim()) errors.workMode = true;
-    if (skills.length === 0) errors.skills = true;
+    if (primarySkills.length === 0) errors.skills = true;
     if (Object.keys(errors).length > 0) {
       setFieldErrors((prev) => ({ ...prev, ...errors }));
       toast.error("Please fill in all required fields.");
@@ -478,9 +733,9 @@ const EmployerPostJob = () => {
   const getCreatedJobId = (
     response:
       | {
-          data?: { id?: string | number; job?: { id?: string | number } };
-          id?: string | number;
-        }
+        data?: { id?: string | number; job?: { id?: string | number } };
+        id?: string | number;
+      }
       | undefined,
   ) => response?.data?.id ?? response?.data?.job?.id ?? response?.id;
 
@@ -575,18 +830,100 @@ const EmployerPostJob = () => {
       }).unwrap();
       const extracted = result?.data?.technicalSkills ?? [];
       if (extracted.length > 0) {
-        const merged = [...skills];
-        const lowerSet = new Set(merged.map((s) => s.toLowerCase()));
-        let newCount = 0;
-        extracted.forEach((s: string) => {
-          if (!lowerSet.has(s.toLowerCase())) {
-            merged.push(s);
-            lowerSet.add(s.toLowerCase());
-            newCount++;
-          }
+        const validExtractedSkills = extracted.filter(
+          (s: any): s is string => typeof s === "string" && s.trim() !== "",
+        );
+
+        setShowPrimarySkillsDisplay(true);
+
+        const currentPrimary = [...primarySkills];
+        const currentSecondary = [...optionalSkills];
+        const newExtractedObjects: ExtractedSkill[] = [];
+        const newPrimarySkills = [...currentPrimary];
+        const newSecondarySkills = [...currentSecondary];
+        let checkedCount = currentPrimary.length;
+
+        // Add all current primary skills into our local tracker so they appear in the banner checked.
+        currentPrimary.forEach((skill) => {
+          newExtractedObjects.push({
+            id: createLocalId("ext"),
+            name: skill,
+            isPrimary: true,
+          });
         });
-        setSkills(merged);
+
+        // Also include existing secondary skills in the banner (unchecked)
+        currentSecondary.forEach((skill) => {
+          newExtractedObjects.push({
+            id: createLocalId("ext"),
+            name: skill,
+            isPrimary: false,
+          });
+        });
+
+        let autoCheckedCount = checkedCount;
+        let newCount = 0;
+        const seenResumeSkills = new Set<string>();
+
+        for (const skill of validExtractedSkills) {
+          const normalized = normalizeSkill(skill);
+          if (seenResumeSkills.has(normalized)) continue;
+
+          const inPrimary = currentPrimary.some(
+            (p) => normalizeSkill(p) === normalized,
+          );
+          const inSecondary = currentSecondary.some(
+            (s) => normalizeSkill(s) === normalized,
+          );
+
+          if (!inPrimary && !inSecondary) {
+            newCount++;
+            // Completely new extracted skill
+            if (autoCheckedCount < 5) {
+              newPrimarySkills.push(skill);
+              seenResumeSkills.add(normalized);
+              newExtractedObjects.push({
+                id: createLocalId("ext"),
+                name: skill,
+                isPrimary: true,
+              });
+              autoCheckedCount++;
+            } else {
+              newSecondarySkills.push(skill);
+              seenResumeSkills.add(normalized);
+              newExtractedObjects.push({
+                id: createLocalId("ext"),
+                name: skill,
+                isPrimary: false,
+              });
+            }
+          } else {
+            seenResumeSkills.add(normalized);
+          }
+        }
+
+        setExtractedSkills((prevExt) => {
+          const updated = [...prevExt];
+          for (const newObj of newExtractedObjects) {
+            const existingIdx = updated.findIndex(
+              (u) => normalizeSkill(u.name) === normalizeSkill(newObj.name),
+            );
+            if (existingIdx === -1) {
+              updated.push(newObj);
+            } else {
+              updated[existingIdx] = {
+                ...updated[existingIdx],
+                isPrimary: newObj.isPrimary,
+              };
+            }
+          }
+          return updated;
+        });
+
+        setPrimarySkills(newPrimarySkills);
+        setOptionalSkills(newSecondarySkills);
         setSkillsExtracted(true);
+
         if (newCount > 0)
           toast.success(
             `${newCount} new skill${newCount > 1 ? "s" : ""} extracted from description`,
@@ -690,11 +1027,10 @@ const EmployerPostJob = () => {
                             }));
                         }}
                         placeholder="e.g., Senior Frontend Developer"
-                        className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
-                          fieldErrors.title
-                            ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                            : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                        } focus:ring-1 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                        className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.title
+                          ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                          : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                          } focus:ring-1 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                       />
                       {fieldErrors.title && (
                         <p className="text-xs text-destructive mt-1.5">
@@ -782,7 +1118,7 @@ const EmployerPostJob = () => {
                               : "",
                             maxExperience:
                               range?.maxExperience !== null &&
-                              range?.maxExperience !== undefined
+                                range?.maxExperience !== undefined
                                 ? String(range.maxExperience)
                                 : "",
                           });
@@ -920,65 +1256,465 @@ const EmployerPostJob = () => {
                 </div>
               </div>
 
-              {/* ── Section: Required Skills ── */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <Label className="text-sm font-bold">
-                    Required Skills <span className="text-destructive">*</span>
-                  </Label>
-                  {skillsExtracted && (
-                    <div className="flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-xs font-semibold">
-                      <CheckCircle className="h-3.5 w-3.5" /> Skills Extracted
-                      Successfully
+              {/* ── Section: Skills Extraction Checkbox Grid ── */}
+              {showPrimarySkillsDisplay && extractedSkills.length > 0 && !isEditingPrimarySkills && (
+                <div className="border border-[#4DD9E8]/20 bg-[#4DD9E8]/5 p-6 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CheckSquare className="h-5 w-5 text-[#288e99]" />
+                      <h3 className="text-base font-bold text-foreground">Extracted Skills Selection</h3>
                     </div>
+                    {skillsExtracted && (
+                      <div className="flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-xs font-semibold">
+                        <CheckCircle className="h-3.5 w-3.5" /> JD Skills Extracted
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Select up to 5 primary skills from your extracted job description.
+                    Unchecked skills will be added as optional skills.
+                  </p>
+                  {extractedSkills.filter((s) => s.isPrimary).length > 0 && (
+                    <p className="text-xs font-semibold text-gray-500">
+                      {extractedSkills.filter((s) => s.isPrimary).length} / 5 primary skills selected
+                    </p>
                   )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                    {extractedSkills.map((skill) => {
+                      const isChecked = skill.isPrimary;
+                      return (
+                        <div
+                          key={skill.id}
+                          className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) =>
+                              handleToggleExtractedSkill(skill.id, e.target.checked)
+                            }
+                            className="w-4 h-4 text-[#4DD9E8] rounded border-gray-300 focus:ring-[#4DD9E8] accent-[#4DD9E8] min-h-0 min-w-0"
+                          />
+                          {editingExtractedSkillId === skill.id ? (
+                            <div className="flex-1 flex gap-2 items-center">
+                              <input
+                                type="text"
+                                value={editingExtractedSkillName}
+                                onChange={(e) =>
+                                  setEditingExtractedSkillName(e.target.value)
+                                }
+                                className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded outline-none focus:border-[#4DD9E8]"
+                                autoFocus
+                              />
+                              <button
+                                type="button"
+                                onClick={() => saveExtractedSkillEdit(skill.id)}
+                                className="text-green-500 hover:text-green-600 transition-colors"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingExtractedSkillId(null);
+                                  setEditingExtractedSkillName("");
+                                }}
+                                className="text-gray-400 hover:text-gray-500 transition-colors"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex-1 flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-700">
+                                {skill.name}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingExtractedSkillId(skill.id);
+                                    setEditingExtractedSkillName(skill.name);
+                                  }}
+                                  className="text-gray-400 hover:text-[#4DD9E8] transition-colors"
+                                >
+                                  <PencilLine className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteExtractedSkill(skill.id)}
+                                  className="text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center justify-end mt-4 pt-2">
+                    <button
+                      type="button"
+                      onClick={handleUpdateSkillExtraction}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] hover:bg-[#1a1a2e]/90 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 text-xs"
+                    >
+                      Update Skills
+                    </button>
+                  </div>
                 </div>
-                <div
-                  className={`flex flex-wrap items-center ${fieldErrors.skills ? "border-destructive" : "border-border"}`}
-                >
-                  {skills.map((skill, index) => {
-                    const c = SKILL_COLORS[index % SKILL_COLORS.length];
-                    return (
-                      <Badge
-                        key={skill}
-                        variant="secondary"
-                        className={`${c.bg} ${c.text} border-none px-2.5 py-1 text-xs font-semibold rounded-md flex items-center gap-1.5`}
+              )}
+
+              {/* ── Section: Required Skills Management Layout ── */}
+              <div className="border border-border/80 p-6 rounded-2xl space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 pb-4 border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <Label className="text-base font-bold text-foreground">Skills</Label>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsEditingPrimarySkills((prev) => {
+                        setEditingExtractedSkillId(null);
+                        setEditingExtractedSkillName("");
+                        return !prev;
+                      });
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#4DD9E8]/10 text-[#288e99] hover:bg-[#4DD9E8]/20 hover:text-[#288e99] rounded-xl transition text-sm shadow-none border-none"
+                  >
+                    <PencilLine className="w-4 h-4" />
+                    {isEditingPrimarySkills ? "Done Editing" : "Edit Primary"}
+                  </Button>
+                </div>
+
+                {/* Primary Skills Subsection - Only shown when editing */}
+                {isEditingPrimarySkills && (
+                  <div className="p-4 bg-blue-50/50 border border-blue-200 rounded-xl">
+                    <div className="flex items-center gap-2 mb-3">
+                      <h4 className="text-xs font-semibold text-blue-900">
+                        Edit Skills (Select up to 5 as Primary)
+                      </h4>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Show all primary skills */}
+                      {primarySkills.map((skillName, idx) => {
+                        const extractedSkill = extractedSkills.find(
+                          (s) => normalizeSkill(s.name) === normalizeSkill(skillName),
+                        );
+                        return (
+                          <div
+                            key={`primary-${skillName}-${idx}`}
+                            className="flex items-center gap-3 p-3 bg-white border border-blue-100 rounded-xl"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={true}
+                              onChange={(e) => {
+                                if (!e.target.checked) {
+                                  if (primarySkills.length <= 1) {
+                                    toast.warning(
+                                      "You must have at least one primary skill overall",
+                                    );
+                                    return;
+                                  }
+                                  // Move from primary to secondary
+                                  setPrimarySkills((prev) =>
+                                    prev.filter((s) => s.toLowerCase() !== skillName.toLowerCase())
+                                  );
+                                  setOptionalSkills((prev) => {
+                                    if (prev.some((s) => s.toLowerCase() === skillName.toLowerCase())) return prev;
+                                    return [...prev, skillName];
+                                  });
+                                  if (extractedSkill) {
+                                    setExtractedSkills((prev) =>
+                                      prev.map((s) =>
+                                        s.id === extractedSkill.id
+                                          ? { ...s, isPrimary: false }
+                                          : s,
+                                      ),
+                                    );
+                                  }
+                                }
+                              }}
+                              className="w-4 h-4 text-[#4DD9E8] rounded border-gray-300 focus:ring-[#4DD9E8] accent-[#4DD9E8] min-h-0 min-w-0"
+                            />
+                            {extractedSkill &&
+                              editingExtractedSkillId === extractedSkill.id ? (
+                              <div className="flex-1 flex gap-2 items-center">
+                                <input
+                                  type="text"
+                                  value={editingExtractedSkillName}
+                                  onChange={(e) =>
+                                    setEditingExtractedSkillName(e.target.value)
+                                  }
+                                  className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded outline-none focus:border-[#4DD9E8]"
+                                  autoFocus
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    saveExtractedSkillEdit(extractedSkill.id)
+                                  }
+                                  className="text-green-500 hover:text-green-600 transition-colors"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingExtractedSkillId(null);
+                                    setEditingExtractedSkillName("");
+                                  }}
+                                  className="text-gray-400 hover:text-gray-500 transition-colors"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex-1 flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-700">
+                                  {skillName}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (extractedSkill) {
+                                        setEditingExtractedSkillId(extractedSkill.id);
+                                        setEditingExtractedSkillName(
+                                          extractedSkill.name,
+                                        );
+                                      } else {
+                                        const newId = createLocalId("ext");
+                                        setExtractedSkills((prev) => [
+                                          ...prev,
+                                          {
+                                            id: newId,
+                                            name: skillName,
+                                            isPrimary: true,
+                                          },
+                                        ]);
+                                        setEditingExtractedSkillId(newId);
+                                        setEditingExtractedSkillName(skillName);
+                                      }
+                                    }}
+                                    className="text-gray-400 hover:text-[#4DD9E8] transition-colors"
+                                  >
+                                    <PencilLine className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (extractedSkill) {
+                                        deleteExtractedSkill(extractedSkill.id);
+                                      } else {
+                                        if (primarySkills.length <= 1) {
+                                          toast.warning(
+                                            "You must have at least one primary skill overall",
+                                          );
+                                          return;
+                                        }
+                                        setPrimarySkills((prev) =>
+                                          prev.filter(
+                                            (s) =>
+                                              s.toLowerCase() !==
+                                              skillName.toLowerCase(),
+                                          ),
+                                        );
+                                      }
+                                    }}
+                                    className="text-gray-400 hover:text-red-500 transition-colors"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+
+                      {/* Show all secondary skills */}
+                      {optionalSkills.map((skillName, idx) => {
+                        const extractedSkill = extractedSkills.find(
+                          (s) => normalizeSkill(s.name) === normalizeSkill(skillName),
+                        );
+                        return (
+                          <div
+                            key={`secondary-${skillName}-${idx}`}
+                            className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={false}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  if (primarySkills.length >= 5) {
+                                    toast.error(
+                                      "You can only select up to 5 primary skills. Please uncheck one first.",
+                                    );
+                                    return;
+                                  }
+                                  // Move from secondary to primary
+                                  setPrimarySkills((prev) => [...prev, skillName]);
+                                  setOptionalSkills((prev) =>
+                                    prev.filter((s) => s.toLowerCase() !== skillName.toLowerCase())
+                                  );
+                                  if (extractedSkill) {
+                                    setExtractedSkills((prev) =>
+                                      prev.map((s) =>
+                                        s.id === extractedSkill.id
+                                          ? { ...s, isPrimary: true }
+                                          : s,
+                                      ),
+                                    );
+                                  } else {
+                                    setExtractedSkills((prev) => [
+                                      ...prev,
+                                      {
+                                        id: createLocalId("ext"),
+                                        name: skillName,
+                                        isPrimary: true,
+                                      },
+                                    ]);
+                                  }
+                                }
+                              }}
+                              className="w-4 h-4 text-[#4DD9E8] rounded border-gray-300 focus:ring-[#4DD9E8] accent-[#4DD9E8] min-h-0 min-w-0"
+                            />
+                            <div className="flex-1 flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-700">
+                                {skillName}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const totalSkills =
+                                      primarySkills.length +
+                                      optionalSkills.length;
+
+                                    if (totalSkills <= 1) {
+                                      toast.warning(
+                                        "You must keep at least one skill.",
+                                      );
+                                      return;
+                                    }
+
+                                    if (extractedSkill) {
+                                      deleteExtractedSkill(extractedSkill.id);
+                                    } else {
+                                      removeSecondarySkill(skillName);
+                                    }
+                                  }}
+                                  className="text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {primarySkills.length > 0 && (
+                      <p className="text-xs font-medium text-blue-600 mt-3">
+                        {primarySkills.length} / 5 primary skills selected
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Primary Skills Display - Always shown when skills exist and not editing */}
+                {!isEditingPrimarySkills && primarySkills.length > 0 && (
+                  <div className="p-4 bg-[#4DD9E8]/10 border border-[#4DD9E8] rounded-xl">
+                    <h4 className="text-sm font-semibold text-inherit mb-3">
+                      Primary Skills <span className="text-destructive">*</span>
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {primarySkills.map((skill, index) => (
+                        <div
+                          key={`${skill}-${index}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#4DD9E8]/20 text-[#288e99] rounded-lg text-sm font-medium"
+                        >
+                          {skill}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {fieldErrors.skills && primarySkills.length === 0 && (
+                  <p className="text-xs text-destructive">At least one primary skill is required.</p>
+                )}
+
+                {/* Optional Skills Subsection */}
+                <div className="pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                    Optional Skills
+                  </h4>
+                  <div className="flex gap-2 mb-4">
+                    <input
+                      type="text"
+                      value={skillInput}
+                      onChange={(e) => setSkillInput(e.target.value)}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && (e.preventDefault(), addSecondarySkill())
+                      }
+                      maxLength={50}
+                      placeholder="Add an optional skill (e.g., TypeScript)"
+                      className="flex-1 px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] outline-none rounded-xl"
+                    />
+                    <Button
+                      type="button"
+                      onClick={addSecondarySkill}
+                      className="px-5 py-2.5 bg-[#4DD9E8] text-white rounded-xl hover:bg-[#4DD9E8]/90 transition shadow-sm"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2.5">
+                    {optionalSkills.map((name, index) => (
+                      <div
+                        key={`${name}-${index}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#4DD9E8]/10 text-[#288e99] rounded-xl text-sm font-medium"
                       >
-                        {skill}
+                        {name}
                         <button
                           type="button"
-                          aria-label={`Remove ${skill}`}
-                          onClick={() => removeSkill(skill)}
-                          className={`${c.close} transition-colors`}
+                          onClick={() => removeSecondarySkill(name)}
+                          className="hover:text-red-500 transition-colors bg-white/50 rounded-full p-0.5 min-w-0 min-h-0"
+                          aria-label={`Remove ${name}`}
                         >
-                          <X className="h-3 w-3 stroke-[2.5px]" />
+                          <X className="w-3.5 h-3.5" />
                         </button>
-                      </Badge>
-                    );
-                  })}
-                  <input
-                    value={newSkill}
-                    onChange={(e) => {
-                      setNewSkill(e.target.value);
-                      if (fieldErrors.skills)
-                        setFieldErrors((p) => ({ ...p, skills: false }));
-                    }}
-                    placeholder="Type a skill and press Enter..."
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        addSkill();
-                        if (fieldErrors.skills)
-                          setFieldErrors((p) => ({ ...p, skills: false }));
-                      }
-                    }}
-                    className="w-full px-4 py-2.5 border-0 ring-1 outline-none ring-inset ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700 focus:ring-1 focus:ring-inset dark:bg-slate-900 rounded-xl bg-gray-50 mt-4"
-                  />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-2 flex justify-between items-center flex-wrap gap-y-3">
+                    {optionalSkills.length === 0 && (
+                      <p className="text-sm text-gray-400 italic">
+                        No optional skills added yet.
+                      </p>
+                    )}
+                    {optionalSkills.length > 0 && (
+                      <p className="text-xs font-medium text-gray-400 mt-3">
+                        {optionalSkills.length} optional skills added
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleUpdateSkillExtraction}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] hover:bg-[#1a1a2e]/90 text-white font-medium rounded-sm shadow-sm hover:shadow-md transition-all duration-200 text-xs"
+                    >
+                      Update Skills
+                    </button>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground/80 mt-2.5">
-                  Review and adjust the AI-extracted skills above to improve
-                  candidate matching accuracy.
-                </p>
               </div>
 
               {/* ── Section: Additional Details ── */}

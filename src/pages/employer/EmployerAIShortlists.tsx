@@ -82,7 +82,7 @@ type CandidateListItem = CandidateProfileWithMeta & {
 };
 
 const EMPLOYER_JOBS_PAGE_SIZE = 100;
-const JOB_MATCHES_PAGE_SIZE = 50;
+const JOB_MATCHES_PAGE_SIZE = 10;
 
 const mergeUniqueById = <T extends { id: EntityId }>(
   existingItems: T[],
@@ -815,7 +815,7 @@ const EmployerAIShortlists = () => {
       page: jobMatchesPage,
       limit: JOB_MATCHES_PAGE_SIZE,
     },
-    { skip: !shouldFetchMatches, pollingInterval: 30000 },
+    { skip: !shouldFetchMatches },
   );
 
   const [shortlistCandidateMutation] = useShortlistCandidateMutation();
@@ -1314,11 +1314,10 @@ const EmployerAIShortlists = () => {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={`h-10 rounded-xl border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50 shadow-sm flex items-center gap-2 ${
-                        bulkFilterStatus
-                          ? "border-[#08b8cc] text-[#08b8cc]"
-                          : ""
-                      }`}
+                      className={`h-10 rounded-xl border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50 shadow-sm flex items-center gap-2 ${bulkFilterStatus
+                        ? "border-[#08b8cc] text-[#08b8cc]"
+                        : ""
+                        }`}
                     >
                       <ChevronDown className="h-4 w-4 text-gray-500" />
                       Bulk Actions
@@ -1557,13 +1556,12 @@ const EmployerAIShortlists = () => {
                           candidate.stage !== "invited" &&
                           handleShortlist(candidate)
                         }
-                        className={`h-9 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all ${
-                          candidate.stage === "invited"
-                            ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
-                            : candidate.stage === "shortlisted"
-                              ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
-                              : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                        }`}
+                        className={`h-9 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all ${candidate.stage === "invited"
+                          ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
+                          : candidate.stage === "shortlisted"
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
+                            : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          }`}
                       >
                         {candidate.stage === "invited" ? (
                           <span className="flex items-center gap-1.5">
@@ -1582,16 +1580,16 @@ const EmployerAIShortlists = () => {
 
                       {(candidate.stage === "shortlisted" ||
                         candidate.stage === "invited") && (
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleShortlist(candidate)}
-                          className="h-9 w-9 rounded-xl border-rose-200 text-rose-500 bg-rose-50 hover:bg-rose-100 hover:text-rose-600 shadow-sm"
-                          title="Remove from shortlist"
-                        >
-                          <X className="h-5 w-5" strokeWidth={2.5} />
-                        </Button>
-                      )}
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleShortlist(candidate)}
+                            className="h-9 w-9 rounded-xl border-rose-200 text-rose-500 bg-rose-50 hover:bg-rose-100 hover:text-rose-600 shadow-sm"
+                            title="Remove from shortlist"
+                          >
+                            <X className="h-5 w-5" strokeWidth={2.5} />
+                          </Button>
+                        )}
                     </div>
                   </div>
                 );

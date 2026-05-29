@@ -1197,24 +1197,11 @@ const CandidateProfileUpdate = (): JSX.Element => {
   };
 
   const handleSaveSkillsOnly = async (secondarySkillsOverride?: string[]) => {
-    // Sync extractedSkills state back to formData before saving
-    // This ensures deletions in the Edit Primary section are reflected
-    const syncedPrimarySkills = extractedSkills
-      .filter((s) => s.isPrimary)
-      .map((s) => s.name);
-
-    const syncedSecondarySkills = extractedSkills
-      .filter((s) => !s.isPrimary)
-      .map((s) => s.name);
-
-    // Use synced skills if we have extractedSkills, otherwise use formData
-    const primarySkillsToSave =
-      extractedSkills.length > 0 ? syncedPrimarySkills : formData.primarySkills;
-
+    // Since check/uncheck/edit/delete actions already keep formData in sync,
+    // we can directly save the current state from formData.
+    const primarySkillsToSave = formData.primarySkills;
     const baseSecondarySkills =
-      extractedSkills.length > 0
-        ? syncedSecondarySkills
-        : (secondarySkillsOverride ?? formData.secondarySkills);
+      secondarySkillsOverride ?? formData.secondarySkills;
 
     const secondarySkillsToPersist =
       getMergedSecondarySkills(baseSecondarySkills);
