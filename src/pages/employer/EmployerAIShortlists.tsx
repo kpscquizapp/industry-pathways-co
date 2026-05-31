@@ -892,15 +892,15 @@ const EmployerAIShortlists = () => {
       .filter((m: Match) => m.isShortlisted === true)
       .map((m: Match) => m.id);
 
-    if (backendShortlistedIds.length > 0) {
-      setShortlistedIds((prev) => {
-        const existingKeys = new Set(prev.map(getEntityIdKey));
-        const newIds = backendShortlistedIds.filter(
-          (id) => !existingKeys.has(getEntityIdKey(id)),
-        );
-        return newIds.length > 0 ? [...prev, ...newIds] : prev;
-      });
+  setShortlistedIds((prev) => {
+    if (jobMatchesPage === 1) {
+      return backendShortlistedIds;
     }
+
+    const merged = new Set(prev.map(getEntityIdKey));
+    backendShortlistedIds.forEach((id) => merged.add(getEntityIdKey(id)));
+    return [...prev, ...backendShortlistedIds.filter((id) => !prev.some((p) => getEntityIdKey(p) === getEntityIdKey(id)))];
+  });
   }, [jobMatchesPage, matchesResponse?.data, shouldFetchMatches]);
 
   const hasMoreEmployerJobs = useMemo(() => {

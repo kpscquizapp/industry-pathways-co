@@ -36,13 +36,13 @@ const getStatusBadgeProps = (
   if (status === EMPLOYER_JOB_STATUS.PUBLISHED) {
     return {
       label: "Active",
-      className: "bg-[#edf8f1] text-[#16a34a] border-transparent",
+      className: "bg-green-50 text-green-600 border-transparent",
     };
   }
   if (status === EMPLOYER_JOB_STATUS.DRAFT) {
     return {
       label: "Draft",
-      className: "bg-[#fff6e0] text-[#d97706] border-transparent",
+      className: "bg-amber-50 text-amber-600 border-transparent",
     };
   }
   if (status === EMPLOYER_JOB_STATUS.CLOSED) {
@@ -476,7 +476,7 @@ const ShowJobs = () => {
                             {job.title}
                           </h3>
                           <Badge
-                            className={`text-[12px] font-bold px-3 py-1 rounded-full ${statusClass}`}
+                            className={`text-[12px] font-bold px-3 py-1 rounded-full ${statusClass} hover:bg-gray-50`}
                           >
                             {statusLabel}
                           </Badge>
