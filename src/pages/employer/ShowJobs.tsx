@@ -341,7 +341,7 @@ const ShowJobs = () => {
 
   if (error && !jobsData) {
     return (
-      <div className="min-h-screen bg-gray-50 px-4 sm:px-8 py-6 sm:py-8 font-inter">
+      <div className="min-h-screen bg-gray-50 px-6 sm:px-10 md:px-8 py-6 sm:py-8 font-inter">
         <div className="max-w-[1440px] mx-auto space-y-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
@@ -364,7 +364,7 @@ const ShowJobs = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 sm:px-8 py-6 sm:py-8 font-inter">
+    <div className="min-h-screen bg-gray-50 px-6 sm:px-10 md:px-8 py-6 sm:py-8 font-inter">
       <div className="max-w-[1440px] mx-auto space-y-7">
         {/* Header */}
         <div>

@@ -198,7 +198,7 @@ export default function InterviewQuestions() {
     <div className="min-h-full bg-gray-50 font-inter">
       <div className="flex flex-1 w-full mx-auto relative items-stretch">
         {/* Left Column - Forms & Lists */}
-        <div className="flex-1 flex flex-col gap-8 p-6 lg:p-8 min-w-0 max-w-[1400px] mx-auto w-full">
+        <div className="flex-1 flex flex-col gap-8 px-6 sm:px-10 md:px-8 p-6 lg:p-8 min-w-0 max-w-[1400px] mx-auto w-full">
           {/* ═══════════════ HEADER ═══════════════ */}
           <div className="mb-2">
             <h1 className="text-[26px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">

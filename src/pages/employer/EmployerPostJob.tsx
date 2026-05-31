@@ -65,6 +65,7 @@ import {
 import { skipToken } from "@reduxjs/toolkit/query/react";
 import { useExtractSkillsMutation } from "@/app/queries/atsApi";
 import isFetchBaseQueryError from "@/hooks/isFetchBaseQueryError";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
 
 const INITIAL_FORM_DATA = {
   title: "",
@@ -189,9 +190,13 @@ const EmployerPostJob = () => {
   const [optionalSkills, setOptionalSkills] = useState<string[]>([]);
   const [extractedSkills, setExtractedSkills] = useState<ExtractedSkill[]>([]);
   const [isEditingPrimarySkills, setIsEditingPrimarySkills] = useState(false);
-  const [showPrimarySkillsDisplay, setShowPrimarySkillsDisplay] = useState(false);
-  const [editingExtractedSkillId, setEditingExtractedSkillId] = useState<string | null>(null);
-  const [editingExtractedSkillName, setEditingExtractedSkillName] = useState("");
+  const [showPrimarySkillsDisplay, setShowPrimarySkillsDisplay] =
+    useState(false);
+  const [editingExtractedSkillId, setEditingExtractedSkillId] = useState<
+    string | null
+  >(null);
+  const [editingExtractedSkillName, setEditingExtractedSkillName] =
+    useState("");
   const [skillInput, setSkillInput] = useState("");
   const [postingAction, setPostingAction] = useState<
     "post" | "postAndShow" | null
@@ -267,9 +272,10 @@ const EmployerPostJob = () => {
 
       if (Array.isArray(job.skills)) {
         job.skills.forEach((s: any) => {
-          const name = (typeof s === "string" ? s : s.name ?? "").trim();
+          const name = (typeof s === "string" ? s : (s.name ?? "")).trim();
           if (!name) return;
-          const level = typeof s === "object" && s !== null ? s.proficiencyLevel : "";
+          const level =
+            typeof s === "object" && s !== null ? s.proficiencyLevel : "";
           if (level === "intermediate") {
             normalizedOptional.push(name);
           } else {
@@ -280,7 +286,7 @@ const EmployerPostJob = () => {
 
       if (Array.isArray(job.optionalSkills)) {
         job.optionalSkills.forEach((s: any) => {
-          const name = (typeof s === "string" ? s : s.name ?? "").trim();
+          const name = (typeof s === "string" ? s : (s.name ?? "")).trim();
           if (name && !normalizedOptional.includes(name)) {
             normalizedOptional.push(name);
           }
@@ -377,14 +383,14 @@ const EmployerPostJob = () => {
     const salaryMax = parseOptionalNumber(formData.salaryMax);
     const normalizedSalaryMin =
       salaryMin !== undefined &&
-        salaryMax !== undefined &&
-        salaryMin > salaryMax
+      salaryMax !== undefined &&
+      salaryMin > salaryMax
         ? salaryMax
         : salaryMin;
     const normalizedSalaryMax =
       salaryMin !== undefined &&
-        salaryMax !== undefined &&
-        salaryMin > salaryMax
+      salaryMax !== undefined &&
+      salaryMin > salaryMax
         ? salaryMin
         : salaryMax;
     const { minExperience, maxExperience } = mapExperienceLevelToYears(
@@ -479,7 +485,11 @@ const EmployerPostJob = () => {
 
       setPrimarySkills((prev) => {
         const newPrimary = [...prev];
-        if (!newPrimary.some((s) => normalizeSkill(s) === normalizeSkill(skill.name))) {
+        if (
+          !newPrimary.some(
+            (s) => normalizeSkill(s) === normalizeSkill(skill.name),
+          )
+        ) {
           newPrimary.push(skill.name);
         }
         return newPrimary;
@@ -633,18 +643,14 @@ const EmployerPostJob = () => {
     }
 
     if (
-      optionalSkills.some(
-        (skill) => skill.toLowerCase() === name.toLowerCase(),
-      )
+      optionalSkills.some((skill) => skill.toLowerCase() === name.toLowerCase())
     ) {
       toast.error("This skill has already been added to optional skills");
       return;
     }
 
     if (
-      primarySkills.some(
-        (skill) => skill.toLowerCase() === name.toLowerCase(),
-      )
+      primarySkills.some((skill) => skill.toLowerCase() === name.toLowerCase())
     ) {
       toast.error("This skill is already in primary skills");
       return;
@@ -733,9 +739,9 @@ const EmployerPostJob = () => {
   const getCreatedJobId = (
     response:
       | {
-        data?: { id?: string | number; job?: { id?: string | number } };
-        id?: string | number;
-      }
+          data?: { id?: string | number; job?: { id?: string | number } };
+          id?: string | number;
+        }
       | undefined,
   ) => response?.data?.id ?? response?.data?.job?.id ?? response?.id;
 
@@ -967,7 +973,7 @@ const EmployerPostJob = () => {
 
   return (
     <div className="min-h-full font-inter bg-gray-50">
-      <div className="max-w-full mx-auto py-6 md:py-10 px-6 md:px-8 space-y-8 flex-1">
+      <div className="max-w-full mx-auto py-6 md:py-10 px-6 sm:px-10 md:px-8 space-y-8 flex-1">
         {/* ═══════════════ HEADER ═══════════════ */}
         <div>
           <h1 className="text-[26px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
@@ -1027,10 +1033,11 @@ const EmployerPostJob = () => {
                             }));
                         }}
                         placeholder="e.g., Senior Frontend Developer"
-                        className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.title
-                          ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
-                          : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                          } focus:ring-1 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                        className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
+                          fieldErrors.title
+                            ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                            : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                        } focus:ring-1 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                       />
                       {fieldErrors.title && (
                         <p className="text-xs text-destructive mt-1.5">
@@ -1118,7 +1125,7 @@ const EmployerPostJob = () => {
                               : "",
                             maxExperience:
                               range?.maxExperience !== null &&
-                                range?.maxExperience !== undefined
+                              range?.maxExperience !== undefined
                                 ? String(range.maxExperience)
                                 : "",
                           });
@@ -1257,120 +1264,136 @@ const EmployerPostJob = () => {
               </div>
 
               {/* ── Section: Skills Extraction Checkbox Grid ── */}
-              {showPrimarySkillsDisplay && extractedSkills.length > 0 && !isEditingPrimarySkills && (
-                <div className="border border-[#4DD9E8]/20 bg-[#4DD9E8]/5 p-6 rounded-2xl space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CheckSquare className="h-5 w-5 text-[#288e99]" />
-                      <h3 className="text-base font-bold text-foreground">Extracted Skills Selection</h3>
-                    </div>
-                    {skillsExtracted && (
-                      <div className="flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-xs font-semibold">
-                        <CheckCircle className="h-3.5 w-3.5" /> JD Skills Extracted
+              {showPrimarySkillsDisplay &&
+                extractedSkills.length > 0 &&
+                !isEditingPrimarySkills && (
+                  <div className="border border-[#4DD9E8]/20 bg-[#4DD9E8]/5 p-6 rounded-2xl space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="h-5 w-5 text-[#288e99]" />
+                        <h3 className="text-base font-bold text-foreground">
+                          Extracted Skills Selection
+                        </h3>
                       </div>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Select up to 5 primary skills from your extracted job description.
-                    Unchecked skills will be added as optional skills.
-                  </p>
-                  {extractedSkills.filter((s) => s.isPrimary).length > 0 && (
-                    <p className="text-xs font-semibold text-gray-500">
-                      {extractedSkills.filter((s) => s.isPrimary).length} / 5 primary skills selected
+                      {skillsExtracted && (
+                        <div className="flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-xs font-semibold">
+                          <CheckCircle className="h-3.5 w-3.5" /> JD Skills
+                          Extracted
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Select up to 5 primary skills from your extracted job
+                      description. Unchecked skills will be added as optional
+                      skills.
                     </p>
-                  )}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                    {extractedSkills.map((skill) => {
-                      const isChecked = skill.isPrimary;
-                      return (
-                        <div
-                          key={skill.id}
-                          className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(e) =>
-                              handleToggleExtractedSkill(skill.id, e.target.checked)
-                            }
-                            className="w-4 h-4 text-[#4DD9E8] rounded border-gray-300 focus:ring-[#4DD9E8] accent-[#4DD9E8] min-h-0 min-w-0"
-                          />
-                          {editingExtractedSkillId === skill.id ? (
-                            <div className="flex-1 flex gap-2 items-center">
-                              <input
-                                type="text"
-                                value={editingExtractedSkillName}
-                                onChange={(e) =>
-                                  setEditingExtractedSkillName(e.target.value)
-                                }
-                                className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded outline-none focus:border-[#4DD9E8]"
-                                autoFocus
-                              />
-                              <button
-                                type="button"
-                                onClick={() => saveExtractedSkillEdit(skill.id)}
-                                className="text-green-500 hover:text-green-600 transition-colors"
-                              >
-                                <Check className="w-4 h-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingExtractedSkillId(null);
-                                  setEditingExtractedSkillName("");
-                                }}
-                                className="text-gray-400 hover:text-gray-500 transition-colors"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex-1 flex items-center justify-between">
-                              <span className="text-sm font-medium text-gray-700">
-                                {skill.name}
-                              </span>
-                              <div className="flex items-center gap-2">
+                    {extractedSkills.filter((s) => s.isPrimary).length > 0 && (
+                      <p className="text-xs font-semibold text-gray-500">
+                        {extractedSkills.filter((s) => s.isPrimary).length} / 5
+                        primary skills selected
+                      </p>
+                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                      {extractedSkills.map((skill) => {
+                        const isChecked = skill.isPrimary;
+                        return (
+                          <div
+                            key={skill.id}
+                            className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) =>
+                                handleToggleExtractedSkill(
+                                  skill.id,
+                                  e.target.checked,
+                                )
+                              }
+                              className="w-4 h-4 text-[#4DD9E8] rounded border-gray-300 focus:ring-[#4DD9E8] accent-[#4DD9E8] min-h-0 min-w-0"
+                            />
+                            {editingExtractedSkillId === skill.id ? (
+                              <div className="flex-1 flex gap-2 items-center">
+                                <input
+                                  type="text"
+                                  value={editingExtractedSkillName}
+                                  onChange={(e) =>
+                                    setEditingExtractedSkillName(e.target.value)
+                                  }
+                                  className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded outline-none focus:border-[#4DD9E8]"
+                                  autoFocus
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    saveExtractedSkillEdit(skill.id)
+                                  }
+                                  className="text-green-500 hover:text-green-600 transition-colors"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    setEditingExtractedSkillId(skill.id);
-                                    setEditingExtractedSkillName(skill.name);
+                                    setEditingExtractedSkillId(null);
+                                    setEditingExtractedSkillName("");
                                   }}
-                                  className="text-gray-400 hover:text-[#4DD9E8] transition-colors"
+                                  className="text-gray-400 hover:text-gray-500 transition-colors"
                                 >
-                                  <PencilLine className="w-4 h-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => deleteExtractedSkill(skill.id)}
-                                  className="text-gray-400 hover:text-red-500 transition-colors"
-                                >
-                                  <Trash2 className="w-4 h-4" />
+                                  <X className="w-4 h-4" />
                                 </button>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                            ) : (
+                              <div className="flex-1 flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-700">
+                                  {skill.name}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingExtractedSkillId(skill.id);
+                                      setEditingExtractedSkillName(skill.name);
+                                    }}
+                                    className="text-gray-400 hover:text-[#4DD9E8] transition-colors"
+                                  >
+                                    <PencilLine className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      deleteExtractedSkill(skill.id)
+                                    }
+                                    className="text-gray-400 hover:text-red-500 transition-colors"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex items-center justify-end mt-4 pt-2">
+                      <button
+                        type="button"
+                        onClick={handleUpdateSkillExtraction}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] hover:bg-[#1a1a2e]/90 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 text-xs"
+                      >
+                        Update Skills
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-end mt-4 pt-2">
-                    <button
-                      type="button"
-                      onClick={handleUpdateSkillExtraction}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] hover:bg-[#1a1a2e]/90 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 text-xs"
-                    >
-                      Update Skills
-                    </button>
-                  </div>
-                </div>
-              )}
+                )}
 
               {/* ── Section: Required Skills Management Layout ── */}
               <div className="border border-border/80 p-6 rounded-2xl space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 pb-4 border-b border-gray-100">
                   <div className="flex items-center gap-3">
-                    <Label className="text-base font-bold text-foreground">Skills</Label>
+                    <Label className="text-base font-bold text-foreground">
+                      Skills
+                    </Label>
                   </div>
                   <Button
                     type="button"
@@ -1401,7 +1424,9 @@ const EmployerPostJob = () => {
                       {/* Show all primary skills */}
                       {primarySkills.map((skillName, idx) => {
                         const extractedSkill = extractedSkills.find(
-                          (s) => normalizeSkill(s.name) === normalizeSkill(skillName),
+                          (s) =>
+                            normalizeSkill(s.name) ===
+                            normalizeSkill(skillName),
                         );
                         return (
                           <div
@@ -1420,11 +1445,33 @@ const EmployerPostJob = () => {
                                     return;
                                   }
                                   // Move from primary to secondary
-                                  setPrimarySkills((prev) =>
-                                    prev.filter((s) => s.toLowerCase() !== skillName.toLowerCase())
+                                  setPrimarySkills((prev) => {
+                                    if (
+                                      prev.some(
+                                        (s) =>
+                                          s.toLowerCase() ===
+                                          skillName.toLowerCase(),
+                                      )
+                                    )
+                                      return prev;
+                                    return [...prev, skillName];
+                                  });
+                                  setOptionalSkills((prev) =>
+                                    prev.filter(
+                                      (s) =>
+                                        s.toLowerCase() !==
+                                        skillName.toLowerCase(),
+                                    ),
                                   );
                                   setOptionalSkills((prev) => {
-                                    if (prev.some((s) => s.toLowerCase() === skillName.toLowerCase())) return prev;
+                                    if (
+                                      prev.some(
+                                        (s) =>
+                                          s.toLowerCase() ===
+                                          skillName.toLowerCase(),
+                                      )
+                                    )
+                                      return prev;
                                     return [...prev, skillName];
                                   });
                                   if (extractedSkill) {
@@ -1441,7 +1488,7 @@ const EmployerPostJob = () => {
                               className="w-4 h-4 text-[#4DD9E8] rounded border-gray-300 focus:ring-[#4DD9E8] accent-[#4DD9E8] min-h-0 min-w-0"
                             />
                             {extractedSkill &&
-                              editingExtractedSkillId === extractedSkill.id ? (
+                            editingExtractedSkillId === extractedSkill.id ? (
                               <div className="flex-1 flex gap-2 items-center">
                                 <input
                                   type="text"
@@ -1482,7 +1529,9 @@ const EmployerPostJob = () => {
                                     type="button"
                                     onClick={() => {
                                       if (extractedSkill) {
-                                        setEditingExtractedSkillId(extractedSkill.id);
+                                        setEditingExtractedSkillId(
+                                          extractedSkill.id,
+                                        );
                                         setEditingExtractedSkillName(
                                           extractedSkill.name,
                                         );
@@ -1539,7 +1588,9 @@ const EmployerPostJob = () => {
                       {/* Show all secondary skills */}
                       {optionalSkills.map((skillName, idx) => {
                         const extractedSkill = extractedSkills.find(
-                          (s) => normalizeSkill(s.name) === normalizeSkill(skillName),
+                          (s) =>
+                            normalizeSkill(s.name) ===
+                            normalizeSkill(skillName),
                         );
                         return (
                           <div
@@ -1558,9 +1609,23 @@ const EmployerPostJob = () => {
                                     return;
                                   }
                                   // Move from secondary to primary
-                                  setPrimarySkills((prev) => [...prev, skillName]);
+                                  setPrimarySkills((prev) => {
+                                    if (
+                                      prev.some(
+                                        (s) =>
+                                          s.toLowerCase() ===
+                                          skillName.toLowerCase(),
+                                      )
+                                    )
+                                      return prev;
+                                    return [...prev, skillName];
+                                  });
                                   setOptionalSkills((prev) =>
-                                    prev.filter((s) => s.toLowerCase() !== skillName.toLowerCase())
+                                    prev.filter(
+                                      (s) =>
+                                        s.toLowerCase() !==
+                                        skillName.toLowerCase(),
+                                    ),
                                   );
                                   if (extractedSkill) {
                                     setExtractedSkills((prev) =>
@@ -1647,7 +1712,9 @@ const EmployerPostJob = () => {
                 )}
 
                 {fieldErrors.skills && primarySkills.length === 0 && (
-                  <p className="text-xs text-destructive">At least one primary skill is required.</p>
+                  <p className="text-xs text-destructive">
+                    At least one primary skill is required.
+                  </p>
                 )}
 
                 {/* Optional Skills Subsection */}
@@ -1661,7 +1728,8 @@ const EmployerPostJob = () => {
                       value={skillInput}
                       onChange={(e) => setSkillInput(e.target.value)}
                       onKeyDown={(e) =>
-                        e.key === "Enter" && (e.preventDefault(), addSecondarySkill())
+                        e.key === "Enter" &&
+                        (e.preventDefault(), addSecondarySkill())
                       }
                       maxLength={50}
                       placeholder="Add an optional skill (e.g., TypeScript)"
@@ -1706,13 +1774,6 @@ const EmployerPostJob = () => {
                         {optionalSkills.length} optional skills added
                       </p>
                     )}
-                    <button
-                      type="button"
-                      onClick={handleUpdateSkillExtraction}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a2e] hover:bg-[#1a1a2e]/90 text-white font-medium rounded-sm shadow-sm hover:shadow-md transition-all duration-200 text-xs"
-                    >
-                      Update Skills
-                    </button>
                   </div>
                 </div>
               </div>
@@ -1788,7 +1849,7 @@ const EmployerPostJob = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="remote">Remote</SelectItem>
-                          <SelectItem value="onsite">On-site</SelectItem>
+                          <SelectItem value="on-site">On-site</SelectItem>
                           <SelectItem value="hybrid">Hybrid</SelectItem>
                         </SelectContent>
                       </Select>
@@ -1999,7 +2060,7 @@ const EmployerPostJob = () => {
               <Button
                 variant="ghost"
                 onClick={handleDeleteJob}
-                className="rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 font-bold h-10 mr-auto"
+                className="rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 font-bold h-10 mr-auto bg-white border border-gray-300 hover:bg-gray-50/10 transition-all disabled:opacity-50 hover:bg-red-50"
                 disabled={deleteJobLoading}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -2020,11 +2081,16 @@ const EmployerPostJob = () => {
               disabled={isBusy}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1a1a2e] dark:bg-[#4DD9E8]/10 hover:bg-[#1a1a2e]/90 dark:hover:bg-[#4DD9E8]/20 text-white dark:text-[#4DD9E8] font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 text-sm"
             >
-              {createJobLoading && postingAction === "postAndShow"
-                ? "Posting..."
-                : isEditing
-                  ? "Update Job"
-                  : "Post Job & Run AI Match"}
+              {createJobLoading && postingAction === "postAndShow" ? (
+                <>
+                  <SpinnerLoader className="mr-2" />
+                  Posting...
+                </>
+              ) : isEditing ? (
+                "Update Job"
+              ) : (
+                "Post Job & Run AI Match"
+              )}
             </Button>
           </div>
         </div>

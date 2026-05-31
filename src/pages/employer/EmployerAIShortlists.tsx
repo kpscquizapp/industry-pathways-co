@@ -397,7 +397,6 @@ const CandidateSkillTestDetails = ({
                 <span>Correct Answers</span>
                 <span>{report.stats?.correctAnswers || 0}</span>
               </div>
-              <div className="flex justify-between text-[13px] font-bold text-gray-800 mb-2"></div>
               <div className="flex justify-between text-[13px] font-bold text-gray-800 mb-2">
                 <span>Improvement Focus</span>
                 <span className="text-[#f59e0b]">
@@ -498,9 +497,13 @@ const CandidateAiInterviewDetails = ({
               {candidate.email && (
                 <span className="text-[#08b8cc]">{candidate.email}</span>
               )}
-              {candidate.email && <span className="mx-2 text-gray-300">•</span>}
-              <span>{candidate.mobileNumber}</span>
-              <span className="mx-2 text-gray-300">•</span>
+              {candidate.email && candidate.mobileNumber && (
+                <span className="mx-2 text-gray-300">•</span>
+              )}
+              {candidate.mobileNumber && <span>{candidate.mobileNumber}</span>}
+              {(candidate.email || candidate.mobileNumber) && (
+                <span className="mx-2 text-gray-300">•</span>
+              )}
               <div className="flex items-center gap-1.5 text-[#08b8cc] font-bold">
                 <CheckCircle2 className="h-3.5 w-3.5" /> AI Interview Scored
               </div>
@@ -1165,6 +1168,16 @@ const EmployerAIShortlists = () => {
     navigate("/hire-talent/skill-tests");
   };
 
+  const selectedCandidateForDetails = useMemo(
+    () =>
+      selectedCandidateId == null
+        ? undefined
+        : candidates.find(
+            (c) => getEntityIdKey(c.id) === getEntityIdKey(selectedCandidateId),
+          ),
+    [candidates, selectedCandidateId],
+  );
+
   const renderSidebar = (tab: "skill-test" | "ai-interview") => (
     <div className="w-[320px] shrink-0 sticky top-[100px] h-fit">
       <div className="flex gap-2 mb-4">
@@ -1224,7 +1237,7 @@ const EmployerAIShortlists = () => {
         </div>
       </div> */}
 
-      <div className="px-8 mt-8 max-w-[1400px] w-full mx-auto pb-10 flex-1">
+      <div className="px-6 sm:px-10 md:px-8 mt-8 max-w-[1400px] w-full mx-auto pb-10 flex-1">
         <div className="flex items-center gap-3 mb-1">
           <h1 className="text-[26px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
             Talent Pipeline
@@ -1248,7 +1261,7 @@ const EmployerAIShortlists = () => {
         {/* Stages Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="mb-8">
-            <TabsList className="bg-gray-100 p-1.5 rounded-xl h-auto inline-flex gap-1">
+            <TabsList className="bg-gray-100 p-1.5 rounded-xl h-auto inline-flex gap-1 max-w-max">
               <TabsTrigger
                 value="all"
                 className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-lg px-5 py-2.5 text-gray-500 font-bold text-sm transition-all"
@@ -1314,10 +1327,11 @@ const EmployerAIShortlists = () => {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={`h-10 rounded-xl border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50 shadow-sm flex items-center gap-2 ${bulkFilterStatus
-                        ? "border-[#08b8cc] text-[#08b8cc]"
-                        : ""
-                        }`}
+                      className={`h-10 rounded-xl border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50 shadow-sm flex items-center gap-2 ${
+                        bulkFilterStatus
+                          ? "border-[#08b8cc] text-[#08b8cc]"
+                          : ""
+                      }`}
                     >
                       <ChevronDown className="h-4 w-4 text-gray-500" />
                       Bulk Actions
@@ -1556,12 +1570,13 @@ const EmployerAIShortlists = () => {
                           candidate.stage !== "invited" &&
                           handleShortlist(candidate)
                         }
-                        className={`h-9 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all ${candidate.stage === "invited"
-                          ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
-                          : candidate.stage === "shortlisted"
-                            ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
-                            : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                          }`}
+                        className={`h-9 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all ${
+                          candidate.stage === "invited"
+                            ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
+                            : candidate.stage === "shortlisted"
+                              ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
+                              : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                        }`}
                       >
                         {candidate.stage === "invited" ? (
                           <span className="flex items-center gap-1.5">
@@ -1580,16 +1595,16 @@ const EmployerAIShortlists = () => {
 
                       {(candidate.stage === "shortlisted" ||
                         candidate.stage === "invited") && (
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleShortlist(candidate)}
-                            className="h-9 w-9 rounded-xl border-rose-200 text-rose-500 bg-rose-50 hover:bg-rose-100 hover:text-rose-600 shadow-sm"
-                            title="Remove from shortlist"
-                          >
-                            <X className="h-5 w-5" strokeWidth={2.5} />
-                          </Button>
-                        )}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleShortlist(candidate)}
+                          className="h-9 w-9 rounded-xl border-rose-200 text-rose-500 bg-rose-50 hover:bg-rose-100 hover:text-rose-600 shadow-sm"
+                          title="Remove from shortlist"
+                        >
+                          <X className="h-5 w-5" strokeWidth={2.5} />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
@@ -1621,9 +1636,7 @@ const EmployerAIShortlists = () => {
               {renderSidebar("skill-test")}
               <div className="flex-1 min-w-0">
                 <CandidateSkillTestDetails
-                  candidate={filteredCandidates.find(
-                    (c) => c.id === selectedCandidateId,
-                  )}
+                  candidate={selectedCandidateForDetails}
                 />
               </div>
             </div>
@@ -1634,9 +1647,7 @@ const EmployerAIShortlists = () => {
               {renderSidebar("ai-interview")}
               <div className="flex-1 min-w-0">
                 <CandidateAiInterviewDetails
-                  candidate={filteredCandidates.find(
-                    (c) => c.id === selectedCandidateId,
-                  )}
+                  candidate={selectedCandidateForDetails}
                 />
               </div>
             </div>
