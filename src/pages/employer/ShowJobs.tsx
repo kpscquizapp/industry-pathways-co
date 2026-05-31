@@ -36,19 +36,22 @@ const getStatusBadgeProps = (
   if (status === EMPLOYER_JOB_STATUS.PUBLISHED) {
     return {
       label: "Active",
-      className: "bg-green-50 text-green-600 border-transparent",
+      className:
+        "bg-green-50 text-green-600 border-transparent hover:bg-green-100",
     };
   }
   if (status === EMPLOYER_JOB_STATUS.DRAFT) {
     return {
       label: "Draft",
-      className: "bg-amber-50 text-amber-600 border-transparent",
+      className:
+        "bg-amber-50 text-amber-600 border-transparent hover:bg-amber-100",
     };
   }
   if (status === EMPLOYER_JOB_STATUS.CLOSED) {
     return {
       label: "Closed",
-      className: "bg-slate-100 text-slate-600 border-transparent",
+      className:
+        "bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200",
     };
   }
   return {
@@ -476,7 +479,7 @@ const ShowJobs = () => {
                             {job.title}
                           </h3>
                           <Badge
-                            className={`text-[12px] font-bold px-3 py-1 rounded-full ${statusClass} hover:bg-gray-50`}
+                            className={`text-[12px] font-bold px-3 py-1 rounded-full ${statusClass}`}
                           >
                             {statusLabel}
                           </Badge>
