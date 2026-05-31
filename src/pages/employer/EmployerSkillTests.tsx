@@ -219,7 +219,7 @@ const EmployerSkillTests = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f2f5fa] px-4 sm:px-8 py-6 sm:py-8 font-sans">
+    <div className="min-h-screen bg-gray-50 px-6 sm:px-10 md:px-8 py-6 sm:py-8 font-inter">
       <div className="max-w-[1440px] mx-auto space-y-7">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-2 border-b border-gray-200/50 mb-6">

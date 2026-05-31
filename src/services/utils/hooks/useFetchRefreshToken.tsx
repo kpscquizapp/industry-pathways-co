@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useLayoutEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import {
   useGetRefreshTokenMutation,
   useLogoutMutation,
@@ -14,236 +14,225 @@ import { useDispatch, useSelector } from "react-redux";
 import { isTokenExpired, getTokenExpiry } from "../../../lib/helpers";
 import { RootState } from "@/app/store";
 import { isExpectedLogoutError } from "@/lib/authErrorUtils";
+import { REFRESH_TOKEN_LIFETIME_MS } from "../../../app/slices/authConstants";
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 min before expiry
-const FALLBACK_REFRESH_MS = 55 * 60 * 1000; // refresh 5 min before 1-hour expiry
-const TRANSIENT_RETRY_MS = 30_000; // 30s
-const MAX_TRANSIENT_RETRIES = 5; // 5 retries
+const FALLBACK_REFRESH_MS = 55 * 60 * 1000; // fallback when exp claim missing
+const TRANSIENT_RETRY_MS = 30_000; // base retry delay
+const MAX_TRANSIENT_RETRIES = 5;
+const MAX_BACKOFF_MS = 5 * 60 * 1000;
+const REFRESH_API_TIMEOUT_MS = 15_000;
 
-// Refresh token lifetime as defined by backend (30 days)
-const REFRESH_TOKEN_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
-const MAX_BACKOFF_MS = 5 * 60 * 1000; // 5 min cap
+const isJwt = (t: string) => t.split(".").length === 3;
 
-const isJwtToken = (token: string) => token.split(".").length === 3;
-
-const isRefreshJwtExpired = (token: string) => {
-  if (!isJwtToken(token)) return false;
+const isRefreshExpired = (token: string, issuedAt: number): boolean => {
+  if (Date.now() - issuedAt >= REFRESH_TOKEN_LIFETIME_MS) return true;
+  if (!isJwt(token)) return false;
   try {
     return getTokenExpiry(token) <= Date.now();
   } catch {
-    // If decode fails, do not force logout; let backend validate.
     return false;
+  }
+};
+
+const calcRefreshDelay = (accessToken: string): number => {
+  try {
+    const ttl = getTokenExpiry(accessToken) - Date.now();
+    if (ttl <= 0) return 5_000;
+    return Math.max(
+      5_000,
+      ttl - Math.min(REFRESH_BUFFER_MS, Math.floor(ttl / 2)),
+    );
+  } catch {
+    return FALLBACK_REFRESH_MS;
   }
 };
 
 export const useFetchRefreshToken = () => {
   const dispatch = useDispatch();
-  const userDetails = useSelector((state: RootState) => state.user);
+  const user = useSelector((state: RootState) => state.user);
   const [triggerRefresh] = useGetRefreshTokenMutation();
   const [logout] = useLogoutMutation();
 
-  // Stable refs to avoid stale closures and unnecessary effect re-runs
-  const refreshTokenRef = useRef(userDetails?.refreshToken);
-  const tokenRef = useRef(userDetails?.token);
+  const refreshTokenRef = useRef(user?.refreshToken);
+  const tokenRef = useRef(user?.token);
+  const issuedAtRef = useRef<number>(user?.refreshTokenIssuedAt ?? Date.now());
   const isRefreshingRef = useRef(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const doRefreshRef = useRef<(() => Promise<void>) | null>(null);
   const isMountedRef = useRef(false);
   const retryCountRef = useRef(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Keep refs in sync with latest Redux values
-  useEffect(() => {
-    refreshTokenRef.current = userDetails?.refreshToken;
-  }, [userDetails?.refreshToken]);
+  // "Latest ref" pattern: direct render-time assignment keeps refs current
+  // without useEffect firing after every render (consistent with doRefreshRef below)
+  refreshTokenRef.current = user?.refreshToken;
+  tokenRef.current = user?.token;
 
-  useEffect(() => {
-    tokenRef.current = userDetails?.token;
-  }, [userDetails?.token]);
+  // doRefresh is a hoisted function declaration — available here before its definition
+  const doRefreshRef = useRef<() => Promise<void>>(doRefresh);
+  doRefreshRef.current = doRefresh;
 
-  const handleLogout = useCallback(async () => {
-    try {
-      const refreshToken = refreshTokenRef.current;
-      if (refreshToken) {
-        await logout(refreshToken).unwrap();
-      }
-    } catch (error) {
-      if (!isExpectedLogoutError(error)) {
-        console.error("Logout failed:", error);
-      }
-    } finally {
-      if (isMountedRef.current) {
-        dispatch(removeUser());
-      }
+  const clearTimer = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
-  }, [logout, dispatch]);
-
-  const scheduleRefresh = useCallback((accessToken: string) => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
-    let delay: number;
-    try {
-      // getTokenExpiry returns exp in ms
-      const exp = getTokenExpiry(accessToken);
-      const now = Date.now();
-      const ttl = exp - now;
-      if (ttl <= 0) {
-        delay = 5_000; // floor to prevent tight loops on clock-skew or bad tokens
-      } else {
-        const effectiveBuffer = Math.min(
-          REFRESH_BUFFER_MS,
-          Math.floor(ttl / 2),
-        );
-        delay = Math.min(ttl, Math.max(5_000, ttl - effectiveBuffer));
-      }
-    } catch {
-      delay = FALLBACK_REFRESH_MS; // fallback if exp claim is missing: 55 min
-    }
-
-    timeoutRef.current = setTimeout(() => doRefreshRef.current?.(), delay);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const doRefresh = useCallback(async () => {
+  const scheduleRefresh = useCallback(
+    (accessToken: string) => {
+      clearTimer();
+      timeoutRef.current = setTimeout(
+        () => doRefreshRef.current(),
+        calcRefreshDelay(accessToken),
+      );
+    },
+    [clearTimer],
+  );
+
+  // dispatch(removeUser()) is intentionally NOT gated on isMountedRef —
+  // dispatch is safe after unmount and must always run to prevent auth state
+  // from getting stuck in authInitStart (= infinite loading screen).
+  const handleLogout = useCallback(async () => {
+    clearTimer();
+    try {
+      if (refreshTokenRef.current)
+        await logout(refreshTokenRef.current).unwrap();
+    } catch (e) {
+      if (!isExpectedLogoutError(e)) console.error("Logout failed:", e);
+    } finally {
+      dispatch(removeUser());
+    }
+  }, [logout, dispatch, clearTimer]);
+
+  // Hoisted function declaration — captured by doRefreshRef above on every render.
+  // All referenced values are either stable useCallbacks or refs (always current).
+  async function doRefresh() {
     if (isRefreshingRef.current) return;
     const refreshToken = refreshTokenRef.current;
     if (!refreshToken) return;
 
     isRefreshingRef.current = true;
 
-    // If the access token is already expired / missing, set authInitialized=false
-    // BEFORE the async API call. This tells ProtectedLayout to show BarLoader
-    // instead of redirecting to login while we silently refresh.
-    // (When the token is still valid — i.e. normal scheduled pre-expiry refresh —
-    // we skip this so the user never sees a loader flash.)
-    const currentToken = tokenRef.current;
-    if (!currentToken || isTokenExpired(currentToken)) {
+    // Only flash the loader when the user is actually blocked (token already gone/expired).
+    // Proactive pre-expiry background refreshes should be invisible.
+    if (!tokenRef.current || isTokenExpired(tokenRef.current))
       dispatch(authInitStart());
-    }
 
     try {
-      if (!isMountedRef.current) return;
-      if (isRefreshJwtExpired(refreshToken)) {
+      if (isRefreshExpired(refreshToken, issuedAtRef.current)) {
         dispatch(authInitFail());
         await handleLogout();
         return;
       }
 
-      const result = await triggerRefresh(refreshToken).unwrap();
+      // Hard timeout — a hung request would keep authInitStart active forever.
+      // .finally() ensures clearTimeout always runs regardless of success or failure,
+      // and avoids the "variable used before assignment" TypeScript issue of let+try-finally.
+      const req = triggerRefresh(refreshToken);
+      const tid = setTimeout(() => req.abort(), REFRESH_API_TIMEOUT_MS);
+      const result = await req.unwrap().finally(() => clearTimeout(tid));
 
-      const newAccessToken = result?.accessToken || result?.token;
-
-      if (newAccessToken) {
-        if (!isMountedRef.current) return;
-        retryCountRef.current = 0; // reset on success
-        dispatch(setNewAccessToken(newAccessToken));
-        dispatch(authInitSuccess());
-        scheduleRefresh(newAccessToken); // schedule next refresh
-      } else {
-        if (!isMountedRef.current) return;
-        console.error(
-          "Refresh response missing accessToken/token, logging out",
-        );
+      const newToken = result?.accessToken || result?.token;
+      if (!newToken) {
+        console.error("Refresh response missing token field; logging out.");
         dispatch(authInitFail());
         await handleLogout();
+        return;
       }
-    } catch (error: any) {
-      const status = error?.status;
-      const isAuthError = status === 401 || status === 403;
-      const isServerError = typeof status === "number" && status >= 500;
-      const isTransientError =
+
+      retryCountRef.current = 0;
+      dispatch(setNewAccessToken(newToken));
+      dispatch(authInitSuccess());
+      if (isMountedRef.current) scheduleRefresh(newToken);
+    } catch (err) {
+      const { status, name: errName } = (err ?? {}) as {
+        status?: unknown;
+        name?: string;
+      };
+      const isAuth = status === 401 || status === 403;
+      const isTransient =
         status === "FETCH_ERROR" ||
         status === "TIMEOUT_ERROR" ||
-        status === "PARSING_ERROR";
-
-      const willRetry =
-        (isTransientError || isServerError) &&
-        refreshTokenRef.current &&
+        status === "PARSING_ERROR" ||
+        status === "ABORTED" ||
+        errName === "AbortError";
+      const isServer = typeof status === "number" && status >= 500;
+      const canRetry =
+        (isTransient || isServer) &&
+        !!refreshTokenRef.current &&
         retryCountRef.current < MAX_TRANSIENT_RETRIES;
-      if (!willRetry) {
-        console.error("Refresh failed:", error);
-      }
-      if (isMountedRef.current && isAuthError) {
+
+      if (!canRetry)
+        console.error(`Refresh failed (status=${String(status)}):`, err);
+
+      if (isAuth || !canRetry) {
         dispatch(authInitFail());
         await handleLogout();
-      } else if (
-        isMountedRef.current &&
-        (isTransientError || isServerError) &&
-        refreshTokenRef.current &&
-        retryCountRef.current < MAX_TRANSIENT_RETRIES
-      ) {
-        retryCountRef.current += 1;
+      } else {
+        retryCountRef.current++;
         const backoff = Math.min(
           MAX_BACKOFF_MS,
-          TRANSIENT_RETRY_MS * Math.pow(2, retryCountRef.current - 1),
+          TRANSIENT_RETRY_MS * 2 ** (retryCountRef.current - 1),
         );
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(
-          () => doRefreshRef.current?.(),
-          backoff,
+        console.warn(
+          `Refresh error — retry ${retryCountRef.current}/${MAX_TRANSIENT_RETRIES} in ${backoff}ms`,
         );
-      } else if (isMountedRef.current) {
-        // Exhausted retries — treat as auth failure
-        dispatch(authInitFail());
-        await handleLogout();
+
+        if (isMountedRef.current) {
+          clearTimer();
+          timeoutRef.current = setTimeout(
+            () => doRefreshRef.current(),
+            backoff,
+          );
+        } else {
+          // Unmounted during back-off — must still resolve auth state or the store
+          // stays in authInitStart with nothing alive to ever clear it
+          dispatch(authInitFail());
+          await handleLogout();
+        }
       }
     } finally {
       isRefreshingRef.current = false;
     }
-  }, [triggerRefresh, dispatch, handleLogout, scheduleRefresh]);
-
-  // Keep the ref in sync so the setTimeout callback always calls the latest doRefresh
-  useLayoutEffect(() => {
-    doRefreshRef.current = doRefresh;
-  }, [doRefresh]);
+  }
 
   useEffect(() => {
-    if (!userDetails?.refreshToken) return;
-    isMountedRef.current = true;
-    retryCountRef.current = 0; // reset retry budget on new session / token rotation
+    if (!user?.refreshToken) {
+      // No session — resolve immediately so ProtectedLayout can redirect to login
+      dispatch(authInitSuccess());
+      return;
+    }
 
-    // Mark auth initialization as started
+    isMountedRef.current = true;
+    retryCountRef.current = 0;
+    issuedAtRef.current = user.refreshTokenIssuedAt ?? Date.now();
     dispatch(authInitStart());
 
-    // Refresh immediately when access token is missing/expired, otherwise schedule.
-    if (!userDetails?.token || isTokenExpired(userDetails.token)) {
-      doRefreshRef.current?.();
+    if (!user.token || isTokenExpired(user.token)) {
+      doRefreshRef.current();
     } else {
-      scheduleRefresh(userDetails.token);
-      // If token is valid, auth initialization is successful
+      scheduleRefresh(user.token);
       dispatch(authInitSuccess());
     }
 
     return () => {
       isMountedRef.current = false;
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      clearTimer();
     };
-    // Intentional dependency choice:
-    // - This effect keys off refreshToken (session boundary) only.
-    // - Access-token refresh done by this hook schedules the next timer inside doRefresh.
-    // - If another flow updates accessToken without changing refreshToken,
-    //   this effect will not re-run and the existing schedule is kept.
+    // Intentional: only re-run on session boundary (refreshToken change).
+    // Access-token rotation is handled inside doRefresh/scheduleRefresh.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userDetails?.refreshToken]);
+  }, [user?.refreshToken]);
 
-  // When the user returns / switches back to the tab,
-  // setTimeout timers may have drifted or not fired. The visibilitychange
-  // event fires reliably on wake, so we use it to check & refresh immediately.
+  // visibilitychange recovers timers that drifted while the tab was hidden/device slept
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState !== "visible") return;
-      if (!refreshTokenRef.current) return;
-
-      // Read latest token from the ref (always current, no stale closure)
-      const currentToken = tokenRef.current;
-      if (!currentToken || isTokenExpired(currentToken)) {
-        doRefreshRef.current?.();
-      }
+    const onVisible = () => {
+      if (document.visibilityState !== "visible" || !refreshTokenRef.current)
+        return;
+      if (!tokenRef.current || isTokenExpired(tokenRef.current))
+        doRefreshRef.current();
     };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-    // All values are read from refs — no deps needed, registered once.
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
   }, []);
 };
