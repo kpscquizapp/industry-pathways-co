@@ -352,7 +352,7 @@ const PostBenchResource = () => {
   };
 
   const addPrimarySkill = () => {
-    const trimmed = primarySkillInput.trim();
+    const trimmed = primarySkillInput.trim().toLowerCase();
     if (!trimmed) return;
     if (formData.primarySkills.length >= 5) {
       toast.error("You can only add up to 5 primary skills.");
@@ -381,7 +381,7 @@ const PostBenchResource = () => {
     }));
   };
   const addSecondarySkill = () => {
-    const trimmed = secondarySkillInput.trim();
+    const trimmed = secondarySkillInput.trim().toLowerCase();
     if (!trimmed) return;
     if (
       formData.secondarySkills.some((s) => normalizeSkill(s) === normalizeSkill(trimmed)) ||

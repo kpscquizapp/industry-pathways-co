@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import HirionLogo from "../assets/White Option.png";
-import { CircleCheck, Eye, EyeOff } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import styles from './BenchRegistration.module.css';
 import {
     Building2,
+    CircleCheck,
     Sparkles,
     Users,
     TrendingUp,
@@ -205,19 +205,19 @@ const BenchRegistration = () => {
             const emailError = VALIDATION.email.validate(formData.email);
             if (emailError) errors.email = emailError;
             // Check email availability only when format is valid
-            // if (!emailError && formData.email) {
-            //   try {
-            //     await checkExistingEmail({ email: formData.email }).unwrap();
-            //   } catch (error) {
-            //     if (isFetchBaseQueryError(error) && error.status === 409) {
-            //       errors.email =
-            //         "Email already registered, please use a different email.";
-            //     } else {
-            //       errors.email =
-            //         "Could not verify email right now. Please try again.";
-            //     }
-            //   }
-            // }
+            if (!emailError && formData.email) {
+                try {
+                    await checkExistingEmail({ email: formData.email }).unwrap();
+                } catch (error) {
+                    if (isFetchBaseQueryError(error) && error.status === 409) {
+                        errors.email =
+                            "Email already registered, please use a different email.";
+                    } else {
+                        errors.email =
+                            "Could not verify email right now. Please try again.";
+                    }
+                }
+            }
 
             // Validate password
             const passwordError = VALIDATION.password.validate(formData.password);
