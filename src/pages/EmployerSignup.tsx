@@ -449,7 +449,7 @@ const EmployerSignup = () => {
         .login-right-panel { 
           flex: 1 1 auto; 
           width: 100%; 
-          padding: 40px 24px;
+          padding: 40px 14px;
           display: flex;
           flex-direction: column;
         }
@@ -470,7 +470,7 @@ const EmployerSignup = () => {
             width: 50%; 
             max-width: 50%; 
             justify-content: center; 
-            padding: 60px 70px; 
+            padding: 60px 36px; 
           }
           .login-mobile-brand { display: none; }
         }
@@ -501,6 +501,20 @@ const EmployerSignup = () => {
             color: #64748b;
             margin-top: 12px;
             margin-bottom: 20px;
+          }
+          .employer-button-group {
+            gap: 10px !important;
+          }
+          .employer-button-group > button {
+            flex: 1 !important;
+            height: 52px !important;
+            padding: 12px 20px !important;
+            font-size: 13px !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .employer-button-group {
+            gap: 8px !important;
           }
         }
       `}</style>
@@ -753,11 +767,17 @@ const EmployerSignup = () => {
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95 min-h-0 min-w-0"
+                                aria-label={
+                                  showPassword
+                                    ? "Hide password"
+                                    : "Show password"
+                                }
+                                aria-pressed={showPassword}
                               >
                                 {showPassword ? (
-                                  <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
-                                ) : (
                                   <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                                ) : (
+                                  <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
                                 )}
                               </button>
                             </div>
@@ -790,11 +810,17 @@ const EmployerSignup = () => {
                                   setShowConfirmPassword(!showConfirmPassword)
                                 }
                                 className="flex items-center justify-center h-full px-1 focus:outline-none transition-transform active:scale-95 min-h-0 min-w-0"
+                                aria-label={
+                                  showConfirmPassword
+                                    ? "Hide confirm password"
+                                    : "Show confirm password"
+                                }
+                                aria-pressed={showConfirmPassword}
                               >
                                 {showConfirmPassword ? (
-                                  <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
-                                ) : (
                                   <EyeOff className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
+                                ) : (
+                                  <Eye className="w-[18px] h-[18px] text-slate-400 hover:text-[#4DD9E8] transition-colors" />
                                 )}
                               </button>
                             </div>
@@ -851,7 +877,7 @@ const EmployerSignup = () => {
                                 <Label className="text-[13px] font-semibold text-[#1a1a2e] ml-1">
                                   Enter 6-digit Code
                                 </Label>
-                                <div className="flex gap-3">
+                                <div className="flex gap-3 sm:flex-nowrap flex-wrap">
                                   <div
                                     className={`flex-1 flex items-center gap-2.5 bg-white border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
                                       fieldErrors.otp
@@ -885,7 +911,7 @@ const EmployerSignup = () => {
                                     disabled={
                                       isVerifyingOtp || otp.length !== 6
                                     }
-                                    className="h-[46px] px-6 bg-[#1a1a2e] hover:bg-[#2a2a4e] text-white font-bold rounded-[10px] transition-all"
+                                    className="h-[46px] px-6 bg-[#1a1a2e] hover:bg-[#2a2a4e] text-white font-bold rounded-[10px] transition-all w-full sm:w-fit"
                                   >
                                     {isVerifyingOtp ? (
                                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -1043,13 +1069,13 @@ const EmployerSignup = () => {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-3 pt-4">
+                    <div className="employer-button-group flex items-center gap-3 pt-4">
                       {currentStep > 1 && (
                         <Button
                           type="button"
                           variant="outline"
                           onClick={prevStep}
-                          className="h-[52px] px-6 rounded-xl hover:border-[#4DD9E8] text-[#1a1a2e] font-bold hover:bg-slate-50 hover:text-teal-600"
+                          className="flex-1 h-[52px] rounded-xl border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 font-bold transition-all"
                         >
                           Back
                         </Button>

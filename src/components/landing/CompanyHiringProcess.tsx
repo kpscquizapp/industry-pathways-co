@@ -25,7 +25,7 @@ const steps = [
 
 export default function CompanyHiringProcess() {
   return (
-    <section id="companies" className="py-24 px-6 bg-white overflow-hidden scroll-mt-20">
+    <section id="companies" className="py-24 px-6 bg-white overflow-hidden scroll-mt-[84px] lg:scroll-mt-20">
       <div className="max-w-[1240px] mx-auto">
         {/* Header */}
         <div className="mb-16">

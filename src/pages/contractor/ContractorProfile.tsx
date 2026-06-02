@@ -21,8 +21,18 @@ import {
 import { getCurrencySymbol } from "@/lib/currency";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 
-const DashCard = ({ children, className = "", noPadding = false }: { children: React.ReactNode; className?: string; noPadding?: boolean }) => (
-  <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-transform duration-300 ${noPadding ? "" : "p-6"} ${className}`}>
+const DashCard = ({
+  children,
+  className = "",
+  noPadding = false,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  noPadding?: boolean;
+}) => (
+  <div
+    className={`bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-transform duration-300 ${noPadding ? "" : "p-6"} ${className}`}
+  >
     {children}
   </div>
 );
@@ -67,31 +77,48 @@ const ContractorProfile = () => {
     navigate(path);
   };
 
-  const { data: response, isLoading: isLoadingProfile } = useGetProfileQuery(undefined, { skip: !token });
+  const { data: response, isLoading: isLoadingProfile } = useGetProfileQuery(
+    undefined,
+    { skip: !token },
+  );
 
   const data = response?.data;
   const profile = data?.candidateProfile;
   const hasAvatar = !!data?.avatar;
 
-  const { currentData: profileImage, isLoading: isLoadingImage } = useGetCandidateProfileImageQuery(
-    hasAvatar ? (data?.id ?? skipToken) : skipToken
-  );
+  const { currentData: profileImage, isLoading: isLoadingImage } =
+    useGetCandidateProfileImageQuery(
+      hasAvatar ? (data?.id ?? skipToken) : skipToken,
+    );
 
-  const workItems = Array.isArray(profile?.workExperiences) ? profile.workExperiences.filter((item: any) => item != null && typeof item === "object") : [];
-  const projectItems = Array.isArray(profile?.projects) ? profile.projects.filter((item: any) => item != null && typeof item === "object") : [];
-  const certificationItems = Array.isArray(profile?.certifications) ? profile.certifications.filter((item: any) => item != null && typeof item === "object") : [];
+  const workItems = Array.isArray(profile?.workExperiences)
+    ? profile.workExperiences.filter(
+        (item: any) => item != null && typeof item === "object",
+      )
+    : [];
+  const projectItems = Array.isArray(profile?.projects)
+    ? profile.projects.filter(
+        (item: any) => item != null && typeof item === "object",
+      )
+    : [];
+  const certificationItems = Array.isArray(profile?.certifications)
+    ? profile.certifications.filter(
+        (item: any) => item != null && typeof item === "object",
+      )
+    : [];
 
-  const sortedWorkItems = useMemo(() =>
-    [...workItems].sort((a, b) => {
-      const aIsCurrent = isCurrentWorkExperience(a.endDate);
-      const bIsCurrent = isCurrentWorkExperience(b.endDate);
-      if (aIsCurrent !== bIsCurrent) return aIsCurrent ? -1 : 1;
-      const aStart = getDateSortValue(a.startDate);
-      const bStart = getDateSortValue(b.startDate);
-      if (aStart !== bStart) return bStart - aStart;
-      return (b.startDate ?? "").localeCompare(a.startDate ?? "");
-    }),
-    [workItems]
+  const sortedWorkItems = useMemo(
+    () =>
+      [...workItems].sort((a, b) => {
+        const aIsCurrent = isCurrentWorkExperience(a.endDate);
+        const bIsCurrent = isCurrentWorkExperience(b.endDate);
+        if (aIsCurrent !== bIsCurrent) return aIsCurrent ? -1 : 1;
+        const aStart = getDateSortValue(a.startDate);
+        const bStart = getDateSortValue(b.startDate);
+        if (aStart !== bStart) return bStart - aStart;
+        return (b.startDate ?? "").localeCompare(a.startDate ?? "");
+      }),
+    [workItems],
   );
 
   const renderProfileImage = () => {
@@ -104,7 +131,11 @@ const ContractorProfile = () => {
     }
     if (profileImage) {
       return (
-        <img src={profileImage} alt="Profile" className="w-[100px] h-[100px] rounded-full object-cover border-2 border-white absolute top-2 left-2 shadow-sm" />
+        <img
+          src={profileImage}
+          alt="Profile"
+          className="w-[100px] h-[100px] rounded-full object-cover border-2 border-white absolute top-2 left-2 shadow-sm"
+        />
       );
     }
     return (
@@ -123,75 +154,126 @@ const ContractorProfile = () => {
             {renderProfileImage()}
           </div>
           <h3 className="text-[18px] font-bold text-gray-900 mb-0.5">
-            {data?.firstName || userDetails?.firstName} {data?.lastName || userDetails?.lastName}
+            {data?.firstName || userDetails?.firstName}{" "}
+            {data?.lastName || userDetails?.lastName}
           </h3>
-          <p className="text-[13px] text-gray-500 mb-2.5">{profile?.primaryJobRole ?? data?.title ?? "QA Engineer"}</p>
+          <p className="text-[13px] text-gray-500 mb-2.5">
+            {profile?.primaryJobRole ?? data?.title ?? "QA Engineer"}
+          </p>
           <span className="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase bg-green-50 text-green-600">
-            {profile?.profileType === "bench" ? "BENCH RESOURCE" : "CONTRACT RESOURCE"}
+            {profile?.profileType === "bench"
+              ? "BENCH RESOURCE"
+              : "CONTRACT RESOURCE"}
           </span>
 
           <div className="mt-5 pt-4 border-t border-gray-100 flex flex-col gap-3 text-left">
-            {profile?.hourlyRateMin != null && profile?.hourlyRateMax != null && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Banknote className="w-3.5 h-3.5" />
-                  <span className="text-[13px] text-gray-500 font-medium">Hourly Rate</span>
+            {profile?.hourlyRateMin != null &&
+              profile?.hourlyRateMax != null && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Banknote className="w-3.5 h-3.5" />
+                    <span className="text-[13px] text-gray-500 font-medium">
+                      Hourly Rate
+                    </span>
+                  </div>
+                  <span className="text-[13px] font-semibold text-gray-900">
+                    {getCurrencySymbol(profile.currency)}
+                    {profile.hourlyRateMin} -{" "}
+                    {getCurrencySymbol(profile.currency)}
+                    {profile.hourlyRateMax}/hr
+                  </span>
                 </div>
-                <span className="text-[13px] font-semibold text-gray-900">
-                  {getCurrencySymbol(profile.currency)}{profile.hourlyRateMin} - {getCurrencySymbol(profile.currency)}{profile.hourlyRateMax}/hr
-                </span>
-              </div>
-            )}
+              )}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-gray-400">
                 <Clock className="w-3.5 h-3.5" />
-                <span className="text-[13px] text-gray-500 font-medium">Availability</span>
+                <span className="text-[13px] text-gray-500 font-medium">
+                  Availability
+                </span>
               </div>
-              <span className="text-[13px] font-semibold text-green-600 capitalize">{profile?.availableToJoin || "None"}</span>
+              <span className="text-[13px] font-semibold text-green-600 capitalize">
+                {profile?.availableToJoin || "None"}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-gray-400">
                 <MapPin className="w-3.5 h-3.5" />
-                <span className="text-[13px] text-gray-500 font-medium">Location</span>
+                <span className="text-[13px] text-gray-500 font-medium">
+                  Location
+                </span>
               </div>
-              <span className="text-[13px] font-semibold text-gray-900 max-w-[120px] truncate block">{profile?.location || "None"}</span>
+              <span className="text-[13px] font-semibold text-gray-900 max-w-[120px] truncate block">
+                {profile?.location || "None"}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-gray-400">
                 <Briefcase className="w-3.5 h-3.5" />
-                <span className="text-[13px] text-gray-500 font-medium">Experience</span>
+                <span className="text-[13px] text-gray-500 font-medium">
+                  Experience
+                </span>
               </div>
               <span className="text-[13px] font-semibold text-gray-900">
-                {profile?.yearsExperience != null ? `${profile.yearsExperience} Years` : "None"}
+                {profile?.yearsExperience != null
+                  ? `${profile.yearsExperience} Years`
+                  : "None"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-gray-400">
                 <Globe className="w-3.5 h-3.5" />
-                <span className="text-[13px] text-gray-500 font-medium">English</span>
+                <span className="text-[13px] text-gray-500 font-medium">
+                  English
+                </span>
               </div>
-              <span className="text-[13px] font-semibold text-gray-900">{profile?.englishProficiency || "None"}</span>
+              <span className="text-[13px] font-semibold text-gray-900">
+                {profile?.englishProficiency || "None"}
+              </span>
             </div>
           </div>
         </DashCard>
 
         <DashCard>
-          <h4 className="text-[14px] font-bold text-gray-900 mb-3">Skills & Tech</h4>
+          <h4 className="text-[14px] font-bold text-gray-900 mb-3">
+            Primary Skills
+          </h4>
           <div className="flex flex-wrap gap-2">
-            {profile?.primarySkills?.length ? (
+            {Array.isArray(profile?.primarySkills) &&
+            profile.primarySkills.length > 0 ? (
               profile.primarySkills.map((skill: any, index: number) => {
                 const name = typeof skill === "string" ? skill : skill.name;
                 if (!name) return null;
                 return <SkillChip key={index} label={name} />;
               })
             ) : (
-              <span className="text-[13px] text-gray-500">No skills listed</span>
+              <span className="text-[13px] text-gray-500">
+                No primary skills listed
+              </span>
+            )}
+          </div>
+          <h4 className="text-[14px] font-bold text-gray-900 mb-3 mt-5">
+            Secondary Skills
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {Array.isArray(profile?.secondarySkills) &&
+            profile.secondarySkills.length > 0 ? (
+              profile.secondarySkills.map((skill: any, index: number) => {
+                const name = typeof skill === "string" ? skill : skill.name;
+                if (!name) return null;
+                return <SkillChip key={index} label={name} />;
+              })
+            ) : (
+              <span className="text-[13px] text-gray-500">
+                No secondary skills listed
+              </span>
             )}
           </div>
         </DashCard>
 
         <DashCard>
-          <h4 className="text-[14px] font-bold text-gray-900 mb-3">Certifications</h4>
+          <h4 className="text-[14px] font-bold text-gray-900 mb-3">
+            Certifications
+          </h4>
           <div className="space-y-3">
             {certificationItems.length ? (
               certificationItems.map((cert: any, index: number) => (
@@ -200,8 +282,12 @@ const ContractorProfile = () => {
                     🎓
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-[13px] text-gray-900 break-words">{cert.name}</p>
-                    <p className="text-[12px] text-gray-500">{cert.issueDate}</p>
+                    <p className="font-semibold text-[13px] text-gray-900 break-words">
+                      {cert.name}
+                    </p>
+                    <p className="text-[12px] text-gray-500">
+                      {cert.issueDate}
+                    </p>
                   </div>
                 </div>
               ))
@@ -219,18 +305,43 @@ const ContractorProfile = () => {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
-            { label: "Take Skill Test", icon: Code, color: "text-cyan-500", bg: "bg-cyan-50", route: "/contractor/tests" },
+            {
+              label: "Take Skill Test",
+              icon: Code,
+              color: "text-cyan-500",
+              bg: "bg-cyan-50",
+              route: "/contractor/tests",
+            },
             // { label: "Start AI Interview", icon: Video, color: "text-cyan-500", bg: "bg-cyan-50", route: "/contractor/interviews" },
-            { label: "Update Profile", icon: User, color: "text-cyan-500", bg: "bg-cyan-50", route: "/contractor/profile/update" },
+            {
+              label: "Update Profile",
+              icon: User,
+              color: "text-cyan-500",
+              bg: "bg-cyan-50",
+              route: "/contractor/profile/update",
+            },
           ].map((a, i) => (
-            <DashCard key={i} className="cursor-pointer hover:bg-gray-50" noPadding>
-              <div onClick={() => handleNav(a.route)} className="flex items-center gap-3 w-full h-full p-[18px]">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${a.bg} ${a.color}`}>
+            <DashCard
+              key={i}
+              className="cursor-pointer hover:bg-gray-50"
+              noPadding
+            >
+              <div
+                onClick={() => handleNav(a.route)}
+                className="flex items-center gap-3 w-full h-full p-[18px]"
+              >
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${a.bg} ${a.color}`}
+                >
                   <a.icon className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-[14px] font-semibold text-gray-900">{a.label}</div>
-                  <div className="text-[11px] text-gray-500 font-medium">Quick action</div>
+                  <div className="text-[14px] font-semibold text-gray-900">
+                    {a.label}
+                  </div>
+                  <div className="text-[11px] text-gray-500 font-medium">
+                    Quick action
+                  </div>
                 </div>
               </div>
             </DashCard>
@@ -238,26 +349,38 @@ const ContractorProfile = () => {
         </div>
 
         <DashCard>
-          <h4 className="text-[16px] font-bold text-gray-900 mb-2">About Candidate</h4>
+          <h4 className="text-[16px] font-bold text-gray-900 mb-2">
+            About Candidate
+          </h4>
           <p className="text-[14px] text-gray-500 leading-relaxed break-words whitespace-pre-line">
             {profile?.bio ?? "No bio available."}
           </p>
         </DashCard>
 
         <DashCard>
-          <h4 className="text-[16px] font-bold text-gray-900 mb-4">Work Experience</h4>
+          <h4 className="text-[16px] font-bold text-gray-900 mb-4">
+            Work Experience
+          </h4>
           <div className="space-y-6">
             {sortedWorkItems.length > 0 ? (
               sortedWorkItems.map((entry: any, index: number) => {
                 const isCurrentRole = isCurrentWorkExperience(entry.endDate);
                 return (
                   <div key={index} className="flex gap-4">
-                    <div className={`w-1 ${isCurrentRole ? "bg-[#4DD9E8]" : "bg-gray-200"} rounded-full flex-shrink-0`} />
+                    <div
+                      className={`w-1 ${isCurrentRole ? "bg-[#4DD9E8]" : "bg-gray-200"} rounded-full flex-shrink-0`}
+                    />
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-[15px] text-gray-900 break-words">{entry.role}</h4>
-                      <p className="text-[13px] font-semibold text-cyan-600 break-words">{entry.companyName}</p>
+                      <h4 className="font-bold text-[15px] text-gray-900 break-words">
+                        {entry.role}
+                      </h4>
+                      <p className="text-[13px] font-semibold text-cyan-600 break-words">
+                        {entry.companyName}
+                      </p>
                       <p className="text-[12px] text-gray-500 mb-2">
-                        {entry.startDate} - {isCurrentRole ? "Present" : entry.endDate} • {entry.location}
+                        {entry.startDate} -{" "}
+                        {isCurrentRole ? "Present" : entry.endDate} •{" "}
+                        {entry.location}
                       </p>
                       <div className="text-[13px] text-gray-600 space-y-1">
                         {(Array.isArray(entry.description)
@@ -266,7 +389,12 @@ const ContractorProfile = () => {
                             ? entry.description.split(/\r?\n/).filter(Boolean)
                             : []
                         ).map((bullet: string, bIndex: number) => (
-                          <p key={bIndex} className="break-words leading-relaxed">{bullet}</p>
+                          <p
+                            key={bIndex}
+                            className="break-words leading-relaxed"
+                          >
+                            {bullet}
+                          </p>
                         ))}
                       </div>
                     </div>
@@ -274,14 +402,18 @@ const ContractorProfile = () => {
                 );
               })
             ) : (
-              <p className="text-[14px] text-gray-500">No work experience listed.</p>
+              <p className="text-[14px] text-gray-500">
+                No work experience listed.
+              </p>
             )}
           </div>
         </DashCard>
 
         <DashCard>
           <div className="flex justify-between items-center mb-4">
-            <h4 className="text-[16px] font-bold text-gray-900">Featured Projects</h4>
+            <h4 className="text-[16px] font-bold text-gray-900">
+              Featured Projects
+            </h4>
             {/* <Link to="/contractor/projects" className="text-[13px] text-cyan-600 hover:text-cyan-700 font-semibold no-underline">
               View Portfolio
             </Link> */}
@@ -291,31 +423,45 @@ const ContractorProfile = () => {
               projectItems.map((project: any, pIndex: number) => {
                 const safeUrl = getSafeProjectUrl(project.projectUrl);
                 return (
-                  <div key={pIndex} className="border border-gray-100 rounded-xl p-4 hover:shadow-sm transition-shadow">
+                  <div
+                    key={pIndex}
+                    className="border border-gray-100 rounded-xl p-4 hover:shadow-sm transition-shadow"
+                  >
                     <div className="w-full h-24 bg-gray-50 rounded-lg flex items-center justify-center mb-4 border border-gray-100/50">
                       <div className="w-10 h-14 border-2 border-gray-200 rounded flex items-center justify-center text-xl bg-white shadow-sm">
                         {project.projectUrl ? "🌐" : "📂"}
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-bold text-[14px] text-gray-900 break-words">{project.title}</h4>
+                      <h4 className="font-bold text-[14px] text-gray-900 break-words">
+                        {project.title}
+                      </h4>
                       {safeUrl && (
-                        <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-cyan-600 font-semibold hover:underline bg-cyan-50 px-2 py-0.5 rounded-md min-h-0 min-w-0">
+                        <a
+                          href={safeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-cyan-600 font-semibold hover:underline bg-cyan-50 px-2 py-0.5 rounded-md min-h-0 min-w-0"
+                        >
                           Link
                         </a>
                       )}
                     </div>
                     <p className="text-[12px] text-gray-500 break-words mb-2 font-medium">
-                      {Array.isArray(project.techStack) ? project.techStack.join(", ") : project.techStack}
+                      {Array.isArray(project.techStack)
+                        ? project.techStack.join(", ")
+                        : project.techStack}
                     </p>
                     <p className="text-[13px] text-gray-600 break-words line-clamp-2 leading-relaxed">
                       {project.description}
                     </p>
                   </div>
-                )
+                );
               })
             ) : (
-              <p className="text-[14px] text-gray-500 col-span-2">No projects yet</p>
+              <p className="text-[14px] text-gray-500 col-span-2">
+                No projects yet
+              </p>
             )}
           </div>
         </DashCard>
@@ -334,7 +480,6 @@ const ContractorProfile = () => {
             ))}
           </div>
         </DashCard> */}
-
       </div>
     </div>
   );

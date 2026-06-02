@@ -1,7 +1,7 @@
-import { motion } from 'framer-motion'
-import heroMain from '../../assets/landing page main.png'
-import interviewImage from '../../assets/image1.png'
-import { Star } from 'lucide-react'
+import { motion } from "framer-motion";
+import heroMain from "../../assets/landing page main.png";
+import interviewImage from "../../assets/image1.png";
+import { Star } from "lucide-react";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -9,19 +9,19 @@ const containerVariants = {
     opacity: 1,
     transition: {
       staggerChildren: 0.1,
-      delayChildren: 0.3
-    }
-  }
-}
+      delayChildren: 0.3,
+    },
+  },
+};
 
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.6 }
-  }
-}
+    transition: { duration: 0.6 },
+  },
+};
 
 const floatingVariants = (delay = 0) => ({
   animate: {
@@ -29,10 +29,10 @@ const floatingVariants = (delay = 0) => ({
     transition: {
       duration: 4,
       repeat: Infinity,
-      delay
-    }
-  }
-})
+      delay,
+    },
+  },
+});
 
 export default function Hero() {
   return (
@@ -43,7 +43,6 @@ export default function Hero() {
         initial="hidden"
         animate="visible"
       >
-
         {/* Heading */}
         <motion.h1
           variants={itemVariants}
@@ -59,7 +58,9 @@ export default function Hero() {
           variants={itemVariants}
           className="text-gray-500 md:text-[15px] lg:text-[17px] font-medium leading-relaxed mt-5 mx-auto px-8 sm:px-0 sm:max-w-[350px] md:max-w-2xl text-center"
         >
-          AI-matched resumes, automated skill tests, and smart interviews — from job posting to deployment in days, not weeks. <br /> All in one platform.
+          AI-matched resumes, automated skill tests, and smart interviews — from
+          job posting to deployment in days, not weeks. <br /> All in one
+          platform.
         </motion.p>
 
         {/* CTA */}
@@ -76,13 +77,12 @@ export default function Hero() {
         {/* ═══ LAPTOP MOCKUP ═══ */}
         <motion.div
           variants={itemVariants}
-          className="my-10 sm:my-12 relative sm:max-w-[86%] xl:max-w-[1280px] mx-auto"
+          className="my-10 sm:my-12 relative xl:max-w-[1280px] mx-auto"
         >
           {/* Laptop frame */}
           <div className="bg-gray-900 rounded-t-xl rounded-b-xl md:rounded-t-3xl md:rounded-b-3xl p-2.5 md:p-4 lg:p-5 xl:p-8 shadow-[rgba(50,50,93,0.25)_0px_24px_36px_-5px,rgba(0,0,0,0.3)_0px_16px_24px_-8px] overflow-hidden">
             {/* Screen */}
             <div className="rounded-t-xl rounded-b-xl md:rounded-t-3xl md:rounded-b-3xl overflow-hidden relative group">
-
               {/* Photo scene */}
               <img
                 src={heroMain}
@@ -103,10 +103,15 @@ export default function Hero() {
                 <div className="flex items-start justify-between mb-1.5 sm:mb-2.5">
                   <div className="w-7 h-7 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl bg-black/80 flex items-center justify-center">
                     <svg
-                      width="14" height="14"
+                      width="14"
+                      height="14"
                       className="sm:w-[18px] sm:h-[18px] lg:w-5 lg:h-5"
-                      viewBox="0 0 24 24" fill="none" stroke="#0ea5e9"
-                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#0ea5e9"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
                       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                       <circle cx="9" cy="7" r="4" />
@@ -116,7 +121,13 @@ export default function Hero() {
                   </div>
                   <span className="text-green-500 text-[10px] sm:text-sm font-semibold flex items-center gap-0.5">
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <path d="M5 8V2M2 4.5L5 2L8 4.5" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path
+                        d="M5 8V2M2 4.5L5 2L8 4.5"
+                        stroke="#22c55e"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     12%
                   </span>
@@ -128,7 +139,9 @@ export default function Hero() {
                   <div className="text-lg sm:text-2xl lg:text-[28px] font-extrabold text-gray-900 font-heading mt-0.5 tracking-tight">
                     1,247
                   </div>
-                  <div className="text-[9px] sm:text-[11px] text-gray-900 mt-0.5">This month</div>
+                  <div className="text-[9px] sm:text-[11px] text-gray-900 mt-0.5">
+                    This month
+                  </div>
                 </div>
               </motion.div>
 
@@ -161,25 +174,38 @@ export default function Hero() {
                     Application Trends
                   </span>
                   <div className="flex gap-0.5 sm:gap-1 shrink-0">
-                    {['Week', 'Mo', 'Yr'].map((t, i) => (
+                    {["Week", "Mo", "Yr"].map((t, i) => (
                       <span
                         key={i}
-                        className={`text-[6px] sm:text-[7px] px-1 sm:px-1.5 py-0.5 rounded font-semibold ${i === 0 ? 'bg-green-500 text-white' : 'text-gray-500'
-                          }`}
+                        className={`text-[6px] sm:text-[7px] px-1 sm:px-1.5 py-0.5 rounded font-semibold ${
+                          i === 0 ? "bg-green-500 text-white" : "text-gray-500"
+                        }`}
                       >
                         {t}
                       </span>
                     ))}
                   </div>
                 </div>
-                <svg viewBox="0 0 180 55" width="100%" height="40" className="block">
+                <svg
+                  viewBox="0 0 180 55"
+                  width="100%"
+                  height="40"
+                  className="block"
+                >
                   <path
                     d="M0,42 L18,40 L36,36 L54,38 L72,32 L90,28 L108,22 L126,18 L144,20 L162,14 L180,12"
-                    fill="none" stroke="#5CE1E6" strokeWidth="1.8" strokeLinecap="round"
+                    fill="none"
+                    stroke="#5CE1E6"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
                   />
                   <path
                     d="M0,48 L18,46 L36,44 L54,47 L72,42 L90,40 L108,37 L126,35 L144,33 L162,31 L180,30"
-                    fill="none" stroke="#8b5cf6" strokeWidth="1.8" strokeLinecap="round" opacity="0.7"
+                    fill="none"
+                    stroke="#8b5cf6"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    opacity="0.7"
                   />
                 </svg>
                 <div className="flex gap-2 mt-1">
@@ -193,11 +219,10 @@ export default function Hero() {
                   </span>
                 </div>
               </motion.div>
-
             </div>
           </div>
         </motion.div>
       </motion.div>
     </section>
-  )
+  );
 }

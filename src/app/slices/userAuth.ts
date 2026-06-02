@@ -1,10 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { isTokenExpired } from "@/lib/helpers";
 import Cookies from "js-cookie";
+import { REFRESH_TOKEN_LIFETIME_DAYS } from "./authConstants";
 
 export type UserState = {
   token: string | null;
   refreshToken: string | null;
+  /** Unix-ms when the refresh token was first stored — used for 30-day lifetime enforcement */
+  refreshTokenIssuedAt: number | null;
   userDetails: {
     id?: string;
     uuid?: string;
@@ -14,6 +17,7 @@ export type UserState = {
     lastName?: string;
     admin?: boolean;
   } | null;
+  /** false = bootstrapping (show loader), true = done (check token for redirect) */
   authInitialized: boolean;
 };
 
@@ -23,42 +27,63 @@ export type SetUserPayload = {
   user: UserState["userDetails"];
 };
 
+type CookiePayload = Pick<
+  UserState,
+  "token" | "refreshToken" | "refreshTokenIssuedAt" | "userDetails"
+>;
+
+// Defined before the cookieData IIFE — const arrow functions are not hoisted
+const cookieOptions = (): Cookies.CookieAttributes => ({
+  expires: REFRESH_TOKEN_LIFETIME_DAYS,
+  path: "/",
+  secure:
+    typeof window !== "undefined" && window.location.protocol === "https:",
+  sameSite: "strict",
+});
+
+const COOKIE_KEY = "userInfo";
+const removeCookie = () => Cookies.remove(COOKIE_KEY, { path: "/" });
+const saveCookie = (d: CookiePayload) =>
+  Cookies.set(COOKIE_KEY, JSON.stringify(d), cookieOptions());
+
+// Picks and validates only known fields — prevents stale/tampered cookies from
+// injecting bad data into Redux state (e.g. from an older app version).
+const sanitizeCookie = (raw: unknown): CookiePayload | null => {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const r = raw as Record<string, unknown>;
+  return {
+    token: typeof r.token === "string" ? r.token : null,
+    refreshToken: typeof r.refreshToken === "string" ? r.refreshToken : null,
+    refreshTokenIssuedAt:
+      typeof r.refreshTokenIssuedAt === "number"
+        ? r.refreshTokenIssuedAt
+        : null,
+    userDetails:
+      r.userDetails &&
+      typeof r.userDetails === "object" &&
+      !Array.isArray(r.userDetails)
+        ? (r.userDetails as UserState["userDetails"])
+        : null,
+  };
+};
+
 const cookieData = (() => {
   try {
-    const raw = Cookies.get("userInfo");
-    const parsed = raw ? JSON.parse(raw) : null;
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      const token = (parsed as any).token ?? null;
-      const refreshToken = (parsed as any).refreshToken ?? null;
-
-      // If the access token is expired but we still have a valid refresh token,
-      // keep the session data so the refresh-token hook can obtain a new access token.
-      // Only nuke the cookie when there's no refresh token at all.
-      if (token && isTokenExpired(token)) {
-        if (refreshToken) {
-          // Clear only the expired access token; keep refreshToken & userDetails
-          // so useFetchRefreshToken can silently refresh the session.
-          const sanitized = { ...parsed, token: null };
-          // Persist the sanitized state back to the cookie so service.ts
-          // authHeader() won't read the stale expired token.
-          Cookies.set("userInfo", JSON.stringify(sanitized), {
-            expires: 15,
-            secure:
-              typeof window !== "undefined" &&
-              window.location.protocol === "https:",
-            sameSite: "strict",
-          });
-          return sanitized as UserState;
-        }
-        // No refresh token either — fully unauthenticated
-        Cookies.remove("userInfo");
+    const data = sanitizeCookie(JSON.parse(Cookies.get(COOKIE_KEY) ?? "null"));
+    if (!data) return null;
+    if (data.token && isTokenExpired(data.token)) {
+      if (!data.refreshToken) {
+        removeCookie();
         return null;
       }
-      return parsed as UserState;
+      // Strip expired access token; keep refreshToken so the hook can silently refresh
+      const sanitized: CookiePayload = { ...data, token: null };
+      saveCookie(sanitized);
+      return sanitized;
     }
-    return null;
+    return data;
   } catch {
-    Cookies.remove("userInfo"); // evict the bad cookie
+    removeCookie();
     return null;
   }
 })();
@@ -66,47 +91,42 @@ const cookieData = (() => {
 const initialState: UserState = {
   token: cookieData?.token ?? null,
   refreshToken: cookieData?.refreshToken ?? null,
+  refreshTokenIssuedAt: cookieData?.refreshTokenIssuedAt ?? null,
   userDetails: cookieData?.userDetails ?? null,
   authInitialized: false,
 };
-
-const cookieOptions = (): Cookies.CookieAttributes => ({
-  expires: 15,
-  secure:
-    typeof window !== "undefined" && window.location.protocol === "https:",
-  sameSite: "strict",
-});
 
 export const userAuth = createSlice({
   name: "userAuth",
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<SetUserPayload>) => {
-      const {
-        accessToken: token,
+    setUser: (state, { payload }: PayloadAction<SetUserPayload>) => {
+      const { accessToken: token, refreshToken, user: userDetails } = payload;
+      const refreshTokenIssuedAt = Date.now();
+      saveCookie({ token, refreshToken, refreshTokenIssuedAt, userDetails });
+      Object.assign(state, {
+        token,
         refreshToken,
-        user: userDetails,
-      } = action.payload;
-      const payloadToStore = { token, refreshToken, userDetails };
-      Cookies.set("userInfo", JSON.stringify(payloadToStore), cookieOptions());
-      state.token = token;
-      state.refreshToken = refreshToken;
-      state.userDetails = userDetails;
+        refreshTokenIssuedAt,
+        userDetails,
+      });
     },
     removeUser: (state) => {
-      Cookies.remove("userInfo");
-      state.token = null;
-      state.refreshToken = null;
-      state.userDetails = null;
+      removeCookie();
+      // authInitialized=true ensures ProtectedLayout can redirect even if
+      // authInitFail was not dispatched before this action
+      Object.assign(state, {
+        token: null,
+        refreshToken: null,
+        refreshTokenIssuedAt: null,
+        userDetails: null,
+        authInitialized: true,
+      });
     },
-    setNewAccessToken: (state, action: PayloadAction<string>) => {
-      state.token = action.payload;
-      const payloadToStore = {
-        token: action.payload,
-        refreshToken: state.refreshToken,
-        userDetails: state.userDetails,
-      };
-      Cookies.set("userInfo", JSON.stringify(payloadToStore), cookieOptions());
+    setNewAccessToken: (state, { payload: token }: PayloadAction<string>) => {
+      state.token = token;
+      const { refreshToken, refreshTokenIssuedAt, userDetails } = state; // refreshTokenIssuedAt unchanged — only the access token rotated
+      saveCookie({ token, refreshToken, refreshTokenIssuedAt, userDetails });
     },
     authInitStart: (state) => {
       state.authInitialized = false;
@@ -116,7 +136,7 @@ export const userAuth = createSlice({
     },
     authInitFail: (state) => {
       state.authInitialized = true;
-    },
+    }, // init done, just failed
   },
 });
 
@@ -128,5 +148,4 @@ export const {
   authInitSuccess,
   authInitFail,
 } = userAuth.actions;
-
 export default userAuth.reducer;

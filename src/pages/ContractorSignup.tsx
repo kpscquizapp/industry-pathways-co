@@ -163,11 +163,11 @@ const VALIDATION = {
   },
   skills: {
     minCount: 1,
-    maxCount: 20,
+    maxCount: 5,
     maxLength: 50,
     validate: (skills: string[]) => {
       if (skills.length === 0) return "Please add at least one skill";
-      if (skills.length > 20) return "You can add a maximum of 20 skills";
+      if (skills.length > 5) return "You can add a maximum of 5 skills";
       const invalidSkill = skills.find((s) => s.length > 50);
       if (invalidSkill) return "Each skill must be less than 50 characters";
       return null;
@@ -395,8 +395,8 @@ const EyeIcon: FC<{ open: boolean }> = memo(({ open }) =>
       stroke="#999"
       strokeWidth="1.8"
     >
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" />
-      <circle cx="12" cy="12" r="3" />
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
     </svg>
   ) : (
     <svg
@@ -407,8 +407,8 @@ const EyeIcon: FC<{ open: boolean }> = memo(({ open }) =>
       stroke="#999"
       strokeWidth="1.8"
     >
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-      <line x1="1" y1="1" x2="23" y2="23" />
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" />
+      <circle cx="12" cy="12" r="3" />
     </svg>
   ),
 );
@@ -616,8 +616,8 @@ const SkillTags: FC<SkillTagsProps> = memo(
         toast.error("Skill name must be less than 50 characters");
         return;
       }
-      if (skills.length >= 20) {
-        toast.error("You can add a maximum of 20 skills");
+      if (skills.length >= 5) {
+        toast.error("You can add a maximum of 5 skills");
         return;
       }
       if (skills.some((s) => s.toLowerCase() === trimmed.toLowerCase())) {
@@ -641,7 +641,11 @@ const SkillTags: FC<SkillTagsProps> = memo(
 
     return (
       <div style={S.column(6)}>
-        <FormLabel text="Primary Skills" required hint="(Press Enter to add)" />
+        <FormLabel
+          text="Primary Skills"
+          required
+          hint="(Enter your top 5 skills.)"
+        />
         <div
           style={{
             ...S.fieldWrap(!!error),
@@ -729,7 +733,7 @@ const SkillTags: FC<SkillTagsProps> = memo(
         )}
         {skills.length > 0 && (
           <p style={{ fontSize: 12, color: TEXT_MUTED, margin: 0 }}>
-            {skills.length} / 20 skills added
+            {skills.length} / 5 skills added
           </p>
         )}
         <FieldError error={error} />
@@ -1349,7 +1353,7 @@ export default function ContractorSignup(): JSX.Element {
 
   const btnPrimary: CSSProperties = useMemo(
     () => ({
-      flex: 1,
+      width: "100%",
       padding: "14px 28px",
       borderRadius: 10,
       border: "none",
@@ -1648,84 +1652,27 @@ export default function ContractorSignup(): JSX.Element {
             gap: 12px;
           }
           .contractor-actions {
-            flex-direction: column-reverse;
+            flex-direction: row;
             gap: 10px;
             margin-top: 24px;
           }
           .contractor-actions > button {
-            width: 100%;
+            flex: 1;
+            height: 52px !important;
             padding: 12px 20px !important;
             font-size: 13px !important;
           }
         }
-        @media (max-width: 640px) {
-          .contractor-right-panel {
-            padding: 12px 10px;
-          }
-          .contractor-mobile-brand {
-            display: flex;
-            margin-bottom: 14px;
-          }
-          .contractor-mobile-brand img {
-            width: 150px;
-          }
-          .contractor-mobile-brand span {
-            font-size: 10px;
-            letter-spacing: 0.18em;
-          }
-          .contractor-stepper {
-            margin-bottom: 16px;
-            padding: 10px 10px;
-            gap: 4px;
-            border-radius: 14px;
-          }
-          .contractor-stepper-item {
-            min-width: auto;
-          }
-          .contractor-stepper-step {
-            gap: 5px;
-          }
-          .contractor-stepper-circle {
-            width: 24px;
-            height: 24px;
-            min-width: 24px;
-            font-size: 10px;
-          }
-          .contractor-stepper-label {
-            font-size: 9px;
-            letter-spacing: 0.08em;
-            max-width: 50px;
-          }
-          .contractor-stepper-connector {
-            flex: 0 1 32px;
-            min-width: 24px;
-            margin: 0 4px;
-          }
-          .contractor-form-shell {
-            max-width: 100%;
-            padding: 24px 16px;
-            border-radius: 16px;
-            box-shadow: 0 12px 40px rgba(15,23,42,0.08);
-            border: 1px solid rgba(200,210,220,0.3);
-          }
-          .contractor-form-shell > h2 {
-            font-size: 16px;
-            letter-spacing: -0.01em;
-          }
-          .contractor-form-shell > p {
-            font-size: 12px;
-            margin-bottom: 16px;
-          }
-          .contractor-step-grid {
-            gap: 11px;
-          }
+        @media (max-width: 480px) {
           .contractor-actions {
-            margin-top: 20px;
-            gap: 9px;
+            flex-direction: row;
+            gap: 8px;
+            margin-top: 24px;
           }
           .contractor-actions > button {
-            padding: 11px 16px !important;
-            font-size: 12px !important;
+            height: 52px !important;
+            padding: 10px 14px !important;
+            font-size: 11px !important;
           }
         }
         @media (max-width: 480px) {
@@ -1791,8 +1738,9 @@ export default function ContractorSignup(): JSX.Element {
             gap: 8px;
           }
           .contractor-actions > button {
+            flex: 1;
             padding: 10px 14px !important;
-            font-size: 11px !important;
+            font-size: 14px !important;
           }
         }
       `}</style>
@@ -2012,6 +1960,7 @@ export default function ContractorSignup(): JSX.Element {
                         gap: 10,
                         alignItems: "flex-end",
                       }}
+                      className="sm:flex-nowrap flex-wrap"
                     >
                       <div style={{ flex: 1 }}>
                         <Input
@@ -2031,6 +1980,7 @@ export default function ContractorSignup(): JSX.Element {
                         type="button"
                         onClick={handleVerifyOtp}
                         disabled={isVerifyingOtp || otp.length !== 6}
+                        className="w-full sm:w-fit"
                         style={{
                           height: 46,
                           padding: "0 20px",
@@ -2208,11 +2158,12 @@ export default function ContractorSignup(): JSX.Element {
                 onClick={prevStep}
                 disabled={isLoading || isCheckingEmail}
                 style={{
+                  width: "100%",
                   padding: "14px 28px",
                   borderRadius: 10,
                   border: "1.5px solid #e0e2e8",
                   background: "#fff",
-                  fontSize: 14,
+                  fontSize: 16,
                   fontWeight: 600,
                   color: TEXT_SECONDARY,
                   cursor: "pointer",

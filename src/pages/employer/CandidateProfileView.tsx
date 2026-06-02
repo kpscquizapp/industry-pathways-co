@@ -424,7 +424,7 @@ const CandidateProfileView = () => {
   const benchData = profile && isBenchProfile(profile) ? profile : null;
 
   return (
-    <div className="min-h-screen flex flex-col dark:bg-slate-900">
+    <div className="min-h-screen max-w-full flex flex-col dark:bg-slate-900 p-8">
       {loading && !profile ? (
         <BarLoader />
       ) : hasError ? (
@@ -452,19 +452,6 @@ const CandidateProfileView = () => {
                 Could not refresh profile — showing cached data.
               </div>
             )}
-            {/* Back Button */}
-            <div className="mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(-1)}
-                className="gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
-            </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
               {/* Left Sidebar */}
               <div className="lg:col-span-3 space-y-4">
@@ -514,7 +501,7 @@ const CandidateProfileView = () => {
                         {profile.mobileNumber}
                       </p>
                     )}
-                    <div className="flex flex-wrap gap-2 justify-center mb-4">
+                    <div className="flex flex-wrap gap-2 justify-center mb-4 flex-col items-center">
                       <Badge className="bg-green-100 text-green-700 hover:bg-green-100 font-bold text-xs">
                         {isBench ||
                         profile?.candidateType === "bench" ||
@@ -522,20 +509,22 @@ const CandidateProfileView = () => {
                           ? "BENCH RESOURCE"
                           : "CONTRACT RESOURCE"}
                       </Badge>
-                      {Array.isArray(profile?.preferredWorkType) &&
-                      profile.preferredWorkType.length > 0
-                        ? profile.preferredWorkType
-                            .filter((w: string) => w)
-                            .map((workType: string) => (
-                              <Badge
-                                key={workType}
-                                variant="outline"
-                                className="text-xs capitalize"
-                              >
-                                {workType}
-                              </Badge>
-                            ))
-                        : null}
+                      <div>
+                        {Array.isArray(profile?.preferredWorkType) &&
+                        profile.preferredWorkType.length > 0
+                          ? profile.preferredWorkType
+                              .filter((w: string) => w)
+                              .map((workType: string) => (
+                                <Badge
+                                  key={workType}
+                                  variant="outline"
+                                  className="text-xs capitalize"
+                                >
+                                  {workType}
+                                </Badge>
+                              ))
+                          : null}
+                      </div>
                     </div>
 
                     {/* Details Card */}
@@ -660,7 +649,7 @@ const CandidateProfileView = () => {
                 >
                   <CardContent className="p-4 sm:p-6">
                     <h3 className="font-bold mb-3 text-sm sm:text-base dark:text-slate-100">
-                      Skills & Tech
+                      Primary Skills
                     </h3>
                     <div
                       id={`CandidateProfile-${candidateId}-skills`}
@@ -698,7 +687,7 @@ const CandidateProfileView = () => {
                     </div>
                     {profile?.secondarySkills?.length > 0 && (
                       <>
-                        <h4 className="font-semibold mt-4 mb-2 text-xs dark:text-slate-300">
+                        <h4 className="font-bold mb-3 text-sm sm:text-base dark:text-slate-100 mt-4">
                           Secondary Skills
                         </h4>
                         <div className="flex flex-wrap gap-2">

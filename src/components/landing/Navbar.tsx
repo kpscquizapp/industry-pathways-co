@@ -1,4 +1,4 @@
-import { useState, useEffect, type MouseEvent } from "react";
+import { useState, useEffect, useRef, type MouseEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import logo from "@/assets/Dark Option.png";
 import { Building2, Equal, User, X, Users } from "lucide-react";
@@ -24,6 +24,7 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navRef = useRef<HTMLElement | null>(null);
   const navigate = useNavigate();
 
   const userDetails = useSelector((state: RootState) => state.user.userDetails);
@@ -52,6 +53,38 @@ export default function Navbar() {
 
   const closeMobileMenu = () => setMobileOpen(false);
 
+  const getAnchorScrollOffset = () => {
+    const navBar = navRef.current?.querySelector<HTMLElement>(
+      "[data-navbar-bar]",
+    );
+    const navHeight = navBar?.offsetHeight ?? 72;
+
+    return navHeight + 12;
+  };
+
+  const scrollToAnchorTarget = (target: string) => {
+    if (target === "#") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.history.replaceState(null, "", window.location.pathname);
+      return;
+    }
+
+    const targetId = target.slice(1);
+    const targetElement = document.getElementById(targetId);
+    if (!targetElement) return;
+
+    const top =
+      targetElement.getBoundingClientRect().top +
+      window.scrollY -
+      getAnchorScrollOffset();
+
+    window.scrollTo({
+      top: Math.max(top, 0),
+      behavior: "smooth",
+    });
+    window.history.replaceState(null, "", target);
+  };
+
   const handleMobileAnchorClick = (
     event: MouseEvent<HTMLAnchorElement>,
     target: string,
@@ -60,13 +93,8 @@ export default function Navbar() {
     closeMobileMenu();
 
     window.setTimeout(() => {
-      const targetId = target.slice(1);
-      document.getElementById(targetId)?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-      window.history.replaceState(null, "", target);
-    }, 0);
+      scrollToAnchorTarget(target);
+    }, 320);
   };
 
   const handleMobileDashboardClick = (event: MouseEvent<HTMLAnchorElement>) => {
@@ -78,12 +106,16 @@ export default function Navbar() {
   return (
     <>
       <motion.nav
+        ref={navRef}
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
         className={`sticky top-0 left-0 right-0 w-full z-[1000] transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm" : "bg-white"}`}
       >
-        <div className="max-w-[1450px] mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
+        <div
+          data-navbar-bar
+          className="max-w-[1450px] mx-auto px-4 sm:px-8 py-4 flex items-center justify-between"
+        >
           {/* Logo */}
           <motion.a
             href="#"

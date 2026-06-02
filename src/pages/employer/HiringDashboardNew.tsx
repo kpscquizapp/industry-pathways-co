@@ -26,7 +26,7 @@ import {
   useRemoveShortlistCandidateMutation,
   Job,
   Match,
-  EntityId
+  EntityId,
 } from "@/app/queries/aiShortlistApi";
 import {
   Select,
@@ -47,7 +47,10 @@ const normalizeSkills = (skills: unknown): string[] => {
       .map((s) => s.trim())
       .filter(Boolean);
   if (typeof skills === "string")
-    return skills.split(",").map((s) => s.trim()).filter(Boolean);
+    return skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
   return [];
 };
 
@@ -60,7 +63,10 @@ const normalizeJobSkills = (skills: unknown): string[] => {
       .map((s) => s.trim())
       .filter(Boolean);
   if (typeof skills === "string")
-    return skills.split(",").map((s) => s.trim()).filter(Boolean);
+    return skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
   return [];
 };
 
@@ -110,12 +116,20 @@ const MatchRing = ({ score }: { score: number }) => {
     <div className="relative w-[60px] h-[60px] flex items-center justify-center shrink-0">
       <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
         <circle
-          cx="18" cy="18" r="16"
-          fill="none" stroke="#f0f0f0" strokeWidth="3"
+          cx="18"
+          cy="18"
+          r="16"
+          fill="none"
+          stroke="#f0f0f0"
+          strokeWidth="3"
         />
         <circle
-          cx="18" cy="18" r="16"
-          fill="none" stroke={ringColor} strokeWidth="3"
+          cx="18"
+          cy="18"
+          r="16"
+          fill="none"
+          stroke={ringColor}
+          strokeWidth="3"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
@@ -123,10 +137,16 @@ const MatchRing = ({ score }: { score: number }) => {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[13px] font-extrabold leading-none" style={{ color: ringColor }}>
+        <span
+          className="text-[13px] font-extrabold leading-none"
+          style={{ color: ringColor }}
+        >
           {score}%
         </span>
-        <span className="text-[7px] font-bold leading-none mt-[2px] tracking-wide" style={{ color: ringColor }}>
+        <span
+          className="text-[7px] font-bold leading-none mt-[2px] tracking-wide"
+          style={{ color: ringColor }}
+        >
           MATCH
         </span>
       </div>
@@ -150,7 +170,8 @@ const HiringDashboardNew = () => {
   const [shortlistedIds, setShortlistedIds] = React.useState<EntityId[]>([]);
 
   const [shortlistCandidateMutation] = useShortlistCandidateMutation();
-  const [removeShortlistCandidateMutation] = useRemoveShortlistCandidateMutation();
+  const [removeShortlistCandidateMutation] =
+    useRemoveShortlistCandidateMutation();
 
   const { data: jobsResponse, isLoading: jobsLoading } =
     useGetEmployerJobsQuery({ page: 1, limit: 100 });
@@ -180,7 +201,7 @@ const HiringDashboardNew = () => {
     const run = async () => {
       const results = await Promise.all(
         activeJobs.map((job) =>
-          getJobMatches({ id: String(job.id), page: 1, limit: 1000 })
+          getJobMatches({ id: String(job.id), page: 1, limit: 5 })
             .unwrap()
             .catch(() => null),
         ),
@@ -194,14 +215,18 @@ const HiringDashboardNew = () => {
         counts[job.id] = res?.meta?.total ?? data.length ?? 0;
 
         // Count candidates who have a testScore (meaning they did the test)
-        testsDone += data.filter(m => m.testScore !== undefined && m.testScore !== null).length;
+        testsDone += data.filter(
+          (m) => m.testScore !== undefined && m.testScore !== null,
+        ).length;
       });
       setMatchCounts(counts);
       setTotalTestsDone(testsDone);
       setIsMatchCountsLoading(false);
     };
     run();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [activeJobs, activeJobsCount, getJobMatches]);
 
   // Set default selected job
@@ -217,13 +242,17 @@ const HiringDashboardNew = () => {
     if (!selectedJobId) {
       setTopCandidates([]);
       setIsTopCandidatesLoading(false);
-      return () => { active = false; };
+      return () => {
+        active = false;
+      };
     }
     setIsTopCandidatesLoading(true);
     const run = async () => {
       try {
         const resp = await getJobMatches({
-          id: selectedJobId, page: 1, limit: 3,
+          id: selectedJobId,
+          page: 1,
+          limit: 3,
         }).unwrap();
         if (active) {
           const matchedCandidates = resp?.data || [];
@@ -242,7 +271,9 @@ const HiringDashboardNew = () => {
       }
     };
     run();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [selectedJobId, getJobMatches]);
 
   const getEntityIdKey = (id: EntityId) => String(id);
@@ -255,64 +286,68 @@ const HiringDashboardNew = () => {
 
     const candidateKey = getEntityIdKey(candidate.id);
     const isAlreadyShortlisted = shortlistedIds.some(
-      (id) => getEntityIdKey(id) === candidateKey
+      (id) => getEntityIdKey(id) === candidateKey,
     );
 
     if (isAlreadyShortlisted) {
       // Undo Shortlist
-      setShortlistedIds(prev => prev.filter(id => getEntityIdKey(id) !== candidateKey));
+      setShortlistedIds((prev) =>
+        prev.filter((id) => getEntityIdKey(id) !== candidateKey),
+      );
       toast.info(`${candidate.name} removed from shortlist`);
 
       removeShortlistCandidateMutation({
         jobId: selectedJobId,
         talentId: candidate.id,
-        talentSource: (candidate.source === "bench" ? "bench" : "candidate"),
+        talentSource: candidate.source === "bench" ? "bench" : "candidate",
       })
         .unwrap()
         .catch(() => {
-          setShortlistedIds(prev => [...prev, candidate.id]);
+          setShortlistedIds((prev) => [...prev, candidate.id]);
           toast.error("Failed to remove from shortlist.");
         });
     } else {
       // Add to Shortlist
-      setShortlistedIds(prev => [...prev, candidate.id]);
+      setShortlistedIds((prev) => [...prev, candidate.id]);
       toast.success(`${candidate.name} added to shortlist!`);
 
       shortlistCandidateMutation({
         jobId: selectedJobId,
         talentId: candidate.id,
-        talentSource: (candidate.source === "bench" ? "bench" : "candidate"),
+        talentSource: candidate.source === "bench" ? "bench" : "candidate",
       })
         .unwrap()
         .catch(() => {
-          setShortlistedIds(prev => prev.filter(id => getEntityIdKey(id) !== candidateKey));
+          setShortlistedIds((prev) =>
+            prev.filter((id) => getEntityIdKey(id) !== candidateKey),
+          );
           toast.error("Failed to shortlist candidate.");
         });
     }
   };
 
-
-
   if (jobsLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <BarLoader />
-        <p className="text-gray-400 animate-pulse">Loading hiring insights...</p>
+        <p className="text-gray-400 animate-pulse">
+          Loading hiring insights...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-full bg-[#f2f5fa]">
-      <div className="max-w-[1400px] mx-auto py-6 md:py-10 px-6 md:px-8 space-y-8 font-sans">
-
+    <div className="min-h-full bg-gray-50">
+      <div className="mx-auto py-6 md:py-10 px-6 sm:px-10 md:px-8 space-y-8 font-inter">
         {/* ═══════════════ HEADER ═══════════════ */}
         <div>
           <h1 className="text-[26px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
             Employer Dashboard
           </h1>
           <p className="text-gray-400 text-[15px] mt-1">
-            Here&apos;s what&apos;s happening with your recruitment pipeline today.
+            Here&apos;s what&apos;s happening with your recruitment pipeline
+            today.
           </p>
         </div>
 
@@ -321,7 +356,9 @@ const HiringDashboardNew = () => {
           {/* Active Roles */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
             <div className="flex items-start justify-between mb-5">
-              <span className="text-[13px] font-semibold text-gray-500 tracking-wide">Active Roles</span>
+              <span className="text-[13px] font-semibold text-gray-500 tracking-wide">
+                Active Roles
+              </span>
               <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
                 <Briefcase className="w-[18px] h-[18px] text-blue-500" />
               </div>
@@ -338,14 +375,16 @@ const HiringDashboardNew = () => {
           {/* Coding Test Done */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
             <div className="flex items-start justify-between mb-5">
-              <span className="text-[13px] font-semibold text-gray-500 tracking-wide">Coding Test Done</span>
+              <span className="text-[13px] font-semibold text-gray-500 tracking-wide">
+                Coding Test Done
+              </span>
               <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
                 <ClipboardCheck className="w-[18px] h-[18px] text-amber-500" />
               </div>
             </div>
             <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2">
               {isMatchCountsLoading ? (
-                <span className="text-gray-300 animate-pulse">...</span>
+                <span className="text-gray-300 animate-pulse">Loading...</span>
               ) : (
                 totalTestsDone.toLocaleString()
               )}
@@ -359,33 +398,38 @@ const HiringDashboardNew = () => {
           {/* AI Matches */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
             <div className="flex items-start justify-between mb-5">
-              <span className="text-[13px] font-semibold text-gray-500 tracking-wide">Candidate Matches</span>
+              <span className="text-[13px] font-semibold text-gray-500 tracking-wide">
+                Candidate Matches
+              </span>
               <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
                 <Sparkles className="w-[18px] h-[18px] text-teal-500" />
               </div>
             </div>
             <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2">
               {isMatchCountsLoading ? (
-                <span className="text-gray-300 animate-pulse">...</span>
+                <span className="text-gray-300 animate-pulse">Loading...</span>
               ) : (
                 matchCounts[selectedJobId] || 0
               )}
             </p>
             <div className="flex items-center gap-1.5 text-gray-400 text-[13px] font-medium">
-              <div className="w-4 h-4 rounded-full border-[1.5px] border-gray-300 flex items-center justify-center text-[9px] font-bold text-gray-400">i</div>
+              <div className="w-4 h-4 rounded-full border-[1.5px] border-gray-300 flex items-center justify-center text-[9px] font-bold text-gray-400">
+                i
+              </div>
               <span>Avg 85% match rate</span>
             </div>
           </div>
         </div>
         {/* ═══════════════ TWO-COLUMN BODY ═══════════════ */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-
           {/* ────── YOUR POSTINGS (left, ~40%) ────── */}
           <div className="lg:col-span-5 flex flex-col">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col flex-1">
               {/* Card header — inside the card */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <h2 className="text-[17px] font-bold text-gray-900">Your Postings</h2>
+                <h2 className="text-[17px] font-bold text-gray-900">
+                  Your Postings
+                </h2>
                 <Link
                   to="/hire-talent/jobs"
                   className="text-teal-500 text-[13px] font-semibold hover:text-teal-600 transition-colors"
@@ -411,7 +455,7 @@ const HiringDashboardNew = () => {
                       : job.status === "closed"
                         ? "Paused"
                         : (job.status ?? "").charAt(0).toUpperCase() +
-                        (job.status ?? "").slice(1);
+                          (job.status ?? "").slice(1);
                   const statusColor = isActive
                     ? "bg-emerald-50 text-emerald-500 border-emerald-200"
                     : statusLabel === "Draft"
@@ -421,10 +465,11 @@ const HiringDashboardNew = () => {
                   return (
                     <div
                       key={job.id}
-                      className={`px-6 py-5 cursor-pointer hover:bg-gray-50/50 transition-colors ${idx < Math.min(activeJobs.length, 3) - 1
-                        ? "border-b border-gray-100"
-                        : ""
-                        }`}
+                      className={`px-6 py-5 cursor-pointer hover:bg-gray-50/50 transition-colors ${
+                        idx < Math.min(activeJobs.length, 3) - 1
+                          ? "border-b border-gray-100"
+                          : ""
+                      }`}
                       onClick={() =>
                         navigate(`/hire-talent/ai-shortlists?jobId=${job.id}`)
                       }
@@ -479,13 +524,18 @@ const HiringDashboardNew = () => {
                     Top AI-Ranked Candidates
                   </h2>
                   {activeJobsCount > 0 && (
-                    <Select value={selectedJobId} onValueChange={setSelectedJobId}>
+                    <Select
+                      value={selectedJobId}
+                      onValueChange={setSelectedJobId}
+                    >
                       <SelectTrigger className="w-full sm:w-[240px] h-10 rounded-xl border-gray-200 text-[13px] font-semibold text-gray-700 bg-white shadow-sm">
                         <SelectValue placeholder="Select a job" />
                       </SelectTrigger>
                       <SelectContent>
                         {activeJobs.map((job) => (
-                          <SelectItem key={job.id} value={String(job.id)}>{job.title}</SelectItem>
+                          <SelectItem key={job.id} value={String(job.id)}>
+                            {job.title}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -517,17 +567,20 @@ const HiringDashboardNew = () => {
                     const skills = normalizeSkills(candidate.skills);
                     const score = candidate.matchScore || 85;
                     const isShortlisted = shortlistedIds.some(
-                      (id) => getEntityIdKey(id) === getEntityIdKey(candidate.id)
+                      (id) =>
+                        getEntityIdKey(id) === getEntityIdKey(candidate.id),
                     );
 
                     return (
                       <div
                         key={candidate.id}
-                        className={`px-6 py-5 hover:bg-gray-50/40 transition-colors relative ${isShortlisted ? 'bg-teal-50/30' : ''
-                          } ${idx < Math.min(topCandidates.length, 3) - 1
+                        className={`px-6 py-5 hover:bg-gray-50/40 transition-colors relative ${
+                          isShortlisted ? "bg-teal-50/30" : ""
+                        } ${
+                          idx < Math.min(topCandidates.length, 3) - 1
                             ? "border-b border-gray-100"
                             : ""
-                          }`}
+                        }`}
                       >
                         {/* Main row: Avatar | Info | Ring | Actions */}
                         <div className="flex items-center gap-4">
@@ -556,7 +609,10 @@ const HiringDashboardNew = () => {
                             </h4>
                             <p className="text-[12px] text-gray-400 truncate mt-0.5">
                               {candidate.role || "Professional"} •{" "}
-                              {candidate.yearsOfExperience || candidate.experience || "5+"} yrs exp
+                              {candidate.yearsOfExperience ||
+                                candidate.experience ||
+                                "5+"}{" "}
+                              yrs exp
                             </p>
                           </div>
 
@@ -567,13 +623,15 @@ const HiringDashboardNew = () => {
                           <div className="flex items-center gap-2 shrink-0">
                             {/* Shortlist Button */}
                             <button
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${isShortlisted
-                                ? 'bg-emerald-50 text-emerald-600 border-2 border-emerald-500 shadow-sm'
-                                : 'bg-white text-gray-400 border border-gray-200 hover:text-emerald-500 hover:border-emerald-200 hover:bg-emerald-50'
-                                }`}
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
+                                isShortlisted
+                                  ? "bg-emerald-50 text-emerald-600 border-2 border-emerald-500 shadow-sm"
+                                  : "bg-white text-gray-400 border border-gray-200 hover:text-emerald-500 hover:border-emerald-200 hover:bg-emerald-50"
+                              }`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (!isShortlisted) handleShortlistToggle(candidate);
+                                if (!isShortlisted)
+                                  handleShortlistToggle(candidate);
                               }}
                               title="Shortlist"
                             >
@@ -582,15 +640,21 @@ const HiringDashboardNew = () => {
 
                             {/* Remove/Reject Button */}
                             <button
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${isShortlisted
-                                ? 'bg-white text-gray-400 border border-gray-200 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50'
-                                : 'bg-white text-gray-400 border border-gray-200 hover:text-gray-600 hover:bg-gray-50'
-                                }`}
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
+                                isShortlisted
+                                  ? "bg-white text-gray-400 border border-gray-200 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50"
+                                  : "bg-white text-gray-400 border border-gray-200 hover:text-gray-600 hover:bg-gray-50"
+                              }`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (isShortlisted) handleShortlistToggle(candidate);
+                                if (isShortlisted)
+                                  handleShortlistToggle(candidate);
                               }}
-                              title={isShortlisted ? "Remove from Shortlist" : "Reject"}
+                              title={
+                                isShortlisted
+                                  ? "Remove from Shortlist"
+                                  : "Reject"
+                              }
                             >
                               <X className="w-6 h-6" strokeWidth={2.5} />
                             </button>

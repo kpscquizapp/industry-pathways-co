@@ -42,7 +42,7 @@ const features = [
 
 export default function CandidateAutopilot() {
   return (
-    <section id="candidates" className="py-24 px-6 bg-gradient-to-b from-[#f7f8fa] to-[#ffffff] scroll-mt-20">
+    <section id="candidates" className="py-24 px-6 bg-gradient-to-b from-[#f7f8fa] to-[#ffffff] scroll-mt-[84px] lg:scroll-mt-20">
       <div className="max-w-[1240px] mx-auto">
         {/* Header */}
         <div className="text-center mb-16">

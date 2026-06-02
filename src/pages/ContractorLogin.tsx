@@ -424,11 +424,13 @@ const CandidateLogin = () => {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="text-[#999] hover:text-slate-500 transition-colors shrink-0 min-h-0 min-w-0"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
                   >
                     {showPassword ? (
-                      <Eye className="w-4 h-4" />
-                    ) : (
                       <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
                     )}
                   </button>
                 </div>

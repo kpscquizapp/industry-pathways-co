@@ -493,8 +493,7 @@ body {
   }
 
   .hiw-grid {
-    grid-template-columns: 1fr !important;
-    max-width: 420px;
+    /* grid-template-columns: 1fr !important; */
     margin: 0 auto;
   }
 }

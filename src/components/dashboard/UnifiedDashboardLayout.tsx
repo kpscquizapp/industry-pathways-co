@@ -85,9 +85,21 @@ const getMenuItems = (role: DashboardRole) => {
     case "bench":
       return [
         { icon: LayoutGrid, label: "Dashboard", href: "/bench-dashboard" },
-        { icon: PlusCircle, label: "Post Job", href: "/bench-dashboard/post-bench-resource" },
-        { icon: Users, label: "Active Resources", href: "/bench-dashboard/active-resources"},
-        { icon: Settings, label: "Visibility Settings", href: "/bench-dashboard/visibility-settings" },
+        {
+          icon: PlusCircle,
+          label: "Post Job",
+          href: "/bench-dashboard/post-bench-resource",
+        },
+        {
+          icon: Users,
+          label: "Active Resources",
+          href: "/bench-dashboard/active-resources",
+        },
+        {
+          icon: Settings,
+          label: "Visibility Settings",
+          href: "/bench-dashboard/visibility-settings",
+        },
         // {
         //   icon: Users,
         //   label: "AI Shortlists",
@@ -132,7 +144,7 @@ const getMenuItems = (role: DashboardRole) => {
           // isAI: true,
         },
         // { icon: FileText, label: "Contracts", href: "/hire-talent/contracts" },
-      { icon: Settings, label: "Settings", href: "/hire-talent/settings" },
+        { icon: Settings, label: "Settings", href: "/hire-talent/settings" },
       ];
     default:
       return [];
@@ -373,17 +385,17 @@ const UnifiedDashboardLayout = ({ role }: UnifiedDashboardLayoutProps) => {
           <header className="sticky top-0 z-40 h-16 bg-background border-b border-border flex items-center justify-between px-2 sm:px-6">
             <div className="flex items-center gap-4">
               <SidebarTrigger
-                className="text-muted-foreground hover:bg-[#0b1221]/10"
+                className="hover:bg-[#0b1221]/10 hover:text-[#00e5ff] text-slate-600 transition-colors rounded-sm p-1"
                 title="Toggle Sidebar"
               />
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* <div className="flex items-center gap-3">
               <Button size="icon" className="relative bg-transparent hover:bg-[#0b1221]/10">
                 <Bell className="h-5 w-5 text-muted-foreground" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
               </Button>
-            </div>
+            </div> */}
           </header>
 
           <main className="flex-1 p-0 overflow-auto">

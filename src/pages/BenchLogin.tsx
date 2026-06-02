@@ -296,16 +296,16 @@ const BenchLogin = () => {
             </div>
 
             <h1 className="text-[44px] font-bold text-white leading-[1.2] tracking-tight">
-              Welcome back,
+              Welcome back to your
               <br />
               <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                let's build.
+                bench command center.
               </span>
             </h1>
 
             <p className="text-[16px] text-white/40 leading-relaxed max-w-sm">
-              Access your projects, track interviews, and manage your bench
-              profile — all in one place.
+              Review listed resources, respond to demand, and keep every
+              deployment-ready profile moving toward billable work.
             </p>
           </div>
         </div>
@@ -346,10 +346,11 @@ const BenchLogin = () => {
                   Email Address
                 </Label>
                 <div
-                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${touched.email && fieldErrors.email
+                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                    touched.email && fieldErrors.email
                       ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
                       : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                    }`}
+                  }`}
                 >
                   <Mail className="w-4 h-4 text-[#aaa] shrink-0" />
                   <input
@@ -391,10 +392,11 @@ const BenchLogin = () => {
                   </Link>
                 </div>
                 <div
-                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${touched.password && fieldErrors.password
+                  className={`flex items-center gap-2.5 bg-[#f8f9fb] border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 ${
+                    touched.password && fieldErrors.password
                       ? "border-[#ef4444] focus-within:border-[#ef4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.10)]"
                       : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                    }`}
+                  }`}
                 >
                   <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                   <input
@@ -413,11 +415,15 @@ const BenchLogin = () => {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="text-[#999] hover:text-slate-500 transition-colors shrink-0 min-h-0 min-w-0"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    aria-pressed={showPassword}
                   >
                     {showPassword ? (
-                      <Eye className="w-4 h-4" />
-                    ) : (
                       <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
                     )}
                   </button>
                 </div>
