@@ -207,19 +207,19 @@ const BenchRegistration = () => {
       const emailError = VALIDATION.email.validate(formData.email);
       if (emailError) errors.email = emailError;
       // Check email availability only when format is valid
-      // if (!emailError && formData.email) {
-      //   try {
-      //     await checkExistingEmail({ email: formData.email }).unwrap();
-      //   } catch (error) {
-      //     if (isFetchBaseQueryError(error) && error.status === 409) {
-      //       errors.email =
-      //         "Email already registered, please use a different email.";
-      //     } else {
-      //       errors.email =
-      //         "Could not verify email right now. Please try again.";
-      //     }
-      //   }
-      // }
+      if (!emailError && formData.email) {
+        try {
+          await checkExistingEmail({ email: formData.email }).unwrap();
+        } catch (error) {
+          if (isFetchBaseQueryError(error) && error.status === 409) {
+            errors.email =
+              "Email already registered, please use a different email.";
+          } else {
+            errors.email =
+              "Could not verify email right now. Please try again.";
+          }
+        }
+      }
 
       // Validate password
       const passwordError = VALIDATION.password.validate(formData.password);
@@ -751,20 +751,18 @@ const BenchRegistration = () => {
                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
                   {/* Email Verification Section */}
                   <div
-                    className={`rounded-2xl p-5 border-[1.5px] transition-all duration-200 ${
-                      isEmailVerified
+                    className={`rounded-2xl p-5 border-[1.5px] transition-all duration-200 ${isEmailVerified
                         ? "bg-emerald-50/30 border-emerald-100"
                         : "bg-[#f8f9fb] border-[#e8eaef]"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
-                            isEmailVerified
+                          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isEmailVerified
                               ? "bg-emerald-500 text-white"
                               : "bg-slate-200 text-slate-500"
-                          }`}
+                            }`}
                         >
                           {isEmailVerified ? (
                             <Check className="w-5 h-5" />
@@ -799,11 +797,10 @@ const BenchRegistration = () => {
                           </Label>
                           <div className={styles["bench-otp-row"]}>
                             <div
-                              className={`${styles["bench-otp-input"]} flex items-center gap-2.5 bg-white border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 w-full ${
-                                fieldErrors.otp
+                              className={`${styles["bench-otp-input"]} flex items-center gap-2.5 bg-white border-[1.5px] rounded-[10px] px-3.5 h-[46px] transition-all duration-200 w-full ${fieldErrors.otp
                                   ? "border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
                                   : "border-[#e8eaef] focus-within:border-[#4DD9E8] focus-within:shadow-[0_0_0_3px_rgba(77,217,232,0.12)]"
-                              }`}
+                                }`}
                             >
                               <Lock className="w-4 h-4 text-[#aaa] shrink-0" />
                               <input
@@ -856,11 +853,10 @@ const BenchRegistration = () => {
                             type="button"
                             onClick={handleSendOtp}
                             disabled={isSendingOtp || resendCooldown > 0}
-                            className={`font-bold transition-colors ${
-                              isSendingOtp || resendCooldown > 0
+                            className={`font-bold transition-colors ${isSendingOtp || resendCooldown > 0
                                 ? "text-slate-300 cursor-not-allowed"
                                 : "text-[#4DD9E8] hover:text-[#0e8a96] underline"
-                            }`}
+                              }`}
                           >
                             {isSendingOtp
                               ? "Sending..."
