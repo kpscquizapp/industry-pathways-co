@@ -699,7 +699,9 @@ const EmployerPostJob = () => {
     setOptionalSkills((prev) => [...prev, name]);
     setExtractedSkills((prev) => {
       if (
-        prev.some((skill) => normalizeSkill(skill.name) === normalizeSkill(name))
+        prev.some(
+          (skill) => normalizeSkill(skill.name) === normalizeSkill(name),
+        )
       ) {
         return prev;
       }
@@ -1379,7 +1381,9 @@ const EmployerPostJob = () => {
                                   type="text"
                                   value={editingExtractedSkillName}
                                   onChange={(e) =>
-                                    setEditingExtractedSkillName(e.target.value)
+                                    setEditingExtractedSkillName(
+                                      e.target.value.toLowerCase(),
+                                    )
                                   }
                                   className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded outline-none focus:border-[#4DD9E8]"
                                   autoFocus
@@ -1538,7 +1542,9 @@ const EmployerPostJob = () => {
                                   type="text"
                                   value={editingExtractedSkillName}
                                   onChange={(e) =>
-                                    setEditingExtractedSkillName(e.target.value)
+                                    setEditingExtractedSkillName(
+                                      e.target.value.toLowerCase(),
+                                    )
                                   }
                                   className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded outline-none focus:border-[#4DD9E8]"
                                   autoFocus
@@ -1700,7 +1706,9 @@ const EmployerPostJob = () => {
                                   type="text"
                                   value={editingExtractedSkillName}
                                   onChange={(e) =>
-                                    setEditingExtractedSkillName(e.target.value)
+                                    setEditingExtractedSkillName(
+                                      e.target.value.toLowerCase(),
+                                    )
                                   }
                                   className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded outline-none focus:border-[#4DD9E8]"
                                   autoFocus
@@ -1774,9 +1782,7 @@ const EmployerPostJob = () => {
                                       }
 
                                       if (extractedSkill) {
-                                        deleteExtractedSkill(
-                                          extractedSkill.id,
-                                        );
+                                        deleteExtractedSkill(extractedSkill.id);
                                       } else {
                                         removeSecondarySkill(skillName);
                                       }
@@ -1843,7 +1849,9 @@ const EmployerPostJob = () => {
                     <input
                       type="text"
                       value={skillInput}
-                      onChange={(e) => setSkillInput(e.target.value)}
+                      onChange={(e) =>
+                        setSkillInput(e.target.value.toLowerCase())
+                      }
                       onKeyDown={(e) =>
                         e.key === "Enter" &&
                         (e.preventDefault(), addSecondarySkill())

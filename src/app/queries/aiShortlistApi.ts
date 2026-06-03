@@ -136,7 +136,7 @@ export const aiShortlistApi = createApi({
     getJobMatches: builder.query<JobMatchesResponse, GetJobMatchesArgs>({
       query: ({ id, page, limit }) => ({
         method: "GET",
-        url: `jobs/${id}/matches-ai`,
+        url: `jobs/${id}/matches`,
         params: { page: resolvePage(page), limit: resolveLimit(limit) },
       }),
       providesTags: (_result, _error, { id }) => [

@@ -661,7 +661,7 @@ const EmployerSettings = () => {
                               : "Show current password"
                           }
                           aria-pressed={showPasswords.currentPassword}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 "
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 min-h-0 min-w-0"
                         >
                           {showPasswords.currentPassword ? (
                             <EyeOff className="w-4 h-4" />

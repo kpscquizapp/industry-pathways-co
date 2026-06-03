@@ -183,7 +183,9 @@ const CodingChallenge: React.FC = () => {
   const [problems, setProblems] = useState<CodingProblem[]>([]);
   const [activeProblemIndex, setActiveProblemIndex] = useState(0);
   const [code, setCode] = useState<string>("");
-  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [testCasesMap, setTestCasesMap] = useState<Record<string, TestCase[]>>(
+    {},
+  );
   const [isRunningCode, setIsRunningCode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isRunning = isRunningCode || isSubmitting; // combined — disables both buttons simultaneously
@@ -760,9 +762,8 @@ const CodingChallenge: React.FC = () => {
     }
   }, [language, currentProblem]);
 
-  // Clear test case results and errors when switching to a different problem
+  // Clear transient error when switching problems (preserve results per-problem)
   useEffect(() => {
-    setTestCases([]);
     setError(undefined);
   }, [currentProblem?.id]);
 
@@ -800,7 +801,8 @@ const CodingChallenge: React.FC = () => {
 
     setIsRunningCode(true);
     setError(undefined);
-    setTestCases([]); // Clear previous results while running
+    // Clear previous results for the current problem while running
+    setTestCasesMap((prev) => ({ ...prev, [String(currentProblem.id)]: [] }));
 
     const knownTCs: TestCase[] =
       currentProblem.test_cases ||
@@ -816,16 +818,17 @@ const CodingChallenge: React.FC = () => {
       }).unwrap();
 
       if (result.success) {
-        // Use results directly from the backend — no frontend comparison
         const raw: any[] =
           result.data?.results ??
           result.data?.testCases ??
           result.data?.testcases ??
           [];
-        setTestCases(mapApiResults(raw, knownTCs));
-      } else {
-        setError(result.message || "Execution failed");
-      }
+        const results = mapApiResults(raw, knownTCs);
+        setTestCasesMap((prev) => ({
+          ...prev,
+          [String(currentProblem.id)]: results,
+        }));
+      } else setError(result.message || "Execution failed");
     } catch (err: any) {
       setError(
         err?.data?.message ||
@@ -861,7 +864,8 @@ const CodingChallenge: React.FC = () => {
       currentProblem.testcases ||
       currentProblem.testCases ||
       [];
-    setTestCases([]); // Clear previous results while submitting
+    // Clear previous results for the current problem while submitting
+    setTestCasesMap((prev) => ({ ...prev, [String(currentProblem.id)]: [] }));
 
     try {
       const result = await submitSolution({
@@ -872,14 +876,16 @@ const CodingChallenge: React.FC = () => {
       }).unwrap();
 
       if (result.success) {
-        // Use results directly from the backend — no frontend comparison
         const raw: any[] =
           result.data?.results ??
           result.data?.testCases ??
           result.data?.testcases ??
           [];
         const results = mapApiResults(raw, knownTCs);
-        setTestCases(results);
+        setTestCasesMap((prev) => ({
+          ...prev,
+          [String(currentProblem.id)]: results,
+        }));
 
         // Mark this problem as submitted
         submittedProblemIdsRef.current.add(currentProblem.id);
@@ -888,21 +894,14 @@ const CodingChallenge: React.FC = () => {
         const grade = result.data?.grade;
         const gradeText = grade !== undefined ? ` (Grade: ${grade}/100)` : "";
 
-        if (allPassed) {
+        if (allPassed)
           toast.success(`Problem submitted successfully!${gradeText}`);
-        } else {
-          toast.info(`Submitted with some failing tests.${gradeText}`);
-        }
+        else toast.info(`Submitted with some failing tests.${gradeText}`);
 
-        // Auto-advance to next problem if not the last one
         if (autoAdvance && activeProblemIndex < problems.length - 1) {
-          setTimeout(() => {
-            setActiveProblemIndex(activeProblemIndex + 1);
-          }, 1500);
+          setTimeout(() => setActiveProblemIndex(activeProblemIndex + 1), 1500);
         }
-      } else {
-        setError(result.message || "Submission failed");
-      }
+      } else setError(result.message || "Submission failed");
     } catch (err: any) {
       setError(
         err?.data?.message ||
@@ -1433,7 +1432,9 @@ const CodingChallenge: React.FC = () => {
                 {/* Console Output */}
                 <ResizablePanel defaultSize={40} minSize={20}>
                   <ConsoleOutput
-                    testCases={testCases}
+                    testCases={
+                      testCasesMap[String(currentProblem?.id ?? "")] ?? []
+                    }
                     isRunning={isRunning}
                     error={error}
                   />

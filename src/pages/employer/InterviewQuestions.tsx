@@ -62,8 +62,8 @@ export default function InterviewQuestions() {
     javascript: string;
     python: string;
     java: string;
-    cpp: string;
-    c: string;
+    // cpp: string;
+    // c: string;
     typescript: string;
     go: string;
   };
@@ -90,8 +90,8 @@ export default function InterviewQuestions() {
     javascript: "var solution = function() {\n    // Write your code here\n};",
     python: "def solution():\n    # Write your code here\n    pass",
     java: "class Solution {\n    // Write your code here\n}",
-    cpp: "class Solution {\npublic:\n    // Write your code here\n};",
-    c: "// Write your code here\nvoid solution() {\n    \n}",
+    // cpp: "class Solution {\npublic:\n    // Write your code here\n};",
+    // c: "// Write your code here\nvoid solution() {\n    \n}",
     typescript: "function solution(): void {\n    // Write your code here\n};",
     go: "func solution() {\n    // Write your code here\n}",
   });
@@ -446,8 +446,8 @@ function ManualEntryForm({
     javascript: string;
     python: string;
     java: string;
-    cpp: string;
-    c: string;
+    // cpp: string;
+    // c: string;
     typescript: string;
     go: string;
   };
@@ -469,8 +469,8 @@ function ManualEntryForm({
     javascript: "var solution = function() {\n    // Write your code here\n};",
     python: "def solution():\n    # Write your code here\n    pass",
     java: "class Solution {\n    // Write your code here\n}",
-    cpp: "class Solution {\npublic:\n    // Write your code here\n};",
-    c: "// Write your code here\nvoid solution() {\n    \n}",
+    // cpp: "class Solution {\npublic:\n    // Write your code here\n};",
+    // c: "// Write your code here\nvoid solution() {\n    \n}",
     typescript: "function solution(): void {\n    // Write your code here\n};",
     go: "func solution() {\n    // Write your code here\n}",
   });
@@ -890,8 +890,8 @@ function ManualEntryForm({
     "typescript",
     "python",
     "java",
-    "cpp",
-    "c",
+    // "cpp",
+    // "c",
     "go",
   ];
 
@@ -1619,8 +1619,8 @@ function QuestionsList({
     "typescript",
     "python",
     "java",
-    "cpp",
-    "c",
+    // "cpp",
+    // "c",
     "go",
   ];
 
