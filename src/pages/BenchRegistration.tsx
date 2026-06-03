@@ -58,6 +58,9 @@ const BenchRegistration = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedPrivacyPolicy, setAcceptedPrivacyPolicy] = useState(false);
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -252,6 +255,12 @@ const BenchRegistration = () => {
       // Validate document
       const documentError = VALIDATION.document.validate(companyDocument);
       if (documentError) errors.companyDocument = documentError;
+
+      // Validate terms & privacy
+      if (!acceptedTerms)
+        errors.acceptedTerms = "You must accept the Terms of Service to continue";
+      if (!acceptedPrivacyPolicy)
+        errors.acceptedPrivacyPolicy = "You must agree to the Privacy Policy to continue";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -271,8 +280,7 @@ const BenchRegistration = () => {
   const nextStep = async () => {
     if (await validateStep()) {
       if (currentStep === 1 && !isEmailVerified) {
-        const otpSent = await handleSendOtp();
-        if (!otpSent) return;
+        handleSendOtp();
       }
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     }
@@ -642,9 +650,10 @@ const BenchRegistration = () => {
                         required
                       />
                     </div>
+                    <ErrorMessage error={fieldErrors.email} />
                     {isCheckingEmail && (
-                      <div className="text-sm text-slate-500 flex items-center gap-2">
-                        <SpinnerLoader />
+                      <div className="text-sm text-slate-500 flex items-center gap-2 mt-3">
+                        <SpinnerLoader />{" "}
                         <span>Checking availability...</span>
                       </div>
                     )}
@@ -993,10 +1002,76 @@ const BenchRegistration = () => {
                     <ErrorMessage error={fieldErrors.companyDocument} />
                   </div>
 
-                  <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    By submitting this application, you agree to Hirion's
-                    staffing partner terms and permit us to verify your company
-                    credentials.
+                  {/* Terms of Service */}
+                  <div className="flex flex-col gap-1">
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        id="acceptedTerms"
+                        checked={acceptedTerms}
+                        onChange={() => {
+                          setAcceptedTerms((p) => !p);
+                          if (fieldErrors.acceptedTerms) {
+                            setFieldErrors((prev) => {
+                              const n = { ...prev };
+                              delete n.acceptedTerms;
+                              return n;
+                            });
+                          }
+                        }}
+                        className="mt-0.5 w-4 h-4 shrink-0 accent-[#4DD9E8] cursor-pointer"
+                      />
+                      <span className="text-[13px] text-slate-600 leading-snug group-hover:text-slate-800 transition-colors">
+                        I accept the{" "}
+                        <a
+                          href="/terms"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[#0e8a96] font-semibold underline underline-offset-2 hover:text-[#288e99]"
+                        >
+                          Terms of Service
+                        </a>
+                        {" "}and agree to communications.{" "}
+                        <span className="text-[#4DD9E8]">*</span>
+                      </span>
+                    </label>
+                    <ErrorMessage error={fieldErrors.acceptedTerms} />
+                  </div>
+
+                  {/* Privacy Policy */}
+                  <div className="flex flex-col gap-1">
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        id="acceptedPrivacyPolicy"
+                        checked={acceptedPrivacyPolicy}
+                        onChange={() => {
+                          setAcceptedPrivacyPolicy((p) => !p);
+                          if (fieldErrors.acceptedPrivacyPolicy) {
+                            setFieldErrors((prev) => {
+                              const n = { ...prev };
+                              delete n.acceptedPrivacyPolicy;
+                              return n;
+                            });
+                          }
+                        }}
+                        className="mt-0.5 w-4 h-4 shrink-0 accent-[#4DD9E8] cursor-pointer"
+                      />
+                      <span className="text-[13px] text-slate-600 leading-snug group-hover:text-slate-800 transition-colors">
+                        I agree to the{" "}
+                        <a
+                          href="/privacy"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[#0e8a96] font-semibold underline underline-offset-2 hover:text-[#288e99]"
+                        >
+                          Privacy Policy
+                        </a>
+                        {" "}and data processing.{" "}
+                        <span className="text-[#4DD9E8]">*</span>
+                      </span>
+                    </label>
+                    <ErrorMessage error={fieldErrors.acceptedPrivacyPolicy} />
                   </div>
                 </div>
               )}
@@ -1016,12 +1091,18 @@ const BenchRegistration = () => {
                 <Button
                   type="submit"
                   className="flex-1 h-[52px] bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
-                  disabled={isLoading}
+                  disabled={isLoading || isCheckingEmail || isSendingOtp}
                 >
-                  {isLoading ? (
+                  {isLoading || isCheckingEmail || isSendingOtp ? (
                     <div className="flex items-center gap-3">
                       <SpinnerLoader className="w-5 h-5 text-current" />
-                      <span>Processing...</span>
+                      <span>
+                        {isCheckingEmail
+                          ? "Checking email..."
+                          : isSendingOtp
+                            ? "Sending code..."
+                            : "Processing..."}
+                      </span>
                     </div>
                   ) : (
                     <>
