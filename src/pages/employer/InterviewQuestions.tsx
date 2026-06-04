@@ -195,17 +195,17 @@ export default function InterviewQuestions() {
   }, [problemsData, role, category]);
 
   return (
-    <div className="min-h-full bg-gray-50 font-inter">
-      <div className="flex flex-1 w-full mx-auto relative items-stretch">
+    <div className="min-h-full overflow-x-hidden bg-gray-50 font-inter">
+      <div className="flex min-w-0 flex-1 w-full mx-auto relative items-stretch">
         {/* Left Column - Forms & Lists */}
-        <div className="flex-1 flex flex-col gap-8 px-6 sm:px-10 md:px-8 p-6 lg:p-8 min-w-0 max-w-[1400px] mx-auto w-full">
+        <div className="flex-1 flex flex-col gap-6 sm:gap-8 px-4 py-6 sm:px-6 md:px-8 lg:p-8 min-w-0 max-w-[1400px] mx-auto w-full">
           {/* ═══════════════ HEADER ═══════════════ */}
           <div className="mb-2">
-            <h1 className="text-[26px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
+            <h1 className="text-[24px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
               Interview Questions
             </h1>
-            <p className="text-gray-400 text-[15px] mt-1">
-              <span className="flex items-center gap-2">
+            <p className="text-gray-400 text-[14px] sm:text-[15px] mt-1">
+              <span className="flex flex-wrap items-center gap-2">
                 {name
                   ? `Create technical questions for ${name}'s assessment.`
                   : "Build a reusable question bank with manual, AI-generated, and bulk-upload workflows."}
@@ -220,13 +220,13 @@ export default function InterviewQuestions() {
             </p>
           </div>
           {/* Form Content based on Tab (Card) */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex min-w-0 flex-col gap-6">
             {/* Tabs inside Card */}
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 overflow-x-auto pb-1">
               <button
                 onClick={() => setActiveTab("manual")}
                 className={cn(
-                  "px-5 py-2 text-sm font-semibold rounded-full transition-colors",
+                  "shrink-0 px-4 sm:px-5 py-2 text-sm font-semibold rounded-full transition-colors",
                   activeTab === "manual"
                     ? "bg-[#0ea5e9] text-white shadow-sm"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200",
@@ -237,7 +237,7 @@ export default function InterviewQuestions() {
               <button
                 onClick={() => setActiveTab("ai")}
                 className={cn(
-                  "px-5 py-2 text-sm font-semibold flex items-center gap-2 rounded-full transition-colors",
+                  "shrink-0 px-4 sm:px-5 py-2 text-sm font-semibold flex items-center gap-2 rounded-full transition-colors",
                   activeTab === "ai"
                     ? "bg-[#0ea5e9] text-white shadow-sm"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200",
@@ -249,7 +249,7 @@ export default function InterviewQuestions() {
               <button
                 onClick={() => setActiveTab("bulk")}
                 className={cn(
-                  "px-5 py-2 text-sm font-semibold rounded-full transition-colors",
+                  "shrink-0 px-4 sm:px-5 py-2 text-sm font-semibold rounded-full transition-colors",
                   activeTab === "bulk"
                     ? "bg-[#0ea5e9] text-white shadow-sm"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200",
@@ -264,6 +264,7 @@ export default function InterviewQuestions() {
                 defaultRole={role}
                 defaultCategory={category}
                 defaultEmail={email}
+                employerEmail={employerEmail}
                 jobId={jobId}
                 candidateId={candidateId}
                 talentSource={talentSource}
@@ -380,7 +381,7 @@ export default function InterviewQuestions() {
         </div>
 
         {/* Right Column - Preview (Sidebar) */}
-        <div className="hidden lg:block w-[360px] xl:w-[420px] shrink-0 bg-white border-l border-gray-200">
+        <div className="hidden 2xl:block w-[360px] xl:w-[420px] shrink-0 bg-white border-l border-gray-200">
           <AIInterviewPreview role={role} category={category} />
         </div>
       </div>
@@ -390,7 +391,7 @@ export default function InterviewQuestions() {
           setValidationAlert((prev) => ({ ...prev, show: open }))
         }
       >
-        <AlertDialogContent className="sm:max-w-[425px] rounded-2xl">
+        <AlertDialogContent className="w-[calc(100vw-2rem)] sm:max-w-[425px] rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
               <AlertCircle className="text-amber-500" size={24} />
@@ -415,6 +416,7 @@ function ManualEntryForm({
   defaultRole = "",
   defaultCategory = "",
   defaultEmail = "",
+  employerEmail = "",
   jobId = "",
   candidateId = "",
   talentSource = "candidate",
@@ -429,6 +431,7 @@ function ManualEntryForm({
   defaultRole?: string;
   defaultCategory?: string;
   defaultEmail?: string;
+  employerEmail?: string;
   jobId?: string;
   candidateId?: string;
   talentSource?: "candidate" | "bench";
@@ -706,12 +709,14 @@ function ManualEntryForm({
           id: q._testId,
           title: q.title || `${defaultRole} - Question`,
           questions: [questionData],
+          ...(employerEmail ? { employerEmail } : {}),
         }).unwrap();
       } else {
         response = await createCustomTest({
           title: q.title || `${defaultRole} - Question`,
           questions: [questionData],
           ...(defaultEmail ? { candidateEmail: defaultEmail } : {}),
+          ...(employerEmail ? { employerEmail } : {}),
         }).unwrap();
       }
 

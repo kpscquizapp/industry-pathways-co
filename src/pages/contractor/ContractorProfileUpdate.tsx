@@ -2231,7 +2231,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
                             value={editingExtractedSkillName}
                             onChange={(e) =>
                               setEditingExtractedSkillName(
-                                e.target.value.toLocaleLowerCase(),
+                                e.target.value.toLowerCase(),
                               )
                             }
                             className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded dark:bg-slate-800 dark:border-slate-600 outline-none focus:border-[#4DD9E8]"
@@ -2898,7 +2898,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
                             value={editingExtractedSkillName}
                             onChange={(e) =>
                               setEditingExtractedSkillName(
-                                e.target.value.toLocaleLowerCase(),
+                                e.target.value.toLowerCase(),
                               )
                             }
                             className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded dark:bg-slate-800 dark:border-slate-600 outline-none focus:border-[#4DD9E8]"
@@ -3115,9 +3115,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
               <input
                 type="text"
                 value={skillInput}
-                onChange={(e) =>
-                  setSkillInput(e.target.value.toLocaleLowerCase())
-                }
+                onChange={(e) => setSkillInput(e.target.value.toLowerCase())}
                 onKeyDown={(e) =>
                   e.key === "Enter" && (e.preventDefault(), addSecondarySkill())
                 }

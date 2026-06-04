@@ -67,15 +67,19 @@ export const assessmentApi = createApi({
         params: token ? { token } : undefined,
       }),
     }),
-    startTest: builder.mutation<any, { testId: string; token?: string | null }>(
-      {
-        query: ({ testId, token }) => ({
-          url: `coding/tests/${testId}/start`,
-          method: "PATCH",
-          params: token ? { token } : undefined,
-        }),
-      },
-    ),
+    startTest: builder.mutation<
+      any,
+      { testId: string; token?: string | null; isPrivacyConsentGiven?: boolean }
+    >({
+      query: ({ testId, token, isPrivacyConsentGiven }) => ({
+        url: `coding/tests/${testId}/start`,
+        method: "PATCH",
+        params: token ? { token } : undefined,
+        body: {
+          isPrivacyConsentGiven,
+        },
+      }),
+    }),
     endTest: builder.mutation<any, { testId: string; token?: string | null }>({
       query: ({ testId, token }) => ({
         url: `coding/tests/${testId}/end`,

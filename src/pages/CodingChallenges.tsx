@@ -196,6 +196,7 @@ const CodingChallenge: React.FC = () => {
   // Consents
   const [hasWebcamPermission, setHasWebcamPermission] = useState(false);
   const [isScreenSelected, setIsScreenSelected] = useState(false);
+  const [hasConsented, setHasConsented] = useState(false);
   const [initialWebcamStream, setInitialWebcamStream] =
     useState<MediaStream | null>(null);
   const [initialScreenStream, setInitialScreenStream] =
@@ -648,7 +649,11 @@ const CodingChallenge: React.FC = () => {
 
   const handleStartTest = async () => {
     try {
-      const data = await startTestMutation({ testId: testId!, token }).unwrap();
+      const data = await startTestMutation({
+        testId: testId!,
+        token,
+        isPrivacyConsentGiven: hasConsented,
+      }).unwrap();
       if (data.success) {
         setMetadata(data.data);
         // For mock tests (without token), set local start time if not provided by API
@@ -890,7 +895,8 @@ const CodingChallenge: React.FC = () => {
         // Mark this problem as submitted
         submittedProblemIdsRef.current.add(currentProblem.id);
 
-        const allPassed = results.every((tc: any) => tc.passed);
+        const allPassed =
+          results.length > 0 && results.every((tc: any) => tc.passed);
         const grade = result.data?.grade;
         const gradeText = grade !== undefined ? ` (Grade: ${grade}/100)` : "";
 
@@ -1234,35 +1240,75 @@ const CodingChallenge: React.FC = () => {
               </ul>
             </div>
 
+            <div className="w-full">
+              <label
+                htmlFor="consentCheckbox"
+                className="flex items-start gap-3 cursor-pointer"
+              >
+                <input
+                  id="consentCheckbox"
+                  type="checkbox"
+                  checked={hasConsented}
+                  onChange={(e) => setHasConsented(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-[#e8eaef] text-[#0ea5e9] focus:ring-2 focus:ring-[#4DD9E8]/40 min-w-0 min-h-0 shrink-0 accent-[#0ea5e9]"
+                />
+                <span className="text-[13px] text-[#92400e] leading-relaxed">
+                  I consent to my webcam and screen being recorded for the
+                  duration of this assessment for the purpose of verifying test
+                  integrity. I have read and agree to the
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 ml-1 hover:underline"
+                  >
+                    Terms &amp; Conditions
+                  </a>
+                  <span className="mx-1">and</span>
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 hover:underline"
+                  >
+                    Privacy Policy
+                  </a>
+                  . <span className="font-bold text-destructive">*</span>
+                </span>
+              </label>
+            </div>
+
             <div className="mt-auto pt-2">
               <Button
                 style={{
                   background:
-                    !hasWebcamPermission || !isScreenSelected
+                    !hasWebcamPermission || !isScreenSelected || !hasConsented
                       ? "#f1f5f9"
                       : "linear-gradient(135deg, #4DD9E8, #0ea5e9)",
                   boxShadow:
-                    !hasWebcamPermission || !isScreenSelected
+                    !hasWebcamPermission || !isScreenSelected || !hasConsented
                       ? "none"
                       : "0 4px 20px rgba(77,217,232,0.35)",
                   color:
-                    !hasWebcamPermission || !isScreenSelected
+                    !hasWebcamPermission || !isScreenSelected || !hasConsented
                       ? "#94a3b8"
                       : "white",
                   border:
-                    !hasWebcamPermission || !isScreenSelected
+                    !hasWebcamPermission || !isScreenSelected || !hasConsented
                       ? "1px solid #e2e8f0"
                       : "none",
                 }}
                 className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${
-                  !hasWebcamPermission || !isScreenSelected
+                  !hasWebcamPermission || !isScreenSelected || !hasConsented
                     ? "cursor-not-allowed opacity-100"
                     : "hover:opacity-90"
                 }`}
-                disabled={!hasWebcamPermission || !isScreenSelected}
+                disabled={
+                  !hasWebcamPermission || !isScreenSelected || !hasConsented
+                }
                 onClick={handleStartTest}
               >
-                {!hasWebcamPermission || !isScreenSelected
+                {!hasWebcamPermission || !isScreenSelected || !hasConsented
                   ? "Complete Setup to Start"
                   : "Start Assessment"}
               </Button>
