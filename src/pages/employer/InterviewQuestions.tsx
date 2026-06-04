@@ -28,6 +28,11 @@ import {
   Plus,
   X,
 } from "lucide-react";
+import {
+  STARTER_LANGS,
+  cloneDefaultStarterCode,
+  StarterCode,
+} from "@/lib/starterCode";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -52,21 +57,15 @@ import { AlertCircle } from "lucide-react";
 
 type TabMode = "manual" | "ai" | "bulk";
 
+// Starter code constants and types are imported from `@/lib/starterCode`
+
 export default function InterviewQuestions() {
   const [activeTab, setActiveTab] = useState<TabMode>("manual");
   const [searchParams] = useSearchParams();
 
   type Example = { input: string; output: string; explanation?: string };
   type TestCase = { input: string; expected_output: string };
-  type StarterCode = {
-    javascript: string;
-    python: string;
-    java: string;
-    // cpp: string;
-    // c: string;
-    typescript: string;
-    go: string;
-  };
+  // Use shared StarterCode type
   type Question = {
     id: number;
     title: string;
@@ -86,15 +85,7 @@ export default function InterviewQuestions() {
     _questionIndex?: number;
   };
 
-  const defaultStarterCode = (): StarterCode => ({
-    javascript: "var solution = function() {\n    // Write your code here\n};",
-    python: "def solution():\n    # Write your code here\n    pass",
-    java: "class Solution {\n    // Write your code here\n}",
-    // cpp: "class Solution {\npublic:\n    // Write your code here\n};",
-    // c: "// Write your code here\nvoid solution() {\n    \n}",
-    typescript: "function solution(): void {\n    // Write your code here\n};",
-    go: "func solution() {\n    // Write your code here\n}",
-  });
+  const defaultStarterCode = () => cloneDefaultStarterCode();
 
   const newQuestion = (
     id: number,
@@ -198,7 +189,7 @@ export default function InterviewQuestions() {
     <div className="min-h-full overflow-x-hidden bg-gray-50 font-inter">
       <div className="flex min-w-0 flex-1 w-full mx-auto relative items-stretch">
         {/* Left Column - Forms & Lists */}
-        <div className="flex-1 flex flex-col gap-6 sm:gap-8 px-4 py-6 sm:px-6 md:px-8 lg:p-8 min-w-0 max-w-[1400px] mx-auto w-full">
+        <div className="flex-1 flex flex-col gap-6 sm:gap-8 px-6 py-6 sm:px-10 md:px-8 lg:p-8 min-w-0 max-w-[1400px] mx-auto w-full">
           {/* ═══════════════ HEADER ═══════════════ */}
           <div className="mb-2">
             <h1 className="text-[24px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
@@ -445,15 +436,6 @@ function ManualEntryForm({
 }) {
   type Example = { input: string; output: string; explanation?: string };
   type TestCase = { input: string; expected_output: string };
-  type StarterCode = {
-    javascript: string;
-    python: string;
-    java: string;
-    // cpp: string;
-    // c: string;
-    typescript: string;
-    go: string;
-  };
   type Question = {
     id: number;
     title: string;
@@ -468,15 +450,7 @@ function ManualEntryForm({
     category?: string;
   };
 
-  const defaultStarterCode = (): StarterCode => ({
-    javascript: "var solution = function() {\n    // Write your code here\n};",
-    python: "def solution():\n    # Write your code here\n    pass",
-    java: "class Solution {\n    // Write your code here\n}",
-    // cpp: "class Solution {\npublic:\n    // Write your code here\n};",
-    // c: "// Write your code here\nvoid solution() {\n    \n}",
-    typescript: "function solution(): void {\n    // Write your code here\n};",
-    go: "func solution() {\n    // Write your code here\n}",
-  });
+  // StarterCode type and defaults are imported from `@/lib/starterCode`
 
   const newQuestion = (
     id: number,
@@ -490,7 +464,7 @@ function ManualEntryForm({
     examples: [{ input: "", output: "", explanation: "" }],
     constraints: [""],
     test_cases: [{ input: "", expected_output: "" }],
-    starter_code: defaultStarterCode(),
+    starter_code: cloneDefaultStarterCode(),
     expanded: true,
     role: roleValue,
     category: categoryValue,
@@ -646,6 +620,14 @@ function ManualEntryForm({
 
   const handleSave = async (qId: number) => {
     try {
+      if (!employerEmail.trim()) {
+        showAlert(
+          "Employer account not ready",
+          "Please wait for your employer profile to load before saving questions.",
+        );
+        return null;
+      }
+
       const q = questions.find((question) => question.id === qId);
       if (!q) return;
 
@@ -890,15 +872,7 @@ function ManualEntryForm({
     }
   };
 
-  const langs: (keyof StarterCode)[] = [
-    "javascript",
-    "typescript",
-    "python",
-    "java",
-    // "cpp",
-    // "c",
-    "go",
-  ];
+  const langs: (keyof StarterCode)[] = STARTER_LANGS as (keyof StarterCode)[];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -1619,15 +1593,7 @@ function QuestionsList({
       (q.category || "").toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const langs = [
-    "javascript",
-    "typescript",
-    "python",
-    "java",
-    // "cpp",
-    // "c",
-    "go",
-  ];
+  const langs = STARTER_LANGS;
 
   return (
     <div className="flex flex-col gap-4">

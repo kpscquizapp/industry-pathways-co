@@ -219,7 +219,7 @@ const EmployerSkillTests = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 sm:px-6 md:px-8 py-6 sm:py-8 font-inter">
+    <div className="min-h-screen bg-gray-50 px-6 sm:px-10 md:px-8 py-6 sm:py-8 font-inter">
       <div className="max-w-[1440px] mx-auto space-y-7">
         {/* Header Section */}
         <div className="flex min-w-0 flex-col md:flex-row md:items-start justify-between gap-6 pb-2 border-b border-gray-200/50 mb-6">
@@ -593,7 +593,9 @@ const EmployerSkillTests = () => {
                             </div>
                             <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-100 bg-amber-50 px-4 py-2 text-amber-700 font-bold text-[13px] sm:w-auto">
                               <Calendar className="h-4 w-4" />
-                              <span className="truncate">{candidate.testDate}</span>
+                              <span className="truncate">
+                                {candidate.testDate}
+                              </span>
                             </div>
                             <div className="w-full shrink-0 flex justify-start sm:w-auto sm:justify-end sm:pl-2">
                               <Badge className="bg-amber-100 border-none text-amber-700 hover:bg-amber-100 px-3.5 py-1.5 font-bold shadow-none text-[12px]">

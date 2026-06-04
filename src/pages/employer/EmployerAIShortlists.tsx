@@ -961,6 +961,10 @@ const EmployerAIShortlists = () => {
     shouldFetchMatches,
   ]);
 
+  const stageById = new Map(
+    loadedMatches.map((m) => [getEntityIdKey(m.id), m.stage]),
+  );
+
   const candidates = useMemo<CandidateListItem[]>(() => {
     const shortlistedIdKeys = new Set(
       shortlistedIds.map((shortlistedId) => getEntityIdKey(shortlistedId)),
@@ -974,9 +978,12 @@ const EmployerAIShortlists = () => {
       )
       .map((c) => ({
         ...c,
-        stage: shortlistedIdKeys.has(getEntityIdKey(c.id))
-          ? "shortlisted"
-          : "matched",
+        stage:
+          stageById.get(getEntityIdKey(c.id)) === "invited"
+            ? "invited"
+            : shortlistedIdKeys.has(getEntityIdKey(c.id))
+              ? "shortlisted"
+              : "matched",
         matchReasons: [],
       }));
   }, [loadedMatches, shortlistedIds]);

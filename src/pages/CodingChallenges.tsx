@@ -648,6 +648,10 @@ const CodingChallenge: React.FC = () => {
   }, [testId, token]);
 
   const handleStartTest = async () => {
+    if (!hasWebcamPermission || !isScreenSelected || !hasConsented) {
+      toast.error("Complete setup and consent before starting the assessment.");
+      return;
+    }
     try {
       const data = await startTestMutation({
         testId: testId!,
