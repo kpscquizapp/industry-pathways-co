@@ -123,7 +123,6 @@ const JobDescription = ({ description }: { description: string }) => {
     return description
       .replace(/<\/p>/gi, "\n")
       .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<li[^>]*>/gi, "\n• ")
       .replace(/([^\n])([A-Z][^:\n]{2,30}:)/g, "$1\n$2") // Insert newline before headings like "Location:" if missing
       .replace(/<[^>]*>/g, "")
       .trim();

@@ -163,12 +163,6 @@ export default function InterviewQuestions() {
   // Seed savedQuestions with questions specifically associated with this employer email
   useEffect(() => {
     if (problemsData?.success && Array.isArray(problemsData.data)) {
-      console.log(
-        "🔍 DEBUG: Raw problemsData from backend:",
-        problemsData.data,
-      );
-      console.log("🔍 DEBUG: First question structure:", problemsData.data[0]);
-
       const loaded = (problemsData.data as any[]).map((q, i) => ({
         ...q,
         id: q.id || q.problemId || q.problem_id || Date.now() + i,
@@ -180,7 +174,6 @@ export default function InterviewQuestions() {
         category: q.category || category,
       }));
 
-      console.log("🔍 DEBUG: Loaded questions after mapping:", loaded);
       setSavedQuestions(loaded);
     }
   }, [problemsData, role, category]);
@@ -797,10 +790,6 @@ function ManualEntryForm({
         .map((q: any) => q.id)
         .filter((id: any) => id !== undefined);
 
-      console.log("=== DEBUG scheduleTestForCandidate ===");
-      console.log("validQuestions:", validQuestions);
-      console.log("extracted problemIds:", problemIds);
-
       if (!problemIds || problemIds.length === 0) {
         showAlert(
           "No Questions Selected",
@@ -819,8 +808,6 @@ function ManualEntryForm({
         testDuration: testDuration ? parseInt(testDuration) : 60,
         problemIds: problemIds,
       };
-
-      console.log("schedulePayload:", schedulePayload);
 
       const scheduleResponse =
         await scheduleTestForCandidate(schedulePayload).unwrap();
@@ -907,7 +894,7 @@ function ManualEntryForm({
                     e.stopPropagation();
                     removeQuestion(q.id);
                   }}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all min-h-0 min-w-0"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1008,7 +995,7 @@ function ManualEntryForm({
                       <button
                         type="button"
                         onClick={() => removeExample(q.id, ei)}
-                        className="absolute -top-2 -right-2 bg-red-100 text-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-2 -right-2 bg-red-100 text-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity min-h-0 min-w-0"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1093,7 +1080,7 @@ function ManualEntryForm({
                       <button
                         type="button"
                         onClick={() => removeConstraint(q.id, ci)}
-                        className="absolute -right-2 -top-2 bg-red-100 text-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -right-2 -top-2 bg-red-100 text-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity min-h-0 min-w-0"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1128,7 +1115,7 @@ function ManualEntryForm({
                       <button
                         type="button"
                         onClick={() => removeTestCase(q.id, ti)}
-                        className="absolute -top-2 -right-2 bg-red-100 text-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-2 -right-2 bg-red-100 text-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity min-h-0 min-w-0"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1700,7 +1687,7 @@ function QuestionsList({
                     e.stopPropagation();
                     onAdd(q);
                   }}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all min-h-0 min-w-0"
                   title="Add question to test"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -1711,7 +1698,7 @@ function QuestionsList({
                     e.stopPropagation();
                     onEdit(q);
                   }}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all min-h-0 min-w-0"
                   title="Edit question"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
@@ -1722,7 +1709,7 @@ function QuestionsList({
                     e.stopPropagation();
                     onDelete(q);
                   }}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all min-h-0 min-w-0"
                   title="Delete question"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -63,6 +63,44 @@ interface JobDetailsModalProps {
   onOpenChange: (open: boolean) => void;
   job: Job | null;
 }
+
+const JobDescription = ({ description }: { description: string }) => {
+  const formattedText = useMemo(() => {
+    return description
+      .replace(/<\/p>/gi, "\n")
+      .replace(/<br\s*\/?\>/gi, "\n")
+      .replace(/([^\n])([A-Z][^:\n]{2,30}:)/g, "$1\n$2")
+      .replace(/<[^>]*>/g, "")
+      .trim();
+  }, [description]);
+
+  return (
+    <div className="mt-1">
+      <div className="text-[14px] sm:text-base text-gray-700 leading-relaxed">
+        <div className="space-y-1.5 text-justify">
+          {formattedText.split("\n").map((line, i) => {
+            const match = line.match(/^([^:]+):/);
+            if (match) {
+              const header = match[1];
+              const rest = line.slice(header.length + 1);
+              return (
+                <div key={i}>
+                  <span className="font-bold text-gray-800">{header}:</span>
+                  {rest}
+                </div>
+              );
+            }
+            return (
+              <div key={i} className={line.startsWith("•") ? "pl-2" : ""}>
+                <span className="text-sm sm:text-base">{line}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
   open,
@@ -142,59 +180,73 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
+      <DialogContent className="w-full max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto px-4 sm:px-6 md:px-8">
+        <DialogHeader className="flex flex-col sm:flex-row items-start justify-between space-y-4 sm:space-y-0 pb-4">
           <div className="flex-1">
-            <DialogTitle className="text-2xl font-bold">
+            <DialogTitle className="text-lg sm:text-2xl md:text-3xl font-bold">
               {job.title}
             </DialogTitle>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 text-left">
               {job.companyName || "Company"} • ID: {job.id}
             </p>
+            <div
+              className={`${getStatusBadgeStyle(job.status)} flex-start text-left mt-2 w-fit px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold capitalize`}
+            >
+              {job.status === "published" || job.status === "active"
+                ? "Active"
+                : job.status === "closed"
+                  ? "Closed"
+                  : job.status || "Draft"}
+            </div>
           </div>
-          <Badge className={getStatusBadgeStyle(job.status)}>
-            {job.status === "published" || job.status === "active"
-              ? "Active"
-              : job.status === "closed"
-                ? "Closed"
-                : job.status || "Draft"}
-          </Badge>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Quick Info */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex items-center gap-2 text-sm sm:text-base">
               <Briefcase className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">Employment Type</p>
-                <p className="font-medium">{job.employmentType || "N/A"}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Employment Type
+                </p>
+                <p className="font-medium text-sm sm:text-base">
+                  {job.employmentType || "N/A"}
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-sm sm:text-base">
               <MapPin className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">Location</p>
-                <p className="font-medium">
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Location
+                </p>
+                <p className="font-medium text-sm sm:text-base">
                   {job.location || "N/A"}
                   {job.state ? `, ${job.state}` : ""}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-sm sm:text-base">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">Salary Range</p>
-                <p className="font-medium">
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Salary Range
+                </p>
+                <p className="font-medium text-sm sm:text-base">
                   {displaySalary(job.salaryMin, job.salaryMax)}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-sm sm:text-base">
               <Users className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">Openings</p>
-                <p className="font-medium">{job.numberOfOpenings ?? 1}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Openings
+                </p>
+                <p className="font-medium text-sm sm:text-base">
+                  {job.numberOfOpenings ?? 1}
+                </p>
               </div>
             </div>
           </div>
@@ -202,15 +254,19 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           {/* Description */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-base sm:text-lg md:text-xl flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 Job Description
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-foreground whitespace-pre-wrap">
-                {job.description || "No description provided"}
-              </p>
+              {job.description ? (
+                <JobDescription description={job.description} />
+              ) : (
+                <p className="text-sm text-foreground">
+                  No description provided
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -219,10 +275,12 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             <CardHeader>
               <CardTitle className="text-lg">Job Category & Role</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-3 text-sm sm:text-base">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Category</p>
-                <p className="font-medium">{job.category || "N/A"}</p>
+                <p className="font-medium capitalize">
+                  {job.category || "N/A"}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Role</p>
@@ -236,7 +294,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             <CardHeader>
               <CardTitle className="text-lg">Experience & Skills</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 text-sm sm:text-base">
               <div>
                 <p className="text-sm text-muted-foreground mb-2">
                   Experience Level
@@ -296,7 +354,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             <CardHeader>
               <CardTitle className="text-lg">Work Details</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
               {job.workMode && (
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">
@@ -329,7 +387,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {job.healthInsurance && (
                     <div className="flex items-center gap-2 text-sm">
                       <div className="w-2 h-2 bg-primary rounded-full" />
@@ -360,7 +418,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           )}
 
           {/* AI & Screening Settings */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Zap className="h-5 w-5" />
@@ -399,10 +457,10 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                 </Badge>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Additional Info */}
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm sm:text-base">
             {job.applicationDeadline && (
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
