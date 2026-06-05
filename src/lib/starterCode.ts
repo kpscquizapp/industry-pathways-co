@@ -17,10 +17,7 @@ export const DEFAULT_STARTER_CODE: StarterCode = {
   go: "func solution() {\n    // Write your code here\n}",
 };
 
-// Handy array of strings for UI iterations
-export const STARTER_LANGS: string[] = STARTER_CODE_LANGS.map(
-  (s) => s as string,
-);
+export const STARTER_LANGS: StarterCodeLang[] = [...STARTER_CODE_LANGS];
 
 export const cloneDefaultStarterCode = (): StarterCode => ({
   ...DEFAULT_STARTER_CODE,
