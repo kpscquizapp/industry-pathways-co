@@ -2230,7 +2230,9 @@ const CandidateProfileUpdate = (): JSX.Element => {
                             type="text"
                             value={editingExtractedSkillName}
                             onChange={(e) =>
-                              setEditingExtractedSkillName(e.target.value)
+                              setEditingExtractedSkillName(
+                                e.target.value.toLowerCase(),
+                              )
                             }
                             className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded dark:bg-slate-800 dark:border-slate-600 outline-none focus:border-[#4DD9E8]"
                             autoFocus
@@ -2895,7 +2897,9 @@ const CandidateProfileUpdate = (): JSX.Element => {
                             type="text"
                             value={editingExtractedSkillName}
                             onChange={(e) =>
-                              setEditingExtractedSkillName(e.target.value)
+                              setEditingExtractedSkillName(
+                                e.target.value.toLowerCase(),
+                              )
                             }
                             className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded dark:bg-slate-800 dark:border-slate-600 outline-none focus:border-[#4DD9E8]"
                             autoFocus
@@ -3111,7 +3115,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
               <input
                 type="text"
                 value={skillInput}
-                onChange={(e) => setSkillInput(e.target.value)}
+                onChange={(e) => setSkillInput(e.target.value.toLowerCase())}
                 onKeyDown={(e) =>
                   e.key === "Enter" && (e.preventDefault(), addSecondarySkill())
                 }
@@ -3151,7 +3155,27 @@ const CandidateProfileUpdate = (): JSX.Element => {
                     {name}
                     <button
                       type="button"
-                      onClick={() => removeSecondarySkill(name)}
+                      onClick={() => {
+                        const ext = extractedSkills.find(
+                          (s) =>
+                            normalizeSkill(s.name) === normalizeSkill(name),
+                        );
+
+                        const totalSkills =
+                          formData.primarySkills.length +
+                          formData.secondarySkills.length;
+
+                        if (totalSkills <= 1) {
+                          toast.warning("You must keep at least one skill.");
+                          return;
+                        }
+
+                        if (ext) {
+                          deleteExtractedSkill(ext.id);
+                        } else {
+                          removeSecondarySkill(name);
+                        }
+                      }}
                       className="hover:text-red-500 transition-colors bg-white/50 dark:bg-black/20 rounded-full p-0.5 min-w-0 min-h-0"
                       aria-label={`Remove ${name}`}
                     >

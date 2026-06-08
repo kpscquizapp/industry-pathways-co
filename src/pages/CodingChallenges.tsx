@@ -183,7 +183,9 @@ const CodingChallenge: React.FC = () => {
   const [problems, setProblems] = useState<CodingProblem[]>([]);
   const [activeProblemIndex, setActiveProblemIndex] = useState(0);
   const [code, setCode] = useState<string>("");
-  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [testCasesMap, setTestCasesMap] = useState<Record<string, TestCase[]>>(
+    {},
+  );
   const [isRunningCode, setIsRunningCode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isRunning = isRunningCode || isSubmitting; // combined — disables both buttons simultaneously
@@ -194,6 +196,7 @@ const CodingChallenge: React.FC = () => {
   // Consents
   const [hasWebcamPermission, setHasWebcamPermission] = useState(false);
   const [isScreenSelected, setIsScreenSelected] = useState(false);
+  const [hasConsented, setHasConsented] = useState(false);
   const [initialWebcamStream, setInitialWebcamStream] =
     useState<MediaStream | null>(null);
   const [initialScreenStream, setInitialScreenStream] =
@@ -645,8 +648,16 @@ const CodingChallenge: React.FC = () => {
   }, [testId, token]);
 
   const handleStartTest = async () => {
+    if (!hasWebcamPermission || !isScreenSelected || !hasConsented) {
+      toast.error("Complete setup and consent before starting the assessment.");
+      return;
+    }
     try {
-      const data = await startTestMutation({ testId: testId!, token }).unwrap();
+      const data = await startTestMutation({
+        testId: testId!,
+        token,
+        isPrivacyConsentGiven: hasConsented,
+      }).unwrap();
       if (data.success) {
         setMetadata(data.data);
         // For mock tests (without token), set local start time if not provided by API
@@ -760,9 +771,8 @@ const CodingChallenge: React.FC = () => {
     }
   }, [language, currentProblem]);
 
-  // Clear test case results and errors when switching to a different problem
+  // Clear transient error when switching problems (preserve results per-problem)
   useEffect(() => {
-    setTestCases([]);
     setError(undefined);
   }, [currentProblem?.id]);
 
@@ -800,7 +810,8 @@ const CodingChallenge: React.FC = () => {
 
     setIsRunningCode(true);
     setError(undefined);
-    setTestCases([]); // Clear previous results while running
+    // Clear previous results for the current problem while running
+    setTestCasesMap((prev) => ({ ...prev, [String(currentProblem.id)]: [] }));
 
     const knownTCs: TestCase[] =
       currentProblem.test_cases ||
@@ -816,16 +827,17 @@ const CodingChallenge: React.FC = () => {
       }).unwrap();
 
       if (result.success) {
-        // Use results directly from the backend — no frontend comparison
         const raw: any[] =
           result.data?.results ??
           result.data?.testCases ??
           result.data?.testcases ??
           [];
-        setTestCases(mapApiResults(raw, knownTCs));
-      } else {
-        setError(result.message || "Execution failed");
-      }
+        const results = mapApiResults(raw, knownTCs);
+        setTestCasesMap((prev) => ({
+          ...prev,
+          [String(currentProblem.id)]: results,
+        }));
+      } else setError(result.message || "Execution failed");
     } catch (err: any) {
       setError(
         err?.data?.message ||
@@ -861,7 +873,8 @@ const CodingChallenge: React.FC = () => {
       currentProblem.testcases ||
       currentProblem.testCases ||
       [];
-    setTestCases([]); // Clear previous results while submitting
+    // Clear previous results for the current problem while submitting
+    setTestCasesMap((prev) => ({ ...prev, [String(currentProblem.id)]: [] }));
 
     try {
       const result = await submitSolution({
@@ -872,37 +885,33 @@ const CodingChallenge: React.FC = () => {
       }).unwrap();
 
       if (result.success) {
-        // Use results directly from the backend — no frontend comparison
         const raw: any[] =
           result.data?.results ??
           result.data?.testCases ??
           result.data?.testcases ??
           [];
         const results = mapApiResults(raw, knownTCs);
-        setTestCases(results);
+        setTestCasesMap((prev) => ({
+          ...prev,
+          [String(currentProblem.id)]: results,
+        }));
 
         // Mark this problem as submitted
         submittedProblemIdsRef.current.add(currentProblem.id);
 
-        const allPassed = results.every((tc: any) => tc.passed);
+        const allPassed =
+          results.length > 0 && results.every((tc: any) => tc.passed);
         const grade = result.data?.grade;
         const gradeText = grade !== undefined ? ` (Grade: ${grade}/100)` : "";
 
-        if (allPassed) {
+        if (allPassed)
           toast.success(`Problem submitted successfully!${gradeText}`);
-        } else {
-          toast.info(`Submitted with some failing tests.${gradeText}`);
-        }
+        else toast.info(`Submitted with some failing tests.${gradeText}`);
 
-        // Auto-advance to next problem if not the last one
         if (autoAdvance && activeProblemIndex < problems.length - 1) {
-          setTimeout(() => {
-            setActiveProblemIndex(activeProblemIndex + 1);
-          }, 1500);
+          setTimeout(() => setActiveProblemIndex(activeProblemIndex + 1), 1500);
         }
-      } else {
-        setError(result.message || "Submission failed");
-      }
+      } else setError(result.message || "Submission failed");
     } catch (err: any) {
       setError(
         err?.data?.message ||
@@ -1235,35 +1244,75 @@ const CodingChallenge: React.FC = () => {
               </ul>
             </div>
 
+            <div className="w-full">
+              <label
+                htmlFor="consentCheckbox"
+                className="flex items-start gap-3 cursor-pointer"
+              >
+                <input
+                  id="consentCheckbox"
+                  type="checkbox"
+                  checked={hasConsented}
+                  onChange={(e) => setHasConsented(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-[#e8eaef] text-[#0ea5e9] focus:ring-2 focus:ring-[#4DD9E8]/40 min-w-0 min-h-0 shrink-0 accent-[#0ea5e9]"
+                />
+                <span className="text-[13px] text-[#92400e] leading-relaxed">
+                  I consent to my webcam and screen being recorded for the
+                  duration of this assessment for the purpose of verifying test
+                  integrity. I have read and agree to the
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 ml-1 hover:underline"
+                  >
+                    Terms &amp; Conditions
+                  </a>
+                  <span className="mx-1">and</span>
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 hover:underline"
+                  >
+                    Privacy Policy
+                  </a>
+                  . <span className="font-bold text-destructive">*</span>
+                </span>
+              </label>
+            </div>
+
             <div className="mt-auto pt-2">
               <Button
                 style={{
                   background:
-                    !hasWebcamPermission || !isScreenSelected
+                    !hasWebcamPermission || !isScreenSelected || !hasConsented
                       ? "#f1f5f9"
                       : "linear-gradient(135deg, #4DD9E8, #0ea5e9)",
                   boxShadow:
-                    !hasWebcamPermission || !isScreenSelected
+                    !hasWebcamPermission || !isScreenSelected || !hasConsented
                       ? "none"
                       : "0 4px 20px rgba(77,217,232,0.35)",
                   color:
-                    !hasWebcamPermission || !isScreenSelected
+                    !hasWebcamPermission || !isScreenSelected || !hasConsented
                       ? "#94a3b8"
                       : "white",
                   border:
-                    !hasWebcamPermission || !isScreenSelected
+                    !hasWebcamPermission || !isScreenSelected || !hasConsented
                       ? "1px solid #e2e8f0"
                       : "none",
                 }}
                 className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${
-                  !hasWebcamPermission || !isScreenSelected
+                  !hasWebcamPermission || !isScreenSelected || !hasConsented
                     ? "cursor-not-allowed opacity-100"
                     : "hover:opacity-90"
                 }`}
-                disabled={!hasWebcamPermission || !isScreenSelected}
+                disabled={
+                  !hasWebcamPermission || !isScreenSelected || !hasConsented
+                }
                 onClick={handleStartTest}
               >
-                {!hasWebcamPermission || !isScreenSelected
+                {!hasWebcamPermission || !isScreenSelected || !hasConsented
                   ? "Complete Setup to Start"
                   : "Start Assessment"}
               </Button>
@@ -1433,7 +1482,9 @@ const CodingChallenge: React.FC = () => {
                 {/* Console Output */}
                 <ResizablePanel defaultSize={40} minSize={20}>
                   <ConsoleOutput
-                    testCases={testCases}
+                    testCases={
+                      testCasesMap[String(currentProblem?.id ?? "")] ?? []
+                    }
                     isRunning={isRunning}
                     error={error}
                   />

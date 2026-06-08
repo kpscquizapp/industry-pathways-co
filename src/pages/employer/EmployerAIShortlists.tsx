@@ -282,19 +282,19 @@ const CandidateSkillTestDetails = ({
 
   if (!candidate)
     return (
-      <div className="text-gray-400 font-medium text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-12">
+      <div className="text-gray-400 font-medium text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-12">
         Select a candidate to view their skill test scores
       </div>
     );
   if (isTestsLoading || isReportLoading)
     return (
-      <div className="text-gray-400 font-medium text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-12">
+      <div className="text-gray-400 font-medium text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-12">
         Loading test details...
       </div>
     );
   if (!testId || !reportData?.data)
     return (
-      <div className="text-gray-400 font-medium text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-12">
+      <div className="text-gray-400 font-medium text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-12">
         No skill test found for this candidate.
       </div>
     );
@@ -308,22 +308,24 @@ const CandidateSkillTestDetails = ({
     : "N/A";
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col p-6">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex min-w-0 flex-col p-4 sm:p-6">
       {/* Header (No inner card wrapper, just layout) */}
-      <div className="flex items-center justify-between pb-6 border-b border-gray-100">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 pb-6 border-b border-gray-100 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
           <Avatar className="h-14 w-14 shrink-0">
             <AvatarFallback className="bg-gray-100 text-gray-700 text-lg font-bold">
               {candidate.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <h2 className="text-[18px] font-bold text-gray-900">
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate text-[18px] font-bold text-gray-900">
               {candidate.name}
             </h2>
-            <div className="flex items-center text-[13px] text-gray-500 mt-1">
+            <div className="flex min-w-0 items-center text-[13px] text-gray-500 mt-1">
               {candidate.email && (
-                <span className="text-[#08b8cc]">{candidate.email}</span>
+                <span className="truncate text-[#08b8cc]">
+                  {candidate.email}
+                </span>
               )}
             </div>
           </div>
@@ -334,28 +336,28 @@ const CandidateSkillTestDetails = ({
       </div>
 
       {/* Grid Content */}
-      <div className="grid grid-cols-3 gap-8 pt-6">
-        <div className="col-span-2 flex flex-col gap-8">
+      <div className="grid min-w-0 grid-cols-1 gap-6 pt-6 xl:grid-cols-3 xl:gap-8">
+        <div className="min-w-0 flex flex-col gap-6 xl:col-span-2 xl:gap-8">
           {/* Score Cards */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl py-4 flex flex-col items-center shadow-sm">
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl px-3 py-4 flex flex-col items-center text-center shadow-sm">
+              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-tight">
                 Overall Score
               </p>
               <p className="text-[28px] font-bold text-[#08b8cc] mt-1 leading-none">
                 {overallScore}%
               </p>
             </div>
-            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl py-4 flex flex-col items-center shadow-sm">
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide">
+            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl px-3 py-4 flex flex-col items-center text-center shadow-sm">
+              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-tight">
                 Coding Accuracy
               </p>
               <p className="text-[28px] font-bold text-gray-900 mt-1 leading-none">
                 {report.stats?.codingAccuracy || 0}%
               </p>
             </div>
-            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl py-4 flex flex-col items-center shadow-sm">
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide">
+            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl px-3 py-4 flex flex-col items-center text-center shadow-sm">
+              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-tight">
                 Time Taken
               </p>
               <p className="text-[28px] font-bold text-gray-900 mt-1 leading-none">
@@ -369,11 +371,11 @@ const CandidateSkillTestDetails = ({
             <h3 className="font-bold text-gray-900 mb-4 text-[15px]">
               Test Recording
             </h3>
-            <div className="relative bg-gray-900 h-[260px] w-full flex items-center justify-center rounded-xl overflow-hidden shadow-sm">
-              <Video className="h-16 w-16 text-gray-700" />
+            <div className="relative bg-gray-900 aspect-video min-h-[180px] max-h-[260px] w-full flex items-center justify-center rounded-xl overflow-hidden shadow-sm">
+              <Video className="h-12 w-12 text-gray-700 sm:h-16 sm:w-16" />
               <Button
                 variant="secondary"
-                className="absolute rounded-full h-14 w-14 p-0 bg-white/20 hover:bg-white/30 border-none items-center justify-center"
+                className="absolute rounded-full h-12 w-12 p-0 bg-white/20 hover:bg-white/30 border-none items-center justify-center sm:h-14 sm:w-14"
               >
                 <Play className="h-6 w-6 text-white ml-1" />
               </Button>
@@ -389,17 +391,21 @@ const CandidateSkillTestDetails = ({
               Test Stats
             </h3>
             <div className="space-y-5">
-              <div className="flex justify-between text-[13px] font-bold text-gray-800 mb-2">
+              <div className="flex flex-wrap justify-between gap-2 text-[13px] font-bold text-gray-800 mb-2">
                 <span>Questions Reviewed</span>
-                <span>{report.stats?.questionsReviewed || 0}</span>
+                <span className="shrink-0">
+                  {report.stats?.questionsReviewed || 0}
+                </span>
               </div>
-              <div className="flex justify-between text-[13px] font-bold text-gray-800 mb-2">
+              <div className="flex flex-wrap justify-between gap-2 text-[13px] font-bold text-gray-800 mb-2">
                 <span>Correct Answers</span>
-                <span>{report.stats?.correctAnswers || 0}</span>
+                <span className="shrink-0">
+                  {report.stats?.correctAnswers || 0}
+                </span>
               </div>
-              <div className="flex justify-between text-[13px] font-bold text-gray-800 mb-2">
+              <div className="flex flex-wrap justify-between gap-2 text-[13px] font-bold text-gray-800 mb-2">
                 <span>Improvement Focus</span>
-                <span className="text-[#f59e0b]">
+                <span className="text-right text-[#f59e0b]">
                   {report.stats?.improvementFocus || "N/A"}
                 </span>
               </div>
@@ -407,10 +413,10 @@ const CandidateSkillTestDetails = ({
           </div>
         </div>
 
-        <div className="col-span-1 flex flex-col h-full">
+        <div className="min-w-0 flex flex-col h-full xl:col-span-1">
           {/* Proctoring Log (Side card) */}
-          <div className="bg-[#fcfdfc] border border-gray-100 rounded-xl shadow-sm p-5 h-full">
-            <div className="flex justify-between items-center mb-6">
+          <div className="bg-[#fcfdfc] border border-gray-100 rounded-xl shadow-sm p-4 sm:p-5 h-full">
+            <div className="flex flex-wrap justify-between items-center gap-2 mb-6">
               <h3 className="font-bold text-gray-900 text-[15px]">
                 Proctoring Log
               </h3>
@@ -474,33 +480,37 @@ const CandidateAiInterviewDetails = ({
 }) => {
   if (!candidate)
     return (
-      <div className="text-gray-400 font-medium text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-12">
+      <div className="text-gray-400 font-medium text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-12">
         Select a candidate to view their AI interview scores
       </div>
     );
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col p-6">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex min-w-0 flex-col p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between pb-6 border-b border-gray-100">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 pb-6 border-b border-gray-100 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
           <Avatar className="h-14 w-14 shrink-0">
             <AvatarFallback className="bg-gray-100 text-gray-700 text-lg font-bold">
               {candidate.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <h2 className="text-[18px] font-bold text-gray-900">
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate text-[18px] font-bold text-gray-900">
               {candidate.name}
             </h2>
-            <div className="flex items-center text-[13px] text-gray-500 mt-1">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-gray-500 mt-1">
               {candidate.email && (
-                <span className="text-[#08b8cc]">{candidate.email}</span>
+                <span className="min-w-0 truncate text-[#08b8cc]">
+                  {candidate.email}
+                </span>
               )}
               {candidate.email && candidate.mobileNumber && (
                 <span className="mx-2 text-gray-300">•</span>
               )}
-              {candidate.mobileNumber && <span>{candidate.mobileNumber}</span>}
+              {candidate.mobileNumber && (
+                <span className="shrink-0">{candidate.mobileNumber}</span>
+              )}
               {(candidate.email || candidate.mobileNumber) && (
                 <span className="mx-2 text-gray-300">•</span>
               )}
@@ -510,16 +520,16 @@ const CandidateAiInterviewDetails = ({
             </div>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:flex-nowrap lg:justify-end">
           <Button
             variant="outline"
-            className="h-9 text-xs font-bold text-gray-700 border-gray-200 shadow-sm"
+            className="h-9 flex-1 text-xs font-bold text-gray-700 border-gray-200 shadow-sm sm:flex-none"
           >
             View Profile
           </Button>
           <Button
             variant="outline"
-            className="h-9 text-xs font-bold text-red-500 border-red-100 bg-white hover:bg-red-50 shadow-sm"
+            className="h-9 flex-1 text-xs font-bold text-red-500 border-red-100 bg-white hover:bg-red-50 shadow-sm sm:flex-none"
           >
             Reject
           </Button>
@@ -528,28 +538,28 @@ const CandidateAiInterviewDetails = ({
       </div>
 
       {/* Grid Content */}
-      <div className="grid grid-cols-3 gap-8 pt-6">
-        <div className="col-span-2 flex flex-col gap-8">
+      <div className="grid min-w-0 grid-cols-1 gap-6 pt-6 xl:grid-cols-3 xl:gap-8">
+        <div className="min-w-0 flex flex-col gap-6 xl:col-span-2 xl:gap-8">
           {/* Score Cards */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl py-4 flex flex-col items-center shadow-sm">
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl px-3 py-4 flex flex-col items-center text-center shadow-sm">
+              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-tight">
                 Overall AI Score
               </p>
               <p className="text-[28px] font-bold text-[#08b8cc] mt-1 leading-none">
                 92%
               </p>
             </div>
-            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl py-4 flex flex-col items-center shadow-sm">
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide">
+            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl px-3 py-4 flex flex-col items-center text-center shadow-sm">
+              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-tight">
                 Communication
               </p>
               <p className="text-[28px] font-bold text-gray-900 mt-1 leading-none">
                 95%
               </p>
             </div>
-            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl py-4 flex flex-col items-center shadow-sm">
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide">
+            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl px-3 py-4 flex flex-col items-center text-center shadow-sm">
+              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-tight">
                 Technical Depth
               </p>
               <p className="text-[28px] font-bold text-gray-900 mt-1 leading-none">
@@ -563,11 +573,11 @@ const CandidateAiInterviewDetails = ({
             <h3 className="font-bold text-gray-900 mb-4 text-[15px]">
               Interview Recording
             </h3>
-            <div className="relative bg-gray-900 h-[260px] w-full flex items-center justify-center rounded-xl overflow-hidden shadow-sm">
-              <Video className="h-16 w-16 text-gray-700" />
+            <div className="relative bg-gray-900 aspect-video min-h-[180px] max-h-[260px] w-full flex items-center justify-center rounded-xl overflow-hidden shadow-sm">
+              <Video className="h-12 w-12 text-gray-700 sm:h-16 sm:w-16" />
               <Button
                 variant="secondary"
-                className="absolute rounded-full h-14 w-14 p-0 bg-white/20 hover:bg-white/30 border-none items-center justify-center"
+                className="absolute rounded-full h-12 w-12 p-0 bg-white/20 hover:bg-white/30 border-none items-center justify-center sm:h-14 sm:w-14"
               >
                 <Play className="h-6 w-6 text-white ml-1" />
               </Button>
@@ -603,9 +613,9 @@ const CandidateAiInterviewDetails = ({
             ].map((item, i) => (
               <div
                 key={i}
-                className="bg-[#fcfdfc] border border-gray-100 rounded-xl shadow-sm p-5 text-sm"
+                className="bg-[#fcfdfc] border border-gray-100 rounded-xl shadow-sm p-4 text-sm sm:p-5"
               >
-                <div className="flex justify-between items-start gap-4 mb-4">
+                <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                   <h4 className="font-bold text-gray-900 leading-snug">
                     {i + 1}. {item.q}
                   </h4>
@@ -615,7 +625,7 @@ const CandidateAiInterviewDetails = ({
                     {item.score}
                   </span>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 text-[13px] text-gray-600 leading-relaxed shadow-sm">
+                <div className="bg-gray-50 rounded-lg p-3 text-[13px] text-gray-600 leading-relaxed shadow-sm sm:p-4">
                   <span className="font-bold text-gray-800">AI Summary: </span>
                   {item.text}
                 </div>
@@ -624,9 +634,9 @@ const CandidateAiInterviewDetails = ({
           </div>
         </div>
 
-        <div className="col-span-1 flex flex-col gap-6">
+        <div className="min-w-0 flex flex-col gap-6 xl:col-span-1">
           {/* AI Behavioral Insights */}
-          <div className="bg-[#fcfdfc] border border-gray-100 rounded-xl shadow-sm p-5">
+          <div className="bg-[#fcfdfc] border border-gray-100 rounded-xl shadow-sm p-4 sm:p-5">
             <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2 text-[14px]">
               <Sparkles className="h-4 w-4 text-[#08b8cc] shrink-0" /> AI
               Behavioral Insights
@@ -673,7 +683,7 @@ const CandidateAiInterviewDetails = ({
           </div>
 
           {/* Soft Skills Scoring */}
-          <div className="bg-[#fcfdfc] border border-gray-100 rounded-xl shadow-sm p-5">
+          <div className="bg-[#fcfdfc] border border-gray-100 rounded-xl shadow-sm p-4 sm:p-5">
             <h3 className="font-bold text-gray-900 mb-5 text-[14px]">
               Soft Skills Scoring
             </h3>
@@ -697,9 +707,9 @@ const CandidateAiInterviewDetails = ({
                 { name: "Cultural Fit", score: 85, color: "bg-[#08b8cc]" },
               ].map((skill) => (
                 <div key={skill.name}>
-                  <div className="flex justify-between text-[13px] font-bold text-gray-700 mb-2">
-                    <span>{skill.name}</span>
-                    <span>{skill.score}%</span>
+                  <div className="flex justify-between gap-3 text-[13px] font-bold text-gray-700 mb-2">
+                    <span className="min-w-0">{skill.name}</span>
+                    <span className="shrink-0">{skill.score}%</span>
                   </div>
                   <div className="h-[6px] w-full bg-gray-100 rounded-full overflow-hidden">
                     <div
@@ -746,7 +756,7 @@ const SidebarCandidateItem = ({
   return (
     <div
       onClick={onClick}
-      className={`p-4 rounded-xl border cursor-pointer hover:bg-gray-50 transition-colors flex gap-3 ${isSelected ? "border-[#08b8cc] border-l-[3px] shadow-sm bg-white" : "border-gray-100 border-l-[3px] border-l-transparent bg-white shadow-sm"}`}
+      className={`w-[260px] shrink-0 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 transition-colors flex gap-3 lg:w-full ${isSelected ? "border-[#08b8cc] border-l-[3px] shadow-sm bg-white" : "border-gray-100 border-l-[3px] border-l-transparent bg-white shadow-sm"}`}
     >
       <Avatar className="h-10 w-10 shrink-0 shadow-sm border border-gray-100">
         <AvatarFallback className="bg-gray-100 text-gray-700 font-bold">
@@ -892,15 +902,20 @@ const EmployerAIShortlists = () => {
       .filter((m: Match) => m.isShortlisted === true)
       .map((m: Match) => m.id);
 
-  setShortlistedIds((prev) => {
-    if (jobMatchesPage === 1) {
-      return backendShortlistedIds;
-    }
+    setShortlistedIds((prev) => {
+      if (jobMatchesPage === 1) {
+        return backendShortlistedIds;
+      }
 
-    const merged = new Set(prev.map(getEntityIdKey));
-    backendShortlistedIds.forEach((id) => merged.add(getEntityIdKey(id)));
-    return [...prev, ...backendShortlistedIds.filter((id) => !prev.some((p) => getEntityIdKey(p) === getEntityIdKey(id)))];
-  });
+      const merged = new Set(prev.map(getEntityIdKey));
+      backendShortlistedIds.forEach((id) => merged.add(getEntityIdKey(id)));
+      return [
+        ...prev,
+        ...backendShortlistedIds.filter(
+          (id) => !prev.some((p) => getEntityIdKey(p) === getEntityIdKey(id)),
+        ),
+      ];
+    });
   }, [jobMatchesPage, matchesResponse?.data, shouldFetchMatches]);
 
   const hasMoreEmployerJobs = useMemo(() => {
@@ -946,6 +961,10 @@ const EmployerAIShortlists = () => {
     shouldFetchMatches,
   ]);
 
+  const stageById = new Map(
+    loadedMatches.map((m) => [getEntityIdKey(m.id), m.stage]),
+  );
+
   const candidates = useMemo<CandidateListItem[]>(() => {
     const shortlistedIdKeys = new Set(
       shortlistedIds.map((shortlistedId) => getEntityIdKey(shortlistedId)),
@@ -959,9 +978,12 @@ const EmployerAIShortlists = () => {
       )
       .map((c) => ({
         ...c,
-        stage: shortlistedIdKeys.has(getEntityIdKey(c.id))
-          ? "shortlisted"
-          : "matched",
+        stage:
+          stageById.get(getEntityIdKey(c.id)) === "invited"
+            ? "invited"
+            : shortlistedIdKeys.has(getEntityIdKey(c.id))
+              ? "shortlisted"
+              : "matched",
         matchReasons: [],
       }));
   }, [loadedMatches, shortlistedIds]);
@@ -1179,27 +1201,27 @@ const EmployerAIShortlists = () => {
   );
 
   const renderSidebar = (tab: "skill-test" | "ai-interview") => (
-    <div className="w-[320px] shrink-0 sticky top-[100px] h-fit">
-      <div className="flex gap-2 mb-4">
+    <div className="w-full shrink-0 lg:sticky lg:top-[100px] lg:h-fit lg:w-[320px]">
+      <div className="flex flex-col gap-2 mb-4 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search name..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-9 h-10 border-gray-200 text-[13px] focus-visible:ring-[#08b8cc] rounded-lg shadow-sm bg-white"
+            className="pl-9 h-10 border-gray-200 text-[13px] focus-visible:ring-[#08b8cc] rounded-lg shadow-sm bg-white w-full"
           />
         </div>
         <Button
           variant="outline"
-          className="h-10 px-3 text-[13px] font-bold text-gray-700 bg-white border-gray-200 hover:bg-gray-50 flex items-center gap-2 rounded-lg shadow-sm"
+          className="h-10 px-3 text-[13px] font-bold text-gray-700 bg-white border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2 rounded-lg shadow-sm sm:w-auto"
         >
           Filter <Filter className="h-3 w-3" />
         </Button>
       </div>
-      <div className="flex flex-col gap-2 pb-4">
+      <div className="flex gap-2 overflow-x-auto pb-4 lg:flex-col lg:overflow-visible">
         {sidebarCandidates.length === 0 && (
-          <div className="p-4 text-center text-[12px] text-gray-400 font-medium bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="w-full p-4 text-center text-[12px] text-gray-400 font-medium bg-white rounded-xl border border-gray-100 shadow-sm">
             {!selectedJob
               ? "Select a job to see shortlisted candidates."
               : "No shortlisted candidates yet."}
@@ -1261,22 +1283,22 @@ const EmployerAIShortlists = () => {
         {/* Stages Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="mb-8">
-            <TabsList className="bg-gray-100 p-1.5 rounded-xl h-auto inline-flex gap-1 max-w-max">
+            <TabsList className="bg-gray-100 p-1.5 rounded-xl h-auto inline-flex gap-1 max-w-full">
               <TabsTrigger
                 value="all"
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-lg px-5 py-2.5 text-gray-500 font-bold text-sm transition-all"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-lg px-5 py-2.5 text-gray-500 font-bold text-sm transition-all sm:text-sm text-[10px]"
               >
                 All Candidates
               </TabsTrigger>
               <TabsTrigger
                 value="skill-test"
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-lg px-5 py-2.5 text-gray-500 font-bold text-sm transition-all"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-lg px-5 py-2.5 text-gray-500 font-bold text-sm transition-all sm:text-sm text-[10px]"
               >
                 Skill Test Scores
               </TabsTrigger>
               <TabsTrigger
                 value="ai-interview"
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-lg px-5 py-2.5 text-gray-500 font-bold text-sm transition-all"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-lg px-5 py-2.5 text-gray-500 font-bold text-sm transition-all sm:text-sm text-[10px]"
               >
                 AI Interview Scores
               </TabsTrigger>
@@ -1286,13 +1308,13 @@ const EmployerAIShortlists = () => {
           <TabsContent value="all" className="mt-0 outline-none">
             {/* Filters */}
             <div className="flex flex-wrap gap-3 items-center mb-6">
-              <div className="relative flex-1 min-w-[260px] max-w-sm">
+              <div className="relative flex-1 min-w-[260px] max-w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search by name, skill, or role..."
                   value={searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-9 h-10 rounded-xl border-gray-200 text-sm focus-visible:ring-1 focus-visible:ring-[#08b8cc] bg-white shadow-sm"
+                  className="pl-9 h-10 rounded-xl border-gray-200 text-sm focus-visible:ring-1 focus-visible:ring-[#08b8cc] bg-white shadow-sm w-full"
                 />
               </div>
 
@@ -1322,7 +1344,7 @@ const EmployerAIShortlists = () => {
                 </SelectContent>
               </Select>
 
-              <div className="ml-auto flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -1501,24 +1523,24 @@ const EmployerAIShortlists = () => {
                 return (
                   <div
                     key={candidate.id}
-                    className="bg-white border border-gray-100 rounded-2xl p-5 flex items-center gap-6 shadow-sm"
+                    className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 shadow-sm lg:flex-row lg:items-center lg:gap-6"
                   >
-                    <div className="flex items-center gap-4 min-w-[280px]">
+                    <div className="flex items-center gap-4 w-full min-w-0 lg:w-[280px] lg:shrink-0">
                       {/* <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#08b8cc] focus:ring-[#08b8cc]" /> */}
-                      <Avatar className="h-12 w-12 rounded-full border border-gray-100 shadow-sm">
+                      <Avatar className="h-12 w-12 shrink-0 rounded-full border border-gray-100 shadow-sm">
                         <AvatarFallback className="bg-gray-100 text-gray-700 font-semibold text-lg">
                           {candidate.name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <h3
-                          className="font-bold text-gray-900 text-[15px] cursor-pointer hover:underline"
+                          className="font-bold text-gray-900 text-[15px] cursor-pointer hover:underline truncate"
                           onClick={() => handleViewProfile(candidate)}
                         >
                           {getHighlightedName(candidate.name, searchTerm)}
                         </h3>
-                        <div className="flex items-center gap-2 text-[12px] text-gray-500 mt-0.5">
-                          <span className="truncate max-w-[150px]">
+                        <div className="flex items-center gap-2 text-[12px] text-gray-500 mt-0.5 min-w-0">
+                          <span className="truncate min-w-0 max-w-[180px] sm:max-w-[240px] lg:max-w-[150px]">
                             {candidate.role}
                           </span>
                           <span className="text-gray-300">•</span>
@@ -1527,12 +1549,12 @@ const EmployerAIShortlists = () => {
                       </div>
                     </div>
 
-                    <div className="flex-1">
+                    <div className="w-full min-w-0 lg:flex-1">
                       <div className="flex flex-wrap gap-1.5">
                         {candidate.skills.slice(0, 5).map((skill) => (
                           <span
                             key={skill}
-                            className="px-2 py-1 bg-[#fefdfa] border border-gray-100 shadow-sm text-gray-600 text-[11px] font-semibold rounded-md shrink-0"
+                            className="max-w-full truncate px-2 py-1 bg-[#fefdfa] border border-gray-100 shadow-sm text-gray-600 text-[11px] font-semibold rounded-md"
                           >
                             {skill}
                           </span>
@@ -1545,66 +1567,71 @@ const EmployerAIShortlists = () => {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-center justify-center min-w-[80px]">
-                      <div
-                        className={`w-11 h-11 rounded-full border-2 ${scoreBorder} flex items-center justify-center`}
-                      >
-                        <span className={`font-bold text-[13px] ${scoreColor}`}>
-                          {Math.round(candidate.matchScore)}%
-                        </span>
+                    <div className="flex w-full min-w-0 flex-col gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3 sm:flex-row sm:items-center sm:justify-between lg:w-auto lg:min-w-[430px] lg:border-0 lg:bg-transparent lg:p-0">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div
+                          className={`w-11 h-11 shrink-0 rounded-full border-2 ${scoreBorder} flex items-center justify-center bg-white`}
+                        >
+                          <span
+                            className={`font-bold text-[13px] ${scoreColor}`}
+                          >
+                            {Math.round(candidate.matchScore)}%
+                          </span>
+                        </div>
+                        <div className="min-w-0">
+                          <span className="block text-[10px] font-bold uppercase text-gray-400">
+                            AI Match
+                          </span>
+                          <div className="mt-1 flex min-w-0 items-center">
+                            {badgeUI}
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-medium mt-1">
-                        AI Match
-                      </span>
-                    </div>
 
-                    <div className="min-w-[120px] flex justify-center">
-                      {badgeUI}
-                    </div>
-
-                    <div className="flex items-center gap-2 ml-auto min-w-[220px] justify-end">
-                      <Button
-                        variant="outline"
-                        onClick={() =>
-                          candidate.stage !== "shortlisted" &&
-                          candidate.stage !== "invited" &&
-                          handleShortlist(candidate)
-                        }
-                        className={`h-9 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all ${
-                          candidate.stage === "invited"
-                            ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
-                            : candidate.stage === "shortlisted"
-                              ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
-                              : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                        }`}
-                      >
-                        {candidate.stage === "invited" ? (
-                          <span className="flex items-center gap-1.5">
-                            <Check className="w-4 h-4" strokeWidth={3} />
-                            Invited
-                          </span>
-                        ) : candidate.stage === "shortlisted" ? (
-                          <span className="flex items-center gap-1.5">
-                            <Check className="w-4 h-4" strokeWidth={3} />
-                            Shortlisted
-                          </span>
-                        ) : (
-                          "Shortlist"
-                        )}
-                      </Button>
-
-                      {(candidate.stage === "shortlisted" ||
-                        candidate.stage === "invited") && (
+                      <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
                         <Button
                           variant="outline"
-                          size="icon"
-                          onClick={() => handleShortlist(candidate)}
-                          className="h-9 w-9 rounded-xl border-rose-200 text-rose-500 bg-rose-50 hover:bg-rose-100 hover:text-rose-600 shadow-sm"
-                          title="Remove from shortlist"
+                          onClick={() =>
+                            candidate.stage !== "shortlisted" &&
+                            candidate.stage !== "invited" &&
+                            handleShortlist(candidate)
+                          }
+                          className={`h-9 min-w-0 flex-1 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${
+                            candidate.stage === "invited"
+                              ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
+                              : candidate.stage === "shortlisted"
+                                ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
+                                : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          }`}
                         >
-                          <X className="h-5 w-5" strokeWidth={2.5} />
+                          {candidate.stage === "invited" ? (
+                            <span className="flex items-center gap-1.5">
+                              <Check className="w-4 h-4" strokeWidth={3} />
+                              Invited
+                            </span>
+                          ) : candidate.stage === "shortlisted" ? (
+                            <span className="flex items-center gap-1.5">
+                              <Check className="w-4 h-4" strokeWidth={3} />
+                              Shortlisted
+                            </span>
+                          ) : (
+                            "Shortlist"
+                          )}
                         </Button>
-                      )}
+
+                        {(candidate.stage === "shortlisted" ||
+                          candidate.stage === "invited") && (
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleShortlist(candidate)}
+                            className="h-9 w-9 rounded-xl border-rose-200 text-rose-500 bg-rose-50 hover:bg-rose-100 hover:text-rose-600 shadow-sm"
+                            title="Remove from shortlist"
+                          >
+                            <X className="h-5 w-5" strokeWidth={2.5} />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -1632,7 +1659,7 @@ const EmployerAIShortlists = () => {
           </TabsContent>
 
           <TabsContent value="skill-test" className="mt-0 outline-none">
-            <div className="flex gap-6 items-start w-full">
+            <div className="flex w-full min-w-0 flex-col gap-6 lg:flex-row lg:items-start">
               {renderSidebar("skill-test")}
               <div className="flex-1 min-w-0">
                 <CandidateSkillTestDetails
@@ -1643,7 +1670,7 @@ const EmployerAIShortlists = () => {
           </TabsContent>
 
           <TabsContent value="ai-interview" className="mt-0 outline-none">
-            <div className="flex gap-6 items-start w-full">
+            <div className="flex w-full min-w-0 flex-col gap-6 lg:flex-row lg:items-start">
               {renderSidebar("ai-interview")}
               <div className="flex-1 min-w-0">
                 <CandidateAiInterviewDetails

@@ -683,7 +683,7 @@ const SkillTags: FC<SkillTagsProps> = memo(
           <input
             ref={skillInputRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value.toLowerCase())}
             onKeyDown={handleKey}
             placeholder={skills.length ? "" : "e.g. React, Python, AWS..."}
             maxLength={50}

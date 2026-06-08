@@ -136,7 +136,7 @@ export const aiShortlistApi = createApi({
     getJobMatches: builder.query<JobMatchesResponse, GetJobMatchesArgs>({
       query: ({ id, page, limit }) => ({
         method: "GET",
-        url: `jobs/${id}/matches-ai`,
+        url: `jobs/${id}/matches`,
         params: { page: resolvePage(page), limit: resolveLimit(limit) },
       }),
       providesTags: (_result, _error, { id }) => [
@@ -198,7 +198,12 @@ export const aiShortlistApi = createApi({
     }),
     createCustomTest: builder.mutation<
       any,
-      { title: string; questions: any[]; candidateEmail?: string }
+      {
+        title: string;
+        questions: any[];
+        candidateEmail?: string;
+        employerEmail?: string;
+      }
     >({
       query: (body) => ({
         url: "/coding/tests/custom",
@@ -208,7 +213,7 @@ export const aiShortlistApi = createApi({
     }),
     updateCustomTest: builder.mutation<
       any,
-      { id: number; title: string; questions: any[] }
+      { id: number; title: string; questions: any[]; employerEmail?: string }
     >({
       query: ({ id, ...body }) => ({
         url: `/coding/tests/${id}/custom`,

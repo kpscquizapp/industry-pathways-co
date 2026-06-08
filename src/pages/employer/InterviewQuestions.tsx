@@ -28,6 +28,11 @@ import {
   Plus,
   X,
 } from "lucide-react";
+import {
+  STARTER_LANGS,
+  cloneDefaultStarterCode,
+  StarterCode,
+} from "@/lib/starterCode";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -52,21 +57,15 @@ import { AlertCircle } from "lucide-react";
 
 type TabMode = "manual" | "ai" | "bulk";
 
+// Starter code constants and types are imported from `@/lib/starterCode`
+
 export default function InterviewQuestions() {
   const [activeTab, setActiveTab] = useState<TabMode>("manual");
   const [searchParams] = useSearchParams();
 
   type Example = { input: string; output: string; explanation?: string };
   type TestCase = { input: string; expected_output: string };
-  type StarterCode = {
-    javascript: string;
-    python: string;
-    java: string;
-    cpp: string;
-    c: string;
-    typescript: string;
-    go: string;
-  };
+  // Use shared StarterCode type
   type Question = {
     id: number;
     title: string;
@@ -86,15 +85,7 @@ export default function InterviewQuestions() {
     _questionIndex?: number;
   };
 
-  const defaultStarterCode = (): StarterCode => ({
-    javascript: "var solution = function() {\n    // Write your code here\n};",
-    python: "def solution():\n    # Write your code here\n    pass",
-    java: "class Solution {\n    // Write your code here\n}",
-    cpp: "class Solution {\npublic:\n    // Write your code here\n};",
-    c: "// Write your code here\nvoid solution() {\n    \n}",
-    typescript: "function solution(): void {\n    // Write your code here\n};",
-    go: "func solution() {\n    // Write your code here\n}",
-  });
+  const defaultStarterCode = () => cloneDefaultStarterCode();
 
   const newQuestion = (
     id: number,
@@ -172,12 +163,6 @@ export default function InterviewQuestions() {
   // Seed savedQuestions with questions specifically associated with this employer email
   useEffect(() => {
     if (problemsData?.success && Array.isArray(problemsData.data)) {
-      console.log(
-        "🔍 DEBUG: Raw problemsData from backend:",
-        problemsData.data,
-      );
-      console.log("🔍 DEBUG: First question structure:", problemsData.data[0]);
-
       const loaded = (problemsData.data as any[]).map((q, i) => ({
         ...q,
         id: q.id || q.problemId || q.problem_id || Date.now() + i,
@@ -189,23 +174,22 @@ export default function InterviewQuestions() {
         category: q.category || category,
       }));
 
-      console.log("🔍 DEBUG: Loaded questions after mapping:", loaded);
       setSavedQuestions(loaded);
     }
   }, [problemsData, role, category]);
 
   return (
-    <div className="min-h-full bg-gray-50 font-inter">
-      <div className="flex flex-1 w-full mx-auto relative items-stretch">
+    <div className="min-h-full overflow-x-hidden bg-gray-50 font-inter">
+      <div className="flex min-w-0 flex-1 w-full mx-auto relative items-stretch">
         {/* Left Column - Forms & Lists */}
-        <div className="flex-1 flex flex-col gap-8 px-6 sm:px-10 md:px-8 p-6 lg:p-8 min-w-0 max-w-[1400px] mx-auto w-full">
+        <div className="flex-1 flex flex-col gap-6 sm:gap-8 px-6 py-6 sm:px-10 md:px-8 lg:p-8 min-w-0 max-w-[1400px] mx-auto w-full">
           {/* ═══════════════ HEADER ═══════════════ */}
           <div className="mb-2">
-            <h1 className="text-[26px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
+            <h1 className="text-[24px] md:text-[30px] font-extrabold tracking-tight text-gray-900 leading-tight">
               Interview Questions
             </h1>
-            <p className="text-gray-400 text-[15px] mt-1">
-              <span className="flex items-center gap-2">
+            <p className="text-gray-400 text-[14px] sm:text-[15px] mt-1">
+              <span className="flex flex-wrap items-center gap-2">
                 {name
                   ? `Create technical questions for ${name}'s assessment.`
                   : "Build a reusable question bank with manual, AI-generated, and bulk-upload workflows."}
@@ -220,13 +204,13 @@ export default function InterviewQuestions() {
             </p>
           </div>
           {/* Form Content based on Tab (Card) */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex min-w-0 flex-col gap-6">
             {/* Tabs inside Card */}
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 overflow-x-auto pb-1">
               <button
                 onClick={() => setActiveTab("manual")}
                 className={cn(
-                  "px-5 py-2 text-sm font-semibold rounded-full transition-colors",
+                  "shrink-0 px-4 sm:px-5 py-2 text-sm font-semibold rounded-full transition-colors",
                   activeTab === "manual"
                     ? "bg-[#0ea5e9] text-white shadow-sm"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200",
@@ -237,7 +221,7 @@ export default function InterviewQuestions() {
               <button
                 onClick={() => setActiveTab("ai")}
                 className={cn(
-                  "px-5 py-2 text-sm font-semibold flex items-center gap-2 rounded-full transition-colors",
+                  "shrink-0 px-4 sm:px-5 py-2 text-sm font-semibold flex items-center gap-2 rounded-full transition-colors",
                   activeTab === "ai"
                     ? "bg-[#0ea5e9] text-white shadow-sm"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200",
@@ -249,7 +233,7 @@ export default function InterviewQuestions() {
               <button
                 onClick={() => setActiveTab("bulk")}
                 className={cn(
-                  "px-5 py-2 text-sm font-semibold rounded-full transition-colors",
+                  "shrink-0 px-4 sm:px-5 py-2 text-sm font-semibold rounded-full transition-colors",
                   activeTab === "bulk"
                     ? "bg-[#0ea5e9] text-white shadow-sm"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200",
@@ -264,6 +248,7 @@ export default function InterviewQuestions() {
                 defaultRole={role}
                 defaultCategory={category}
                 defaultEmail={email}
+                employerEmail={employerEmail}
                 jobId={jobId}
                 candidateId={candidateId}
                 talentSource={talentSource}
@@ -380,7 +365,7 @@ export default function InterviewQuestions() {
         </div>
 
         {/* Right Column - Preview (Sidebar) */}
-        <div className="hidden lg:block w-[360px] xl:w-[420px] shrink-0 bg-white border-l border-gray-200">
+        <div className="hidden 2xl:block w-[360px] xl:w-[420px] shrink-0 bg-white border-l border-gray-200">
           <AIInterviewPreview role={role} category={category} />
         </div>
       </div>
@@ -390,7 +375,7 @@ export default function InterviewQuestions() {
           setValidationAlert((prev) => ({ ...prev, show: open }))
         }
       >
-        <AlertDialogContent className="sm:max-w-[425px] rounded-2xl">
+        <AlertDialogContent className="w-[calc(100vw-2rem)] sm:max-w-[425px] rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
               <AlertCircle className="text-amber-500" size={24} />
@@ -415,6 +400,7 @@ function ManualEntryForm({
   defaultRole = "",
   defaultCategory = "",
   defaultEmail = "",
+  employerEmail = "",
   jobId = "",
   candidateId = "",
   talentSource = "candidate",
@@ -429,6 +415,7 @@ function ManualEntryForm({
   defaultRole?: string;
   defaultCategory?: string;
   defaultEmail?: string;
+  employerEmail?: string;
   jobId?: string;
   candidateId?: string;
   talentSource?: "candidate" | "bench";
@@ -442,15 +429,6 @@ function ManualEntryForm({
 }) {
   type Example = { input: string; output: string; explanation?: string };
   type TestCase = { input: string; expected_output: string };
-  type StarterCode = {
-    javascript: string;
-    python: string;
-    java: string;
-    cpp: string;
-    c: string;
-    typescript: string;
-    go: string;
-  };
   type Question = {
     id: number;
     title: string;
@@ -465,15 +443,7 @@ function ManualEntryForm({
     category?: string;
   };
 
-  const defaultStarterCode = (): StarterCode => ({
-    javascript: "var solution = function() {\n    // Write your code here\n};",
-    python: "def solution():\n    # Write your code here\n    pass",
-    java: "class Solution {\n    // Write your code here\n}",
-    cpp: "class Solution {\npublic:\n    // Write your code here\n};",
-    c: "// Write your code here\nvoid solution() {\n    \n}",
-    typescript: "function solution(): void {\n    // Write your code here\n};",
-    go: "func solution() {\n    // Write your code here\n}",
-  });
+  // StarterCode type and defaults are imported from `@/lib/starterCode`
 
   const newQuestion = (
     id: number,
@@ -487,7 +457,7 @@ function ManualEntryForm({
     examples: [{ input: "", output: "", explanation: "" }],
     constraints: [""],
     test_cases: [{ input: "", expected_output: "" }],
-    starter_code: defaultStarterCode(),
+    starter_code: cloneDefaultStarterCode(),
     expanded: true,
     role: roleValue,
     category: categoryValue,
@@ -643,6 +613,14 @@ function ManualEntryForm({
 
   const handleSave = async (qId: number) => {
     try {
+      if (!employerEmail.trim()) {
+        showAlert(
+          "Employer account not ready",
+          "Please wait for your employer profile to load before saving questions.",
+        );
+        return null;
+      }
+
       const q = questions.find((question) => question.id === qId);
       if (!q) return;
 
@@ -706,12 +684,14 @@ function ManualEntryForm({
           id: q._testId,
           title: q.title || `${defaultRole} - Question`,
           questions: [questionData],
+          ...(employerEmail ? { employerEmail } : {}),
         }).unwrap();
       } else {
         response = await createCustomTest({
           title: q.title || `${defaultRole} - Question`,
           questions: [questionData],
           ...(defaultEmail ? { candidateEmail: defaultEmail } : {}),
+          ...(employerEmail ? { employerEmail } : {}),
         }).unwrap();
       }
 
@@ -810,10 +790,6 @@ function ManualEntryForm({
         .map((q: any) => q.id)
         .filter((id: any) => id !== undefined);
 
-      console.log("=== DEBUG scheduleTestForCandidate ===");
-      console.log("validQuestions:", validQuestions);
-      console.log("extracted problemIds:", problemIds);
-
       if (!problemIds || problemIds.length === 0) {
         showAlert(
           "No Questions Selected",
@@ -832,8 +808,6 @@ function ManualEntryForm({
         testDuration: testDuration ? parseInt(testDuration) : 60,
         problemIds: problemIds,
       };
-
-      console.log("schedulePayload:", schedulePayload);
 
       const scheduleResponse =
         await scheduleTestForCandidate(schedulePayload).unwrap();
@@ -885,15 +859,7 @@ function ManualEntryForm({
     }
   };
 
-  const langs: (keyof StarterCode)[] = [
-    "javascript",
-    "typescript",
-    "python",
-    "java",
-    "cpp",
-    "c",
-    "go",
-  ];
+  const langs: (keyof StarterCode)[] = STARTER_LANGS as (keyof StarterCode)[];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -928,7 +894,7 @@ function ManualEntryForm({
                     e.stopPropagation();
                     removeQuestion(q.id);
                   }}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all min-h-0 min-w-0"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1029,7 +995,7 @@ function ManualEntryForm({
                       <button
                         type="button"
                         onClick={() => removeExample(q.id, ei)}
-                        className="absolute -top-2 -right-2 bg-red-100 text-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-2 -right-2 bg-red-100 text-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity min-h-0 min-w-0"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1114,7 +1080,7 @@ function ManualEntryForm({
                       <button
                         type="button"
                         onClick={() => removeConstraint(q.id, ci)}
-                        className="absolute -right-2 -top-2 bg-red-100 text-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -right-2 -top-2 bg-red-100 text-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity min-h-0 min-w-0"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1149,7 +1115,7 @@ function ManualEntryForm({
                       <button
                         type="button"
                         onClick={() => removeTestCase(q.id, ti)}
-                        className="absolute -top-2 -right-2 bg-red-100 text-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-2 -right-2 bg-red-100 text-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity min-h-0 min-w-0"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1614,15 +1580,7 @@ function QuestionsList({
       (q.category || "").toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const langs = [
-    "javascript",
-    "typescript",
-    "python",
-    "java",
-    "cpp",
-    "c",
-    "go",
-  ];
+  const langs = STARTER_LANGS;
 
   return (
     <div className="flex flex-col gap-4">
@@ -1729,7 +1687,7 @@ function QuestionsList({
                     e.stopPropagation();
                     onAdd(q);
                   }}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all min-h-0 min-w-0"
                   title="Add question to test"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -1740,7 +1698,7 @@ function QuestionsList({
                     e.stopPropagation();
                     onEdit(q);
                   }}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all min-h-0 min-w-0"
                   title="Edit question"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
@@ -1751,7 +1709,7 @@ function QuestionsList({
                     e.stopPropagation();
                     onDelete(q);
                   }}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all min-h-0 min-w-0"
                   title="Delete question"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
