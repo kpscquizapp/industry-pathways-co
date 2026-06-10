@@ -69,7 +69,23 @@ const BenchLogin = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (userDetails && userDetails.role === "hr") {
+    if (!userDetails) return;
+
+    try {
+      const saved = localStorage.getItem("post_invite_redirect");
+      if (saved && typeof saved === "string") {
+        if (saved.startsWith("/")) {
+          localStorage.removeItem("post_invite_redirect");
+          navigate(saved);
+          return;
+        }
+        localStorage.removeItem("post_invite_redirect");
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
+
+    if (userDetails.role === "hr") {
       navigate("/bench-dashboard");
     }
   }, [userDetails, navigate]);
@@ -145,7 +161,7 @@ const BenchLogin = () => {
 
       dispatch(setUser(result));
       toast.success(
-        `Welcome back${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
+        `Welcome${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
       );
       navigate("/bench-dashboard");
     } catch (error: unknown) {

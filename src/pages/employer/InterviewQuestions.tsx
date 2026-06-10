@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   useCreateCustomTestMutation,
@@ -667,7 +667,6 @@ function ManualEntryForm({
         return null;
       }
 
-      // We ONLY save this specific question, making it its own independent database record.
       const {
         expanded,
         id,
@@ -854,7 +853,7 @@ function ManualEntryForm({
       showAlert(
         "Invite Error",
         error?.data?.message ||
-          "A network error occurred while sending the invite.",
+        "A network error occurred while sending the invite.",
       );
     }
   };
@@ -2131,7 +2130,7 @@ function QuestionCard({
               tag.color === "orange-solid" && "bg-orange-100 text-orange-700",
               tag.color === "green" && "bg-emerald-50 text-emerald-600",
               tag.color === "gray" &&
-                "bg-gray-50 text-gray-600 border border-gray-100",
+              "bg-gray-50 text-gray-600 border border-gray-100",
               tag.color === "gray-solid" && "bg-gray-100 text-gray-700",
             )}
           >

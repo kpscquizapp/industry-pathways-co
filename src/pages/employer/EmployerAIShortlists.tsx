@@ -1523,7 +1523,7 @@ const EmployerAIShortlists = () => {
                 return (
                   <div
                     key={candidate.id}
-                    className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 shadow-sm lg:flex-row lg:items-center lg:gap-6"
+                    className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 shadow-sm xl:flex-row xl:items-center xl:gap-6"
                   >
                     <div className="flex items-center gap-4 w-full min-w-0 lg:w-[280px] lg:shrink-0">
                       {/* <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#08b8cc] focus:ring-[#08b8cc]" /> */}

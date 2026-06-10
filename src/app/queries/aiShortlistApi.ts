@@ -256,7 +256,7 @@ export const aiShortlistApi = createApi({
         jobId: EntityId;
         talentId: EntityId;
         talentSource: "candidate" | "bench";
-        stage: "shortlisted" | "invited";
+        stage: "shortlisted" | "invited" | "completed";
       }
     >({
       query: ({ jobId, ...body }) => ({

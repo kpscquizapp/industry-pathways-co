@@ -238,10 +238,9 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
           </Select>
 
           <Button
-            variant="ghost"
             size="sm"
             onClick={handleReset}
-            className="h-9"
+            className="h-9 hover:bg-muted bg-transparent text-black font-semibold"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset
@@ -251,7 +250,10 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-9">
+              <Button
+                size="sm"
+                className="h-9 hover:bg-muted bg-transparent text-black font-semibold"
+              >
                 <Settings className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -271,10 +273,9 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
           </DropdownMenu>
 
           <Button
-            variant="ghost"
             size="sm"
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="h-9"
+            className="h-9 hover:bg-muted bg-transparent text-black font-semibold"
           >
             {isFullscreen ? (
               <Minimize2 className="h-4 w-4" />
