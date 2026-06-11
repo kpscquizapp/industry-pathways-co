@@ -42,7 +42,7 @@ type EmployerFormData = {
   companyName: string;
   companyDetails: string;
 };
-type FieldErrorKey = keyof EmployerFormData | "companyDocument" | "otp";
+type FieldErrorKey = keyof EmployerFormData | "companyDocument" | "otp" | "acceptedTerms" | "acceptedPrivacyPolicy";
 
 interface StepConfig {
   id: number;
@@ -90,6 +90,9 @@ const EmployerSignup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedPrivacyPolicy, setAcceptedPrivacyPolicy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Field-level errors for better UX
@@ -281,6 +284,12 @@ const EmployerSignup = () => {
       // Validate document
       const documentError = VALIDATION.document.validate(companyDocument);
       if (documentError) errors.companyDocument = documentError;
+
+      // Validate terms & privacy
+      if (!acceptedTerms)
+        errors.acceptedTerms = "You must accept the Terms of Service to continue";
+      if (!acceptedPrivacyPolicy)
+        errors.acceptedPrivacyPolicy = "You must agree to the Privacy Policy to continue";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -1065,6 +1074,78 @@ const EmployerSignup = () => {
                             </div>
                           )}
                           <ErrorMessage error={fieldErrors.companyDocument} />
+                        </div>
+
+                        {/* Terms of Service */}
+                        <div className="flex flex-col gap-1">
+                          <label className="flex items-start gap-3 cursor-pointer group">
+                            <input
+                              type="checkbox"
+                              id="acceptedTerms"
+                              checked={acceptedTerms}
+                              onChange={() => {
+                                setAcceptedTerms((p) => !p);
+                                if (fieldErrors.acceptedTerms) {
+                                  setFieldErrors((prev) => {
+                                    const n = { ...prev };
+                                    delete n.acceptedTerms;
+                                    return n;
+                                  });
+                                }
+                              }}
+                              className="mt-0.5 w-4 h-4 shrink-0 accent-[#4DD9E8] cursor-pointer"
+                            />
+                            <span className="text-[13px] text-slate-600 leading-snug group-hover:text-slate-800 transition-colors">
+                              I accept the{" "}
+                              <a
+                                href="/terms"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[#0e8a96] font-semibold underline underline-offset-2 hover:text-[#288e99]"
+                              >
+                                Terms of Service
+                              </a>
+                              {" "}and agree to communications.{" "}
+                              <span className="text-[#4DD9E8]">*</span>
+                            </span>
+                          </label>
+                          <ErrorMessage error={fieldErrors.acceptedTerms} />
+                        </div>
+
+                        {/* Privacy Policy */}
+                        <div className="flex flex-col gap-1">
+                          <label className="flex items-start gap-3 cursor-pointer group">
+                            <input
+                              type="checkbox"
+                              id="acceptedPrivacyPolicy"
+                              checked={acceptedPrivacyPolicy}
+                              onChange={() => {
+                                setAcceptedPrivacyPolicy((p) => !p);
+                                if (fieldErrors.acceptedPrivacyPolicy) {
+                                  setFieldErrors((prev) => {
+                                    const n = { ...prev };
+                                    delete n.acceptedPrivacyPolicy;
+                                    return n;
+                                  });
+                                }
+                              }}
+                              className="mt-0.5 w-4 h-4 shrink-0 accent-[#4DD9E8] cursor-pointer"
+                            />
+                            <span className="text-[13px] text-slate-600 leading-snug group-hover:text-slate-800 transition-colors">
+                              I agree to the{" "}
+                              <a
+                                href="/privacy"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[#0e8a96] font-semibold underline underline-offset-2 hover:text-[#288e99]"
+                              >
+                                Privacy Policy
+                              </a>
+                              {" "}and data processing.{" "}
+                              <span className="text-[#4DD9E8]">*</span>
+                            </span>
+                          </label>
+                          <ErrorMessage error={fieldErrors.acceptedPrivacyPolicy} />
                         </div>
                       </div>
                     )}

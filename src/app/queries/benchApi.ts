@@ -140,6 +140,16 @@ export const benchApi = createApi({
       invalidatesTags: ["BenchResources"],
     }),
 
+    // to restore bench resources
+
+    restoreBenchResource: builder.mutation<any, number | string>({
+      query: (id) => ({
+        url: `employers/bench-resources/${id}/restore`,
+        method: "PUT",
+      }),
+      invalidatesTags: ["BenchResources"],
+    }),
+
 
 
     getBenchResourceById: builder.query<BenchResourceResponse, number | string>(
@@ -209,5 +219,6 @@ export const {
   useDeleteBenchResourceMutation,
   useGetBenchResourceByIdQuery,
   useLazyViewBenchResumeQuery,
+  useRestoreBenchResourceMutation,
   usePermanentDeleteBenchResourceMutation,
 } = benchApi;

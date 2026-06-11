@@ -39,6 +39,7 @@ import { useNavigate } from "react-router-dom";
 import {
   useGetBenchResourcesQuery,
   useDeleteBenchResourceMutation,
+  useRestoreBenchResourceMutation, // this is to  restore bench resources
   usePermanentDeleteBenchResourceMutation,
 } from "@/app/queries/benchApi";
 import CandidateProfileModal, {
@@ -212,6 +213,7 @@ const ActiveResources = () => {
   };
   const [deleteBenchResource] = useDeleteBenchResourceMutation();
   const [permanentDeleteBenchResource] = usePermanentDeleteBenchResourceMutation();
+  const [restoreBenchResource] = useRestoreBenchResourceMutation();
 
   const handleViewResource = (resource: any) => {
     setSelectedResource(resource);
@@ -236,6 +238,16 @@ const ActiveResources = () => {
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to permanently delete resource");
       console.error("Failed to permanently delete resource:", error);
+    }
+  };
+
+  //restore non-active to active
+  const handleRestoreResource = async (id: number | string) => {
+    try {
+      await restoreBenchResource(id).unwrap();
+      toast.success("Resource restored successfully!");
+    } catch (error) {
+      toast.error("Failed to restore resource");
     }
   };
 
@@ -640,19 +652,31 @@ const ActiveResources = () => {
                                       handleDeleteResource(resource.id);
                                     }}
                                   >
-                                    Remove
+                                    Inactive
                                   </DropdownMenuItem>
                                 ) : (
-                                  <DropdownMenuItem
-                                    className="text-red-600 focus:text-red-600 hover:bg-red-50 focus:bg-red-50"
-                                    onSelect={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      handlePermanentDeleteResource(resource.id);
-                                    }}
-                                  >
-                                    Delete Permanently
-                                  </DropdownMenuItem>
+                                  <>
+                                    <DropdownMenuItem
+                                      className="text-green-600 focus:text-green-600 hover:bg-green-50 focus:bg-green-50"
+                                      onSelect={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleRestoreResource(resource.id);
+                                      }}
+                                    >
+                                      Active
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      className="text-red-600 focus:text-red-600 hover:bg-red-50 focus:bg-red-50"
+                                      onSelect={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handlePermanentDeleteResource(resource.id);
+                                      }}
+                                    >
+                                      Delete Permanently
+                                    </DropdownMenuItem>
+                                  </>
                                 )}
                               </DropdownMenuContent>
                             </DropdownMenu>
