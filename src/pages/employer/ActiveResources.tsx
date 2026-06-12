@@ -39,8 +39,10 @@ import { useNavigate } from "react-router-dom";
 import {
   useGetBenchResourcesQuery,
   useDeleteBenchResourceMutation,
+  useGetShortlistedBenchResourceIdsQuery,
   useRestoreBenchResourceMutation, // this is to  restore bench resources
   usePermanentDeleteBenchResourceMutation,
+  type ShortlistedBenchDetail,
 } from "@/app/queries/benchApi";
 import CandidateProfileModal, {
   CandidateProfile,
@@ -143,7 +145,7 @@ const ActiveResources = () => {
         })
         .join(", ");
     };
-
+    const shortlistDetail = shortlistedMap.get(resource.id);
     return {
       id: resource.id,
       name: resource.resourceName,
@@ -177,6 +179,9 @@ const ActiveResources = () => {
       primarySkills: resource.primarySkills || [],
       secondarySkills: resource.secondarySkills || [],
       about: resource.professionalSummary || "",
+      shortlistedFor: shortlistDetail && shortlistDetail.length > 0
+        ? shortlistDetail.map((s) => ({ jobTitle: s.jobTitle, companyName: s.companyName }))
+        : undefined,
     };
   }
 
@@ -213,6 +218,17 @@ const ActiveResources = () => {
   };
   const [deleteBenchResource] = useDeleteBenchResourceMutation();
   const [permanentDeleteBenchResource] = usePermanentDeleteBenchResourceMutation();
+  const { data: shortlistedData } = useGetShortlistedBenchResourceIdsQuery();
+  const shortlistedIds = new Set(
+    (shortlistedData?.data || []).map((item) => item.talentId)
+  );
+  const shortlistedMap = new Map<number, ShortlistedBenchDetail[]>();
+  (shortlistedData?.data || []).forEach((item) => {
+    const existing = shortlistedMap.get(item.talentId) || [];
+    existing.push(item);
+    shortlistedMap.set(item.talentId, existing);
+  });
+
   const [restoreBenchResource] = useRestoreBenchResourceMutation();
 
   const handleViewResource = (resource: any) => {
@@ -598,13 +614,15 @@ const ActiveResources = () => {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          className={`${resource.isActive
+                        <Badge className={`${shortlistedIds.has(resource.id)
+                          ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                          : resource.isActive
                             ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                             : "bg-red-100 text-red-700 hover:bg-red-200"
-                            }`}
-                        >
-                          {resource.isActive ? "Active" : "Inactive"}
+                          }`}>
+                          {shortlistedIds.has(resource.id)
+                            ? "Shortlisted"
+                            : resource.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">

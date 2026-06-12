@@ -92,6 +92,13 @@ export interface BenchResourceResponse {
   data: BenchResourceRawDto;
 }
 
+export interface ShortlistedBenchDetail {
+  talentId: number;
+  jobId: number;
+  jobTitle: string;
+  companyName: string;
+}
+
 export const benchApi = createApi({
   reducerPath: "benchApi",
   baseQuery: fetchBaseQuery({
@@ -138,6 +145,15 @@ export const benchApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["BenchResources"],
+    }),
+
+    // shortlisting....
+    getShortlistedBenchResourceIds: builder.query<{ success: boolean; data: ShortlistedBenchDetail[] }, void>({
+      query: () => ({
+        url: 'employers/bench-resources/shortlisted-ids',
+        method: 'GET',
+      }),
+      providesTags: ['BenchResources'],
     }),
 
     // to restore bench resources
@@ -220,5 +236,6 @@ export const {
   useGetBenchResourceByIdQuery,
   useLazyViewBenchResumeQuery,
   useRestoreBenchResourceMutation,
+  useGetShortlistedBenchResourceIdsQuery,
   usePermanentDeleteBenchResourceMutation,
 } = benchApi;

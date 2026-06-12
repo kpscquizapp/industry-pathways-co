@@ -38,4 +38,5 @@ export interface CandidateProfile {
     technologies: string[];
     icon: "smartphone" | "shopping" | string;
   }[];
+  shortlistedFor?: { jobTitle: string; companyName: string }[];
 }

@@ -98,11 +98,13 @@ const normalizeBenchCandidate = (c: BenchResourceRawDto) => {
   // Resolve skills from either shape (array or comma-string)
   // Treat empty arrays as absent so comma-string values can be used as fallback
   const rawSkillsArr =
-    Array.isArray(c.skills) && c.skills.length > 0
-      ? c.skills
-      : Array.isArray(c.technicalSkills) && c.technicalSkills.length > 0
-        ? c.technicalSkills
-        : null;
+    Array.isArray(c.primarySkills) && c.primarySkills.length > 0
+      ? c.primarySkills
+      : Array.isArray(c.skills) && c.skills.length > 0
+        ? c.skills
+        : Array.isArray(c.technicalSkills) && c.technicalSkills.length > 0
+          ? c.technicalSkills
+          : null;
   const skillsArr: string[] =
     rawSkillsArr ??
     (typeof c.skills === "string" && c.skills
@@ -197,7 +199,9 @@ const normalizeBenchCandidate = (c: BenchResourceRawDto) => {
     yearsExperience: yearsExp,
     experience: yearsExp,
     primarySkills: skillsArr.map((name: string) => ({ name })),
-    secondarySkills: [],
+    secondarySkills: Array.isArray(c.secondarySkills)
+      ? c.secondarySkills.map((name: string) => ({ name }))
+      : [],
     preferredWorkType: deploymentPref,
     preferredJobLocations: [],
     certifications: certs,
@@ -452,6 +456,17 @@ const CandidateProfileView = () => {
                 Could not refresh profile — showing cached data.
               </div>
             )}
+            <div className="mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(-1)}
+                className="gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
               {/* Left Sidebar */}
               <div className="lg:col-span-3 space-y-4">
