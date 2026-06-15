@@ -69,23 +69,7 @@ const BenchLogin = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (!userDetails) return;
-
-    try {
-      const saved = localStorage.getItem("post_invite_redirect");
-      if (saved && typeof saved === "string") {
-        if (saved.startsWith("/")) {
-          localStorage.removeItem("post_invite_redirect");
-          navigate(saved);
-          return;
-        }
-        localStorage.removeItem("post_invite_redirect");
-      }
-    } catch (e) {
-      // ignore storage errors
-    }
-
-    if (userDetails.role === "hr") {
+    if (userDetails && userDetails.role === "hr") {
       navigate("/bench-dashboard");
     }
   }, [userDetails, navigate]);

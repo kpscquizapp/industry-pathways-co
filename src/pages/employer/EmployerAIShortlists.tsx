@@ -806,7 +806,6 @@ const EmployerAIShortlists = () => {
       page: employerJobsPage,
       limit: EMPLOYER_JOBS_PAGE_SIZE,
     });
-
   const employerJobs = loadedEmployerJobs;
   const isAllJobsSelected = !selectedJob;
   const selectedJobId = !isAllJobsSelected ? String(selectedJob) : null;
@@ -1525,7 +1524,7 @@ const EmployerAIShortlists = () => {
                     key={candidate.id}
                     className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 shadow-sm xl:flex-row xl:items-center xl:gap-6"
                   >
-                    <div className="flex items-center gap-4 w-full min-w-0 lg:w-[280px] lg:shrink-0">
+                    <div className="flex items-center gap-4 w-full min-w-0 xl:w-[280px] xl:shrink-0">
                       {/* <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#08b8cc] focus:ring-[#08b8cc]" /> */}
                       <Avatar className="h-12 w-12 shrink-0 rounded-full border border-gray-100 shadow-sm">
                         <AvatarFallback className="bg-gray-100 text-gray-700 font-semibold text-lg">
@@ -1549,7 +1548,7 @@ const EmployerAIShortlists = () => {
                       </div>
                     </div>
 
-                    <div className="w-full min-w-0 lg:flex-1">
+                    <div className="w-full min-w-0 xl:flex-1">
                       <div className="flex flex-wrap gap-1.5">
                         {candidate.skills.slice(0, 5).map((skill) => (
                           <span
@@ -1567,7 +1566,7 @@ const EmployerAIShortlists = () => {
                       </div>
                     </div>
 
-                    <div className="flex w-full min-w-0 flex-col gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3 sm:flex-row sm:items-center sm:justify-between lg:w-auto lg:min-w-[430px] lg:border-0 lg:bg-transparent lg:p-0">
+                    <div className="flex w-full min-w-0 flex-col gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3 sm:flex-row sm:items-center sm:justify-between xl:w-auto xl:min-w-[430px] xl:border-0 xl:bg-transparent xl:p-0">
                       <div className="flex min-w-0 items-center gap-3">
                         <div
                           className={`w-11 h-11 shrink-0 rounded-full border-2 ${scoreBorder} flex items-center justify-center bg-white`}

@@ -37,24 +37,9 @@ const CandidateLogin = () => {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const userDetails = useSelector((state: RootState) => state.user.userDetails);
+
   useEffect(() => {
-    if (!userDetails) return;
-
-    try {
-      const saved = localStorage.getItem("post_invite_redirect");
-      if (saved && typeof saved === "string") {
-        if (saved.startsWith("/")) {
-          localStorage.removeItem("post_invite_redirect");
-          navigate(saved);
-          return;
-        }
-        localStorage.removeItem("post_invite_redirect");
-      }
-    } catch (e) {
-      // ignore storage errors
-    }
-
-    if (userDetails.role === "candidate") {
+    if (userDetails && userDetails.role === "candidate") {
       navigate("/contractor/dashboard");
     }
   }, [userDetails, navigate]);
@@ -130,10 +115,23 @@ const CandidateLogin = () => {
 
       dispatch(setUser(result));
 
-      toast.success(
-        `Welcome${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
-      );
-      navigate("/contractor/dashboard");
+      // Check if this is first login (profile not completed)
+      const isFirstLogin =
+        typeof result?.profileCompleted === "boolean"
+          ? !result.profileCompleted
+          : result?.isFirstLogin === true;
+
+      if (isFirstLogin) {
+        toast.success(
+          `Welcome${result?.user?.firstName ? ` ${result.user.firstName}` : ""}! Let's complete your profile.`,
+        );
+        navigate("/contractor/profile");
+      } else {
+        toast.success(
+          `Welcome${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
+        );
+        navigate("/contractor/dashboard");
+      }
     } catch (error: unknown) {
       const { message, hasCredentialError } = getLoginErrorDetails(error);
       toast.error(message);

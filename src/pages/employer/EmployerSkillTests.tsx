@@ -715,7 +715,7 @@ const EmployerSkillTests = () => {
                     <Label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                       Date *
                     </Label>
-                    <Input
+                    <input
                       type="date"
                       value={scheduleData.date}
                       onChange={(e) =>
@@ -724,7 +724,7 @@ const EmployerSkillTests = () => {
                           date: e.target.value,
                         })
                       }
-                      className="mt-1.5 h-11 rounded-xl border-gray-200 text-sm font-semibold shadow-sm focus-visible:ring-[#0ea5e9] cursor-pointer"
+                      className="mt-1.5 h-11 rounded-xl border-gray-200 text-sm font-semibold shadow-sm focus-visible:ring-[#0ea5e9] cursor-pointer w-full px-4 border focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0ea5e9]"
                     />
                   </div>
                 </div>

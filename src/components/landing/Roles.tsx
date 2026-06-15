@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Asset imports
@@ -71,15 +71,27 @@ const TAB_DATA = [
 
 export default function Roles() {
   const [active, setActive] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const data = TAB_DATA[active];
 
-  // Auto-switch tabs every 4 seconds
-  useEffect(() => {
-    const timer = setInterval(() => {
+  const startTimer = () => {
+    if (timerRef.current !== null) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
       setActive((prev) => (prev + 1) % TABS.length);
-    }, 4000);
+    }, 10000);
+  };
 
-    return () => clearInterval(timer);
+  const stopTimer = () => {
+    if (timerRef.current !== null) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    startTimer();
+    return stopTimer;
   }, []);
 
   return (
@@ -127,18 +139,32 @@ export default function Roles() {
         </div>
 
         {/* Dark card */}
-        <div className="dark-card overflow-hidden max-w-[1200px] min-h-[600px] mx-auto shadow-2xl relative border border-white/[0.05]">
+        <div
+          ref={containerRef}
+          onMouseEnter={() => stopTimer()}
+          onMouseLeave={() => {
+            if (!containerRef.current?.contains(document.activeElement)) {
+              startTimer();
+            }
+          }}
+          className="dark-card overflow-hidden max-w-[1200px] min-h-[600px] mx-auto shadow-2xl relative border border-white/[0.05]"
+        >
           {/* ═══ SLIDING TAB BAR ═══ */}
-          <div className="relative flex p-3 sm:p-4 gap-3 sm:gap-4 items-center justify-center">
+          <div className="relative flex p-3 sm:p-4 gap-3 sm:gap-4 items-center justify-center ">
             {/* Tab buttons */}
             {TABS.map((tab, i) => (
               <button
                 key={i}
                 onClick={() => setActive(i)}
+                onFocus={() => stopTimer()}
+                onBlur={() => startTimer()}
+                onTouchStart={() => stopTimer()}
+                onTouchEnd={() => startTimer()}
                 className={`flex-1 max-w-full py-1 rounded-full border cursor-pointer text-[10px] sm:text-[11px] font-bold tracking-[2px] min-w-0 min-h-0 font-mono relative transition-all duration-300
-                  ${active === i
-                    ? "text-white border-transparent bg-gradient-to-r from-[#2B4C5A] via-[#38BDF8] to-[#5CE1E6]"
-                    : "text-white border-white/[0.08] bg-[#292929] hover:bg-white/[0.05] hover:border-white/20"
+                  ${
+                    active === i
+                      ? "text-white border-transparent bg-gradient-to-r from-[#2B4C5A] via-[#38BDF8] to-[#5CE1E6]"
+                      : "text-white border-white/[0.08] bg-[#292929] hover:bg-white/[0.05] hover:border-white/20"
                   }`}
               >
                 {active === i && (

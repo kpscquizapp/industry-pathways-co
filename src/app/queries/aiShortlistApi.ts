@@ -57,7 +57,7 @@ export interface Match {
   /** Backend-persisted shortlist status */
   isShortlisted?: boolean;
   /** Pipeline stage persisted in EmployerShortlist — returned by GET /jobs/:id/matches */
-  stage?: "shortlisted" | "invited" | null;
+  stage?: "shortlisted" | "invited" | "completed" | null;
   [key: string]: unknown;
 }
 
@@ -269,6 +269,35 @@ export const aiShortlistApi = createApi({
         { type: "AiShortlistMatches", id: String(jobId) },
       ],
     }),
+
+    //Questions generated from JD
+    GeneratedQuestionsFromJD: builder.mutation<
+      any,
+      { jobId: number | string; questionCount: number }
+    >({
+      query: ({ jobId, questionCount }) => ({
+        url: `coding/generate-questions`,
+        method: "POST",
+        body: { jobId, questionCount },
+      }),
+    }),
+
+    GetGeneratedQuestionsFromJD: builder.query<any, { jobId: number | string }>(
+      {
+        query: ({ jobId }) => ({
+          url: `coding/generate-questions/${jobId}`,
+          method: "GET",
+        }),
+      },
+    ),
+
+    //Get code test result (employer only)
+    GetCodeTestResult: builder.query<any, { testId: number | string }>({
+      query: ({ testId }) => ({
+        url: `coding/tests/${testId}/status`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -287,4 +316,7 @@ export const {
   useGetCustomTestsByEmployerQuery,
   useDeleteCustomQuestionMutation,
   useGetProblemsQuery,
+  useGeneratedQuestionsFromJDMutation,
+  useGetGeneratedQuestionsFromJDQuery,
+  useGetCodeTestResultQuery,
 } = aiShortlistApi;

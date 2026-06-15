@@ -312,29 +312,10 @@ const CodingChallenge: React.FC = () => {
   }, [filteredLanguages, language, problems, activeProblemIndex]);
 
   const user = useAppSelector((state) => state.user.userDetails);
+  const getTestsPath = React.useCallback(() => {
+    return user?.role === "candidate" ? "/contractor/dashboard" : "/";
+  }, [user]);
 
-  // If this is a token-based invite link and the user is not logged in,
-  // persist the full URL and show a prompt asking the user to login.
-  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
-
-  useEffect(() => {
-    if (!isToken) return;
-    if (user && Object.keys(user).length > 0) return;
-
-    try {
-      const fullPath = window.location.pathname + window.location.search;
-      // Only set if not already present
-      if (!localStorage.getItem("post_invite_redirect")) {
-        localStorage.setItem("post_invite_redirect", fullPath);
-      }
-    } catch (e) {
-      // ignore storage failures
-    }
-
-    // Show a dialog informing the user they need to login, with a button
-    // that sends them to the homepage where they can sign in or sign up.
-    setIsInviteDialogOpen(true);
-  }, [isToken, user]);
   const hasMountedRef = useRef(false);
   const suppressViolationsUntilRef = useRef(0);
   const devtoolsOpenRef = useRef(false);
@@ -504,7 +485,7 @@ const CodingChallenge: React.FC = () => {
         // Perform cleanup before navigating
         toast.info("Ending session and saving progress...", { duration: 2000 });
         await performCleanup();
-        navigate("/contractor/tests");
+        navigate(getTestsPath());
       } else {
         // Re-push the dummy state so the back button still works next time
         window.history.pushState({ guardedTest: true }, "");
@@ -573,81 +554,6 @@ const CodingChallenge: React.FC = () => {
   }, []);
 
   const currentProblem = problems[activeProblemIndex];
-
-  // Invite dialog handlers
-  const handleInviteGoHome = () => {
-    setIsInviteDialogOpen(false);
-    navigate("/");
-  };
-
-  const inviteDialog = (
-    // Make dialog non-dismissible by ignoring onOpenChange (prevent overlay/esc)
-    <Dialog open={isInviteDialogOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-sm md:max-w-md md:mx-0 mx-auto invite-no-close">
-        <style>{`.invite-no-close > button:last-child { display: none !important; }`}</style>
-
-        <DialogHeader>
-          <div
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600
-                    bg-blue-50 px-2.5 py-1 rounded-md w-fit mb-2"
-          >
-            <ShieldCheck className="w-3 h-3" />
-            Private assessment
-          </div>
-          <DialogTitle>Sign in to continue</DialogTitle>
-          <DialogDescription>
-            This assessment link requires an account. Choose how you were
-            invited to sign in to the right portal.
-          </DialogDescription>
-        </DialogHeader>
-
-        <hr />
-
-        <p className="text-xs font-medium text-muted-foreground mb-3">
-          Login to access your coding assessment.
-        </p>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Link
-            to="/contractor-login"
-            className="flex flex-col items-start border rounded-lg p-4 hover:bg-muted
-                 transition-colors text-left"
-          >
-            <div className="w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center mb-3">
-              <User className="w-4 h-4 text-blue-600" />
-            </div>
-            <p className="text-sm font-medium">Contractor</p>
-            <p className="text-xs text-muted-foreground">
-              Login as a contractor.
-            </p>
-          </Link>
-
-          <Link
-            to="/bench-login"
-            className="flex flex-col items-start border rounded-lg p-4 hover:bg-muted
-                 transition-colors text-left"
-          >
-            <div
-              className="w-8 h-8 rounded-md bg-green-50 flex items-center
-                      justify-center mb-3"
-            >
-              <Users className="w-4 h-4 text-green-600" />
-            </div>
-            <p className="text-sm font-medium">Bench</p>
-            <p className="text-xs text-muted-foreground">
-              Login as a bench user.
-            </p>
-          </Link>
-        </div>
-
-        <div className="mt-4">
-          <Button className="w-full text-white" onClick={handleInviteGoHome}>
-            ← Go to home
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
 
   // 1. Initial Data Fetch via RTK lazy queries
   useEffect(() => {
@@ -1019,19 +925,28 @@ const CodingChallenge: React.FC = () => {
         submittedProblemIdsRef.current.add(currentProblem.id);
 
         toast.success("Final problem submitted! Ending test...");
+
+        setIsSubmitting(false);
+
+        // End the test after a successful submission
+        await handleEndTest();
+        return;
       } else {
         // Already submitted earlier
         toast.info("Problem already submitted. Ending test...");
+
+        setIsSubmitting(false);
+
+        // End the test when skipping because it was already submitted
+        await handleEndTest();
+        return;
       }
     } catch {
-      // Even if submission fails, still end the test
-      toast.warning("Submission had issues, but ending test...");
-    } finally {
+      // Submission failed — keep the manual Submit & End Test UI open for retries
       setIsSubmitting(false);
+      toast.warning("Submission had issues; please try again.");
+      return;
     }
-
-    // End the test after submission (or if submission skipped/failed)
-    await handleEndTest();
   };
 
   const isLastProblem = activeProblemIndex === problems.length - 1;
@@ -1045,7 +960,6 @@ const CodingChallenge: React.FC = () => {
             Preparing your assessment...
           </p>
         </div>
-        {inviteDialog}
       </div>
     );
   }
@@ -1065,13 +979,12 @@ const CodingChallenge: React.FC = () => {
             submitted and are being reviewed.
           </p>
           <Button
-            onClick={() => navigate("/contractor/tests")}
+            onClick={() => navigate(getTestsPath())}
             className="w-full bg-slate-900 hover:bg-slate-900/90 text-white hover:text-white"
           >
             Back to Dashboard
           </Button>
         </div>
-        {inviteDialog}
       </div>
     );
   }
@@ -1092,14 +1005,13 @@ const CodingChallenge: React.FC = () => {
               : "We encountered a problem loading your assessment. Please try again later or contact support."}
           </p>
           <Button
-            onClick={() => navigate("/contractor/tests")}
+            onClick={() => navigate(getTestsPath())}
             variant="outline"
             className="w-full"
           >
             Back to Dashboard
           </Button>
         </div>
-        {inviteDialog}
       </div>
     );
   }
@@ -1313,8 +1225,8 @@ const CodingChallenge: React.FC = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1 h-1 rounded-full bg-[#fbbf24] mt-1.5 shrink-0" />
-                  Switching tabs, leaving, multiple monitors, or full-screen may flag your
-                  submission.
+                  Switching tabs, leaving, multiple monitors, or full-screen may
+                  flag your submission.
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1 h-1 rounded-full bg-[#fbbf24] mt-1.5 shrink-0" />
@@ -1398,14 +1310,12 @@ const CodingChallenge: React.FC = () => {
             </div>
           </div>
         </div>
-        {inviteDialog}
       </div>
     );
   }
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      {inviteDialog}
       {/* Header */}
       <header className="border-b border-border px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between bg-card flex-shrink-0 min-w-0">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
@@ -1414,12 +1324,12 @@ const CodingChallenge: React.FC = () => {
             onClick={async () => {
               if (
                 window.confirm(
-                  "⚠️ Warning: Exiting will end your assessment. Are you sure?",
+                  "⚠️ Warning: Exiting will end your assessment. You will not be able to re-enter. Are you sure?",
                 )
               ) {
                 toast.info("Ending session...", { duration: 2000 });
                 await performCleanup();
-                navigate("/contractor/tests");
+                navigate(getTestsPath());
               }
             }}
             className="gap-2 px-2 sm:px-3 hover:bg-muted bg-transparent text-black font-semibold"

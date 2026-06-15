@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   useCreateCustomTestMutation,
@@ -9,6 +9,8 @@ import {
   useDeleteCustomQuestionMutation,
   useGetProblemsQuery,
   useGetJobMatchesQuery,
+  useGeneratedQuestionsFromJDMutation,
+  useGetGeneratedQuestionsFromJDQuery,
 } from "@/app/queries/aiShortlistApi";
 import { useScheduleTestForCandidateMutation } from "@/app/queries/assessmentApi";
 import { useSelector } from "react-redux";
@@ -54,6 +56,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AlertCircle } from "lucide-react";
+import SpinnerLoader from "@/components/loader/SpinnerLoader";
+import { toast } from "sonner";
 
 type TabMode = "manual" | "ai" | "bulk";
 
@@ -61,6 +65,7 @@ type TabMode = "manual" | "ai" | "bulk";
 
 export default function InterviewQuestions() {
   const [activeTab, setActiveTab] = useState<TabMode>("manual");
+  const [isEdit, setIsEdit] = useState(false);
   const [searchParams] = useSearchParams();
 
   type Example = { input: string; output: string; explanation?: string };
@@ -138,6 +143,7 @@ export default function InterviewQuestions() {
       { skip: !employerEmail },
     );
   const [deleteCustomQuestion] = useDeleteCustomQuestionMutation();
+  const [updateCustomQuestion] = useUpdateCustomTestMutation();
 
   // Fetch matches for this job to count invited candidates
   const { data: matchesData } = useGetJobMatchesQuery(
@@ -174,9 +180,79 @@ export default function InterviewQuestions() {
         category: q.category || category,
       }));
 
-      setSavedQuestions(loaded);
+      // Merge library items with any existing savedQuestions that may contain
+      // questions sourced from employer custom tests. We keep non-test items
+      // from previous state and append the library items.
+      setSavedQuestions((prev) => {
+        const nonTestItems = prev.filter((item) => item._testId === undefined);
+        return [...nonTestItems, ...loaded];
+      });
     }
   }, [problemsData, role, category]);
+
+  // Seed savedQuestions with questions coming from employer-created custom tests
+  useEffect(() => {
+    if (employerTestData?.success && Array.isArray(employerTestData.data)) {
+      // employerTestData likely contains tests, each with a questions array
+      const loadedFromTests: any[] = [];
+      (employerTestData.data as any[]).forEach((test: any) => {
+        const testId = test.id || test._id || test.testId;
+        const testTitle = test.title || test.name || "Custom Test";
+        const testStatus = test.status || test.state || null;
+        (test.questions || []).forEach((q: any, qi: number) => {
+          loadedFromTests.push({
+            ...q,
+            // Preserve a link to the owning test and the question index so
+            // edit/delete operations can target the correct backend record
+            _testId: testId,
+            _testTitle: testTitle,
+            _testStatus: testStatus,
+            _questionIndex:
+              typeof q._questionIndex === "number" ? q._questionIndex : qi,
+            id: q.id || q.questionId || `${testId}-${qi}`,
+            starter_code: q.starter_code || q.baseCode || defaultStarterCode(),
+            expanded: false,
+            role: q.role || test.role || role,
+            category: q.category || test.category || category,
+          });
+        });
+      });
+
+      // Merge: keep any library items (without _testId) and append/replace test-backed items
+      setSavedQuestions((prev) => {
+        const libraryItems = prev.filter((item) => item._testId === undefined);
+        return [...libraryItems, ...loadedFromTests];
+      });
+    }
+  }, [employerTestData, role, category]);
+
+  const handleCustomQuestionEdit = async (q: Question) => {
+    setIsEdit(true);
+
+    const safeQ = {
+      ...q,
+      examples: q.examples || [],
+      constraints: q.constraints || [],
+      test_cases: q.test_cases || [],
+      starter_code: q.starter_code || defaultStarterCode(),
+      expanded: true,
+    };
+
+    setQuestions([safeQ]);
+    setActiveTab("manual");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    console.log(safeQ);
+    try {
+      // await updateCustomQuestion({ id: q._testId!, employerEmail });
+    } catch (error) {
+      console.error("Error updating custom question:", error);
+    }
+  };
+
+  const handleCustomQuestionDelete = async (q: Question) => {
+    const questionId = q.id;
+    console.log(testId);
+  };
 
   return (
     <div className="min-h-full overflow-x-hidden bg-gray-50 font-inter">
@@ -261,9 +337,7 @@ export default function InterviewQuestions() {
                 candidateName={name || "Candidate"}
               />
             )}
-            {activeTab === "ai" && (
-              <AIGenerateForm defaultRole={role} defaultCategory={category} />
-            )}
+            {activeTab === "ai" && <AIGenerateForm jobId={jobId} />}
             {activeTab === "bulk" && <BulkUploadForm />}
           </div>
 
@@ -296,20 +370,7 @@ export default function InterviewQuestions() {
                 questions={savedQuestions}
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
-                onEdit={(q) => {
-                  // Load ONLY the specific question selected into the editor with safe fallback arrays
-                  const safeQ = {
-                    ...q,
-                    examples: q.examples || [],
-                    constraints: q.constraints || [],
-                    test_cases: q.test_cases || [],
-                    starter_code: q.starter_code || defaultStarterCode(),
-                    expanded: true,
-                  };
-                  setQuestions([safeQ]);
-                  setActiveTab("manual");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
+                onEdit={handleCustomQuestionEdit}
                 onAdd={(q) => {
                   // Add this question to the active test with safe fallback arrays
                   // IMPORTANT: Keep the original q.id from the problem table - don't override it!
@@ -326,36 +387,10 @@ export default function InterviewQuestions() {
                   setActiveTab("manual");
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                onDelete={async (q) => {
-                  // If it's a saved question from DB, delete from backend first
-                  if (
-                    q._testId !== undefined &&
-                    q._questionIndex !== undefined
-                  ) {
-                    try {
-                      await deleteCustomQuestion({
-                        testId: q._testId,
-                        questionIndex: q._questionIndex,
-                      }).unwrap();
-                      // Refetch to ensure sync
-                      refetchLibrary();
-                    } catch (err) {
-                      console.error("Failed to delete question from DB:", err);
-                      showAlert(
-                        "Delete Failed",
-                        "Failed to delete question from library. Please try again.",
-                      );
-                      return;
-                    }
-                  }
-                  // Remove from local UI state
-                  setSavedQuestions((prev) =>
-                    prev.filter((item) => item.id !== q.id),
-                  );
-                }}
+                onDelete={handleCustomQuestionDelete}
               />
             ))}
-          {activeTab === "ai" && <GeneratedQuestionsList />}
+          {activeTab === "ai" && <GeneratedQuestionsList jobId={jobId} />}
           {activeTab === "bulk" && (
             <ImportedQuestionsList
               questions={problemsData?.data || []}
@@ -853,7 +888,7 @@ function ManualEntryForm({
       showAlert(
         "Invite Error",
         error?.data?.message ||
-        "A network error occurred while sending the invite.",
+          "A network error occurred while sending the invite.",
       );
     }
   };
@@ -1254,31 +1289,43 @@ function ManualEntryForm({
           <label className="text-sm font-semibold text-gray-700">
             Assigned role
           </label>
-          <Input
-            className="bg-gray-50 border-gray-200 rounded-xl h-12 text-sm font-medium text-gray-700 max-w-full truncate"
-            value={defaultRole}
-            readOnly
-          />
+          {defaultRole ? (
+            <Input
+              className="bg-gray-50 border-gray-200 rounded-xl h-12 text-sm font-medium text-gray-700 max-w-full truncate"
+              value={defaultRole}
+              readOnly
+            />
+          ) : (
+            <span className="text-gray-400 text-sm">No role assigned</span>
+          )}
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-sm font-semibold text-gray-700">
             Category
           </label>
-          <Input
-            className="bg-gray-50 border-gray-200 rounded-xl h-12 text-sm font-medium text-gray-700 max-w-full truncate"
-            value={defaultCategory}
-            readOnly
-          />
+          {defaultCategory ? (
+            <Input
+              className="bg-gray-50 border-gray-200 rounded-xl h-12 text-sm font-medium text-gray-700 max-w-full truncate"
+              value={defaultCategory}
+              readOnly
+            />
+          ) : (
+            <span className="text-gray-400 text-sm">No category</span>
+          )}
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-sm font-semibold text-gray-700">
             Candidate email
           </label>
-          <Input
-            className="bg-gray-50 border-gray-200 rounded-xl h-12 text-sm font-medium text-gray-700 max-w-full truncate"
-            value={defaultEmail}
-            readOnly
-          />
+          {defaultEmail ? (
+            <Input
+              className="bg-gray-50 border-gray-200 rounded-xl h-12 text-sm font-medium text-gray-700 max-w-full truncate"
+              value={defaultEmail}
+              readOnly
+            />
+          ) : (
+            <span className="text-gray-400 text-sm">No email</span>
+          )}
         </div>
       </div>
 
@@ -1345,81 +1392,76 @@ function ManualEntryForm({
   );
 }
 
-function AIGenerateForm({
-  defaultRole = "Senior Frontend Engineer",
-  defaultCategory = "System design",
-}: {
-  defaultRole?: string;
-  defaultCategory?: string;
-}) {
+function AIGenerateForm({ jobId }: { jobId?: number | string }) {
+  const [generateQuestions, { isLoading }] =
+    useGeneratedQuestionsFromJDMutation();
+  const [questionCount, setQuestionCount] = useState("");
+
+  const handleGenerate = async () => {
+    const count = Number(questionCount);
+
+    if (!jobId) {
+      toast.error(
+        "Please go back and select a job before generating questions.",
+      );
+      return;
+    }
+    if (!questionCount.trim() || !Number.isInteger(count) || count < 1) {
+      toast.error("Please enter a valid number of questions to generate.");
+      return;
+    }
+
+    const payload = {
+      jobId: Number(jobId),
+      questionCount: count,
+    };
+
+    try {
+      await generateQuestions(payload).unwrap();
+      toast.success("Questions generated successfully!");
+    } catch (error) {
+      toast.error("Failed to generate questions.");
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-gray-700">
-            Select a posted job
+          <label
+            className="text-sm font-semibold text-gray-700"
+            htmlFor="question-number"
+          >
+            How many questions do you want to generate?
           </label>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="w-full flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none text-gray-700 font-medium hover:bg-gray-100 transition-colors text-left">
-                <span>{defaultRole}</span>
-                <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="start"
-              className="w-[--radix-dropdown-menu-trigger-width] rounded-xl shadow-2xl border-slate-100 p-2 bg-white animate-in fade-in zoom-in-95 duration-200"
-            >
-              <DropdownMenuItem className="py-2.5 px-3 cursor-pointer focus:bg-blue-50 focus:text-blue-600 font-medium text-sm rounded-lg outline-none transition-colors">
-                {defaultRole}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-gray-700">
-            Questions
-          </label>
-          <div className="flex items-center gap-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex-1 flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none text-gray-700 font-medium hover:bg-gray-100 transition-colors text-left">
-                  <span>5 questions</span>
-                  <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                className="w-[--radix-dropdown-menu-trigger-width] rounded-xl shadow-2xl border-slate-100 p-2 bg-white animate-in fade-in zoom-in-95 duration-200"
-              >
-                <DropdownMenuItem className="py-2.5 px-3 cursor-pointer focus:bg-blue-50 focus:text-blue-600 font-medium text-sm rounded-lg outline-none transition-colors">
-                  3 questions
-                </DropdownMenuItem>
-                <DropdownMenuItem className="py-2.5 px-3 cursor-pointer focus:bg-blue-50 focus:text-blue-600 font-medium text-sm rounded-lg outline-none transition-colors">
-                  5 questions
-                </DropdownMenuItem>
-                <DropdownMenuItem className="py-2.5 px-3 cursor-pointer focus:bg-blue-50 focus:text-blue-600 font-medium text-sm rounded-lg outline-none transition-colors">
-                  10 questions
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="flex items-center md:flex-row flex-col gap-3">
+            <input
+              type="text"
+              id="question-number"
+              className="bg-gray-50 border border-gray-200 rounded-xl h-12 text-sm font-medium text-gray-700 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500/20 w-full"
+              placeholder="Enter number of questions to generate"
+              value={questionCount}
+              onChange={(e) => setQuestionCount(e.target.value)}
+            />
             <Button
-              variant="outline"
-              className="rounded-xl flex items-center gap-2 text-gray-700 border-gray-200 h-[46px] font-semibold"
+              className="rounded-xl flex items-center gap-2 text-white border-gray-200 h-[46px] font-semibold w-full md:w-auto"
+              onClick={handleGenerate}
+              disabled={isLoading}
             >
-              <Sparkles className="w-4 h-4 text-amber-500" /> Regenerate
+              {isLoading ? (
+                <p className="flex items-center gap-1">
+                  <SpinnerLoader className="w-4 h-4 text-white animate-spin" />
+                  Generating Questions...
+                </p>
+              ) : (
+                <p className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  Generate Questions
+                </p>
+              )}
             </Button>
           </div>
         </div>
-      </div>
-      <div className="text-xs text-gray-500 flex items-center gap-1">
-        <Sparkles className="w-3 h-3 text-gray-400" /> Advanced focus:{" "}
-        <span className="font-medium text-gray-700">
-          Architecture, problem solving, communication
-        </span>
-        <button className="text-blue-600 hover:underline ml-1 font-medium">
-          Edit
-        </button>
       </div>
     </div>
   );
@@ -1899,67 +1941,49 @@ function QuestionsList({
   );
 }
 
-function GeneratedQuestionsList() {
+function GeneratedQuestionsList({ jobId }: { jobId?: number | string }) {
+  const { data: { data: generatedQuestions } = {}, isLoading } =
+    useGetGeneratedQuestionsFromJDQuery({ jobId: jobId! }, { skip: !jobId });
+
+  let generatedContent: React.ReactNode = null;
+
+  if (isLoading) {
+    generatedContent = (
+      <div className="py-6 text-center">
+        <p className="text-sm text-gray-500">Loading generated questions...</p>
+      </div>
+    );
+  } else if (generatedQuestions?.questions?.length) {
+    generatedContent = (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        {generatedQuestions.questions.map((q: any) => (
+          <QuestionCard
+            key={q.problemId}
+            text={q.title}
+            tags={[
+              { label: "AI-generated", color: "blue" },
+              { label: q.difficulty, color: "gray" },
+            ]}
+          />
+        ))}
+      </div>
+    );
+  } else {
+    generatedContent = (
+      <div className="py-6 text-center">
+        <p className="text-sm text-gray-500">No generated questions found.</p>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-4 mt-2">
       <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-        <h3 className="font-bold text-gray-900">Generated Questions (5)</h3>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            className="text-gray-500 hover:text-gray-700 h-9 font-semibold"
-          >
-            Discard All
-          </Button>
-          <Button className="bg-[#0ea5e9] hover:bg-[#0284c7] text-white rounded-xl h-9 shadow-sm">
-            Save 5 to Bank
-          </Button>
-        </div>
+        <h3 className="font-bold text-gray-900">
+          Generated Questions {generatedQuestions?.questionsCount}
+        </h3>
       </div>
 
-      <QuestionCard
-        text="How would you design a scalable React component system for a product with multiple hiring workflows and reusable assessment steps?"
-        tags={[
-          { label: "AI-generated", color: "blue" },
-          { label: "Frontend", color: "gray" },
-          { label: "System design", color: "gray" },
-          { label: "Advanced", color: "orange" },
-        ]}
-        isActive
-      />
-      <QuestionCard
-        text="Describe your approach to state management in a complex React application. When would you choose Context API over Redux or Zustand?"
-        tags={[
-          { label: "AI-generated", color: "blue" },
-          { label: "Architecture", color: "gray" },
-          { label: "Intermediate", color: "orange" },
-        ]}
-      />
-      <QuestionCard
-        text="When integrating a third-party assessment API, how would you handle retries, partial failures, and candidate state consistency in the hiring pipeline?"
-        tags={[
-          { label: "AI-generated", color: "blue" },
-          { label: "API integration", color: "gray" },
-          { label: "Problem solving", color: "gray" },
-          { label: "Advanced", color: "orange" },
-        ]}
-      />
-      <QuestionCard
-        text="How do you collaborate with designers and recruiters when a hiring workflow needs quick UI changes without creating technical debt?"
-        tags={[
-          { label: "AI-generated", color: "blue" },
-          { label: "Collaboration", color: "gray" },
-          { label: "Communication", color: "gray" },
-        ]}
-      />
-      <QuestionCard
-        text="Can you walk me through a time you identified a performance bottleneck in a front-end application and how you resolved it?"
-        tags={[
-          { label: "AI-generated", color: "blue" },
-          { label: "Performance", color: "gray" },
-          { label: "Intermediate", color: "orange" },
-        ]}
-      />
+      <section>{generatedContent}</section>
     </div>
   );
 }
@@ -2090,7 +2114,7 @@ function QuestionCard({
   return (
     <div
       className={cn(
-        "bg-white p-4 rounded-xl border transition-all",
+        "bg-white p-4 rounded-xl border transition-all my-2",
         isActive
           ? activeColor === "teal"
             ? "border-teal-400 shadow-[0_0_0_1px_rgba(45,212,191,1)]"
@@ -2130,7 +2154,7 @@ function QuestionCard({
               tag.color === "orange-solid" && "bg-orange-100 text-orange-700",
               tag.color === "green" && "bg-emerald-50 text-emerald-600",
               tag.color === "gray" &&
-              "bg-gray-50 text-gray-600 border border-gray-100",
+                "bg-gray-50 text-gray-600 border border-gray-100",
               tag.color === "gray-solid" && "bg-gray-100 text-gray-700",
             )}
           >
