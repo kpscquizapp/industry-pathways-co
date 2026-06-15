@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { config } from "../../services/service";
 import { getAuthHeaders } from "../../lib/helpers";
+import { benchApi } from "./benchApi";
 
 export interface Pagination {
   page?: number;
@@ -159,6 +160,14 @@ export const aiShortlistApi = createApi({
       invalidatesTags: (_result, _error, { jobId }) => [
         { type: "AiShortlistMatches", id: String(jobId) },
       ],
+       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(benchApi.util.invalidateTags(["BenchResources"]));
+        } catch {
+          // ignore
+        }
+      },
     }),
     removeShortlistCandidate: builder.mutation<
       { success: boolean; message?: string },
@@ -173,6 +182,14 @@ export const aiShortlistApi = createApi({
       invalidatesTags: (_result, _error, { jobId }) => [
         { type: "AiShortlistMatches", id: String(jobId) },
       ],
+       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(benchApi.util.invalidateTags(["BenchResources"]));
+        } catch {
+          // ignore
+        }
+      },
     }),
     createCodingTest: builder.mutation<
       any,

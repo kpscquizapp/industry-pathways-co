@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -219,15 +219,19 @@ const ActiveResources = () => {
   const [deleteBenchResource] = useDeleteBenchResourceMutation();
   const [permanentDeleteBenchResource] = usePermanentDeleteBenchResourceMutation();
   const { data: shortlistedData } = useGetShortlistedBenchResourceIdsQuery();
-  const shortlistedIds = new Set(
-    (shortlistedData?.data || []).map((item) => item.talentId)
-  );
-  const shortlistedMap = new Map<number, ShortlistedBenchDetail[]>();
+  const shortlistedIds = useMemo(
+  () => new Set((shortlistedData?.data || []).map((item) => item.talentId)),
+  [shortlistedData]
+);
+const shortlistedMap = useMemo(() => {
+  const map = new Map<number, ShortlistedBenchDetail[]>();
   (shortlistedData?.data || []).forEach((item) => {
-    const existing = shortlistedMap.get(item.talentId) || [];
+    const existing = map.get(item.talentId) || [];
     existing.push(item);
-    shortlistedMap.set(item.talentId, existing);
+    map.set(item.talentId, existing);
   });
+  return map;
+}, [shortlistedData]);
 
   const [restoreBenchResource] = useRestoreBenchResourceMutation();
 
