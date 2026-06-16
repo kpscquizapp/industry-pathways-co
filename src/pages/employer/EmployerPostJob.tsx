@@ -2234,16 +2234,16 @@ const EmployerPostJob = () => {
               undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col sm:flex-row justify-end">
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl hover:bg-gray-100 text-gray-600">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteJob}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
             >
               Delete
             </AlertDialogAction>
-            <AlertDialogCancel className="rounded-xl hover:bg-gray-100 text-gray-600">
-              Cancel
-            </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

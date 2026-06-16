@@ -157,7 +157,13 @@ export default function Roles() {
                 key={i}
                 onClick={() => setActive(i)}
                 onFocus={() => stopTimer()}
-                onBlur={() => startTimer()}
+                onBlur={(e) => {
+                  const next = e.relatedTarget as Node | null;
+                  const focusStillInside =
+                    !!next && !!containerRef.current?.contains(next);
+                  const isHovered = !!containerRef.current?.matches(":hover");
+                  if (!focusStillInside && !isHovered) startTimer();
+                }}
                 onTouchStart={() => stopTimer()}
                 onTouchEnd={() => startTimer()}
                 className={`flex-1 max-w-full py-1 rounded-full border cursor-pointer text-[10px] sm:text-[11px] font-bold tracking-[2px] min-w-0 min-h-0 font-mono relative transition-all duration-300

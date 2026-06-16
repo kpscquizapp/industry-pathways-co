@@ -460,14 +460,7 @@ const CodingChallenge: React.FC = () => {
     } else {
       toast.error("Failed to submit test");
     }
-  }, [
-    performCleanup,
-    problems,
-    submitSolution,
-    language,
-    testId,
-    filteredLanguages,
-  ]);
+  }, [performCleanup]);
 
   // Back-button & page-close guard
   useEffect(() => {

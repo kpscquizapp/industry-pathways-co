@@ -142,8 +142,6 @@ export default function InterviewQuestions() {
       { employerEmail: employerEmail },
       { skip: !employerEmail },
     );
-  const [deleteCustomQuestion] = useDeleteCustomQuestionMutation();
-  const [updateCustomQuestion] = useUpdateCustomTestMutation();
 
   // Fetch matches for this job to count invited candidates
   const { data: matchesData } = useGetJobMatchesQuery(
@@ -241,17 +239,16 @@ export default function InterviewQuestions() {
     setQuestions([safeQ]);
     setActiveTab("manual");
     window.scrollTo({ top: 0, behavior: "smooth" });
-    console.log(safeQ);
     try {
       // await updateCustomQuestion({ id: q._testId!, employerEmail });
+      // not yet implemented functionality
     } catch (error) {
       console.error("Error updating custom question:", error);
     }
   };
 
   const handleCustomQuestionDelete = async (q: Question) => {
-    const questionId = q.id;
-    console.log(testId);
+    // not yet implemented functionality
   };
 
   return (
@@ -1436,7 +1433,8 @@ function AIGenerateForm({ jobId }: { jobId?: number | string }) {
           </label>
           <div className="flex items-center md:flex-row flex-col gap-3">
             <input
-              type="text"
+              type="number"
+              min="1"
               id="question-number"
               className="bg-gray-50 border border-gray-200 rounded-xl h-12 text-sm font-medium text-gray-700 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500/20 w-full"
               placeholder="Enter number of questions to generate"
@@ -1943,7 +1941,10 @@ function QuestionsList({
 
 function GeneratedQuestionsList({ jobId }: { jobId?: number | string }) {
   const { data: { data: generatedQuestions } = {}, isLoading } =
-    useGetGeneratedQuestionsFromJDQuery({ jobId: jobId! }, { skip: !jobId });
+    useGetGeneratedQuestionsFromJDQuery(
+      { jobId: jobId ?? "" },
+      { skip: !jobId },
+    );
 
   let generatedContent: React.ReactNode = null;
 
@@ -1979,7 +1980,9 @@ function GeneratedQuestionsList({ jobId }: { jobId?: number | string }) {
     <div className="flex flex-col gap-4 mt-2">
       <div className="flex items-center justify-between pb-2 border-b border-gray-100">
         <h3 className="font-bold text-gray-900">
-          Generated Questions {generatedQuestions?.questionsCount}
+          Generated Questions
+          {generatedQuestions?.questionsCount != null &&
+            ` (${generatedQuestions.questionsCount})`}
         </h3>
       </div>
 

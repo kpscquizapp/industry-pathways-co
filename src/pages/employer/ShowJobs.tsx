@@ -345,8 +345,10 @@ const ShowJobs = () => {
       await deleteJob({ id: jobId }).unwrap();
       toast.success("Job deleted successfully!");
       setJobId(null);
+      setIsDeleteConfirmOpen(false);
     } catch (error) {
       setJobId(null);
+      setIsDeleteConfirmOpen(false);
       const message =
         error && typeof error === "object" && "data" in error
           ? (error as { data?: { message?: string } }).data?.message
