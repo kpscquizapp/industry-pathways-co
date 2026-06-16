@@ -57,7 +57,7 @@ export interface Match {
   /** Backend-persisted shortlist status */
   isShortlisted?: boolean;
   /** Pipeline stage persisted in EmployerShortlist — returned by GET /jobs/:id/matches */
-  stage?: "shortlisted" | "invited" | null;
+  stage?: "shortlisted" | "invited" | "completed" | null;
   [key: string]: unknown;
 }
 
@@ -123,7 +123,7 @@ export const aiShortlistApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["AiShortlistJobs", "AiShortlistMatches"],
+  tagTypes: ["AiShortlistJobs", "AiShortlistMatches", "GeneratedQuestions"],
   endpoints: (builder) => ({
     getEmployerJobs: builder.query<EmployerJobsResponse, GetEmployerJobsArgs>({
       query: ({ page, limit }) => ({
@@ -256,7 +256,7 @@ export const aiShortlistApi = createApi({
         jobId: EntityId;
         talentId: EntityId;
         talentSource: "candidate" | "bench";
-        stage: "shortlisted" | "invited";
+        stage: "shortlisted" | "invited" | "completed";
       }
     >({
       query: ({ jobId, ...body }) => ({
@@ -268,6 +268,41 @@ export const aiShortlistApi = createApi({
       invalidatesTags: (_result, _error, { jobId }) => [
         { type: "AiShortlistMatches", id: String(jobId) },
       ],
+    }),
+
+    //Questions generated from JD
+    GeneratedQuestionsFromJD: builder.mutation<
+      any,
+      { jobId: number | string; questionCount: number }
+    >({
+      query: ({ jobId, questionCount }) => ({
+        url: `coding/generate-questions`,
+        method: "POST",
+        body: { jobId, questionCount },
+      }),
+      invalidatesTags(_result, _error, { jobId }) {
+        return [{ type: "GeneratedQuestions", id: jobId }];
+      },
+    }),
+
+    GetGeneratedQuestionsFromJD: builder.query<any, { jobId: number | string }>(
+      {
+        query: ({ jobId }) => ({
+          url: `coding/generate-questions/${jobId}`,
+          method: "GET",
+        }),
+        providesTags: (_result, _error, { jobId }) => [
+          { type: "GeneratedQuestions", id: jobId },
+        ],
+      },
+    ),
+
+    //Get code test result (employer only)
+    GetCodeTestResult: builder.query<any, { testId: number | string }>({
+      query: ({ testId }) => ({
+        url: `coding/tests/${testId}/status`,
+        method: "GET",
+      }),
     }),
   }),
 });
@@ -287,4 +322,7 @@ export const {
   useGetCustomTestsByEmployerQuery,
   useDeleteCustomQuestionMutation,
   useGetProblemsQuery,
+  useGeneratedQuestionsFromJDMutation,
+  useGetGeneratedQuestionsFromJDQuery,
+  useGetCodeTestResultQuery,
 } = aiShortlistApi;

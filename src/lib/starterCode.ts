@@ -10,11 +10,13 @@ export type StarterCodeLang = (typeof STARTER_CODE_LANGS)[number];
 export type StarterCode = Record<StarterCodeLang, string>;
 
 export const DEFAULT_STARTER_CODE: StarterCode = {
-  javascript: "var solution = function() {\n    // Write your code here\n};",
-  python: "def solution():\n    # Write your code here\n    pass",
-  java: "class Solution {\n    // Write your code here\n}",
-  typescript: "function solution(): void {\n    // Write your code here\n};",
-  go: "func solution() {\n    // Write your code here\n}",
+  javascript:
+    "function solution() {\n    // Write your code here\n    return null;\n}",
+  python: "def solution():\n    # Write your code here\n    return None",
+  typescript:
+    "function solution(): any {\n    // Write your code here\n    return null;\n}",
+  java: "public class Main {\n    public static Object solution() {\n        // Write your code here\n        return null;\n    }\n}",
+  go: "func solution() interface{} {\n    // Write your code here\n    return nil\n}",
 };
 
 export const STARTER_LANGS: StarterCodeLang[] = [...STARTER_CODE_LANGS];

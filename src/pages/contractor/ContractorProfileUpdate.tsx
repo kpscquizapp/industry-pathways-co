@@ -3549,6 +3549,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                     Featured Project <span className="text-destructive">*</span>
                   </span>
                 </Label>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Check this box for the project you want highlighted on your
+                  profile.
+                </span>
               </div>
             ))}
 

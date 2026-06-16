@@ -24,6 +24,16 @@ import type { Job, JobSkill } from "@/app/queries/aiShortlistApi";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import JobDetailsModal from "./JobDetailsModal";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const ACTIVE_STATUSES: ReadonlySet<string> = new Set([
   EMPLOYER_JOB_STATUS.PUBLISHED,
@@ -225,6 +235,8 @@ const ShowJobs = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [jobId, setJobId] = useState<string | number | null>(null);
   const [activeTab, setActiveTab] = useState<"active" | "draft">("active");
   const [deleteJob] = useDeleteJobMutation();
 
@@ -321,18 +333,22 @@ const ShowJobs = () => {
     );
   };
 
-  const handleDeleteJob = async (jobId: string | number) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this job? This action cannot be undone.",
-      )
-    ) {
-      return;
-    }
+  const handleDeleteJob = (jobId: string | number) => {
+    if (!jobId) return;
+    setJobId(jobId);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteJob = async () => {
+    if (!jobId) return;
     try {
       await deleteJob({ id: jobId }).unwrap();
       toast.success("Job deleted successfully!");
+      setJobId(null);
+      setIsDeleteConfirmOpen(false);
     } catch (error) {
+      setJobId(null);
+      setIsDeleteConfirmOpen(false);
       const message =
         error && typeof error === "object" && "data" in error
           ? (error as { data?: { message?: string } }).data?.message
@@ -634,6 +650,32 @@ const ShowJobs = () => {
           job={selectedJob}
         />
       </div>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={isDeleteConfirmOpen}
+        onOpenChange={setIsDeleteConfirmOpen}
+      >
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Job</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this job? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl hover:bg-gray-100 text-gray-600">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteJob}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

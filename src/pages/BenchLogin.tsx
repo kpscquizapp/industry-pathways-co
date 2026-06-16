@@ -145,7 +145,7 @@ const BenchLogin = () => {
 
       dispatch(setUser(result));
       toast.success(
-        `Welcome back${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
+        `Welcome${result?.user?.firstName ? `, ${result.user.firstName}` : ""}!`,
       );
       navigate("/bench-dashboard");
     } catch (error: unknown) {

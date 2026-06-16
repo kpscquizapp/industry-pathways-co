@@ -28,6 +28,7 @@ import {
   useParams,
   useLocation,
   useSearchParams,
+  Link,
 } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import ProblemPanel from "@/components/coding/ProblemPanel";
@@ -299,6 +300,9 @@ const CodingChallenge: React.FC = () => {
   }, [filteredLanguages, language, problems, activeProblemIndex]);
 
   const user = useAppSelector((state) => state.user.userDetails);
+  const getTestsPath = React.useCallback(() => {
+    return user?.role === "candidate" ? "/contractor/dashboard" : "/";
+  }, [user]);
 
   const hasMountedRef = useRef(false);
   const suppressViolationsUntilRef = useRef(0);
@@ -434,52 +438,9 @@ const CodingChallenge: React.FC = () => {
   }, [testId, token, endTestMutation, endSessionMutation, problems, setCode]);
 
   const handleEndTest = useCallback(async () => {
-    // Auto-submit any problems the candidate hasn't explicitly submitted yet.
-    // This covers time-up, early exits, and skipped problems.
-    // We use `problems` from the outer scope (captured at call time via ref pattern).
-    const unsubmitted = problems.filter(
-      (p) => !submittedProblemIdsRef.current.has(p.id),
-    );
-
-    if (unsubmitted.length > 0) {
-      toast.info(
-        `Auto-submitting ${unsubmitted.length} remaining problem(s)...`,
-      );
-      await Promise.allSettled(
-        unsubmitted.map(async (problem) => {
-          // Recover both the saved source AND the language it was written in.
-          const prefix = `code_${problem.id}_`;
-          let savedCode = "";
-          let savedLangName: string | null = null;
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith(prefix)) {
-              savedCode = localStorage.getItem(key) || "";
-              savedLangName = key.slice(prefix.length);
-              break;
-            }
-          }
-          const matchedLang = savedLangName
-            ? filteredLanguages.find((l) => l.name === savedLangName)
-            : undefined;
-          const langId = getLanguageId(matchedLang) ?? getLanguageId(language);
-          if (langId === null) return; // nothing valid to submit
-
-          try {
-            await submitSolution({
-              problemId: Number(problem.id),
-              code: savedCode,
-              languageId: langId,
-              testId: Number(testId),
-            }).unwrap();
-            submittedProblemIdsRef.current.add(problem.id);
-          } catch {
-            // Silently swallow — best-effort, never block test ending
-          }
-        }),
-      );
-    }
-
+    // NOTE: Auto-submitting has been removed to avoid duplicate submissions
+    // (final problem is submitted explicitly via the UI). We still perform
+    // cleanup and end the test session here.
     const success = await performCleanup();
     if (success) {
       setTestStatus("completed");
@@ -487,14 +448,7 @@ const CodingChallenge: React.FC = () => {
     } else {
       toast.error("Failed to submit test");
     }
-  }, [
-    performCleanup,
-    problems,
-    submitSolution,
-    language,
-    testId,
-    filteredLanguages,
-  ]);
+  }, [performCleanup]);
 
   // Back-button & page-close guard
   useEffect(() => {
@@ -512,7 +466,7 @@ const CodingChallenge: React.FC = () => {
         // Perform cleanup before navigating
         toast.info("Ending session and saving progress...", { duration: 2000 });
         await performCleanup();
-        navigate("/contractor/tests");
+        navigate(getTestsPath());
       } else {
         // Re-push the dummy state so the back button still works next time
         window.history.pushState({ guardedTest: true }, "");
@@ -938,24 +892,40 @@ const CodingChallenge: React.FC = () => {
     setError(undefined);
 
     try {
-      // Submit the last problem first
-      await submitSolution({
-        problemId: Number(currentProblem.id),
-        code: code,
-        languageId,
-        testId: Number(testId),
-      }).unwrap();
+      // If already submitted, skip re-submission to avoid duplicate calls
+      if (!submittedProblemIdsRef.current.has(currentProblem.id)) {
+        // Submit the last problem first
+        await submitSolution({
+          problemId: Number(currentProblem.id),
+          code: code,
+          languageId,
+          testId: Number(testId),
+        }).unwrap();
 
-      toast.success("Final problem submitted! Ending test...");
+        // Mark this problem as submitted to avoid duplicate submissions
+        submittedProblemIdsRef.current.add(currentProblem.id);
+
+        toast.success("Final problem submitted! Ending test...");
+
+        // End the test after a successful submission
+        await handleEndTest();
+        setIsSubmitting(false);
+        return;
+      } else {
+        // Already submitted earlier
+        toast.info("Problem already submitted. Ending test...");
+
+        // End the test when skipping because it was already submitted
+        await handleEndTest();
+        setIsSubmitting(false);
+        return;
+      }
     } catch {
-      // Even if submission fails, still end the test
-      toast.warning("Submission had issues, but ending test...");
-    } finally {
+      // Submission failed — keep the manual Submit & End Test UI open for retries
       setIsSubmitting(false);
+      toast.warning("Submission had issues; please try again.");
+      return;
     }
-
-    // End the test after submission
-    await handleEndTest();
   };
 
   const isLastProblem = activeProblemIndex === problems.length - 1;
@@ -988,7 +958,7 @@ const CodingChallenge: React.FC = () => {
             submitted and are being reviewed.
           </p>
           <Button
-            onClick={() => navigate("/contractor/tests")}
+            onClick={() => navigate(getTestsPath())}
             className="w-full bg-slate-900 hover:bg-slate-900/90 text-white hover:text-white"
           >
             Back to Dashboard
@@ -1014,7 +984,7 @@ const CodingChallenge: React.FC = () => {
               : "We encountered a problem loading your assessment. Please try again later or contact support."}
           </p>
           <Button
-            onClick={() => navigate("/contractor/tests")}
+            onClick={() => navigate(getTestsPath())}
             variant="outline"
             className="w-full"
           >
@@ -1234,8 +1204,8 @@ const CodingChallenge: React.FC = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1 h-1 rounded-full bg-[#fbbf24] mt-1.5 shrink-0" />
-                  Switching tabs or leaving full-screen may flag your
-                  submission.
+                  Switching tabs, leaving, multiple monitors, or full-screen may
+                  flag your submission.
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1 h-1 rounded-full bg-[#fbbf24] mt-1.5 shrink-0" />
@@ -1329,20 +1299,19 @@ const CodingChallenge: React.FC = () => {
       <header className="border-b border-border px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between bg-card flex-shrink-0 min-w-0">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
           <Button
-            variant="ghost"
             size="sm"
             onClick={async () => {
               if (
                 window.confirm(
-                  "⚠️ Warning: Exiting will end your assessment. Are you sure?",
+                  "⚠️ Warning: Exiting will end your assessment. You will not be able to re-enter. Are you sure?",
                 )
               ) {
                 toast.info("Ending session...", { duration: 2000 });
                 await performCleanup();
-                navigate("/contractor/tests");
+                navigate(getTestsPath());
               }
             }}
-            className="gap-2 px-2 sm:px-3"
+            className="gap-2 px-2 sm:px-3 hover:bg-muted bg-transparent text-black font-semibold"
           >
             <ChevronLeft className="h-4 w-4" />
             <span className="hidden sm:inline">Exit</span>
@@ -1385,7 +1354,7 @@ const CodingChallenge: React.FC = () => {
                   new Date().toISOString()
                 }
                 totalMinutes={metadata?.totalTime || 0}
-                onTimeUp={handleEndTest}
+                onTimeUp={handleSubmitAndEndTest}
               />
             </div>
           )}
@@ -1394,7 +1363,6 @@ const CodingChallenge: React.FC = () => {
             <Button
               onClick={handleRunCode}
               disabled={isRunning}
-              variant="outline"
               size={isMobile ? "icon" : "default"}
               className={cn(
                 "gap-2 bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none shrink-0",
