@@ -123,7 +123,7 @@ export const aiShortlistApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["AiShortlistJobs", "AiShortlistMatches"],
+  tagTypes: ["AiShortlistJobs", "AiShortlistMatches", "GeneratedQuestions"],
   endpoints: (builder) => ({
     getEmployerJobs: builder.query<EmployerJobsResponse, GetEmployerJobsArgs>({
       query: ({ page, limit }) => ({
@@ -280,6 +280,9 @@ export const aiShortlistApi = createApi({
         method: "POST",
         body: { jobId, questionCount },
       }),
+      invalidatesTags(_result, _error, { jobId }) {
+        return [{ type: "GeneratedQuestions", id: jobId }];
+      },
     }),
 
     GetGeneratedQuestionsFromJD: builder.query<any, { jobId: number | string }>(
@@ -288,6 +291,9 @@ export const aiShortlistApi = createApi({
           url: `coding/generate-questions/${jobId}`,
           method: "GET",
         }),
+        providesTags: (_result, _error, { jobId }) => [
+          { type: "GeneratedQuestions", id: jobId },
+        ],
       },
     ),
 

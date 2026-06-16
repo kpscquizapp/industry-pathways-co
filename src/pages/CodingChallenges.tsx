@@ -22,9 +22,6 @@ import {
   Video,
   Airplay,
   Layers,
-  Users,
-  User,
-  SeparatorHorizontal,
 } from "lucide-react";
 import {
   useNavigate,
@@ -57,15 +54,6 @@ import {
   Language,
 } from "@/app/queries/assessmentApi";
 import WebcamFeed from "./WebcamFeed";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Separator } from "@radix-ui/react-dropdown-menu";
 
 type TestStatus =
   | "loading"
@@ -919,19 +907,17 @@ const CodingChallenge: React.FC = () => {
 
         toast.success("Final problem submitted! Ending test...");
 
-        setIsSubmitting(false);
-
         // End the test after a successful submission
         await handleEndTest();
+        setIsSubmitting(false);
         return;
       } else {
         // Already submitted earlier
         toast.info("Problem already submitted. Ending test...");
 
-        setIsSubmitting(false);
-
         // End the test when skipping because it was already submitted
         await handleEndTest();
+        setIsSubmitting(false);
         return;
       }
     } catch {
