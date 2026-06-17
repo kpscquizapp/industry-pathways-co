@@ -1,4 +1,5 @@
 import React from "react";
+import { getCurrencySymbol } from "@/lib/currency";
 import {
   X,
   Download,
@@ -174,8 +175,8 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                   <span>Hourly Rate</span>
                 </div>
                 <span className="font-semibold text-primary">
-                  ${candidate.hourlyRate.min} - ${candidate.hourlyRate.max} / hr
-                </span>
+  {getCurrencySymbol(candidate.currency)}{candidate.hourlyRate.min} - {getCurrencySymbol(candidate.currency)}{candidate.hourlyRate.max} / hr
+</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-muted-foreground">

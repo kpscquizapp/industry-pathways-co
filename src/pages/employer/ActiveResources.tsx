@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle, Briefcase } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -81,6 +82,7 @@ const ActiveResources = () => {
     resourceName: string;
     currentRole: string;
     hourlyRate: number;
+    currency?: string; 
     availableFrom?: string | null;
     deploymentPreference?: string | string[] | null;
     totalExperience: number;
@@ -154,6 +156,7 @@ const ActiveResources = () => {
         min: resource.hourlyRate,
         max: resource.hourlyRate,
       },
+      currency: resource.currency,
       availability: resource.availableFrom
         ? new Date(resource.availableFrom).toLocaleDateString()
         : "Immediate",
@@ -614,7 +617,7 @@ const shortlistedMap = useMemo(() => {
                       </TableCell>
                       <TableCell>
                         <span className="font-semibold text-slate-800">
-                          ${resource.hourlyRate}/hr
+                          {getCurrencySymbol(resource.currency)}{resource.hourlyRate}/hr
                         </span>
                       </TableCell>
                       <TableCell>

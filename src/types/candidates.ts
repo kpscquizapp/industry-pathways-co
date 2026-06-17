@@ -10,6 +10,7 @@ export interface CandidateProfile {
   communicationScore?: number;
   problemSolvingScore?: number;
   hourlyRate: { min: number; max: number };
+  currency?: string;
   availability: string;
   location: string;
   experience: string;
