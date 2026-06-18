@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import heroMain from "../../assets/landing page main.png";
+import heroMain from "../../assets/landing page main.webp";
 import interviewImage from "../../assets/image1.png";
 import { Star } from "lucide-react";
 

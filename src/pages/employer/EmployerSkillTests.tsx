@@ -41,6 +41,7 @@ import {
   useGetJobMatchesQuery,
 } from "@/app/queries/aiShortlistApi";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
+import { CandidateProfile } from "@/types/candidates";
 
 // Mock internal candidate structure
 interface Candidate {
@@ -105,12 +106,11 @@ const EmployerSkillTests = () => {
     { skip: !selectedJobId },
   );
 
-  // Only show candidates that have been shortlisted for this job by the employer.
-  // isShortlisted is returned by GET /jobs/:id/matches (annotated by the backend).
+  // STAGE - SHORTLISTED
   const candidatesList = useMemo<Candidate[]>(() => {
     if (!matchesResponse?.data) return [];
     return matchesResponse.data
-      .filter((match: any) => match.isShortlisted === true)
+      .filter((match: any) => match.stage === "shortlisted")
       .map((match: any) => ({
         id: match.id,
         name: match.name || "Unknown Candidate",
@@ -216,6 +216,16 @@ const EmployerSkillTests = () => {
     });
 
     navigate(`/hire-talent/interview-questions?${params.toString()}`);
+  };
+
+  const handleViewProfile = (candidate) => {
+    if (candidate.type === "bench") {
+      navigate(`/hire-talent/candidate/${candidate.id}?source=bench`, {
+        state: { benchCandidate: candidate },
+      });
+    } else {
+      navigate(`/hire-talent/candidate/${candidate.id}`);
+    }
   };
 
   return (
@@ -367,7 +377,10 @@ const EmployerSkillTests = () => {
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-gray-900 text-[16px] truncate">
+                            <h3
+                              className="font-bold text-gray-900 text-[16px] truncate cursor-pointer"
+                              onClick={() => handleViewProfile(candidate)}
+                            >
                               {candidate.name}
                             </h3>
                             <p className="text-[13px] text-gray-500 font-medium truncate mt-0.5">
@@ -479,7 +492,10 @@ const EmployerSkillTests = () => {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <h3 className="font-bold text-gray-900 text-[16px] truncate">
+                              <h3
+                                className="font-bold text-gray-900 text-[16px] truncate cursor-pointer"
+                                onClick={() => handleViewProfile(candidate)}
+                              >
                                 {candidate.name}
                               </h3>
                               <p className="text-[13px] text-gray-500 font-medium truncate mt-0.5">
@@ -646,7 +662,8 @@ const EmployerSkillTests = () => {
                               </AvatarFallback>
                             </Avatar>
                             <div className="min-w-0">
-                              <span className="block truncate font-bold text-gray-900 text-[15px]">
+                              <span className="block truncate font-bold text-gray-900 text-[15px] cursor-pointer" 
+                              onClick={() => handleViewProfile(candidate)}>
                                 {candidate.name}
                               </span>
                               <p className="truncate text-[13px] text-gray-500 mt-0.5">

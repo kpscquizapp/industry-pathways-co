@@ -273,12 +273,12 @@ export const aiShortlistApi = createApi({
     //Questions generated from JD
     GeneratedQuestionsFromJD: builder.mutation<
       any,
-      { jobId: number | string; questionCount: number }
+      { jobId: number | string; questionsCount: number }
     >({
-      query: ({ jobId, questionCount }) => ({
+      query: ({ jobId, questionsCount }) => ({
         url: `coding/generate-questions`,
         method: "POST",
-        body: { jobId, questionCount },
+        body: { jobId, questionsCount },
       }),
       invalidatesTags(_result, _error, { jobId }) {
         return [{ type: "GeneratedQuestions", id: jobId }];
