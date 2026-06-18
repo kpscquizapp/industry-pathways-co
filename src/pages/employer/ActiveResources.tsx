@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle, Briefcase } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -39,8 +40,10 @@ import { useNavigate } from "react-router-dom";
 import {
   useGetBenchResourcesQuery,
   useDeleteBenchResourceMutation,
+  useGetShortlistedBenchResourceIdsQuery,
   useRestoreBenchResourceMutation, // this is to  restore bench resources
   usePermanentDeleteBenchResourceMutation,
+  type ShortlistedBenchDetail,
 } from "@/app/queries/benchApi";
 import CandidateProfileModal, {
   CandidateProfile,
@@ -79,6 +82,7 @@ const ActiveResources = () => {
     resourceName: string;
     currentRole: string;
     hourlyRate: number;
+    currency?: string; 
     availableFrom?: string | null;
     deploymentPreference?: string | string[] | null;
     totalExperience: number;
@@ -143,7 +147,7 @@ const ActiveResources = () => {
         })
         .join(", ");
     };
-
+    const shortlistDetail = shortlistedMap.get(resource.id);
     return {
       id: resource.id,
       name: resource.resourceName,
@@ -152,6 +156,7 @@ const ActiveResources = () => {
         min: resource.hourlyRate,
         max: resource.hourlyRate,
       },
+      currency: resource.currency,
       availability: resource.availableFrom
         ? new Date(resource.availableFrom).toLocaleDateString()
         : "Immediate",
@@ -177,6 +182,9 @@ const ActiveResources = () => {
       primarySkills: resource.primarySkills || [],
       secondarySkills: resource.secondarySkills || [],
       about: resource.professionalSummary || "",
+      shortlistedFor: shortlistDetail && shortlistDetail.length > 0
+        ? shortlistDetail.map((s) => ({ jobTitle: s.jobTitle, companyName: s.companyName }))
+        : undefined,
     };
   }
 
@@ -213,6 +221,21 @@ const ActiveResources = () => {
   };
   const [deleteBenchResource] = useDeleteBenchResourceMutation();
   const [permanentDeleteBenchResource] = usePermanentDeleteBenchResourceMutation();
+  const { data: shortlistedData } = useGetShortlistedBenchResourceIdsQuery();
+  const shortlistedIds = useMemo(
+  () => new Set((shortlistedData?.data || []).map((item) => item.talentId)),
+  [shortlistedData]
+);
+const shortlistedMap = useMemo(() => {
+  const map = new Map<number, ShortlistedBenchDetail[]>();
+  (shortlistedData?.data || []).forEach((item) => {
+    const existing = map.get(item.talentId) || [];
+    existing.push(item);
+    map.set(item.talentId, existing);
+  });
+  return map;
+}, [shortlistedData]);
+
   const [restoreBenchResource] = useRestoreBenchResourceMutation();
 
   const handleViewResource = (resource: any) => {
@@ -594,17 +617,19 @@ const ActiveResources = () => {
                       </TableCell>
                       <TableCell>
                         <span className="font-semibold text-slate-800">
-                          ${resource.hourlyRate}/hr
+                          {getCurrencySymbol(resource.currency)}{resource.hourlyRate}/hr
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          className={`${resource.isActive
+                        <Badge className={`${shortlistedIds.has(resource.id)
+                          ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                          : resource.isActive
                             ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                             : "bg-red-100 text-red-700 hover:bg-red-200"
-                            }`}
-                        >
-                          {resource.isActive ? "Active" : "Inactive"}
+                          }`}>
+                          {shortlistedIds.has(resource.id)
+                            ? "Shortlisted"
+                            : resource.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">

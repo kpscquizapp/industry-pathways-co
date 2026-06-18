@@ -1,4 +1,5 @@
 import React from "react";
+import { getCurrencySymbol } from "@/lib/currency";
 import {
   X,
   Download,
@@ -13,6 +14,7 @@ import {
   FileText,
   Smartphone,
   ShoppingCart,
+  Building2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -173,8 +175,8 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                   <span>Hourly Rate</span>
                 </div>
                 <span className="font-semibold text-primary">
-                  ${candidate.hourlyRate.min} - ${candidate.hourlyRate.max} / hr
-                </span>
+  {getCurrencySymbol(candidate.currency)}{candidate.hourlyRate.min} - {getCurrencySymbol(candidate.currency)}{candidate.hourlyRate.max} / hr
+</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-muted-foreground">
@@ -420,6 +422,40 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                       <p className="text-muted-foreground leading-relaxed">
                         {candidate.about}
                       </p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Shortlisted For */}
+                {/* Shortlisted For */}
+                {candidate.shortlistedFor && candidate.shortlistedFor.length > 0 && (
+                  <Card className="border-border">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg text-foreground">Shortlisted For</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {candidate.shortlistedFor.map((item, idx) => (
+                        <div key={idx} className="space-y-2 pb-3 border-b border-border last:border-0 last:pb-0">
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Briefcase className="h-4 w-4" />
+                              <span>Job Title</span>
+                            </div>
+                            <span className="font-semibold text-foreground">
+                              {item.jobTitle}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Building2 className="h-4 w-4" />
+                              <span>Company</span>
+                            </div>
+                            <span className="font-semibold text-foreground">
+                              {item.companyName}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
                     </CardContent>
                   </Card>
                 )}
