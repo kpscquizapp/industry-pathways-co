@@ -55,6 +55,7 @@ interface Candidate {
   testScore?: number;
   profilePicture?: string;
   email?: string;
+  type?: "individual" | "bench";
 }
 
 const EmployerSkillTests = () => {
@@ -123,6 +124,7 @@ const EmployerSkillTests = () => {
             : [],
         status: "available",
         email: match.email || "candidate@example.com",
+        type: match.source === "bench" ? "bench" : "individual",
       }));
   }, [matchesResponse]);
 
@@ -662,8 +664,10 @@ const EmployerSkillTests = () => {
                               </AvatarFallback>
                             </Avatar>
                             <div className="min-w-0">
-                              <span className="block truncate font-bold text-gray-900 text-[15px] cursor-pointer" 
-                              onClick={() => handleViewProfile(candidate)}>
+                              <span
+                                className="block truncate font-bold text-gray-900 text-[15px] cursor-pointer"
+                                onClick={() => handleViewProfile(candidate)}
+                              >
                                 {candidate.name}
                               </span>
                               <p className="truncate text-[13px] text-gray-500 mt-0.5">

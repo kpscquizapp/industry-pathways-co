@@ -2181,7 +2181,7 @@ const EmployerPostJob = () => {
 
           {/* ── Footer Buttons ── */}
           <div
-            className={`flex justify-end gap-3 mt-8 ${isEditing && jobDetailsLoading ? "hidden" : "block"}`}
+            className={`flex justify-end gap-3 mt-8 ${isEditing && jobDetailsLoading ? "hidden" : "flex"}`}
           >
             {isEditing && (
               <Button

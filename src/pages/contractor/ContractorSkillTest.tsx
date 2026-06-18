@@ -344,7 +344,7 @@ const ContractorSkillTest = () => {
                 </div>
               ) : testResults.length > 0 ? (
                 testResults
-                  .filter((result) => result.difficultyDistribution == null)
+                  .filter((result) => !result.difficultyDistribution)
                   .map((res: any, i: number) => {
                     const scoreVal = Number(res.overallScore ?? res.score ?? 0);
                     const scoreColor =
@@ -354,8 +354,6 @@ const ContractorSkillTest = () => {
                           ? "#f59e0b" // yellow 40–69
                           : "#ef4444"; // red   < 40
                     const isExpanded = expandedTestId === res.id;
-                    const status = insightsData[res.id];
-                    const isLoadingInsights = insightsLoading[res.id];
 
                     return (
                       <div key={i} className="flex flex-col">
@@ -442,7 +440,7 @@ const ContractorSkillTest = () => {
               ) : (
                 <div className="p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
                   <p className="text-slate-400 font-medium">
-                    No practice tests completed yet.
+                    No Invited tests completed yet.
                   </p>
                 </div>
               )}
@@ -657,7 +655,7 @@ const ContractorSkillTest = () => {
                 </div>
               ) : testResults.length > 0 ? (
                 testResults
-                  .filter((result) => result.difficultyDistribution !== null)
+                  .filter((result) => !result.difficultyDistribution)
                   .map((res: any, i: number) => {
                     const scoreVal = Number(res.overallScore ?? res.score ?? 0);
                     const scoreColor =
@@ -667,8 +665,6 @@ const ContractorSkillTest = () => {
                           ? "#f59e0b" // yellow 40–69
                           : "#ef4444"; // red   < 40
                     const isExpanded = expandedTestId === res.id;
-                    const status = insightsData[res.id];
-                    const isLoadingInsights = insightsLoading[res.id];
 
                     return (
                       <div key={i} className="flex flex-col">
@@ -755,7 +751,7 @@ const ContractorSkillTest = () => {
               ) : (
                 <div className="p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
                   <p className="text-slate-400 font-medium">
-                    No practice tests completed yet.
+                    No Mock tests completed yet.
                   </p>
                 </div>
               )}
