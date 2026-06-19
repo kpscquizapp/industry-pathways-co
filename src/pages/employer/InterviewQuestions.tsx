@@ -1410,7 +1410,7 @@ function AIGenerateForm({ jobId }: { jobId?: number | string }) {
 
     const payload = {
       jobId: Number(jobId),
-      questionCount: count,
+      questionsCount: count,
     };
 
     try {

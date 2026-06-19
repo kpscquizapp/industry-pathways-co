@@ -1618,8 +1618,7 @@ const EmployerAIShortlists = () => {
                           )}
                         </Button>
 
-                        {(candidate.stage === "shortlisted" ||
-                          candidate.stage === "invited") && (
+                        {candidate.stage === "shortlisted" && (
                           <Button
                             variant="outline"
                             size="icon"

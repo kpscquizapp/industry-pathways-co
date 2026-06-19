@@ -1050,14 +1050,12 @@ const EmployerPostJob = () => {
         </div>
 
         {isEditing && jobDetailsLoading && (
-          <Card className="border-none shadow-lg bg-card/80 backdrop-blur-sm rounded-2xl mb-6">
-            <CardContent className="p-8 flex items-center justify-center gap-3">
-              <Loader2 className="h-5 w-5 animate-spin text-[#00e5ff]" />
-              <p className="text-muted-foreground font-medium">
-                Loading job details...
-              </p>
-            </CardContent>
-          </Card>
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin text-[#00e5ff]" />
+            <p className="text-muted-foreground font-medium">
+              Loading job details...
+            </p>
+          </div>
         )}
 
         {/* ═══════════ SINGLE CARD FORM ═══════════ */}
@@ -1068,7 +1066,9 @@ const EmployerPostJob = () => {
               : ""
           }
         >
-          <Card className="border border-[hsl(40 15% 88%)] shadow-[var(--shadow-card)] bg-[#ffffff] rounded-2xl overflow-hidden">
+          <Card
+            className={`border border-[hsl(40 15% 88%)] shadow-[var(--shadow-card)] bg-[#ffffff] rounded-2xl overflow-hidden ${isEditing && jobDetailsLoading ? "hidden" : "block"}`}
+          >
             <CardContent className="p-6 md:p-10 space-y-10 bg-[#ffffff]">
               {/* ── Section: Basic Information ── */}
               <div>
@@ -2180,7 +2180,9 @@ const EmployerPostJob = () => {
           </Card>
 
           {/* ── Footer Buttons ── */}
-          <div className="flex justify-end gap-3 mt-8">
+          <div
+            className={`flex justify-end gap-3 mt-8 ${isEditing && jobDetailsLoading ? "hidden" : "flex"}`}
+          >
             {isEditing && (
               <Button
                 variant="ghost"
