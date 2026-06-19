@@ -655,7 +655,7 @@ const ContractorSkillTest = () => {
                 </div>
               ) : testResults.length > 0 ? (
                 testResults
-                  .filter((result) => !result.difficultyDistribution)
+                  .filter((result) => result.difficultyDistribution)
                   .map((res: any, i: number) => {
                     const scoreVal = Number(res.overallScore ?? res.score ?? 0);
                     const scoreColor =
