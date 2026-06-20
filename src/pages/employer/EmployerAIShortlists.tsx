@@ -1464,9 +1464,6 @@ const EmployerAIShortlists = () => {
                 filteredCandidates.length === 0 && (
                   <div className="p-6 text-center text-muted-foreground border rounded-lg bg-white">
                     <p className="font-semibold mb-1">No results found</p>
-                    <p className="text-sm">
-                      No candidates matching "{searchTerm}".
-                    </p>
                   </div>
                 )}
 
