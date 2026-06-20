@@ -458,16 +458,15 @@ const CandidateProfileView = () => {
             )}
             <div className="mb-4">
               <Button
-                variant="ghost"
                 size="sm"
                 onClick={() => {
-  if (window.history.state?.idx > 0) {
-    navigate(-1);
-  } else {
-    navigate("/candidates");
-  }
-}}
-                className="gap-2"
+                  if (window.history.state?.idx > 0) {
+                    navigate(-1);
+                  } else {
+                    navigate("/candidates");
+                  }
+                }}
+                className="bg-transparent text-slate-600 hover:bg-gray-50"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back
