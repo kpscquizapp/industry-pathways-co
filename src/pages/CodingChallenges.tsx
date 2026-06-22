@@ -93,6 +93,21 @@ const getLanguageId = (langObj?: Language): number | null => {
   return typeof langObj?.id === "number" ? langObj.id : null;
 };
 
+const getTestCaseResultKey = (
+  problemId?: string | number,
+  languageId?: number | null,
+) => {
+  if (
+    problemId === undefined ||
+    problemId === null ||
+    languageId === null ||
+    languageId === undefined
+  ) {
+    return "";
+  }
+  return `${problemId}_${languageId}`;
+};
+
 const getLanguageKey = (name?: string): string => {
   if (!name) return "";
   const n = name.toLowerCase().trim();
@@ -189,6 +204,7 @@ const CodingChallenge: React.FC = () => {
   );
   const [isRunningCode, setIsRunningCode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [runningProblemId, setRunningProblemId] = useState<number | null>(null);
   const isRunning = isRunningCode || isSubmitting; // combined — disables both buttons simultaneously
   const [error, setError] = useState<string>();
   // Track which problems have been explicitly submitted (ref avoids stale closure in handleEndTest)
@@ -263,41 +279,58 @@ const CodingChallenge: React.FC = () => {
   }, [languagesData]);
 
   const [language, setLanguage] = useState<Language | undefined>();
+  const [problemLanguageMap, setProblemLanguageMap] = useState<
+    Record<string, number>
+  >({});
+
+  // Helper function with error handling
+  const getSavedLanguageForProblem = (
+    problemId: string | number,
+  ): string | null => {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith(`code_${problemId}_`)) {
+          return key.replace(`code_${problemId}_`, "");
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to read from localStorage:", err);
+    }
+    return null;
+  };
 
   // Initialize language once data and problems are available.
   // Prefer previously saved language for the current problem, else prefer Go,
   // falling back to the first available language.
   useEffect(() => {
-    if (language || filteredLanguages.length === 0) return;
+    if (filteredLanguages.length === 0) return;
+    if (problems.length === 0) return;
 
-    if (problems.length > 0) {
-      const current = problems[activeProblemIndex] ?? problems[0];
+    const current = problems[activeProblemIndex] ?? problems[0];
+    if (!current) return;
 
-      // 1) If user already has saved code for this problem, restore that language
-      let savedLangName: string | null = null;
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith(`code_${current.id}_`)) {
-          savedLangName = key.replace(`code_${current.id}_`, "");
-          break;
-        }
-      }
-      if (savedLangName) {
-        const found = filteredLanguages.find((l) => l.name === savedLangName);
-        if (found) {
-          setLanguage(found);
-          return;
-        }
+    const currentProblemKey = String(current.id);
+    const savedLangName = getSavedLanguageForProblem(current.id);
+
+    if (savedLangName) {
+      const found = filteredLanguages.find((l) => l.name === savedLangName);
+      if (found) {
+        setLanguage(found);
+        return;
       }
     }
-    // 2) Prefer Go when no saved code exists (or while problems load)
-    const goLang = filteredLanguages.find(
-      (l) =>
-        getLanguageKey(l.name) === "go" ||
-        l.name.toLowerCase().startsWith("go"),
-    );
-    setLanguage(goLang ?? filteredLanguages[0]);
-  }, [filteredLanguages, language, problems, activeProblemIndex]);
+
+    // Prefer Go when no saved language exists.
+    const goLang =
+      filteredLanguages.find(
+        (l) =>
+          getLanguageKey(l.name) === "go" ||
+          l.name.toLowerCase().startsWith("go"),
+      ) ?? filteredLanguages[0];
+
+    if (goLang) setLanguage(goLang);
+  }, [filteredLanguages, problems, activeProblemIndex]);
 
   const user = useAppSelector((state) => state.user.userDetails);
   const getTestsPath = React.useCallback(() => {
@@ -694,6 +727,14 @@ const CodingChallenge: React.FC = () => {
   // Update code when language changes or problem changes
   useEffect(() => {
     if (!currentProblem || !language) return;
+    setProblemLanguageMap((prev) => ({
+      ...prev,
+      [String(currentProblem.id)]: language.id,
+    }));
+  }, [currentProblem?.id, language?.id]);
+
+  useEffect(() => {
+    if (!currentProblem || !language) return;
 
     const savedCode = localStorage.getItem(
       `code_${currentProblem.id}_${language.name}`,
@@ -744,6 +785,12 @@ const CodingChallenge: React.FC = () => {
     if (currentProblem && language) {
       localStorage.setItem(`code_${currentProblem.id}_${language.name}`, code);
     }
+    if (currentProblem) {
+      setProblemLanguageMap((prev) => ({
+        ...prev,
+        [String(currentProblem.id)]: newLanguage.id,
+      }));
+    }
     setLanguage(newLanguage);
   };
 
@@ -762,10 +809,11 @@ const CodingChallenge: React.FC = () => {
       return;
     }
 
+    const problemId = Number(currentProblem.id);
     setIsRunningCode(true);
+    setRunningProblemId(problemId);
     setError(undefined);
-    // Clear previous results for the current problem while running
-    setTestCasesMap((prev) => ({ ...prev, [String(currentProblem.id)]: [] }));
+    const testCaseResultKey = getTestCaseResultKey(problemId, languageId);
 
     const knownTCs: TestCase[] =
       currentProblem.test_cases ||
@@ -789,7 +837,7 @@ const CodingChallenge: React.FC = () => {
         const results = mapApiResults(raw, knownTCs);
         setTestCasesMap((prev) => ({
           ...prev,
-          [String(currentProblem.id)]: results,
+          [testCaseResultKey]: results,
         }));
       } else setError(result.message || "Execution failed");
     } catch (err: any) {
@@ -800,6 +848,7 @@ const CodingChallenge: React.FC = () => {
       );
     } finally {
       setIsRunningCode(false);
+      setRunningProblemId(null);
     }
   };
 
@@ -815,7 +864,12 @@ const CodingChallenge: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    setRunningProblemId(Number(currentProblem.id));
     setError(undefined);
+    const testCaseResultKey = getTestCaseResultKey(
+      currentProblem.id,
+      languageId,
+    );
 
     // Save current code before submitting
     if (language) {
@@ -827,9 +881,6 @@ const CodingChallenge: React.FC = () => {
       currentProblem.testcases ||
       currentProblem.testCases ||
       [];
-    // Clear previous results for the current problem while submitting
-    setTestCasesMap((prev) => ({ ...prev, [String(currentProblem.id)]: [] }));
-
     try {
       const result = await submitSolution({
         problemId: Number(currentProblem.id),
@@ -847,7 +898,7 @@ const CodingChallenge: React.FC = () => {
         const results = mapApiResults(raw, knownTCs);
         setTestCasesMap((prev) => ({
           ...prev,
-          [String(currentProblem.id)]: results,
+          [testCaseResultKey]: results,
         }));
 
         // Mark this problem as submitted
@@ -874,6 +925,7 @@ const CodingChallenge: React.FC = () => {
       );
     } finally {
       setIsSubmitting(false);
+      setRunningProblemId(null);
     }
   };
 
@@ -910,6 +962,7 @@ const CodingChallenge: React.FC = () => {
         // End the test after a successful submission
         await handleEndTest();
         setIsSubmitting(false);
+        setRunningProblemId(null);
         return;
       } else {
         // Already submitted earlier
@@ -918,11 +971,13 @@ const CodingChallenge: React.FC = () => {
         // End the test when skipping because it was already submitted
         await handleEndTest();
         setIsSubmitting(false);
+        setRunningProblemId(null);
         return;
       }
     } catch {
       // Submission failed — keep the manual Submit & End Test UI open for retries
       setIsSubmitting(false);
+      setRunningProblemId(null);
       toast.warning("Submission had issues; please try again.");
       return;
     }
@@ -1451,9 +1506,16 @@ const CodingChallenge: React.FC = () => {
                 <ResizablePanel defaultSize={40} minSize={20}>
                   <ConsoleOutput
                     testCases={
-                      testCasesMap[String(currentProblem?.id ?? "")] ?? []
+                      testCasesMap[
+                        getTestCaseResultKey(
+                          currentProblem?.id,
+                          getLanguageId(language),
+                        )
+                      ] ?? []
                     }
                     isRunning={isRunning}
+                    runningProblemId={runningProblemId}
+                    currentProblemId={Number(currentProblem.id)}
                     error={error}
                   />
                 </ResizablePanel>

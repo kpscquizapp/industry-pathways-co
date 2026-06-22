@@ -464,14 +464,14 @@ const ContractorSkillTest = () => {
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-1 ml-1">
                       <label className="text-[13px] font-bold text-slate-500">
-                        Test Type
+                        Test Name
                       </label>
                       <span className="text-cyan-500">*</span>
                     </div>
                     <input
                       type="text"
                       name="testType"
-                      placeholder="Enter Test Type"
+                      placeholder="Enter Test Name"
                       value={mockTest.title}
                       onChange={(e) =>
                         setMockTest({ ...mockTest, title: e.target.value })
