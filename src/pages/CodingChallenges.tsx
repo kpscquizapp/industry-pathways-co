@@ -283,23 +283,6 @@ const CodingChallenge: React.FC = () => {
     Record<string, number>
   >({});
 
-  // Helper function with error handling
-  const getSavedLanguageForProblem = (
-    problemId: string | number,
-  ): string | null => {
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key?.startsWith(`code_${problemId}_`)) {
-          return key.replace(`code_${problemId}_`, "");
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to read from localStorage:", err);
-    }
-    return null;
-  };
-
   // Initialize language once data and problems are available.
   // Prefer previously saved language for the current problem, else prefer Go,
   // falling back to the first available language.
@@ -311,12 +294,33 @@ const CodingChallenge: React.FC = () => {
     if (!current) return;
 
     const currentProblemKey = String(current.id);
-    const savedLangName = getSavedLanguageForProblem(current.id);
+    const savedLanguageId = problemLanguageMap[currentProblemKey];
 
+    if (savedLanguageId !== undefined) {
+      const found = filteredLanguages.find((l) => l.id === savedLanguageId);
+      if (found) {
+        if (language?.id !== found.id) setLanguage(found);
+        return;
+      }
+    }
+
+    // Fall back to saved code language if no explicit selection exists yet.
+    let savedLangName: string | null = null;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(`code_${current.id}_`)) {
+        savedLangName = key.replace(`code_${current.id}_`, "");
+        break;
+      }
+    }
     if (savedLangName) {
       const found = filteredLanguages.find((l) => l.name === savedLangName);
       if (found) {
-        setLanguage(found);
+        setProblemLanguageMap((prev) => ({
+          ...prev,
+          [currentProblemKey]: found.id,
+        }));
+        if (language?.id !== found.id) setLanguage(found);
         return;
       }
     }
@@ -329,8 +333,20 @@ const CodingChallenge: React.FC = () => {
           l.name.toLowerCase().startsWith("go"),
       ) ?? filteredLanguages[0];
 
-    if (goLang) setLanguage(goLang);
-  }, [filteredLanguages, problems, activeProblemIndex]);
+    if (goLang) {
+      setProblemLanguageMap((prev) => ({
+        ...prev,
+        [currentProblemKey]: goLang.id,
+      }));
+      if (language?.id !== goLang.id) setLanguage(goLang);
+    }
+  }, [
+    filteredLanguages,
+    problems,
+    activeProblemIndex,
+    problemLanguageMap,
+    language,
+  ]);
 
   const user = useAppSelector((state) => state.user.userDetails);
   const getTestsPath = React.useCallback(() => {
@@ -727,14 +743,6 @@ const CodingChallenge: React.FC = () => {
   // Update code when language changes or problem changes
   useEffect(() => {
     if (!currentProblem || !language) return;
-    setProblemLanguageMap((prev) => ({
-      ...prev,
-      [String(currentProblem.id)]: language.id,
-    }));
-  }, [currentProblem?.id, language?.id]);
-
-  useEffect(() => {
-    if (!currentProblem || !language) return;
 
     const savedCode = localStorage.getItem(
       `code_${currentProblem.id}_${language.name}`,
@@ -809,11 +817,13 @@ const CodingChallenge: React.FC = () => {
       return;
     }
 
-    const problemId = Number(currentProblem.id);
     setIsRunningCode(true);
-    setRunningProblemId(problemId);
+    setRunningProblemId(Number(currentProblem.id));
     setError(undefined);
-    const testCaseResultKey = getTestCaseResultKey(problemId, languageId);
+    const testCaseResultKey = getTestCaseResultKey(
+      currentProblem.id,
+      languageId,
+    );
 
     const knownTCs: TestCase[] =
       currentProblem.test_cases ||
