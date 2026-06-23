@@ -148,10 +148,7 @@ const persistProblemLanguageMap = (
   testId: string | number | undefined,
   map: Record<string, number>,
 ) => {
-  sessionStorage.setItem(
-    getProblemLanguageMapKey(testId),
-    JSON.stringify(map),
-  );
+  sessionStorage.setItem(getProblemLanguageMapKey(testId), JSON.stringify(map));
 };
 
 const getActiveProblemKey = (testId?: string | number) =>
@@ -404,7 +401,9 @@ const CodingChallenge: React.FC = () => {
       }
     }
 
-    const rawSubmitted = sessionStorage.getItem(getSubmittedProblemsKey(testId));
+    const rawSubmitted = sessionStorage.getItem(
+      getSubmittedProblemsKey(testId),
+    );
     if (rawSubmitted) {
       try {
         const parsed = JSON.parse(rawSubmitted);
@@ -692,7 +691,16 @@ const CodingChallenge: React.FC = () => {
   const currentProblemHasResults = currentProblem
     ? Object.keys(testCasesMap).some((key) =>
         key.startsWith(`${currentProblem.id}_`),
-      )
+      ) ||
+      (() => {
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith(`coding_results_${currentProblem.id}_`)) {
+            return true;
+          }
+        }
+        return false;
+      })()
     : false;
   const shouldBlockProblemSwitch =
     !!currentProblem && currentProblemHasResults && !isCurrentProblemSubmitted;
@@ -898,7 +906,7 @@ const CodingChallenge: React.FC = () => {
   useEffect(() => {
     if (!currentProblem || !language) return;
     const key = getTestCaseResultKey(currentProblem.id, language.id);
-    if (testCasesMap[key]?.length) return;
+    if (Object.prototype.hasOwnProperty.call(testCasesMap, key)) return;
 
     const persisted = localStorage.getItem(
       getPersistedTestCaseKey(currentProblem.id, language.id),
