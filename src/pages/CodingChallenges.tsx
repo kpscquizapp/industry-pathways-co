@@ -11,6 +11,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Play,
   Send,
@@ -107,6 +108,54 @@ const getTestCaseResultKey = (
   }
   return `${problemId}_${languageId}`;
 };
+
+const getPersistedTestCaseKey = (
+  problemId: string | number,
+  languageId: number,
+) => `coding_results_${problemId}_${languageId}`;
+
+const getSubmittedProblemsKey = (testId?: string | number) =>
+  `coding_submitted_${testId ?? "default"}`;
+
+const getLanguagePriority = (name?: string): number => {
+  const key = getLanguageKey(name);
+  const priorities: Record<string, number> = {
+    javascript: 0,
+    typescript: 1,
+    python: 2,
+    java: 3,
+    go: 4,
+    cpp: 5,
+    c: 6,
+  };
+  return priorities[key] ?? 99;
+};
+
+const persistSubmittedProblems = (
+  testId: string | number | undefined,
+  submittedIds: Set<string | number>,
+) => {
+  sessionStorage.setItem(
+    getSubmittedProblemsKey(testId),
+    JSON.stringify(Array.from(submittedIds)),
+  );
+};
+
+const getProblemLanguageMapKey = (testId?: string | number) =>
+  `coding_language_map_${testId ?? "default"}`;
+
+const persistProblemLanguageMap = (
+  testId: string | number | undefined,
+  map: Record<string, number>,
+) => {
+  sessionStorage.setItem(
+    getProblemLanguageMapKey(testId),
+    JSON.stringify(map),
+  );
+};
+
+const getActiveProblemKey = (testId?: string | number) =>
+  `coding_active_problem_${testId ?? "default"}`;
 
 const getLanguageKey = (name?: string): string => {
   if (!name) return "";
@@ -205,6 +254,9 @@ const CodingChallenge: React.FC = () => {
   const [isRunningCode, setIsRunningCode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [runningProblemId, setRunningProblemId] = useState<number | null>(null);
+  const [blockedProblemIndex, setBlockedProblemIndex] = useState<number | null>(
+    null,
+  );
   const isRunning = isRunningCode || isSubmitting; // combined — disables both buttons simultaneously
   const [error, setError] = useState<string>();
   // Track which problems have been explicitly submitted (ref avoids stale closure in handleEndTest)
@@ -282,10 +334,16 @@ const CodingChallenge: React.FC = () => {
   const [problemLanguageMap, setProblemLanguageMap] = useState<
     Record<string, number>
   >({});
+  const [submittedProblemIds, setSubmittedProblemIds] = useState<
+    Set<string | number>
+  >(new Set());
+  const [restoredActiveProblemId, setRestoredActiveProblemId] = useState<
+    string | number | null
+  >(null);
 
   // Initialize language once data and problems are available.
-  // Prefer previously saved language for the current problem, else prefer Go,
-  // falling back to the first available language.
+  // Prefer the current problem's remembered language, otherwise fall back
+  // to the first available language.
   useEffect(() => {
     if (filteredLanguages.length === 0) return;
     if (problems.length === 0) return;
@@ -304,41 +362,18 @@ const CodingChallenge: React.FC = () => {
       }
     }
 
-    // Fall back to saved code language if no explicit selection exists yet.
-    let savedLangName: string | null = null;
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith(`code_${current.id}_`)) {
-        savedLangName = key.replace(`code_${current.id}_`, "");
-        break;
-      }
-    }
-    if (savedLangName) {
-      const found = filteredLanguages.find((l) => l.name === savedLangName);
-      if (found) {
-        setProblemLanguageMap((prev) => ({
-          ...prev,
-          [currentProblemKey]: found.id,
-        }));
-        if (language?.id !== found.id) setLanguage(found);
-        return;
-      }
-    }
+    const fallbackLang = [...filteredLanguages].sort(
+      (a, b) =>
+        getLanguagePriority(a.name) - getLanguagePriority(b.name) ||
+        a.name.localeCompare(b.name),
+    )[0];
 
-    // Prefer Go when no saved language exists.
-    const goLang =
-      filteredLanguages.find(
-        (l) =>
-          getLanguageKey(l.name) === "go" ||
-          l.name.toLowerCase().startsWith("go"),
-      ) ?? filteredLanguages[0];
-
-    if (goLang) {
+    if (fallbackLang) {
       setProblemLanguageMap((prev) => ({
         ...prev,
-        [currentProblemKey]: goLang.id,
+        [currentProblemKey]: fallbackLang.id,
       }));
-      if (language?.id !== goLang.id) setLanguage(goLang);
+      if (language?.id !== fallbackLang.id) setLanguage(fallbackLang);
     }
   }, [
     filteredLanguages,
@@ -347,6 +382,47 @@ const CodingChallenge: React.FC = () => {
     problemLanguageMap,
     language,
   ]);
+
+  useEffect(() => {
+    if (!testId) return;
+
+    const rawActive = sessionStorage.getItem(getActiveProblemKey(testId));
+    if (rawActive) {
+      try {
+        setRestoredActiveProblemId(JSON.parse(rawActive));
+      } catch {
+        sessionStorage.removeItem(getActiveProblemKey(testId));
+      }
+    }
+
+    const rawMap = sessionStorage.getItem(getProblemLanguageMapKey(testId));
+    if (rawMap) {
+      try {
+        setProblemLanguageMap(JSON.parse(rawMap) as Record<string, number>);
+      } catch {
+        sessionStorage.removeItem(getProblemLanguageMapKey(testId));
+      }
+    }
+
+    const rawSubmitted = sessionStorage.getItem(getSubmittedProblemsKey(testId));
+    if (rawSubmitted) {
+      try {
+        const parsed = JSON.parse(rawSubmitted);
+        if (Array.isArray(parsed)) {
+          const next = new Set<string | number>(parsed);
+          setSubmittedProblemIds(next);
+          submittedProblemIdsRef.current = next;
+        }
+      } catch {
+        sessionStorage.removeItem(getSubmittedProblemsKey(testId));
+      }
+    }
+  }, [testId]);
+
+  useEffect(() => {
+    if (!testId) return;
+    persistProblemLanguageMap(testId, problemLanguageMap);
+  }, [testId, problemLanguageMap]);
 
   const user = useAppSelector((state) => state.user.userDetails);
   const getTestsPath = React.useCallback(() => {
@@ -456,16 +532,23 @@ const CodingChallenge: React.FC = () => {
     // 2. Give WebcamFeed a window to flush final chunks
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // 3. Clear saved codes from localStorage for all problems in this test
+    // 3. Clear saved codes and results from localStorage for all problems in this test
     try {
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && problems.some((p) => key.startsWith(`code_${p.id}_`))) {
+        if (
+          key &&
+          (problems.some((p) => key.startsWith(`code_${p.id}_`)) ||
+            problems.some((p) => key.startsWith(`coding_results_${p.id}_`)))
+        ) {
           keysToRemove.push(key);
         }
       }
       keysToRemove.forEach((key) => localStorage.removeItem(key));
+      sessionStorage.removeItem(getProblemLanguageMapKey(testId));
+      sessionStorage.removeItem(getActiveProblemKey(testId));
+      sessionStorage.removeItem(getSubmittedProblemsKey(testId));
       setCode("");
     } catch (err) {
       console.error("Failed to clear localStorage:", err);
@@ -584,6 +667,35 @@ const CodingChallenge: React.FC = () => {
   }, []);
 
   const currentProblem = problems[activeProblemIndex];
+  const currentProblemId = currentProblem?.id;
+
+  useEffect(() => {
+    if (restoredActiveProblemId === null || problems.length === 0) return;
+    const restoredIndex = problems.findIndex(
+      (p) => String(p.id) === String(restoredActiveProblemId),
+    );
+    if (restoredIndex >= 0) setActiveProblemIndex(restoredIndex);
+    setRestoredActiveProblemId(null);
+  }, [restoredActiveProblemId, problems]);
+
+  useEffect(() => {
+    if (!testId || currentProblemId === undefined) return;
+    sessionStorage.setItem(
+      getActiveProblemKey(testId),
+      JSON.stringify(currentProblemId),
+    );
+  }, [testId, currentProblemId]);
+
+  const isCurrentProblemSubmitted = currentProblem
+    ? submittedProblemIds.has(currentProblem.id)
+    : false;
+  const currentProblemHasResults = currentProblem
+    ? Object.keys(testCasesMap).some((key) =>
+        key.startsWith(`${currentProblem.id}_`),
+      )
+    : false;
+  const shouldBlockProblemSwitch =
+    !!currentProblem && currentProblemHasResults && !isCurrentProblemSubmitted;
 
   // 1. Initial Data Fetch via RTK lazy queries
   useEffect(() => {
@@ -774,11 +886,6 @@ const CodingChallenge: React.FC = () => {
     }
   }, [language, currentProblem]);
 
-  // Clear transient error when switching problems (preserve results per-problem)
-  useEffect(() => {
-    setError(undefined);
-  }, [currentProblem?.id]);
-
   // Auto-save code to localStorage
   useEffect(() => {
     if (!currentProblem || !language) return;
@@ -788,11 +895,38 @@ const CodingChallenge: React.FC = () => {
     return () => clearTimeout(timer);
   }, [code, language, currentProblem]);
 
-  const handleLanguageChange = (newLanguage: Language) => {
-    // Flush current code to localStorage before switching
-    if (currentProblem && language) {
-      localStorage.setItem(`code_${currentProblem.id}_${language.name}`, code);
+  useEffect(() => {
+    if (!currentProblem || !language) return;
+    const key = getTestCaseResultKey(currentProblem.id, language.id);
+    if (testCasesMap[key]?.length) return;
+
+    const persisted = localStorage.getItem(
+      getPersistedTestCaseKey(currentProblem.id, language.id),
+    );
+    if (!persisted) return;
+
+    try {
+      const parsed = JSON.parse(persisted) as TestCase[];
+      setTestCasesMap((prev) => ({ ...prev, [key]: parsed }));
+    } catch {
+      localStorage.removeItem(
+        getPersistedTestCaseKey(currentProblem.id, language.id),
+      );
     }
+  }, [currentProblem, language, testCasesMap]);
+
+  useEffect(() => {
+    Object.entries(testCasesMap).forEach(([key, value]) => {
+      localStorage.setItem(`coding_results_${key}`, JSON.stringify(value));
+    });
+  }, [testCasesMap]);
+
+  // Clear transient error when switching problems (preserve results per-problem)
+  useEffect(() => {
+    setError(undefined);
+  }, [currentProblem?.id]);
+
+  const handleLanguageChange = (newLanguage: Language) => {
     if (currentProblem) {
       setProblemLanguageMap((prev) => ({
         ...prev,
@@ -863,14 +997,14 @@ const CodingChallenge: React.FC = () => {
   };
 
   const handleSubmitProblem = async (autoAdvance = false) => {
-    if (!currentProblem) return;
+    if (!currentProblem) return false;
 
     const languageId = getLanguageId(language);
     if (languageId === null) {
       const message = "Please select a valid language before submitting.";
       setError(message);
       toast.error(message);
-      return;
+      return false;
     }
 
     setIsSubmitting(true);
@@ -880,11 +1014,6 @@ const CodingChallenge: React.FC = () => {
       currentProblem.id,
       languageId,
     );
-
-    // Save current code before submitting
-    if (language) {
-      localStorage.setItem(`code_${currentProblem.id}_${language.name}`, code);
-    }
 
     const knownTCs: TestCase[] =
       currentProblem.test_cases ||
@@ -913,6 +1042,8 @@ const CodingChallenge: React.FC = () => {
 
         // Mark this problem as submitted
         submittedProblemIdsRef.current.add(currentProblem.id);
+        setSubmittedProblemIds(new Set(submittedProblemIdsRef.current));
+        persistSubmittedProblems(testId, submittedProblemIdsRef.current);
 
         const allPassed =
           results.length > 0 && results.every((tc: any) => tc.passed);
@@ -926,6 +1057,7 @@ const CodingChallenge: React.FC = () => {
         if (autoAdvance && activeProblemIndex < problems.length - 1) {
           setTimeout(() => setActiveProblemIndex(activeProblemIndex + 1), 1500);
         }
+        return true;
       } else setError(result.message || "Submission failed");
     } catch (err: any) {
       setError(
@@ -937,6 +1069,7 @@ const CodingChallenge: React.FC = () => {
       setIsSubmitting(false);
       setRunningProblemId(null);
     }
+    return false;
   };
 
   const handleSubmitAndEndTest = async () => {
@@ -951,6 +1084,7 @@ const CodingChallenge: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    setRunningProblemId(Number(currentProblem.id));
     setError(undefined);
 
     try {
@@ -966,6 +1100,8 @@ const CodingChallenge: React.FC = () => {
 
         // Mark this problem as submitted to avoid duplicate submissions
         submittedProblemIdsRef.current.add(currentProblem.id);
+        setSubmittedProblemIds(new Set(submittedProblemIdsRef.current));
+        persistSubmittedProblems(testId, submittedProblemIdsRef.current);
 
         toast.success("Final problem submitted! Ending test...");
 
@@ -1391,7 +1527,11 @@ const CodingChallenge: React.FC = () => {
             {problems.map((p, idx) => (
               <button
                 key={p.id}
-                onClick={() => setActiveProblemIndex(idx)}
+                onClick={() =>
+                  shouldBlockProblemSwitch && idx !== activeProblemIndex
+                    ? setBlockedProblemIndex(idx)
+                    : setActiveProblemIndex(idx)
+                }
                 title={p.title}
                 className={cn(
                   "px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-[11px] sm:text-sm font-medium transition-all whitespace-nowrap shrink-0",
@@ -1476,6 +1616,50 @@ const CodingChallenge: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {blockedProblemIndex !== null && currentProblem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 backdrop-blur-[2px] px-4">
+          <Card className="w-full max-w-md overflow-hidden border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.25)]">
+            <div className="border-b border-slate-100 bg-slate-50 px-5 py-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-600">
+                Action required
+              </p>
+              <h3 className="mt-1 text-lg font-semibold text-slate-900">
+                Submit before switching
+              </h3>
+            </div>
+            <div className="space-y-4 px-5 py-5">
+              <p className="text-sm leading-6 text-slate-600">
+                Please submit your code for the current problem before moving to
+                the next one.
+              </p>
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  onClick={() => setBlockedProblemIndex(null)}
+                  className="border border-slate-200 hover:bg-gray-400/50 text-gray-600 bg-gray-50"
+                >
+                  Stay here
+                </Button>
+                <Button
+                  onClick={async () => {
+                    const nextIndex = blockedProblemIndex;
+                    setBlockedProblemIndex(null);
+                    if (
+                      (await handleSubmitProblem(false)) &&
+                      nextIndex !== null
+                    ) {
+                      setActiveProblemIndex(nextIndex);
+                    }
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  Submit now
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden relative">
