@@ -9,14 +9,24 @@ import { CheckCircle2, XCircle, Clock, Database } from "lucide-react";
 interface ConsoleOutputProps {
   testCases: TestCase[];
   isRunning: boolean;
+  runningProblemId?: number | null;
+  currentProblemId?: number;
   error?: string;
 }
 
 const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
   testCases,
   isRunning,
+  runningProblemId,
+  currentProblemId,
   error,
 }) => {
+  const isRunningForCurrentProblem =
+    isRunning &&
+    runningProblemId != null &&
+    currentProblemId != null &&
+    runningProblemId === currentProblemId;
+
   const resolvedCases = testCases.filter((tc) => tc.passed !== undefined);
   const passedTests = resolvedCases.filter((tc) => tc.passed).length;
   const totalTests = resolvedCases.length;
@@ -34,7 +44,7 @@ const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
             </TabsTrigger>
           </TabsList>
 
-          {!isRunning && resolvedCases.length > 0 && (
+          {!isRunningForCurrentProblem && resolvedCases.length > 0 && (
             <div className="text-sm">
               <Badge
                 variant={passedTests === totalTests ? "default" : "destructive"}
@@ -48,7 +58,7 @@ const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
 
         <ScrollArea className="h-[calc(100%-48px)]">
           <TabsContent value="test-results" className="p-4 mt-0 space-y-3">
-            {isRunning && (
+            {isRunningForCurrentProblem && testCases.length === 0 && (
               <div className="flex items-center justify-center py-8">
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
@@ -73,120 +83,125 @@ const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
               </div>
             )}
 
-            {!isRunning && !error && testCases.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-sm">No test results yet</p>
-                <p className="text-xs mt-2">
-                  Click &quot;Run Code&quot; to test your solution
-                </p>
-              </div>
-            )}
+            {!isRunningForCurrentProblem &&
+              !error &&
+              testCases.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p className="text-sm">No test results yet</p>
+                  <p className="text-xs mt-2">
+                    Click &quot;Run Code&quot; to test your solution
+                  </p>
+                </div>
+              )}
 
-            {!isRunning &&
-              testCases.map((testCase, idx) => {
-                const isResolved = testCase.passed !== undefined;
-                return (
-                  <div
-                    key={testCase.id}
-                    className={`border rounded-lg p-4 ${!isResolved
+            {testCases.map((testCase, idx) => {
+              const isResolved = testCase.passed !== undefined;
+              return (
+                <div
+                  key={testCase.id}
+                  className={`border rounded-lg p-4 ${
+                    !isResolved
                       ? "border-border bg-muted/20"
                       : testCase.passed
                         ? "border-green-500/30 bg-green-500/5"
                         : "border-red-500/30 bg-red-500/5"
-                      }`}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        {!isResolved ? (
-                          <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30" />
-                        ) : testCase.passed ? (
-                          <CheckCircle2 className="h-5 w-5 text-green-600" />
-                        ) : (
-                          <XCircle className="h-5 w-5 text-red-600" />
-                        )}
-                        <span className="font-medium text-sm">
-                          Test Case {idx + 1}
-                        </span>
-                        {isResolved && (
-                          <Badge
-                            variant={testCase.passed ? "default" : "destructive"}
-                            className={`text-[10px] px-1.5 py-0 ${testCase.passed
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {!isResolved ? (
+                        <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30" />
+                      ) : testCase.passed ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-red-600" />
+                      )}
+                      <span className="font-medium text-sm">
+                        Test Case {idx + 1}
+                      </span>
+                      {isResolved && (
+                        <Badge
+                          variant={testCase.passed ? "default" : "destructive"}
+                          className={`text-[10px] px-1.5 py-0 ${
+                            testCase.passed
                               ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-600 border-0 hover:bg-green-100 hover:dark:bg-green-900/30 hover:text-green-600 hover:dark:text-green-600"
                               : ""
-                              }`}
-                          >
-                            {testCase.passed ? "Accepted" : "Failed"}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        {testCase.runtime !== undefined && (
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {testCase.runtime}ms
-                          </span>
-                        )}
-                        {testCase.memory !== undefined && (
-                          <span className="flex items-center gap-1">
-                            <Database className="h-3 w-3" />
-                            {(testCase.memory / 1024).toFixed(1)} MB
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 text-sm">
-                      {testCase.input && (
-                        <div>
-                          <p className="text-muted-foreground mb-1">Input:</p>
-                          <code className="bg-muted/50 px-2 py-1 rounded text-foreground whitespace-pre-wrap break-all block">
-                            {testCase.input}
-                          </code>
-                        </div>
+                          }`}
+                        >
+                          {testCase.passed ? "Accepted" : "Failed"}
+                        </Badge>
                       )}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      {testCase.runtime !== undefined && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {testCase.runtime}ms
+                        </span>
+                      )}
+                      {testCase.memory !== undefined && (
+                        <span className="flex items-center gap-1">
+                          <Database className="h-3 w-3" />
+                          {(testCase.memory / 1024).toFixed(1)} MB
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-                      {testCase.actualOutput !== undefined && (
-                        <div>
-                          <p className="text-muted-foreground mb-1">
-                            Your Output:
-                          </p>
-                          <code
-                            className={`px-2 py-1 rounded whitespace-pre-wrap break-all block ${!isResolved
+                  <div className="space-y-2 text-sm">
+                    {testCase.input && (
+                      <div>
+                        <p className="text-muted-foreground mb-1">Input:</p>
+                        <code className="bg-muted/50 px-2 py-1 rounded text-foreground whitespace-pre-wrap break-all block">
+                          {testCase.input}
+                        </code>
+                      </div>
+                    )}
+
+                    {testCase.actualOutput !== undefined && (
+                      <div>
+                        <p className="text-muted-foreground mb-1">
+                          Your Output:
+                        </p>
+                        <code
+                          className={`px-2 py-1 rounded whitespace-pre-wrap break-all block ${
+                            !isResolved
                               ? "bg-muted/50 text-foreground"
                               : testCase.passed
                                 ? "bg-green-500/10 text-green-700 dark:text-green-400"
                                 : "bg-red-500/10 text-red-700 dark:text-red-400"
-                              }`}
-                          >
-                            {testCase.actualOutput || <span className="italic opacity-50">empty</span>}
-                          </code>
-                        </div>
-                      )}
+                          }`}
+                        >
+                          {testCase.actualOutput || (
+                            <span className="italic opacity-50">empty</span>
+                          )}
+                        </code>
+                      </div>
+                    )}
 
-                      {testCase.stderr && (
-                        <div>
-                          <p className="text-muted-foreground mb-1">Stderr:</p>
-                          <code className="bg-red-500/10 text-red-700 dark:text-red-400 px-2 py-1 rounded whitespace-pre-wrap break-all block text-xs">
-                            {testCase.stderr}
-                          </code>
-                        </div>
-                      )}
-                      {
-                        testCase.compile_output && (
-                          <div>
-                            <p className="text-muted-foreground mb-1">Compile Output:</p>
-                            <code className="bg-muted/50 px-2 py-1 rounded text-foreground whitespace-pre-wrap break-all block">
-                              {testCase.compile_output}
-                            </code>
-                          </div>
-                        )
-                      }
-                    </div>
+                    {testCase.stderr && (
+                      <div>
+                        <p className="text-muted-foreground mb-1">Stderr:</p>
+                        <code className="bg-red-500/10 text-red-700 dark:text-red-400 px-2 py-1 rounded whitespace-pre-wrap break-all block text-xs">
+                          {testCase.stderr}
+                        </code>
+                      </div>
+                    )}
+                    {testCase.compile_output && (
+                      <div>
+                        <p className="text-muted-foreground mb-1">
+                          Compile Output:
+                        </p>
+                        <code className="bg-muted/50 px-2 py-1 rounded text-foreground whitespace-pre-wrap break-all block">
+                          {testCase.compile_output}
+                        </code>
+                      </div>
+                    )}
                   </div>
-                );
-              })}
+                </div>
+              );
+            })}
           </TabsContent>
-
         </ScrollArea>
       </Tabs>
     </Card>

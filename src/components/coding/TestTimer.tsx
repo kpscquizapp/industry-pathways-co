@@ -8,7 +8,11 @@ interface TestTimerProps {
   onTimeUp: () => void;
 }
 
-const TestTimer: React.FC<TestTimerProps> = ({ startedAt, totalMinutes, onTimeUp }) => {
+const TestTimer: React.FC<TestTimerProps> = ({
+  startedAt,
+  totalMinutes,
+  onTimeUp,
+}) => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const onTimeUpRef = useRef(onTimeUp);
   const hasFiredRef = useRef(false);
@@ -55,22 +59,36 @@ const TestTimer: React.FC<TestTimerProps> = ({ startedAt, totalMinutes, onTimeUp
   };
 
   const isLowTime = timeLeft < 300; // less than 5 minutes
+  const isUrgentTime = timeLeft < 60;
 
   return (
     <div
       className={cn(
         "flex items-center gap-2 px-4 py-2 rounded-full font-mono font-bold text-lg min-w-[120px] justify-center transition-colors",
         isLowTime
-          ? "bg-red-100 text-red-600 animate-pulse border border-red-200"
-          : "bg-slate-100 text-slate-700 border border-slate-200"
+          ? "bg-red-100 text-red-700 border border-red-200 shadow-sm"
+          : "bg-slate-100 text-slate-700 border border-slate-200",
       )}
     >
       {isLowTime ? (
-        <AlertTriangle className="h-5 w-5" />
+        <AlertTriangle
+          className={cn(
+            "h-5 w-5",
+            isUrgentTime && "animate-pulse motion-reduce:animate-none",
+          )}
+        />
       ) : (
         <Timer className="h-5 w-5" />
       )}
-      {formatTime(timeLeft)}
+      <span
+        className={cn(
+          "tabular-nums leading-none",
+          isUrgentTime && "animate-pulse motion-reduce:animate-none",
+          isUrgentTime && "text-red-800",
+        )}
+      >
+        {formatTime(timeLeft)}
+      </span>
     </div>
   );
 };
