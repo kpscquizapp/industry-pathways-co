@@ -1,6 +1,6 @@
 import React from "react";
 import { getCurrencySymbol } from "@/lib/currency";
-import { useState } from "react";
+import { useState ,useEffect } from "react";
 import {
   X,
   Download,
@@ -110,8 +110,14 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [activeReportTab, setActiveReportTab] = useState<"overview" | "detailed">("overview");
 
+  useEffect(() => {
+  setSelectedTestId(null);
+  setActiveQuestionIndex(0);
+  setActiveReportTab("overview");
+}, [candidate?.id]);
+
   const { data: testByEmailData } = useGetTestByBenchEmailQuery(
-  candidate?.email || '',
+  { email: candidate?.email || '', benchResourceId: Number(candidate?.id) },
   { skip: !candidate?.email }
 );
 

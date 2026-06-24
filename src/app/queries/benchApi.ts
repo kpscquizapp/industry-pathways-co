@@ -177,12 +177,12 @@ export const benchApi = createApi({
       invalidatesTags: ["BenchResources"],
     }),
 
-    getTestByBenchEmail: builder.query<{ success: boolean; data: BenchTestResult[] }, string>({
-  query: (email) => ({
-    url: `coding/tests/by-email?candidateEmail=${email}`,
-    method: 'GET',
-  }),
-}),
+    getTestByBenchEmail: builder.query<{ success: boolean; data: BenchTestResult[] }, { email: string; benchResourceId: number }>({
+      query: ({ email, benchResourceId }) => ({
+        url: `coding/tests/by-email?candidateEmail=${encodeURIComponent(email)}&benchResourceId=${benchResourceId}`,
+        method: 'GET',
+      }),
+    }),
 
 getBenchTestReport: builder.query<{ success: boolean; data: any }, number>({
   query: (id) => ({

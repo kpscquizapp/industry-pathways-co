@@ -182,7 +182,11 @@ const PostBenchResource = () => {
         requireNonSolicitation: resource.requireNonSolicitation || false,
         resumeFile: null,
       });
-      setExistingResumeName(resource.resumeOriginalName || resource.resumePath || 'Existing Resume');
+      if (resource.resumeOriginalName || resource.resumePath) {
+        setExistingResumeName(resource.resumeOriginalName || resource.resumePath);
+      } else {
+        setExistingResumeName(null);
+      }
     }
   }, [isEditMode, resourceData]);
 
