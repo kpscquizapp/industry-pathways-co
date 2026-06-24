@@ -98,6 +98,17 @@ export interface ShortlistedBenchDetail {
   jobTitle: string;
   companyName: string;
 }
+export interface BenchTestResult {
+  id: number;
+  title: string;
+  status: string;
+  created_at: string;
+  candidate_email: string;
+  job_id: number | null;
+  job_title: string | null;
+  company_name: string | null;
+}
+
 
 export const benchApi = createApi({
   reducerPath: "benchApi",
@@ -166,6 +177,20 @@ export const benchApi = createApi({
       invalidatesTags: ["BenchResources"],
     }),
 
+    getTestByBenchEmail: builder.query<{ success: boolean; data: BenchTestResult[] }, string>({
+  query: (email) => ({
+    url: `coding/tests/by-email?candidateEmail=${email}`,
+    method: 'GET',
+  }),
+}),
+
+getBenchTestReport: builder.query<{ success: boolean; data: any }, number>({
+  query: (id) => ({
+    url: `coding/tests/report/${id}`,
+    method: 'GET',
+  }),
+}),
+
 
 
     getBenchResourceById: builder.query<BenchResourceResponse, number | string>(
@@ -230,6 +255,8 @@ export const benchApi = createApi({
 export const {
   usePostBenchResourceMutation,
   useGetBenchResourcesQuery,
+  useGetTestByBenchEmailQuery,
+  useGetBenchTestReportQuery,
   useDownloadBenchResumeMutation,
   useUpdateBenchResourceMutation,
   useDeleteBenchResourceMutation,

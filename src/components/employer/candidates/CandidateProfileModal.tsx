@@ -1,5 +1,6 @@
 import React from "react";
 import { getCurrencySymbol } from "@/lib/currency";
+import { useState } from "react";
 import {
   X,
   Download,
@@ -14,7 +15,9 @@ import {
   FileText,
   Smartphone,
   ShoppingCart,
-  Building2
+  Building2,
+  LayoutGrid,
+  CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +31,9 @@ import type { CandidateProfile } from "@/types/candidates";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
+import { useGetTestByBenchEmailQuery, useGetBenchTestReportQuery } from "@/app/queries/benchApi";
 export type { CandidateProfile } from "@/types/candidates";
+
 
 interface CandidateProfileModalProps {
   candidate: CandidateProfile | null;
@@ -101,6 +106,20 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
 }) => {
   const [downloadResume] = useDownloadBenchResumeMutation();
   const userDetails = useSelector((state: RootState) => state.user.userDetails);
+  const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
+  const [activeReportTab, setActiveReportTab] = useState<"overview" | "detailed">("overview");
+
+  const { data: testByEmailData } = useGetTestByBenchEmailQuery(
+  candidate?.email || '',
+  { skip: !candidate?.email }
+);
+
+const { data: testReportData, isLoading: isReportLoading } = useGetBenchTestReportQuery(
+  selectedTestId!,
+  { skip: !selectedTestId }
+);
+const testReport = selectedTestId ? testReportData?.data : undefined;
 
   const handleDownload = async (id: EntityId) => {
     if (!candidate) return;
@@ -312,6 +331,15 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                         Resume
                       </TabsTrigger>
                     )}
+
+                    {candidate.type === "bench" && (
+                      <TabsTrigger
+                        value="skilltest"
+                        className="rounded-lg px-6 data-[state=active]:bg-background"
+                      >
+                        Skill Test
+                      </TabsTrigger>
+                  )}
                   </TabsList>
                   {/* {userDetails?.role === "employer" || userDetails?.role === "hr" && (
                     <Button
@@ -562,6 +590,353 @@ const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                   </Card>
                 </TabsContent>
               )}
+{candidate.type === "bench" && (
+  <TabsContent value="skilltest" className="space-y-4">
+    {!selectedTestId ? (
+      // LIST VIEW
+      <div className="space-y-3">
+        {!testByEmailData?.data || testByEmailData.data.length === 0 ? (
+          <Card className="border-border">
+            <CardContent className="p-10 text-center text-muted-foreground">
+              No skill test assigned yet.
+            </CardContent>
+          </Card>
+        ) : (
+         testByEmailData.data.filter((test) =>
+  test.title.toLowerCase().includes(candidate.name.toLowerCase())
+).map((test) => (
+  <Card key={test.id} className="border-border">
+    <CardContent className="p-4 flex items-center justify-between gap-4">
+      <div className="flex items-center gap-4">
+        <div className={`w-14 h-14 rounded-full border-4 flex items-center justify-center shrink-0 ${
+          test.status === 'completed' ? 'border-emerald-200' : 'border-amber-200'
+        }`}>
+          <span className="text-sm font-bold text-foreground">
+            {test.status === 'completed' ? '100%' : '—'}
+          </span>
+        </div>
+        <div>
+          <p className="font-semibold text-foreground">{test.title}</p>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+            <Badge className={`${
+              test.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+            } text-xs`}>
+              {test.status === 'completed' ? 'Completed' : 'Invited'}
+            </Badge>
+            {test.job_title && <span>• {test.job_title}</span>}
+            {test.company_name && <span>• {test.company_name}</span>} 
+          </div>
+        </div>
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        className="rounded-xl shrink-0"
+        onClick={() => { setSelectedTestId(test.id); setActiveQuestionIndex(0); setActiveReportTab("overview"); }}
+      >
+        View Insights
+      </Button>
+    </CardContent>
+  </Card>
+))
+        )}
+      </div>
+    ) : (
+      // DETAIL VIEW
+      <>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-2"
+          onClick={() => { setSelectedTestId(null); setActiveQuestionIndex(0); setActiveReportTab("overview"); }}
+        >
+          ← Back to all tests
+        </Button>
+        <div className="flex gap-2 mb-4">
+  <button
+    onClick={() => setActiveReportTab("overview")}
+    className={`px-4 py-2 rounded-lg text-xs font-semibold border transition-colors ${
+      activeReportTab === "overview"
+        ? "bg-primary/10 border-primary/30 text-primary"
+        : "bg-muted/30 border-transparent text-muted-foreground hover:bg-muted/50"
+    }`}
+  >
+    Overview
+  </button>
+  <button
+    onClick={() => setActiveReportTab("detailed")}
+    className={`px-4 py-2 rounded-lg text-xs font-semibold border transition-colors ${
+      activeReportTab === "detailed"
+        ? "bg-primary/10 border-primary/30 text-primary"
+        : "bg-muted/30 border-transparent text-muted-foreground hover:bg-muted/50"
+    }`}
+  >
+    Detailed Review
+  </button>
+</div>
+        {isReportLoading ? (
+          <div className="p-10 text-center text-muted-foreground">Loading...</div>
+        ) : !testReport ? (
+          <Card className="border-border">
+            <CardContent className="p-10 text-center text-muted-foreground">
+              No data available.
+            </CardContent>
+          </Card>
+        ) : (
+        <>
+
+{activeReportTab === "overview" && (
+  <div className="flex flex-col gap-8 animate-in fade-in duration-500">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="bg-white border border-slate-100 rounded-2xl p-6 md:p-8 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-800 mb-4">
+          Performance Summary
+        </h3>
+        <p className="text-slate-500 text-[14px] leading-relaxed mb-6">
+          Completed <span className="font-medium text-slate-700">{testReport.test.title}</span> with{" "}
+          {testReport.stats.codingAccuracy}% accuracy. Below is a breakdown of
+          your performance by difficulty and key study recommendations.
+        </p>
+
+        <div className="space-y-4">
+          {[
+            { label: "Easy", value: "easy" },
+            { label: "Intermediate", value: "medium" },
+            { label: "Advanced", value: "hard" },
+          ].map((item) => {
+            const isMatch =
+              testReport.test.difficulty?.toLowerCase() === item.value;
+            return (
+              <div
+                key={item.label}
+                className="flex items-center justify-between p-4 bg-slate-50 rounded-xl"
+              >
+                <div className="flex flex-col">
+                  <span className="text-[13px] font-bold text-slate-700">
+                    {item.label}
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    Target Level
+                  </span>
+                </div>
+                {isMatch ? (
+                  <span className="px-3 py-1 bg-[#f0fdfa] border border-[#ccfbf1] text-[#10b981] text-[11px] font-bold rounded-lg">
+                    Target Set
+                  </span>
+                ) : (
+                  <span className="px-3 py-1 bg-slate-50 border border-slate-100 text-slate-300 text-[11px] font-bold rounded-lg cursor-default">
+                    N/A
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="bg-white border border-slate-100 rounded-2xl p-6 md:p-8 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-800 mb-4">
+          AI Performance Analysis
+        </h3>
+        <div className="p-6 bg-[#f0f9ff] border border-[#e0f2fe] rounded-2xl">
+          <div className="flex items-start gap-4">
+            <div className="bg-white p-2 rounded-lg shadow-sm">
+              <LayoutGrid className="text-[#0ea5e9]" size={20} />
+            </div>
+            <div>
+              <h4 className="text-[15px] font-bold text-slate-800 mb-1">
+                Key Insight
+              </h4>
+              <p className="text-[13.5px] text-slate-600 leading-relaxed">
+                Your strongest area is{" "}
+                <span className="font-bold text-[#0ea5e9]">
+                  Logical Accuracy
+                </span>
+                , while focusing on{" "}
+                <span className="font-bold text-[#0ea5e9]">
+                  {testReport.stats.improvementFocus}
+                </span>{" "}
+                could further enhance your efficiency.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3">
+          <h4 className="text-[14px] font-bold text-slate-800">
+            Next Steps
+          </h4>
+          <ul className="space-y-2">
+            <li className="flex items-center gap-2 text-[13px] text-slate-500">
+              <CheckCircle2 size={14} className="text-[#22c55e]" /> Review
+              AI-suggested optimizations in Detailed Review.
+            </li>
+            <li className="flex items-center gap-2 text-[13px] text-slate-500">
+              <CheckCircle2 size={14} className="text-[#22c55e]" />{" "}
+              Practice intermediate data structures.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+{activeReportTab === "detailed" && (
+<>
+            <Card className="border-border">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg text-foreground">{testReport.test.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-muted/30 rounded-xl p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground">{testReport.test.overallScore}%</p>
+                  <p className="text-xs text-muted-foreground mt-1">Overall Score</p>
+                </div>
+                <div className="bg-muted/30 rounded-xl p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground">{testReport.stats.codingAccuracy}%</p>
+                  <p className="text-xs text-muted-foreground mt-1">Accuracy</p>
+                </div>
+                <div className="bg-muted/30 rounded-xl p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground">{testReport.stats.attemptedCount}/{testReport.stats.questionsReviewed}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Attempted</p>
+                </div>
+                <div className="bg-muted/30 rounded-xl p-4 text-center">
+                  <Badge className={`${testReport.test.overallScore > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                    {testReport.test.overallScore > 0 ? 'Completed' : 'Pending'}
+                  </Badge>
+                  <p className="text-xs text-muted-foreground mt-1">Status</p>
+                </div>
+              </CardContent>
+            </Card>
+
+<div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+  {/* Question Navigator */}
+  <div className="lg:col-span-1">
+    <Card className="border-border lg:sticky lg:top-4">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base text-foreground">Questions</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {testReport.questions.map((q: any, index: number) => (
+          <button
+            type="button"
+            key={q.id ?? index}
+            onClick={() => setActiveQuestionIndex(index)}
+            className={`flex w-full items-center justify-between px-3 py-2.5 rounded-xl border text-left transition-colors ${
+              activeQuestionIndex === index
+                ? "bg-primary/10 border-primary/30"
+                : "bg-muted/30 border-transparent hover:bg-muted/50"
+            }`}
+          >
+            <div className="flex flex-col gap-0.5 min-w-0">
+              <span className="font-semibold text-xs text-foreground">Q{index + 1}</span>
+              <span className="text-xs text-muted-foreground truncate max-w-[140px]">{q.title}</span>
+            </div>
+            <div
+              className={`w-2.5 h-2.5 rounded-full shrink-0 ml-2 ${
+                q.status === "Correct"
+                  ? "bg-emerald-500"
+                  : q.status === "Incorrect"
+                    ? "bg-red-500"
+                    : "bg-slate-300"
+              }`}
+            />
+          </button>
+        ))}
+      </CardContent>
+    </Card>
+  </div>
+
+  {/* Question Detail */}
+  <div className="lg:col-span-3">
+    {(() => {
+      const currentQuestion = testReport.questions?.[activeQuestionIndex];
+      if (!currentQuestion) {
+        return (
+          <Card className="border-border">
+            <CardContent className="p-10 text-center text-muted-foreground">
+              No question details available.
+            </CardContent>
+          </Card>
+        );
+      }
+      return (
+        <Card className="border-border">
+          <CardContent className="p-6 space-y-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex gap-3">
+                <span className="font-semibold text-muted-foreground text-sm">Q{activeQuestionIndex + 1}</span>
+                <p className="font-semibold text-foreground text-sm leading-relaxed">{currentQuestion.title}</p>
+              </div>
+              <Badge className={`shrink-0 ${
+                currentQuestion.status === 'Correct' ? 'bg-emerald-100 text-emerald-700' :
+                currentQuestion.status === 'Not Attempted' ? 'bg-slate-100 text-slate-600' :
+                'bg-red-100 text-red-700'
+              }`}>
+                {currentQuestion.status}
+              </Badge>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              {currentQuestion.testCasesPassed}/{currentQuestion.testCasesTotal} test cases passed
+            </p>
+
+            {currentQuestion.explanation && (
+              <div className="bg-sky-50 rounded-xl p-4 border border-sky-100">
+                <div className="text-[10px] font-bold text-sky-600 mb-2 tracking-wider uppercase">
+                  Explanation
+                </div>
+                <p className="text-foreground/80 text-sm leading-relaxed">{currentQuestion.explanation}</p>
+              </div>
+            )}
+
+            {currentQuestion.submittedCode && (
+              <div className="bg-slate-900 rounded-xl p-4 overflow-hidden">
+                <div className="text-[10px] font-bold text-slate-400 mb-2 tracking-wider uppercase">
+                  Submitted Code
+                </div>
+                <pre className="text-slate-200 text-xs font-mono leading-relaxed overflow-x-auto whitespace-pre">
+                  {currentQuestion.submittedCode}
+                </pre>
+              </div>
+            )}
+
+            {currentQuestion.aiImprovedCode && (
+              <div className="bg-sky-50 rounded-xl p-4 overflow-hidden border border-sky-100">
+                <div className="text-[10px] font-bold text-sky-600 mb-2 tracking-wider uppercase">
+                  AI-Improved Version
+                </div>
+                <pre className="text-foreground/80 text-xs font-mono leading-relaxed overflow-x-auto whitespace-pre">
+                  {currentQuestion.aiImprovedCode}
+                </pre>
+              </div>
+            )}
+
+            {currentQuestion.openaiFeedback && (
+              <div className="bg-muted/30 rounded-xl p-4 border border-border">
+                <h5 className="text-sm font-semibold text-foreground mb-2">AI Evaluation Feedback</h5>
+                <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                  {currentQuestion.openaiFeedback}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      );
+    })()}
+  </div>
+</div>
+</>
+)}
+          </>
+        )}
+      </>
+    )}
+  </TabsContent>
+)}
+           
+ 
             </Tabs>
           </div>
         </div>
