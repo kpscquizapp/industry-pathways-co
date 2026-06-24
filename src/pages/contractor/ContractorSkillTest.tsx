@@ -181,7 +181,7 @@ const ContractorSkillTest = () => {
   const {
     data: { data: invitedTestStatus } = {},
     isLoading: isLoadingTestStatus,
-  } = useGetContractorInvitedTestStatusQuery(0);
+  } = useGetContractorInvitedTestStatusQuery();
 
   const allAssessments = isLoadingTestStatus
     ? []
@@ -454,7 +454,7 @@ const ContractorSkillTest = () => {
                   <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
                   <span className="ml-2 text-slate-400">Loading...</span>
                 </div>
-              ) : invitedTestStatus.availableTests.length > 0 ? (
+              ) : (invitedTestStatus?.availableTests?.length ?? 0) > 0 ? (
                 invitedTestStatus?.availableTests?.map(
                   (res: any, i: number) => {
                     return (
@@ -521,87 +521,91 @@ const ContractorSkillTest = () => {
                   <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
                   <span className="ml-2 text-slate-400">Loading...</span>
                 </div>
-              ) : invitedTestStatus.completedTests.length > 0 ? (
-                invitedTestStatus.completedTests.map((res: any, i: number) => {
-                  const scoreVal = Number(res.overallScore ?? res.score ?? 0);
-                  const scoreColor =
-                    scoreVal >= 70
-                      ? "#22c55e" // green  ≥ 70
-                      : scoreVal >= 40
-                        ? "#f59e0b" // yellow 40–69
-                        : "#ef4444"; // red   < 40
+              ) : (invitedTestStatus?.completedTests?.length ?? 0) > 0 ? (
+                invitedTestStatus?.completedTests?.map(
+                  (res: any, i: number) => {
+                    const scoreVal = Number(res.overallScore ?? res.score ?? 0);
+                    const scoreColor =
+                      scoreVal >= 70
+                        ? "#22c55e" // green  ≥ 70
+                        : scoreVal >= 40
+                          ? "#f59e0b" // yellow 40–69
+                          : "#ef4444"; // red   < 40
 
-                  return (
-                    <div key={i} className="flex flex-col h-full">
-                      <Card
-                        className={cn(
-                          "p-5 md:p-6 border-slate-100 shadow-sm flex flex-col gap-5 h-full transition-all hover:border-slate-200",
-                        )}
-                      >
-                        <div className="flex items-start gap-4 sm:gap-5">
-                          <div
-                            className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
-                            style={{ borderColor: scoreColor }}
-                          >
+                    return (
+                      <div key={i} className="flex flex-col h-full">
+                        <Card
+                          className={cn(
+                            "p-5 md:p-6 border-slate-100 shadow-sm flex flex-col gap-5 h-full transition-all hover:border-slate-200",
+                          )}
+                        >
+                          <div className="flex items-start gap-4 sm:gap-5">
                             <div
-                              className="text-[14px] md:text-[17px] font-black"
-                              style={{ color: scoreColor }}
+                              className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
+                              style={{ borderColor: scoreColor }}
                             >
-                              {scoreVal}%
+                              <div
+                                className="text-[14px] md:text-[17px] font-black"
+                                style={{ color: scoreColor }}
+                              >
+                                {scoreVal}%
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col gap-1.5 md:gap-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">
+                                  {res.title}
+                                </h4>
+                                <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100 text-[11px] md:text-[12px]">
+                                  {Object.entries(
+                                    res.difficultyDistribution || {},
+                                  ).find(([_, v]) => (v as any) > 0)?.[0] ||
+                                    "Mixed"}
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
+                                <span className="text-slate-400">
+                                  Status: {res.status}
+                                </span>
+                                <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                                <span className="text-slate-400">
+                                  Completed on:{" "}
+                                  {res.submittedAt
+                                    ? new Date(
+                                        res.submittedAt,
+                                      ).toLocaleDateString()
+                                    : "N/A"}
+                                </span>
+                                <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                                <span className="flex items-center gap-1 font-semibold text-purple-600">
+                                  <WandSparkles size={12} />
+                                  AI Generated
+                                </span>
+                              </div>
                             </div>
                           </div>
 
-                          <div className="flex flex-col gap-1.5 md:gap-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">
-                                {res.title}
-                              </h4>
-                              <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100 text-[11px] md:text-[12px]">
-                                {Object.entries(
-                                  res.difficultyDistribution || {},
-                                ).find(([_, v]) => (v as any) > 0)?.[0] ||
-                                  "Mixed"}
-                              </span>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
-                              <span className="text-slate-400">
-                                Status: {res.status}
-                              </span>
-                              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
-                              <span className="text-slate-400">
-                                Completed on:{" "}
-                                {res.submittedAt
-                                  ? new Date(
-                                      res.submittedAt,
-                                    ).toLocaleDateString()
-                                  : "N/A"}
-                              </span>
-                              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
-                              <span className="flex items-center gap-1 font-semibold text-purple-600">
-                                <WandSparkles size={12} />
-                                AI Generated
-                              </span>
-                            </div>
+                          <div className="flex justify-end">
+                            <button
+                              onClick={() =>
+                                navigate(
+                                  `/contractor/tests/report?id=${res.id}`,
+                                )
+                              }
+                              className={cn(
+                                "w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border font-bold text-[13px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm",
+                              )}
+                            >
+                              <Eye size={16} className={"text-slate-400"} />
+                              View Insights
+                            </button>
                           </div>
-                        </div>
-
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() =>
-                              navigate(`/contractor/tests/report?id=${res.id}`)
-                            }
-                            className={cn(
-                              "w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border font-bold text-[13px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm",
-                            )}
-                          >
-                            <Eye size={16} className={"text-slate-400"} />
-                            View Insights
-                          </button>
-                        </div>
-                      </Card>
-                    </div>
-                  );
-                })
+                        </Card>
+                      </div>
+                    );
+                  },
+                )
               ) : (
                 <div className="col-span-full p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
                   <p className="text-slate-400 font-medium">

@@ -94,10 +94,10 @@ export const contractorSkillTestApi = createApi({
     }),
 
     // Fetches Contractors invited test status
-    getContractorInvitedTestStatus: builder.query<any, any>({
+    getContractorInvitedTestStatus: builder.query<any, void>({
       query: () => ({
         method: "GET",
-        url: "/jobboard/dashboard/tests",
+        url: "jobboard/dashboard/tests",
       }),
     }),
   }),
