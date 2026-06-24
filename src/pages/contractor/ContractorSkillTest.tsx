@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import {
   useCreateSkillTestMutation,
+  useGetContractorInvitedTestStatusQuery,
   useGetMyTestResultsQuery,
   useGetProblemTagsQuery,
   useLazyGetTestStatusByIdQuery,
@@ -177,16 +178,19 @@ const ContractorSkillTest = () => {
     useCreateSkillTestMutation();
   const { data: testResultsData, isLoading: isLoadingResults } =
     useGetMyTestResultsQuery();
-  const { data: tagsData } = useGetProblemTagsQuery();
-  const [triggerGetTestStatus] = useLazyGetTestStatusByIdQuery();
+  const {
+    data: { data: invitedTestStatus } = {},
+    isLoading: isLoadingTestStatus,
+  } = useGetContractorInvitedTestStatusQuery(0);
+
+  const allAssessments = isLoadingTestStatus
+    ? []
+    : [
+        ...(invitedTestStatus?.availableTests || []),
+        ...(invitedTestStatus?.completedTests || []),
+      ];
 
   const testResults = testResultsData?.data || [];
-  const availableTags = tagsData?.data || [];
-  const [expandedTestId, setExpandedTestId] = useState<number | null>(null);
-  const [insightsData, setInsightsData] = useState<Record<number, any>>({});
-  const [insightsLoading, setInsightsLoading] = useState<
-    Record<number, boolean>
-  >({});
   const [mockTest, setMockTest] = useState({
     title: "",
     totalTime: 0,
@@ -253,7 +257,7 @@ const ContractorSkillTest = () => {
             </div>
             <div>
               <div className="text-3xl md:text-4xl font-bold leading-none mb-1">
-                -
+                {invitedTestStatus?.summary?.testsCompleted || 0}
               </div>
               <h3 className="text-base md:text-[17px] font-bold text-white mb-2 md:mb-3">
                 Tests Completed
@@ -276,7 +280,7 @@ const ContractorSkillTest = () => {
             </div>
             <div>
               <div className="text-3xl md:text-4xl font-bold leading-none mb-1">
-                -
+                {invitedTestStatus?.summary?.averageScore || 0}
               </div>
               <h3 className="text-base md:text-[17px] font-bold text-white mb-2 md:mb-3">
                 Average Score
@@ -313,57 +317,39 @@ const ContractorSkillTest = () => {
         ))}
       </div>
 
-      {/* Info Banner */}
-      {filter !== "mock" && filter !== "completed" && (
-        <div className="bg-white border border-slate-100 rounded-xl p-4 flex gap-3 md:gap-4 items-center shadow-sm relative overflow-hidden w-full lg:w-[80%] border-l-4 border-l-[#0ea5e9]">
-          <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
-            <CircleAlert size={20} className="text-[#0ea5e9]" />
-          </div>
-          <p className="text-[13px] md:text-sm text-slate-500 font-medium">
-            Companies invite candidates to skill assessments based on AI
-            matching scores. Completing tests helps validate your expertise and
-            increases your chances of interview selection.
-          </p>
-        </div>
-      )}
-
-      {/* Completed Tests (Invited) */}
-      {filter == "completed" && (
+      {/* All Assessment (Invited) */}
+      {filter == "all" && (
         <div className="flex flex-col gap-10 pb-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
-          {/* Section 1: Completed Tests */}
           <div className="flex flex-col gap-5">
             <h3 className="text-xl font-bold text-slate-900 px-1">
-              Invited Tests Completed
+              All Assessments
             </h3>
 
-            <div className="flex flex-col gap-4">
-              {isLoadingResults ? (
-                <div className="flex items-center justify-center py-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {isLoadingTestStatus ? (
+                <div className="col-span-full flex items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
                   <span className="ml-2 text-slate-400">Loading...</span>
                 </div>
-              ) : testResults.length > 0 ? (
-                testResults
-                  .filter((result) => !result.difficultyDistribution)
-                  .map((res: any, i: number) => {
-                    const scoreVal = Number(res.overallScore ?? res.score ?? 0);
-                    const scoreColor =
-                      scoreVal >= 70
-                        ? "#22c55e" // green  ≥ 70
-                        : scoreVal >= 40
-                          ? "#f59e0b" // yellow 40–69
-                          : "#ef4444"; // red   < 40
-                    const isExpanded = expandedTestId === res.id;
+              ) : allAssessments.length > 0 ? (
+                allAssessments.map((res: any, i: number) => {
+                  const scoreVal = Number(res.overallScore ?? res.score ?? 0);
+                  const scoreColor =
+                    scoreVal >= 70
+                      ? "#22c55e" // green  ≥ 70
+                      : scoreVal >= 40
+                        ? "#f59e0b" // yellow 40–69
+                        : "#ef4444"; // red   < 40
 
-                    return (
-                      <div key={i} className="flex flex-col">
-                        <Card
-                          className={cn(
-                            "p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200",
-                          )}
-                        >
-                          <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
-                            {/* Score Circle */}
+                  return (
+                    <div key={i} className="flex flex-col h-full">
+                      <Card
+                        className={cn(
+                          "p-5 md:p-6 border-slate-100 shadow-sm flex flex-col gap-5 h-full transition-all hover:border-slate-200",
+                        )}
+                      >
+                        <div className="flex items-start gap-4 sm:gap-5">
+                          {res.status == "completed" && (
                             <div
                               className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
                               style={{ borderColor: scoreColor }}
@@ -375,7 +361,110 @@ const ContractorSkillTest = () => {
                                 {scoreVal}%
                               </div>
                             </div>
+                          )}
 
+                          <div className="flex flex-col gap-1.5 md:gap-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">
+                                {res.title}
+                              </h4>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
+                              <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100 text-[11px] md:text-[12px]">
+                                {Object.entries(
+                                  res.difficultyDistribution || {},
+                                ).find(([_, v]) => (v as any) > 0)?.[0] ||
+                                  "Mixed"}
+                              </span>
+                              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                              <span className="text-slate-400">
+                                Status: {res.status}
+                              </span>
+                              {res.status == "completed" ? (
+                                <>
+                                  <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                                  <span className="text-slate-400">
+                                    Completed on:{" "}
+                                    {res.submittedAt
+                                      ? new Date(
+                                          res.submittedAt,
+                                        ).toLocaleDateString()
+                                      : "N/A"}
+                                  </span>
+                                  <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                                  <span className="flex items-center gap-1 font-semibold text-purple-600">
+                                    <WandSparkles size={12} />
+                                    AI Generated
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-slate-400 text-[12px] md:text-[13px]">
+                                  Test invitation has been sent to your
+                                  registered Gmail: {res.candidateEmail} <br />{" "}
+                                  Check your inbox.
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {res.status == "completed" && (
+                          <div className="flex justify-end">
+                            <button
+                              onClick={() =>
+                                navigate(
+                                  `/contractor/tests/report?id=${res.id}`,
+                                )
+                              }
+                              className={cn(
+                                "w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border font-bold text-[13px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm",
+                              )}
+                            >
+                              <Eye size={16} className={"text-slate-400"} />
+                              View Insights
+                            </button>
+                          </div>
+                        )}
+                      </Card>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="col-span-full p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                  <p className="text-slate-400 font-medium">
+                    No assessments found.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {filter == "available" && (
+        <div className="flex flex-col gap-10 pb-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
+          <div className="flex flex-col gap-5">
+            <h3 className="text-xl font-bold text-slate-900 px-1">
+              Available Invited Tests
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {isLoadingTestStatus ? (
+                <div className="col-span-full flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
+                  <span className="ml-2 text-slate-400">Loading...</span>
+                </div>
+              ) : invitedTestStatus.availableTests.length > 0 ? (
+                invitedTestStatus?.availableTests?.map(
+                  (res: any, i: number) => {
+                    return (
+                      <div key={i} className="flex flex-col">
+                        <Card
+                          className={cn(
+                            "p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200",
+                          )}
+                        >
+                          <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
                             {/* Info */}
                             <div className="flex flex-col gap-1.5 md:gap-1">
                               <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">
@@ -392,53 +481,129 @@ const ContractorSkillTest = () => {
                                 <span className="text-slate-400">
                                   Status: {res.status}
                                 </span>
-                                <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
-                                <span className="text-slate-400">
-                                  Completed on:{" "}
-                                  {res.submittedAt
-                                    ? new Date(
-                                        res.submittedAt,
-                                      ).toLocaleDateString()
-                                    : "N/A"}
-                                </span>
-                                <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
-                                <span className="flex items-center gap-1 font-semibold text-purple-600">
-                                  <WandSparkles size={12} />
-                                  AI Generated
-                                </span>
                               </div>
+                              <span className="text-slate-400 text-[12px] md:text-[13px]">
+                                Test invitation has been sent to your registered
+                                Gmail: {res.candidateEmail} <br /> Check your
+                                inbox.
+                              </span>
                             </div>
-                          </div>
-
-                          {/* Buttons */}
-                          <div className="flex flex-col xs:flex-row sm:flex-row items-center gap-3 w-full md:w-auto">
-                            <button
-                              onClick={() =>
-                                navigate(
-                                  `/contractor/tests/report?id=${res.id}`,
-                                )
-                              }
-                              className={cn(
-                                "w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border font-bold text-[13px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm",
-                              )}
-                            >
-                              <Eye
-                                size={16}
-                                className={
-                                  isExpanded
-                                    ? "text-[#0ea5e9]"
-                                    : "text-slate-400"
-                                }
-                              />
-                              View Insights
-                            </button>
                           </div>
                         </Card>
                       </div>
                     );
-                  })
+                  },
+                )
               ) : (
-                <div className="p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                <div className="col-span-full p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                  <p className="text-slate-400 font-medium">
+                    No Invited tests available.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Completed Tests (Invited) */}
+      {filter == "completed" && (
+        <div className="flex flex-col gap-10 pb-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
+          {/* Section 1: Completed Tests */}
+          <div className="flex flex-col gap-5">
+            <h3 className="text-xl font-bold text-slate-900 px-1">
+              Completed Invited Tests
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {isLoadingTestStatus ? (
+                <div className="col-span-full flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
+                  <span className="ml-2 text-slate-400">Loading...</span>
+                </div>
+              ) : invitedTestStatus.completedTests.length > 0 ? (
+                invitedTestStatus.completedTests.map((res: any, i: number) => {
+                  const scoreVal = Number(res.overallScore ?? res.score ?? 0);
+                  const scoreColor =
+                    scoreVal >= 70
+                      ? "#22c55e" // green  ≥ 70
+                      : scoreVal >= 40
+                        ? "#f59e0b" // yellow 40–69
+                        : "#ef4444"; // red   < 40
+
+                  return (
+                    <div key={i} className="flex flex-col h-full">
+                      <Card
+                        className={cn(
+                          "p-5 md:p-6 border-slate-100 shadow-sm flex flex-col gap-5 h-full transition-all hover:border-slate-200",
+                        )}
+                      >
+                        <div className="flex items-start gap-4 sm:gap-5">
+                          <div
+                            className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
+                            style={{ borderColor: scoreColor }}
+                          >
+                            <div
+                              className="text-[14px] md:text-[17px] font-black"
+                              style={{ color: scoreColor }}
+                            >
+                              {scoreVal}%
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-1.5 md:gap-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">
+                                {res.title}
+                              </h4>
+                              <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100 text-[11px] md:text-[12px]">
+                                {Object.entries(
+                                  res.difficultyDistribution || {},
+                                ).find(([_, v]) => (v as any) > 0)?.[0] ||
+                                  "Mixed"}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
+                              <span className="text-slate-400">
+                                Status: {res.status}
+                              </span>
+                              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                              <span className="text-slate-400">
+                                Completed on:{" "}
+                                {res.submittedAt
+                                  ? new Date(
+                                      res.submittedAt,
+                                    ).toLocaleDateString()
+                                  : "N/A"}
+                              </span>
+                              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                              <span className="flex items-center gap-1 font-semibold text-purple-600">
+                                <WandSparkles size={12} />
+                                AI Generated
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() =>
+                              navigate(`/contractor/tests/report?id=${res.id}`)
+                            }
+                            className={cn(
+                              "w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border font-bold text-[13px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm",
+                            )}
+                          >
+                            <Eye size={16} className={"text-slate-400"} />
+                            View Insights
+                          </button>
+                        </div>
+                      </Card>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="col-span-full p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
                   <p className="text-slate-400 font-medium">
                     No Invited tests completed yet.
                   </p>
@@ -647,9 +812,9 @@ const ContractorSkillTest = () => {
             <h3 className="text-xl font-bold text-slate-900 px-1">
               Your Mock Test Results
             </h3>
-            <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {isLoadingResults ? (
-                <div className="flex items-center justify-center py-12">
+                <div className="col-span-full flex items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
                   <span className="ml-2 text-slate-400">Loading...</span>
                 </div>
@@ -664,17 +829,15 @@ const ContractorSkillTest = () => {
                         : scoreVal >= 40
                           ? "#f59e0b" // yellow 40–69
                           : "#ef4444"; // red   < 40
-                    const isExpanded = expandedTestId === res.id;
 
                     return (
-                      <div key={i} className="flex flex-col">
+                      <div key={i} className="flex flex-col h-full">
                         <Card
                           className={cn(
-                            "p-5 md:p-6 border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-y-5 gap-x-6 transition-all hover:border-slate-200",
+                            "p-5 md:p-6 border-slate-100 shadow-sm flex flex-col gap-5 h-full transition-all hover:border-slate-200",
                           )}
                         >
-                          <div className="flex items-start md:items-center gap-4 sm:gap-5 flex-1 min-w-[300px]">
-                            {/* Score Circle */}
+                          <div className="flex items-start gap-4 sm:gap-5">
                             <div
                               className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shrink-0 border-[3px]"
                               style={{ borderColor: scoreColor }}
@@ -687,19 +850,19 @@ const ContractorSkillTest = () => {
                               </div>
                             </div>
 
-                            {/* Info */}
-                            <div className="flex flex-col gap-1.5 md:gap-1">
-                              <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">
-                                {res.title}
-                              </h4>
-                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
-                                <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100">
+                            <div className="flex flex-col gap-1.5 md:gap-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="text-[15px] md:text-[16px] font-bold text-slate-800 leading-tight">
+                                  {res.title}
+                                </h4>
+                                <span className="bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 font-bold border border-slate-100 text-[11px] md:text-[12px]">
                                   {Object.entries(
                                     res.difficultyDistribution || {},
                                   ).find(([_, v]) => (v as any) > 0)?.[0] ||
                                     "Mixed"}
                                 </span>
-                                <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                              </div>
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] md:text-[12px] text-slate-500 font-medium">
                                 <span className="text-slate-400">
                                   Status: {res.status}
                                 </span>
@@ -721,8 +884,7 @@ const ContractorSkillTest = () => {
                             </div>
                           </div>
 
-                          {/* Buttons */}
-                          <div className="flex flex-col xs:flex-row sm:flex-row items-center gap-3 w-full md:w-auto">
+                          <div className="flex justify-end">
                             <button
                               onClick={() =>
                                 navigate(
@@ -733,14 +895,7 @@ const ContractorSkillTest = () => {
                                 "w-full sm:w-auto h-[44px] sm:h-10 px-5 rounded-lg border font-bold text-[13px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm",
                               )}
                             >
-                              <Eye
-                                size={16}
-                                className={
-                                  isExpanded
-                                    ? "text-[#0ea5e9]"
-                                    : "text-slate-400"
-                                }
-                              />
+                              <Eye size={16} className={"text-slate-400"} />
                               View Insights
                             </button>
                           </div>
@@ -749,7 +904,7 @@ const ContractorSkillTest = () => {
                     );
                   })
               ) : (
-                <div className="p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                <div className="col-span-full p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
                   <p className="text-slate-400 font-medium">
                     No Mock tests completed yet.
                   </p>
