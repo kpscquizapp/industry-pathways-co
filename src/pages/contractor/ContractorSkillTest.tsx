@@ -380,6 +380,21 @@ const ContractorSkillTest = () => {
                               <span className="text-slate-400">
                                 Status: {res.status}
                               </span>
+                              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                              <span className="text-slate-400">
+                                Invite expires at:{" "}
+                                {res.inviteExpiresAt
+                                  ? new Date(
+                                      res.inviteExpiresAt,
+                                    ).toLocaleString("en-US", {
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })
+                                  : "N/A"}
+                              </span>
                               {res.status == "completed" ? (
                                 <>
                                   <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
@@ -480,6 +495,21 @@ const ContractorSkillTest = () => {
                                 <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
                                 <span className="text-slate-400">
                                   Status: {res.status}
+                                </span>
+                                <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+                                <span className="text-slate-400">
+                                  Invite expires at:{" "}
+                                  {res.inviteExpiresAt
+                                    ? new Date(
+                                        res.inviteExpiresAt,
+                                      ).toLocaleString("en-US", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })
+                                    : "N/A"}
                                 </span>
                               </div>
                               <span className="text-slate-400 text-[12px] md:text-[13px]">
