@@ -417,12 +417,29 @@ const VisibilitySettings = () => {
   const handleSaveCompany = async (e?: React.MouseEvent) => {
     e?.preventDefault();
     try {
+
+      let website = companyDetails.website.trim();
+
+if (website) {
+  const websiteRegex =
+    /^(https?:\/\/)?([\w-]+\.)+[a-zA-Z]{2,}(\/.*)?$/;
+
+  if (!websiteRegex.test(website)) {
+    toast.error("Please enter a valid website (e.g. https://company.com)");
+    return;
+  }
+
+  if (!website.startsWith("http://") && !website.startsWith("https://")) {
+    website = `https://${website}`;
+  }
+}
+
       const payload = {
         companyName: companyDetails.companyName,
         companySize: companyDetails.companySize,
         industry: companyDetails.industry,
         location: companyDetails.location,
-        website: companyDetails.website,
+        website: website,
         description: companyDetails.description,
       };
       await updateProfile(payload).unwrap();
