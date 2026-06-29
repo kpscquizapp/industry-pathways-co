@@ -37,7 +37,10 @@ const MockTestReport = () => {
     // { id: "liveReview", label: "Live Review", icon: Video },
   ];
 
-  const scoreVal = useMemo(() => Number(report?.test?.overallScore ?? 0), [report?.test?.overallScore]);
+  const scoreVal = useMemo(() => {
+    const parsed = Number(report?.test?.overallScore);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }, [report?.test?.overallScore]);
   const scoreColor = scoreVal >= 70 ? "#22c55e" : scoreVal >= 40 ? "#f59e0b" : "#ef4444";
 
   if (isLoading) {

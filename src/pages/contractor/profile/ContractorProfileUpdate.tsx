@@ -2137,13 +2137,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
             icon={<FileText className="w-6 h-6" />}
             title="Resume"
           />
-          <ResumeManager
-            resumes={
-              data && data.candidateProfile.resumes
-                ? data.candidateProfile.resumes
-                : []
-            }
-          />
+          <ResumeManager resumes={data?.candidateProfile?.resumes ?? []} />
         </DashCard>
 
         {/* Primary Skills Section - Hidden when editing */}
