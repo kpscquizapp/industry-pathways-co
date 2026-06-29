@@ -6,16 +6,15 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  Video,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useGetTestReportQuery } from "@/app/queries/contractorSkillTest";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
-import LiveReviewTab from "@/pages/contractor/LiveReviewTab";
 
 const MockTestReport = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const testId = queryParams.get("id");
 
@@ -62,7 +61,7 @@ const MockTestReport = () => {
           processing or the ID is invalid.
         </p>
         <button
-          onClick={() => history.back()}
+          onClick={() => navigate(-1)}
           className="mt-4 px-6 py-2 bg-[#0F172A] text-white rounded-lg font-bold"
         >
           Go Back
@@ -85,7 +84,7 @@ const MockTestReport = () => {
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
           <button
-            onClick={() => history.back()}
+            onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-slate-400 hover:text-slate-600 text-[13px] font-bold transition-colors mb-3"
           >
             <ArrowLeft size={16} /> Back to Mock Tests
@@ -120,7 +119,7 @@ const MockTestReport = () => {
                 className="text-[22px] font-black"
                 style={{ color: scoreColor }}
               >
-                {report?.test?.overallScore}%
+                {scoreVal}%
               </div>
             </div>
           </div>

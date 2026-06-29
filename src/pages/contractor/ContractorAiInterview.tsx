@@ -1,4 +1,4 @@
-import React, { useState, memo } from "react";
+import React, { memo } from "react";
 import {
   Video,
   Mic,
@@ -12,6 +12,7 @@ import {
   LineChart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/hoverCard";
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -48,24 +49,6 @@ const GlassCard = memo(({ children, className, gradient, style }: { children: Re
     <div className="relative z-10">{children}</div>
   </div>
 ));
-
-const Card = memo(({ children, className, hover }: { children: React.ReactNode; className?: string; hover?: boolean }) => {
-  const [hov, setHov] = useState(false);
-  return (
-    <div
-      onMouseEnter={hover ? () => setHov(true) : undefined}
-      onMouseLeave={hover ? () => setHov(false) : undefined}
-      className={cn(
-        "rounded-2xl border transition-all duration-300 overflow-hidden bg-white",
-        hov ? "shadow-2xl -translate-y-1" : "shadow-sm",
-        className
-      )}
-      style={{ borderColor: C.border }}
-    >
-      {children}
-    </div>
-  );
-});
 
 const SectionTitle = memo(({ icon: Icon, title, className }: { icon: any; title: string; className?: string }) => (
   <div className={cn("flex items-center gap-3 mb-6", className)}>
@@ -158,7 +141,7 @@ const ContractorAiInterview = () => {
           </div>
 
           <div className="flex-shrink-0 relative group">
-            <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-150" style={{ animation: "pulseOpacity 2s ease-in-out infinite" }} />
+            <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-150" />
             <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-2xl flex items-center justify-center shadow-inner">
               <div className="relative">
                 <ProgressRing value={85} size={140} stroke={8} color="rgba(255,255,255,0.85)" />

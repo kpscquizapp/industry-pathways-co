@@ -9,8 +9,8 @@ import { Clock, DollarSign, Globe, MapPin, Briefcase } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useGetProfileQuery } from "@/app/queries/profileApi";
 import { useSelector } from "react-redux";
-import CandidateProfileUpdate from "./contractor/ContractorProfileUpdate";
-import ResumeManager from "./ResumeManager";
+import CandidateProfileUpdate from "./contractor/profile/ContractorProfileUpdate";
+import ResumeManager from "./contractor/profile/ResumeManager";
 import { RootState } from "@/app/store";
 
 const CandidateProfile = () => {

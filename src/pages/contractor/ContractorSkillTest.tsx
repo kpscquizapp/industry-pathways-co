@@ -54,10 +54,18 @@ const C = {
   shadowLg: "0 8px 32px rgba(0,0,0,0.08)",
 };
 
-const formatDate = (dateStr?: string | null) =>
-  dateStr
-    ? new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-    : "N/A";
+const formatDate = (dateStr?: string | null) => {
+  if (!dateStr) return "N/A";
+
+  const date = new Date(dateStr);
+  return Number.isNaN(date.getTime())
+    ? "N/A"
+    : date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+};
 
 const ContractorSkillTest = () => {
   const [filter, setFilter] = useState("all");

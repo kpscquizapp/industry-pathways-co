@@ -82,7 +82,7 @@ const ContractorProfile = lazy(
 //   () => import("./pages/contractor/ContractorAiInterview"),
 // );
 const ContractorProfileUpdate = lazy(
-  () => import("./pages/contractor/ContractorProfileUpdate"),
+  () => import("./pages/contractor/profile/ContractorProfileUpdate"),
 );
 const ContractorSettings = lazy(
   () => import("./pages/contractor/ContractorSettings"),
