@@ -1,4 +1,4 @@
-import React, { useState, memo } from "react";
+import React, { memo } from "react";
 import {
   Video,
   Mic,
@@ -12,6 +12,7 @@ import {
   LineChart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/hoverCard";
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -48,24 +49,6 @@ const GlassCard = memo(({ children, className, gradient, style }: { children: Re
     <div className="relative z-10">{children}</div>
   </div>
 ));
-
-const Card = memo(({ children, className, hover }: { children: React.ReactNode; className?: string; hover?: boolean }) => {
-  const [hov, setHov] = useState(false);
-  return (
-    <div
-      onMouseEnter={hover ? () => setHov(true) : undefined}
-      onMouseLeave={hover ? () => setHov(false) : undefined}
-      className={cn(
-        "rounded-2xl border transition-all duration-300 overflow-hidden bg-white",
-        hov ? "shadow-2xl -translate-y-1" : "shadow-sm",
-        className
-      )}
-      style={{ borderColor: C.border }}
-    >
-      {children}
-    </div>
-  );
-});
 
 const SectionTitle = memo(({ icon: Icon, title, className }: { icon: any; title: string; className?: string }) => (
   <div className={cn("flex items-center gap-3 mb-6", className)}>
@@ -158,7 +141,7 @@ const ContractorAiInterview = () => {
           </div>
 
           <div className="flex-shrink-0 relative group">
-            <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-150 animate-pulse opacity-50" />
+            <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-150" />
             <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-2xl flex items-center justify-center shadow-inner">
               <div className="relative">
                 <ProgressRing value={85} size={140} stroke={8} color="rgba(255,255,255,0.85)" />
@@ -178,7 +161,7 @@ const ContractorAiInterview = () => {
       {/* Tips Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {TIPS.map((tip, i) => (
-          <Card key={i} hover className="p-5">
+          <Card key={i} className="p-5">
             <div className="flex items-center gap-4">
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
@@ -198,11 +181,11 @@ const ContractorAiInterview = () => {
       {/* Main Content Area */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 pb-12">
         {/* Interviews List */}
-        <Card hover className="xl:col-span-2 p-6 md:p-8 flex flex-col h-fit">
+        <Card className="xl:col-span-2 p-6 md:p-8 flex flex-col h-fit">
           <SectionTitle icon={Video} title="Your Interviews" />
           <div className="flex flex-col divide-y divide-slate-50">
             {INTERVIEWS.map((iv) => (
-              <div key={iv.id} className="py-6 flex flex-col sm:flex-row sm:items-center gap-6 group hover:translate-x-1 transition-transform">
+              <div key={iv.id} className="py-6 flex flex-col sm:flex-row sm:items-center gap-6 group">
                 <div
                   className={cn(
                     "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-all duration-300",
@@ -262,7 +245,7 @@ const ContractorAiInterview = () => {
         </Card>
 
         {/* Skills Breakdown */}
-        <Card hover className="p-6 md:p-8 flex flex-col h-fit">
+        <Card className="p-6 md:p-8 flex flex-col h-fit">
           <SectionTitle icon={Target} title="Assessment Breakdown" />
           <div className="space-y-6">
             {SKILLS.map((s) => (

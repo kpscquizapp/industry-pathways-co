@@ -1,24 +1,13 @@
-import React, { useState, memo } from "react";
+import React, { useState, useMemo, memo } from "react";
 import {
   Target,
   Award,
-  Zap,
-  Lock,
   Code as CodeIcon,
   Clock,
-  ChevronRight,
-  CircleAlert,
   WandSparkles,
   ExternalLink,
-  ChevronDown,
-  ChevronUp,
-  LineChart,
-  RotateCcw,
   Loader2,
   CheckCircle2,
-  XCircle,
-  AlertCircle,
-  FileCode2,
   Eye,
   Code,
   Mail,
@@ -29,8 +18,6 @@ import {
   useCreateSkillTestMutation,
   useGetContractorInvitedTestStatusQuery,
   useGetMyTestResultsQuery,
-  useGetProblemTagsQuery,
-  useLazyGetTestStatusByIdQuery,
 } from "@/app/queries/contractorSkillTest";
 import { toast } from "sonner";
 import {
@@ -40,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Card } from "@/components/ui/hoverCard";
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -66,109 +54,17 @@ const C = {
   shadowLg: "0 8px 32px rgba(0,0,0,0.08)",
 };
 
-/* ═══════════ REUSABLE COMPONENTS ═══════════ */
-const Card = memo(
-  ({
-    children,
-    className,
-    hover,
-  }: {
-    children: React.ReactNode;
-    className?: string;
-    hover?: boolean;
-  }) => {
-    const [hov, setHov] = useState(false);
-    return (
-      <div
-        onMouseEnter={hover ? () => setHov(true) : undefined}
-        onMouseLeave={hover ? () => setHov(false) : undefined}
-        className={cn(
-          "rounded-2xl border transition-all duration-300 overflow-hidden bg-white",
-          hov ? "shadow-2xl -translate-y-1" : "shadow-sm",
-          className,
-        )}
-        style={{
-          borderColor: C.border,
-        }}
-      >
-        {children}
-      </div>
-    );
-  },
-);
+const formatDate = (dateStr?: string | null) => {
+  if (!dateStr) return "N/A";
 
-const GlassCard = memo(
-  ({
-    children,
-    gradient,
-    className,
-  }: {
-    children: React.ReactNode;
-    gradient: string;
-    className?: string;
-  }) => (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded-2xl p-6 text-white shadow-lg",
-        gradient,
-        className,
-      )}
-    >
-      <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-white/10" />
-      <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
-      <div className="relative z-10">{children}</div>
-    </div>
-  ),
-);
-
-const Badge = memo(
-  ({
-    text,
-    color = C.green,
-    bg = C.greenBg,
-  }: {
-    text: string;
-    color?: string;
-    bg?: string;
-  }) => (
-    <span
-      className="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase"
-      style={{ color, background: bg }}
-    >
-      {text}
-    </span>
-  ),
-);
-
-const ProgressBar = memo(
-  ({
-    value,
-    color = C.accent,
-    height = 6,
-  }: {
-    value: number;
-    color?: string;
-    height?: number;
-  }) => (
-    <div
-      className="w-full bg-slate-100 rounded-full overflow-hidden"
-      style={{ height }}
-    >
-      <div
-        className="h-full transition-all duration-1000 ease-out rounded-full"
-        style={{
-          width: `${value}%`,
-          background: `linear-gradient(90deg, ${color}, ${color}cc)`,
-        }}
-      />
-    </div>
-  ),
-);
-
-const diffColor: Record<string, string> = {
-  Intermediate: C.amber,
-  Advanced: C.accent,
-  Expert: C.purple,
+  const date = new Date(dateStr);
+  return Number.isNaN(date.getTime())
+    ? "N/A"
+    : date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
 };
 
 const ContractorSkillTest = () => {
@@ -185,12 +81,25 @@ const ContractorSkillTest = () => {
     isLoading: isLoadingTestStatus,
   } = useGetContractorInvitedTestStatusQuery();
 
-  const allAssessments = isLoadingTestStatus
-    ? []
-    : [
-        ...(invitedTestStatus?.availableTests || []),
-        ...(invitedTestStatus?.completedTests || []),
-      ];
+  const allAssessments = useMemo(
+    () => isLoadingTestStatus ? [] : [
+      ...(invitedTestStatus?.availableTests || []),
+      ...(invitedTestStatus?.completedTests || []),
+    ],
+    [isLoadingTestStatus, invitedTestStatus]
+  );
+
+  // Pre-compute expensive Intl date formatting once per data change,
+  // so render-time .map() callbacks just read plain strings.
+  const formattedAssessments = useMemo(
+    () =>
+      allAssessments.map((res: any) => ({
+        ...res,
+        expiresAtFormatted: formatDate(res.inviteExpiresAt),
+        submittedAtFormatted: formatDate(res.submittedAt),
+      })),
+    [allAssessments],
+  );
 
   const testResults = testResultsData?.data || [];
   const [mockTest, setMockTest] = useState({
@@ -205,6 +114,11 @@ const ContractorSkillTest = () => {
   });
 
   const difficultyLevels = ["easy", "medium", "hard"];
+
+  const mockTestResults = useMemo(
+    () => testResults.filter((r) => r.difficultyDistribution),
+    [testResults]
+  );
 
   const startMockTest = async () => {
     if (
@@ -333,8 +247,8 @@ const ContractorSkillTest = () => {
                   <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
                   <span className="ml-2 text-slate-400">Loading...</span>
                 </div>
-              ) : allAssessments.length > 0 ? (
-                allAssessments.map((res: any, i: number) => {
+              ) : formattedAssessments.length > 0 ? (
+                formattedAssessments.map((res: any, i: number) => {
                   const scoreVal = Number(res.overallScore ?? res.score ?? 0);
                   const isCompleted = res.status === "completed";
 
@@ -345,24 +259,8 @@ const ContractorSkillTest = () => {
                         ? "#f59e0b"
                         : "#ef4444";
 
-                  const expiresAt = res.inviteExpiresAt
-                    ? new Date(res.inviteExpiresAt).toLocaleDateString(
-                        "en-US",
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        },
-                      )
-                    : "N/A";
-
-                  const submittedAt = res.submittedAt
-                    ? new Date(res.submittedAt).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })
-                    : "N/A";
+                  const expiresAt = res.expiresAtFormatted;
+                  const submittedAt = res.submittedAtFormatted;
 
                   // SVG ring math
                   const radius = 19;
@@ -585,14 +483,7 @@ const ContractorSkillTest = () => {
                 invitedTestStatus?.availableTests?.map(
                   (res: any, i: number) => {
                     const expiresAt = res.inviteExpiresAt
-                      ? new Date(res.inviteExpiresAt).toLocaleDateString(
-                          "en-US",
-                          {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          },
-                        )
+                      ? formatDate(res.inviteExpiresAt)
                       : "N/A";
 
                     return (
@@ -700,11 +591,7 @@ const ContractorSkillTest = () => {
                       circumference - (scoreVal / 100) * circumference;
 
                     const submittedAt = res.submittedAt
-                      ? new Date(res.submittedAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
+                      ? formatDate(res.submittedAt)
                       : "N/A";
 
                     return (
@@ -1062,170 +949,164 @@ const ContractorSkillTest = () => {
                   <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
                   <span className="ml-2 text-slate-400">Loading...</span>
                 </div>
-              ) : testResults.filter((r) => r.difficultyDistribution).length >
+              ) : mockTestResults.length >
                 0 ? (
-                testResults
-                  .filter((result) => result.difficultyDistribution)
-                  .map((res: any, i: number) => {
-                    const scoreVal = Number(res.overallScore ?? res.score ?? 0);
-                    const scoreColor =
-                      scoreVal >= 70
-                        ? "#22c55e"
-                        : scoreVal >= 40
-                          ? "#f59e0b"
-                          : "#ef4444";
+                mockTestResults.map((res: any, i: number) => {
+                  const scoreVal = Number(res.overallScore ?? res.score ?? 0);
+                  const scoreColor =
+                    scoreVal >= 70
+                      ? "#22c55e"
+                      : scoreVal >= 40
+                        ? "#f59e0b"
+                        : "#ef4444";
 
-                    const radius = 19;
-                    const circumference = 2 * Math.PI * radius;
-                    const offset =
-                      circumference - (scoreVal / 100) * circumference;
+                  const radius = 19;
+                  const circumference = 2 * Math.PI * radius;
+                  const offset =
+                    circumference - (scoreVal / 100) * circumference;
 
-                    const difficulty =
-                      Object.entries(res.difficultyDistribution || {}).find(
-                        ([_, v]) => (v as any) > 0,
-                      )?.[0] || "Mixed";
+                  const difficulty =
+                    Object.entries(res.difficultyDistribution || {}).find(
+                      ([_, v]) => (v as any) > 0,
+                    )?.[0] || "Mixed";
 
-                    const submittedAt = res.submittedAt
-                      ? new Date(res.submittedAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      : "N/A";
+                  const submittedAt = res.submittedAt
+                    ? formatDate(res.submittedAt)
+                    : "N/A";
 
-                    return (
-                      <div
-                        key={i}
-                        className="rounded-xl border border-slate-100 bg-white overflow-hidden"
-                      >
-                        {/* Card body */}
-                        <div className="flex items-start gap-4 p-5">
-                          {/* Score ring */}
-                          <div className="flex-shrink-0 mt-0.5">
-                            <svg
-                              width="46"
-                              height="46"
-                              viewBox="0 0 46 46"
-                              aria-label={`Score: ${scoreVal}%`}
-                            >
-                              <circle
-                                cx="23"
-                                cy="23"
-                                r={radius}
-                                fill="none"
-                                stroke="#e2e8f0"
-                                strokeWidth="3.5"
-                              />
-                              <circle
-                                cx="23"
-                                cy="23"
-                                r={radius}
-                                fill="none"
-                                stroke={scoreColor}
-                                strokeWidth="3.5"
-                                strokeDasharray={circumference}
-                                strokeDashoffset={offset}
-                                strokeLinecap="round"
-                                transform="rotate(-90 23 23)"
-                              />
-                              <text
-                                x="23"
-                                y="27"
-                                textAnchor="middle"
-                                fontSize="11"
-                                fontWeight="600"
-                                fill={scoreColor}
-                                fontFamily="inherit"
-                              >
-                                {scoreVal}%
-                              </text>
-                            </svg>
-                          </div>
-
-                          {/* Info */}
-                          <div className="flex-1 min-w-0 relative">
-                            <div className="flex items-start justify-between gap-3 flex-wrap">
-                              <div>
-                                <h4 className="text-[15px] font-semibold text-slate-800 leading-snug mb-1.5 pr-20">
-                                  {res.title}
-                                </h4>
-                                <div className="flex items-center gap-2 flex-wrap pr-20">
-                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 px-2.5 py-1 rounded-full">
-                                    <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                                    Completed
-                                  </span>
-                                  <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full capitalize">
-                                    {difficulty}
-                                  </span>
-                                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full">
-                                    <WandSparkles className="w-3 h-3" />
-                                    AI generated
-                                  </span>
-                                </div>
-                              </div>
-
-                              <div className="absolute top-0 right-0 text-right">
-                                <p className="text-[11px] text-slate-400">
-                                  Submitted
-                                </p>
-                                <p className="text-[13px] font-medium text-slate-600">
-                                  {submittedAt}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Stats strip */}
-                        <div className="grid grid-cols-2 gap-2.5 px-5 pb-4">
-                          {[
-                            {
-                              label: "Overall score",
-                              value: `${scoreVal}%`,
-                              color: scoreColor,
-                            },
-                            {
-                              label: "Coding accuracy",
-                              value: res.codingAccuracy
-                                ? `${res.codingAccuracy}%`
-                                : "—",
-                            },
-                          ].map(({ label, value, color }) => (
-                            <div
-                              key={label}
-                              className="bg-slate-50 rounded-lg px-3 py-2.5"
-                            >
-                              <p className="text-[11px] text-slate-400 mb-0.5">
-                                {label}
-                              </p>
-                              <p
-                                className="text-[15px] font-semibold"
-                                style={{ color: color ?? undefined }}
-                              >
-                                <span
-                                  className={!color ? "text-slate-700" : ""}
-                                >
-                                  {value}
-                                </span>
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                        {/* Footer */}
-                        <div className="border-t border-slate-100 bg-slate-50 px-5 py-3 flex justify-end">
-                          <button
-                            onClick={() =>
-                              navigate(`/contractor/tests/report?id=${res.id}`)
-                            }
-                            className="inline-flex items-center gap-1.5 text-[13px] font-medium px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:border-slate-300 transition-all"
+                  return (
+                    <div
+                      key={i}
+                      className="rounded-xl border border-slate-100 bg-white overflow-hidden"
+                    >
+                      {/* Card body */}
+                      <div className="flex items-start gap-4 p-5">
+                        {/* Score ring */}
+                        <div className="flex-shrink-0 mt-0.5">
+                          <svg
+                            width="46"
+                            height="46"
+                            viewBox="0 0 46 46"
+                            aria-label={`Score: ${scoreVal}%`}
                           >
-                            <Eye className="w-4 h-4 text-slate-400" />
-                            View insights
-                          </button>
+                            <circle
+                              cx="23"
+                              cy="23"
+                              r={radius}
+                              fill="none"
+                              stroke="#e2e8f0"
+                              strokeWidth="3.5"
+                            />
+                            <circle
+                              cx="23"
+                              cy="23"
+                              r={radius}
+                              fill="none"
+                              stroke={scoreColor}
+                              strokeWidth="3.5"
+                              strokeDasharray={circumference}
+                              strokeDashoffset={offset}
+                              strokeLinecap="round"
+                              transform="rotate(-90 23 23)"
+                            />
+                            <text
+                              x="23"
+                              y="27"
+                              textAnchor="middle"
+                              fontSize="11"
+                              fontWeight="600"
+                              fill={scoreColor}
+                              fontFamily="inherit"
+                            >
+                              {scoreVal}%
+                            </text>
+                          </svg>
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0 relative">
+                          <div className="flex items-start justify-between gap-3 flex-wrap">
+                            <div>
+                              <h4 className="text-[15px] font-semibold text-slate-800 leading-snug mb-1.5 pr-20">
+                                {res.title}
+                              </h4>
+                              <div className="flex items-center gap-2 flex-wrap pr-20">
+                                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 px-2.5 py-1 rounded-full">
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                                  Completed
+                                </span>
+                                <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full capitalize">
+                                  {difficulty}
+                                </span>
+                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full">
+                                  <WandSparkles className="w-3 h-3" />
+                                  AI generated
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="absolute top-0 right-0 text-right">
+                              <p className="text-[11px] text-slate-400">
+                                Submitted
+                              </p>
+                              <p className="text-[13px] font-medium text-slate-600">
+                                {submittedAt}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    );
-                  })
+
+                      {/* Stats strip */}
+                      <div className="grid grid-cols-2 gap-2.5 px-5 pb-4">
+                        {[
+                          {
+                            label: "Overall score",
+                            value: `${scoreVal}%`,
+                            color: scoreColor,
+                          },
+                          {
+                            label: "Coding accuracy",
+                            value: res.codingAccuracy
+                              ? `${res.codingAccuracy}%`
+                              : "—",
+                          },
+                        ].map(({ label, value, color }) => (
+                          <div
+                            key={label}
+                            className="bg-slate-50 rounded-lg px-3 py-2.5"
+                          >
+                            <p className="text-[11px] text-slate-400 mb-0.5">
+                              {label}
+                            </p>
+                            <p
+                              className="text-[15px] font-semibold"
+                              style={{ color: color ?? undefined }}
+                            >
+                              <span
+                                className={!color ? "text-slate-700" : ""}
+                              >
+                                {value}
+                              </span>
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Footer */}
+                      <div className="border-t border-slate-100 bg-slate-50 px-5 py-3 flex justify-end">
+                        <button
+                          onClick={() =>
+                            navigate(`/contractor/tests/report?id=${res.id}`)
+                          }
+                          className="inline-flex items-center gap-1.5 text-[13px] font-medium px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:border-slate-300 transition-all"
+                        >
+                          <Eye className="w-4 h-4 text-slate-400" />
+                          View insights
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
               ) : (
                 <div className="col-span-full p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
                   <p className="text-slate-400 font-medium">

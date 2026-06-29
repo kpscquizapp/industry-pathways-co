@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ArrowLeft,
   LayoutGrid,
@@ -6,17 +6,15 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  Video,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useGetTestReportQuery } from "@/app/queries/contractorSkillTest";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
-import LiveReviewTab from "@/pages/contractor/LiveReviewTab";
 
 const MockTestReport = () => {
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const testId = queryParams.get("id");
 
@@ -38,6 +36,12 @@ const MockTestReport = () => {
     { id: "detailed", label: "Detailed Review", icon: ListChecks },
     // { id: "liveReview", label: "Live Review", icon: Video },
   ];
+
+  const scoreVal = useMemo(() => {
+    const parsed = Number(report?.test?.overallScore);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }, [report?.test?.overallScore]);
+  const scoreColor = scoreVal >= 70 ? "#22c55e" : scoreVal >= 40 ? "#f59e0b" : "#ef4444";
 
   if (isLoading) {
     return (
@@ -72,8 +76,8 @@ const MockTestReport = () => {
   const questions = Array.isArray(report?.questions) ? report.questions : [];
   const currentQuestion =
     questions.length > 0 &&
-    activeQuestionIndex >= 0 &&
-    activeQuestionIndex < questions.length
+      activeQuestionIndex >= 0 &&
+      activeQuestionIndex < questions.length
       ? questions[activeQuestionIndex]
       : null;
 
@@ -108,30 +112,21 @@ const MockTestReport = () => {
         </div>
 
         {/* Score Circle */}
-        {(() => {
-          const scoreVal = Number(report.test.overallScore ?? 0);
-          const scoreColor =
-            scoreVal >= 70
-              ? "#22c55e" // green  70–100
-              : scoreVal >= 40
-                ? "#f59e0b" // yellow 40–69
-                : "#ef4444"; // red   0–39
-          return (
-            <div className="flex items-center justify-center shrink-0">
+        {(
+          <div className="flex items-center justify-center shrink-0">
+            <div
+              className="w-[84px] h-[84px] rounded-full border-[4px] flex items-center justify-center bg-white shadow-sm"
+              style={{ borderColor: scoreColor }}
+            >
               <div
-                className="w-[84px] h-[84px] rounded-full border-[4px] flex items-center justify-center bg-white shadow-sm"
-                style={{ borderColor: scoreColor }}
+                className="text-[22px] font-black"
+                style={{ color: scoreColor }}
               >
-                <div
-                  className="text-[22px] font-black"
-                  style={{ color: scoreColor }}
-                >
-                  {report.test.overallScore}%
-                </div>
+                {scoreVal}%
               </div>
             </div>
-          );
-        })()}
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -376,7 +371,7 @@ const MockTestReport = () => {
                         currentQuestion.status === "Correct"
                           ? "bg-[#f0fdfa] border-[#ccfbf1]"
                           : currentQuestion.status === "Incorrect" ||
-                              currentQuestion.status === "Failed"
+                            currentQuestion.status === "Failed"
                             ? "bg-red-50 border-red-100"
                             : "bg-slate-50 border-slate-200",
                       )}
@@ -442,19 +437,18 @@ const MockTestReport = () => {
                       </div>
                     )}
 
-                    <div className="bg-slate-50 rounded-2xl p-6 md:p-8 border border-slate-100">
-                      {currentQuestion.openaiFeedback && (
-                        <div className="bg-slate-50 rounded-2xl p-6 md:p-5 border border-slate-100">
-                          <h5 className="text-[14px] font-bold text-slate-800 mb-4 flex items-center gap-2">
-                            <LayoutGrid size={16} className="text-[#0ea5e9]" />
-                            AI Evaluation Feedback
-                          </h5>
-                          <div className="text-[13.5px] font-medium text-slate-600 leading-relaxed whitespace-pre-wrap">
-                            {currentQuestion.openaiFeedback}
-                          </div>
+                    {currentQuestion.openaiFeedback && (
+                      <div className="bg-slate-50 rounded-2xl p-6 md:p-8 border border-slate-100">
+                        <h5 className="text-[14px] font-bold text-slate-800 mb-4 flex items-center gap-2">
+                          <LayoutGrid size={16} className="text-[#0ea5e9]" />
+                          AI Evaluation Feedback
+                        </h5>
+                        <div className="text-[13.5px] font-medium text-slate-600 leading-relaxed whitespace-pre-wrap">
+                          {currentQuestion.openaiFeedback}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
+
                   </div>
                 </div>
               )}

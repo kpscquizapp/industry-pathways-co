@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useMemo } from "react";
+import React, { lazy, Suspense, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
@@ -73,9 +73,7 @@ const ContractorProfile = () => {
   const { token, userDetails } = useSelector((state: RootState) => state.user);
   const navigate = useNavigate();
 
-  const handleNav = (path: string) => {
-    navigate(path);
-  };
+  const handleNav = useCallback((path: string) => navigate(path), [navigate]);
 
   const { data: response, isLoading: isLoadingProfile } = useGetProfileQuery(
     undefined,
@@ -91,21 +89,26 @@ const ContractorProfile = () => {
       hasAvatar ? (data?.id ?? skipToken) : skipToken,
     );
 
-  const workItems = Array.isArray(profile?.workExperiences)
+  const workItems = useMemo(() => Array.isArray(profile?.workExperiences)
     ? profile.workExperiences.filter(
-        (item: any) => item != null && typeof item === "object",
-      )
-    : [];
-  const projectItems = Array.isArray(profile?.projects)
+      (item: any) => item != null && typeof item === "object",
+    )
+    : [],
+    [profile?.workExperiences])
+
+  const projectItems = useMemo(() => Array.isArray(profile?.projects)
     ? profile.projects.filter(
-        (item: any) => item != null && typeof item === "object",
-      )
-    : [];
-  const certificationItems = Array.isArray(profile?.certifications)
+      (item: any) => item != null && typeof item === "object",
+    )
+    : [],
+    [profile?.projects])
+
+  const certificationItems = useMemo(() => Array.isArray(profile?.certifications)
     ? profile.certifications.filter(
-        (item: any) => item != null && typeof item === "object",
-      )
-    : [];
+      (item: any) => item != null && typeof item === "object",
+    )
+    : [],
+    [profile?.certifications])
 
   const sortedWorkItems = useMemo(
     () =>
@@ -239,7 +242,7 @@ const ContractorProfile = () => {
           </h4>
           <div className="flex flex-wrap gap-2">
             {Array.isArray(profile?.primarySkills) &&
-            profile.primarySkills.length > 0 ? (
+              profile.primarySkills.length > 0 ? (
               profile.primarySkills.map((skill: any, index: number) => {
                 const name = typeof skill === "string" ? skill : skill.name;
                 if (!name) return null;
@@ -256,7 +259,7 @@ const ContractorProfile = () => {
           </h4>
           <div className="flex flex-wrap gap-2">
             {Array.isArray(profile?.secondarySkills) &&
-            profile.secondarySkills.length > 0 ? (
+              profile.secondarySkills.length > 0 ? (
               profile.secondarySkills.map((skill: any, index: number) => {
                 const name = typeof skill === "string" ? skill : skill.name;
                 if (!name) return null;

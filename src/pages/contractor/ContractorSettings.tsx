@@ -36,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import Cookies from "js-cookie";
+import { Card } from "@/components/ui/hoverCard";
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -59,39 +60,6 @@ const C = {
 };
 
 /* ═══════════ REUSABLE COMPONENTS ═══════════ */
-const Card = memo(
-  ({
-    children,
-    className,
-    hover,
-    style,
-  }: {
-    children: React.ReactNode;
-    className?: string;
-    hover?: boolean;
-    style?: React.CSSProperties;
-  }) => {
-    const [hov, setHov] = useState(false);
-    return (
-      <div
-        onMouseEnter={hover ? () => setHov(true) : undefined}
-        onMouseLeave={hover ? () => setHov(false) : undefined}
-        className={cn(
-          "rounded-2xl border transition-all duration-300 overflow-hidden bg-white",
-          hov ? "shadow-2xl -translate-y-1" : "shadow-sm",
-          className,
-        )}
-        style={{
-          borderColor: C.border,
-          ...style,
-        }}
-      >
-        {children}
-      </div>
-    );
-  },
-);
-
 const SectionTitle = memo(
   ({
     icon: Icon,
@@ -160,7 +128,6 @@ const Toggle = memo(
 );
 
 const ContractorSettings = () => {
-  const [isLoading, setIsLoading] = React.useState(true);
   const [notifications, setNotifications] = React.useState({
     emailJobAlerts: true,
     emailInterviews: true,
@@ -249,26 +216,12 @@ const ContractorSettings = () => {
     } catch (err: any) {
       toast.error(
         err?.data?.message ||
-          "Failed to delete account. Please check your password.",
+        "Failed to delete account. Please check your password.",
       );
       setIsDeleteDialogOpen(false);
       setDeletePassword("");
     }
   };
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center gap-4 h-full">
-        <SpinnerLoader className="w-10 h-10" />
-        <p className="text-muted-foreground">Loading your settings...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col gap-8 py-6 sm:py-10 px-6 sm:px-9 md:px-8 font-inter">
