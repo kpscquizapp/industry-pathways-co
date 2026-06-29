@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
@@ -14,18 +14,27 @@ import {
 import ContractorProfile from "./ContractorProfile";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 
-const GlassCard = ({ children, gradient, className = "" }: { children: React.ReactNode; gradient: string; className?: string }) => (
+const GlassCard = memo(({ children, gradient, className = "" }: { children: React.ReactNode; gradient: string; className?: string }) => (
   <div className={`relative overflow-hidden rounded-2xl p-6 text-white shadow-lg ${gradient} ${className}`}>
     <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-white/10" />
     <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
     <div className="relative z-10">{children}</div>
   </div>
-);
+));
 
 const ContractorDashboard = () => {
   const { userDetails } = useSelector((state: RootState) => state.user);
   const { data: statsData, isLoading: statsLoading } = useGetDashboardStatsQuery();
   const navigate = useNavigate();
+
+  const stats = statsData?.data || {};
+
+  const KPI = useMemo(() => [
+    { label: "Interview Invites", value: stats.interviewInvites, icon: Video, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "this week" },
+    { label: "Pending Tests", value: stats.pendingTests, icon: FileCheck, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "due soon" },
+    { label: "Profile Views", value: stats.profileViews, icon: Eye, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "total views" },
+    { label: "Skill Score", value: stats.skillScore ? `${stats.skillScore}%` : "0%", icon: Star, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "highest score" },
+  ], [stats]);
 
   if (statsLoading) {
     return (
@@ -49,17 +58,6 @@ const ContractorDashboard = () => {
       </div>
     );
   }
-
-  const stats = statsData.data;
-
-  const KPI = [
-    { label: "Interview Invites", value: stats.interviewInvites, icon: Video, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "this week" },
-    { label: "Pending Tests", value: stats.pendingTests, icon: FileCheck, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "due soon" },
-    { label: "Profile Views", value: stats.profileViews, icon: Eye, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "total views" },
-    { label: "Skill Score", value: stats.skillScore ? `${stats.skillScore}%` : "0%", icon: Star, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "highest score" },
-  ];
-
-
 
   return (
     <div className="py-6 sm:py-10 flex flex-col px-6 sm:px-9 md:px-8 font-inter">

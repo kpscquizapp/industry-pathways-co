@@ -533,89 +533,16 @@ const CandidateProfileUpdate = (): JSX.Element => {
     );
   }, [data]);
 
-  const workExperiences = useMemo(
-    () =>
-      data?.candidateProfile?.workExperiences?.map(
-        ({
-          id,
-          localId,
-          companyName,
-          role,
-          employmentType,
-          startDate,
-          endDate,
-          description,
-          location,
-        }) => ({
-          id,
-          localId,
-          companyName,
-          role,
-          employmentType,
-          startDate,
-          endDate,
-          description,
-          location,
-        }),
-      ) || [],
-    [data],
-  );
-
-  const projects = useMemo(
-    () =>
-      data?.candidateProfile?.projects?.map(
-        ({
-          id,
-          localId,
-          title,
-          description,
-          techStack,
-          projectUrl,
-          isFeatured,
-        }) => ({
-          id,
-          localId,
-          title,
-          description,
-          techStack,
-          projectUrl,
-          isFeatured,
-        }),
-      ) || [],
-    [data],
-  );
-
-  const certification = useMemo(
-    () =>
-      data?.candidateProfile?.certifications?.map(
-        ({
-          id,
-          localId,
-          name,
-          issueDate,
-          issuedBy,
-          expiryDate,
-          credentialUrl,
-        }) => ({
-          id,
-          localId,
-          name,
-          issueDate,
-          issuedBy,
-          expiryDate,
-          credentialUrl,
-        }),
-      ) || [],
-    [data],
-  );
-
   const toNumberOrEmpty = (value: number | string | null | undefined) => {
     if (value === "" || value == null) return "";
     const n = Number(value);
     return Number.isFinite(n) ? n : "";
   };
 
-  const handleForm = useCallback((): FormDataState => {
+  // Single memoized form initializer — no intermediate useMemo chains for
+  // workExperiences / projects / certifications. All field mapping lives here
+  // so the dependency list is just [data, profileSkills] instead of 4 cascading memos.
+  const initialFormData = useMemo((): FormDataState => {
     if (!data)
       return {
         firstName: "",
@@ -643,45 +570,57 @@ const CandidateProfileUpdate = (): JSX.Element => {
         projects: [],
         certifications: [],
       };
+    const profile = data.candidateProfile;
     return {
-      firstName: data?.firstName || "",
-      lastName: data?.lastName || "",
-      email: data?.email || "",
-      mobileNumber: data?.candidateProfile.mobileNumber || "",
-      location: data?.candidateProfile.location || "",
-      country: data?.candidateProfile.country ?? null,
-      city: data?.candidateProfile.city ?? null,
-      candidateType: data?.candidateProfile.candidateType || "",
-      bio: data?.candidateProfile.bio || "",
-      yearsExperience: data?.candidateProfile.yearsExperience ?? "",
+      firstName: data.firstName || "",
+      lastName: data.lastName || "",
+      email: data.email || "",
+      mobileNumber: profile.mobileNumber || "",
+      location: profile.location || "",
+      country: profile.country ?? null,
+      city: profile.city ?? null,
+      candidateType: profile.candidateType || "",
+      bio: profile.bio || "",
+      yearsExperience: profile.yearsExperience ?? "",
       primarySkills: profileSkills || [],
       secondarySkills:
-        data?.candidateProfile.secondarySkills
+        profile.secondarySkills
           ?.map((s: any) => (typeof s === "string" ? s : s.name))
           .filter((s: string) => !!s) || [],
-      primaryJobRole: data?.candidateProfile.primaryJobRole || "",
-      availableToJoin: data?.candidateProfile.availableToJoin || "",
-      englishProficiency: data?.candidateProfile.englishProficiency ?? "",
-      preferredJobLocations: data?.candidateProfile.preferredJobLocations ?? [],
-      hourlyRateMin: toNumberOrEmpty(data?.candidateProfile.hourlyRateMin),
-      hourlyRateMax: toNumberOrEmpty(data?.candidateProfile.hourlyRateMax),
-      expectedSalaryMin: toNumberOrEmpty(
-        data?.candidateProfile.expectedSalaryMin,
-      ),
-      expectedSalaryMax: toNumberOrEmpty(
-        data?.candidateProfile.expectedSalaryMax,
-      ),
+      primaryJobRole: profile.primaryJobRole || "",
+      availableToJoin: profile.availableToJoin || "",
+      englishProficiency: profile.englishProficiency ?? "",
+      preferredJobLocations: profile.preferredJobLocations ?? [],
+      hourlyRateMin: toNumberOrEmpty(profile.hourlyRateMin),
+      hourlyRateMax: toNumberOrEmpty(profile.hourlyRateMax),
+      expectedSalaryMin: toNumberOrEmpty(profile.expectedSalaryMin),
+      expectedSalaryMax: toNumberOrEmpty(profile.expectedSalaryMax),
       currency: (() => {
-        const raw = (data?.candidateProfile as { currency?: string })?.currency;
+        const raw = (profile as { currency?: string })?.currency;
         return raw && currencySymbols[raw] ? raw : "";
       })(),
-      workExperiences: workExperiences || [],
-      projects: projects || [],
-      certifications: certification || [],
+      workExperiences:
+        profile.workExperiences?.map(
+          ({ id, localId, companyName, role, employmentType, startDate, endDate, description, location }) => ({
+            id, localId, companyName, role, employmentType, startDate, endDate, description, location,
+          }),
+        ) || [],
+      projects:
+        profile.projects?.map(
+          ({ id, localId, title, description, techStack, projectUrl, isFeatured }) => ({
+            id, localId, title, description, techStack, projectUrl, isFeatured,
+          }),
+        ) || [],
+      certifications:
+        profile.certifications?.map(
+          ({ id, localId, name, issueDate, issuedBy, expiryDate, credentialUrl }) => ({
+            id, localId, name, issueDate, issuedBy, expiryDate, credentialUrl,
+          }),
+        ) || [],
     };
-  }, [data, profileSkills, workExperiences, projects, certification]);
+  }, [data, profileSkills]);
 
-  const [formData, setFormData] = useState<FormDataState>(handleForm);
+  const [formData, setFormData] = useState<FormDataState>(() => initialFormData);
 
   useEffect(() => {
     primarySkillsRef.current = formData.primarySkills;
@@ -721,21 +660,21 @@ const CandidateProfileUpdate = (): JSX.Element => {
       teardownPendingRemovals();
       previousProfileIdRef.current = data.id;
       preferredLocationsDirtyRef.current = false;
-      setFormData(handleForm());
+      setFormData(initialFormData);
     }
-  }, [data, handleForm, teardownPendingRemovals]);
+  }, [data, initialFormData, teardownPendingRemovals]);
 
   useEffect(() => {
     const validResumeSkills = Array.isArray(resumeData)
       ? resumeData.filter(
-          (s): s is string => typeof s === "string" && s.trim() !== "",
-        )
+        (s): s is string => typeof s === "string" && s.trim() !== "",
+      )
       : [];
 
     if (
       validResumeSkills.length === 0 ||
       JSON.stringify(validResumeSkills) ===
-        JSON.stringify(processedResumeDataRef.current)
+      JSON.stringify(processedResumeDataRef.current)
     ) {
       return;
     }
@@ -1042,7 +981,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
         typeof skill === "string"
           ? skill.toLowerCase() === skillToRemove.toLowerCase()
           : (skill as { name: string }).name.toLowerCase() ===
-            skillToRemove.toLowerCase(),
+          skillToRemove.toLowerCase(),
     );
 
     // Guard clause: skill not found (local, not persisted)
@@ -1261,9 +1200,9 @@ const CandidateProfileUpdate = (): JSX.Element => {
           techStack: Array.isArray(project.techStack)
             ? project.techStack
             : String(project.techStack ?? "")
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean),
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
         })),
       workExperiences: formData.workExperiences
         .filter(
@@ -1971,9 +1910,9 @@ const CandidateProfileUpdate = (): JSX.Element => {
           techStack: Array.isArray(project.techStack)
             ? project.techStack
             : String(project.techStack ?? "")
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean),
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
         })),
       workExperiences: formData.workExperiences
         .filter(
@@ -2086,7 +2025,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
           }
         },
       },
-      cancel: { label: "Cancel", onClick: () => {} },
+      cancel: { label: "Cancel", onClick: () => { } },
     });
   };
 
@@ -2324,11 +2263,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 maxLength={50}
                 required
                 placeholder="Enter your first name"
-                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
-                  fieldErrors.firstName
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.firstName
                     ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                     : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.firstName} />
             </div>
@@ -2345,11 +2283,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 maxLength={50}
                 required
                 placeholder="Enter your last name"
-                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
-                  fieldErrors.lastName
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.lastName
                     ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                     : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.lastName} />
             </div>
@@ -2366,11 +2303,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 maxLength={254}
                 required
                 placeholder="Enter your email address"
-                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
-                  fieldErrors.email
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.email
                     ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                     : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.email} />
             </div>
@@ -2386,11 +2322,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 onChange={handleInputChange}
                 maxLength={100}
                 placeholder="e.g., Senior Full Stack Developer"
-                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
-                  fieldErrors.primaryJobRole
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.primaryJobRole
                     ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                     : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.primaryJobRole} />
             </div>
@@ -2406,11 +2341,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 onChange={handleInputChange}
                 maxLength={20}
                 placeholder="Enter your mobile number"
-                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
-                  fieldErrors.mobileNumber
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.mobileNumber
                     ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                     : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.mobileNumber} />
             </div>
@@ -2451,11 +2385,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 }
               >
                 <SelectTrigger
-                  className={`w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
-                    fieldErrors.candidateType
+                  className={`w-full px-4 py-3 bg-gray-50 border-0 ring-1 outline-none ring-inset ${fieldErrors.candidateType
                       ? "ring-rose-500 dark:ring-rose-500 focus:border-rose-500"
                       : "ring-gray-200 focus:border-[#0ea5e9] dark:ring-slate-700"
-                  } focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none`}
+                    } focus:ring-0 focus:ring-offset-0 dark:bg-slate-900 rounded-xl capitalize shadow-none`}
                 >
                   <SelectValue placeholder="Select contractor type" />
                 </SelectTrigger>
@@ -2573,11 +2506,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 onChange={handleInputChange}
                 min="0"
                 max="70"
-                className={`w-full px-4 py-2.5 bg-gray-50 border-0 outline-none ring-1 ring-inset ${
-                  fieldErrors.yearsExperience
+                className={`w-full px-4 py-2.5 bg-gray-50 border-0 outline-none ring-1 ring-inset ${fieldErrors.yearsExperience
                     ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                     : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <ErrorMessage error={fieldErrors.yearsExperience} />
             </div>
@@ -2600,11 +2532,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                   }}
                   placeholder="e.g., New York"
                   maxLength={100}
-                  className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset outline-none dark:bg-slate-900 rounded-xl ${
-                    fieldErrors.preferredJobLocations
+                  className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset outline-none dark:bg-slate-900 rounded-xl ${fieldErrors.preferredJobLocations
                       ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                       : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
-                  }`}
+                    }`}
                 />
                 <Button
                   type="button"
@@ -2684,11 +2615,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                   onChange={handleInputChange}
                   min="0"
                   placeholder="Enter your expected salary (min)"
-                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${
-                    fieldErrors.expectedSalaryMin
+                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.expectedSalaryMin
                       ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                       : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                    } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                 />
               </div>
               <ErrorMessage error={fieldErrors.expectedSalaryMin} />
@@ -2709,11 +2639,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                   onChange={handleInputChange}
                   min="0"
                   placeholder="Enter your expected salary (max)"
-                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 outline-none ring-1 ring-inset ${
-                    fieldErrors.expectedSalaryMax
+                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 outline-none ring-1 ring-inset ${fieldErrors.expectedSalaryMax
                       ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                       : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                    } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                 />
               </div>
               <ErrorMessage error={fieldErrors.expectedSalaryMax} />
@@ -2735,11 +2664,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                   placeholder="Enter your hourly rate (min)"
                   min="0"
                   max="10000"
-                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${
-                    fieldErrors.hourlyRate
+                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.hourlyRate
                       ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                       : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                    } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                 />
               </div>
             </div>
@@ -2760,11 +2688,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                   min="0"
                   max="10000"
                   placeholder="Enter your hourly rate (max)"
-                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${
-                    fieldErrors.hourlyRate
+                  className={`w-full pl-8 pr-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.hourlyRate
                       ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                       : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                    } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
                 />
               </div>
             </div>
@@ -2789,11 +2716,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
               onChange={handleInputChange}
               maxLength={1000}
               rows={5}
-              className={`w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ${
-                fieldErrors.bio
+              className={`w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.bio
                   ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                   : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-              } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl text-base leading-relaxed resize-y`}
+                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl text-base leading-relaxed resize-y`}
               placeholder="Tell us about yourself, your background, and what you're looking for..."
             />
             <div className="flex justify-between items-center mt-2.5">
@@ -2891,7 +2817,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
                         className="w-4 h-4 text-[#4DD9E8] rounded border-gray-300 focus:ring-[#4DD9E8] accent-[#4DD9E8] min-h-0 min-w-0"
                       />
                       {extractedSkill &&
-                      editingExtractedSkillId === extractedSkill.id ? (
+                        editingExtractedSkillId === extractedSkill.id ? (
                         <div className="flex-1 flex gap-2 items-center">
                           <input
                             type="text"
@@ -3121,11 +3047,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                 }
                 maxLength={50}
                 placeholder="Add a secondary skill (e.g., TypeScript)"
-                className={`flex-1 px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${
-                  fieldErrors.secondarySkills
+                className={`flex-1 px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ${fieldErrors.secondarySkills
                     ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                     : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                  } focus:ring-2 focus:ring-inset dark:bg-slate-900 rounded-xl`}
               />
               <Button
                 type="button"
@@ -3279,11 +3204,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                           e.target.value,
                         )
                       }
-                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
-                        fieldErrors[`workExp_${index}_company`]
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`workExp_${index}_company`]
                           ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                           : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                      } focus:ring-2 focus:ring-inset rounded-xl`}
+                        } focus:ring-2 focus:ring-inset rounded-xl`}
                     />
                     <ErrorMessage
                       error={fieldErrors[`workExp_${index}_company`]}
@@ -3297,11 +3221,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       onChange={(e) =>
                         updateWorkExperience(index, "role", e.target.value)
                       }
-                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
-                        fieldErrors[`workExp_${index}_role`]
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`workExp_${index}_role`]
                           ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                           : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                      } focus:ring-2 focus:ring-inset rounded-xl`}
+                        } focus:ring-2 focus:ring-inset rounded-xl`}
                     />
                     <ErrorMessage
                       error={fieldErrors[`workExp_${index}_role`]}
@@ -3353,11 +3276,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       onChange={(e) =>
                         updateWorkExperience(index, "startDate", e.target.value)
                       }
-                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
-                        fieldErrors[`workExp_${index}_startDate`]
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`workExp_${index}_startDate`]
                           ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                           : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                      } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
+                        } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
                     />
                     <ErrorMessage
                       error={fieldErrors[`workExp_${index}_startDate`]}
@@ -3467,11 +3389,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                     onChange={(e) =>
                       updateProject(index, "title", e.target.value)
                     }
-                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
-                      fieldErrors[`project_${index}_title`]
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`project_${index}_title`]
                         ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                         : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                    } focus:ring-2 focus:ring-inset rounded-xl`}
+                      } focus:ring-2 focus:ring-inset rounded-xl`}
                   />
                   <ErrorMessage error={fieldErrors[`project_${index}_title`]} />
                 </div>
@@ -3484,11 +3405,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       updateProject(index, "description", e.target.value)
                     }
                     rows={3}
-                    className={`w-full px-4 py-3 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
-                      fieldErrors[`project_${index}_description`]
+                    className={`w-full px-4 py-3 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`project_${index}_description`]
                         ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                         : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                    } focus:ring-2 focus:ring-inset rounded-xl resize-y`}
+                      } focus:ring-2 focus:ring-inset rounded-xl resize-y`}
                   />
                   <ErrorMessage
                     error={fieldErrors[`project_${index}_description`]}
@@ -3527,11 +3447,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                     onChange={(e) =>
                       updateProject(index, "projectUrl", e.target.value)
                     }
-                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
-                      fieldErrors[`project_${index}_url`]
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`project_${index}_url`]
                         ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                         : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                    } focus:ring-2 focus:ring-inset rounded-xl`}
+                      } focus:ring-2 focus:ring-inset rounded-xl`}
                   />
                   <ErrorMessage error={fieldErrors[`project_${index}_url`]} />
                 </div>
@@ -3624,11 +3543,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       onChange={(e) =>
                         updateCertification(index, "name", e.target.value)
                       }
-                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
-                        fieldErrors[`cert_${index}_name`]
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_name`]
                           ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                           : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                      } focus:ring-2 focus:ring-inset rounded-xl`}
+                        } focus:ring-2 focus:ring-inset rounded-xl`}
                     />
                     <ErrorMessage error={fieldErrors[`cert_${index}_name`]} />
                   </div>
@@ -3640,11 +3558,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       onChange={(e) =>
                         updateCertification(index, "issuedBy", e.target.value)
                       }
-                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
-                        fieldErrors[`cert_${index}_issuer`]
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_issuer`]
                           ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                           : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                      } focus:ring-2 focus:ring-inset rounded-xl`}
+                        } focus:ring-2 focus:ring-inset rounded-xl`}
                     />
                     <ErrorMessage error={fieldErrors[`cert_${index}_issuer`]} />
                   </div>
@@ -3661,11 +3578,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                       onChange={(e) =>
                         updateCertification(index, "issueDate", e.target.value)
                       }
-                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
-                        fieldErrors[`cert_${index}_issueDate`]
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_issueDate`]
                           ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                           : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                      } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
+                        } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
                     />
                     <ErrorMessage
                       error={fieldErrors[`cert_${index}_issueDate`]}
@@ -3685,11 +3601,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                           e.target.value || null,
                         )
                       }
-                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
-                        fieldErrors[`cert_${index}_expiryDate`]
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_expiryDate`]
                           ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                           : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                      } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
+                        } focus:ring-2 focus:ring-inset rounded-xl text-gray-700 dark:text-white`}
                     />
                     <ErrorMessage
                       error={fieldErrors[`cert_${index}_expiryDate`]}
@@ -3709,11 +3624,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
                         e.target.value,
                       )
                     }
-                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${
-                      fieldErrors[`cert_${index}_url`]
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-0 ring-1 ring-inset ${fieldErrors[`cert_${index}_url`]
                         ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
                         : "ring-gray-200 focus:ring-[#4DD9E8] outline-none dark:ring-slate-700"
-                    } focus:ring-2 focus:ring-inset rounded-xl`}
+                      } focus:ring-2 focus:ring-inset rounded-xl`}
                   />
                   <ErrorMessage error={fieldErrors[`cert_${index}_url`]} />
                 </div>
@@ -3756,7 +3670,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
             onClick={() => {
               // Clear any pending removal timeouts
               teardownPendingRemovals();
-              setFormData(handleForm());
+              setFormData(initialFormData);
               setFieldErrors({}); // Clear errors on cancel
               setLocationInput("");
               setIsEditingPrimarySkills(false);
