@@ -204,6 +204,14 @@ export const employerApi = createApi({
     //     body: data,
     //   }),
     // }),
+
+    // get invited test report for employer
+    getInvitedTestReport: builder.query<any, void>({
+      query: () => ({
+        method: "GET",
+        url: "coding/tests/employer/invited-results",
+      }),
+    })
   }),
 });
 
@@ -216,5 +224,6 @@ export const {
   useGetCandidateByIdQuery,
   useLazyViewCandidateResumeQuery,
   useGetBenchDashboardQuery,
+  useGetInvitedTestReportQuery,
   // useChangePasswordMutation,
 } = employerApi;

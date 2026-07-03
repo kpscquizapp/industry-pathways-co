@@ -110,6 +110,7 @@ import { LazyRoute } from "./pages/LazyRoute";
 import ResetPassword from "./pages/ResetPassword";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsService from "./pages/TermsService";
+import SkillTestResult from "./pages/employer/SkillTestResult";
 
 
 const HiringDashboardNew = lazy(
@@ -291,6 +292,7 @@ const App = () => {
                             element={<EmployerContracts />}
                           />
                           <Route path="settings" element={<EmployerSettings />} />
+                          <Route path="test/report" element={<SkillTestResult />} />
                         </Route>
                       </Route>
 

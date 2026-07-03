@@ -160,7 +160,7 @@ export const aiShortlistApi = createApi({
       invalidatesTags: (_result, _error, { jobId }) => [
         { type: "AiShortlistMatches", id: String(jobId) },
       ],
-       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
           dispatch(benchApi.util.invalidateTags(["BenchResources"]));
@@ -182,7 +182,7 @@ export const aiShortlistApi = createApi({
       invalidatesTags: (_result, _error, { jobId }) => [
         { type: "AiShortlistMatches", id: String(jobId) },
       ],
-       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
           dispatch(benchApi.util.invalidateTags(["BenchResources"]));
@@ -203,7 +203,7 @@ export const aiShortlistApi = createApi({
     }),
     sendInviteEmail: builder.mutation<
       any,
-      { codingTestId: string; candidateEmail?: string; expiresInHours?: number }
+      { codingTestId: string; candidateEmail?: string; expiresInHours?: number; jobId: number; }
     >({
       query: ({ codingTestId, ...body }) => ({
         method: "POST",
