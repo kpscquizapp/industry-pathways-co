@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   LayoutGrid,
@@ -22,6 +22,10 @@ const SkillTestResult = () => {
 
   const [activeTab, setActiveTab] = useState("detailed");
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveQuestionIndex(0);
+  }, [testId]);
 
   const {
     data: reportData,

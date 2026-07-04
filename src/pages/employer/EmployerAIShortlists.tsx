@@ -68,7 +68,7 @@ type CandidateProfileWithMeta = CandidateProfile & {
   mobileNumber?: string;
 };
 
-type CandidateListItem = CandidateProfileWithMeta & {
+export type CandidateListItem = CandidateProfileWithMeta & {
   stage: "matched" | "shortlisted" | "invited";
   matchReasons: string[];
 };
@@ -542,23 +542,14 @@ const SidebarCandidateItem = ({
   isSelected,
   onClick,
   tab,
+  invitedTestResults,
 }: {
   candidate: CandidateListItem;
   isSelected: boolean;
   onClick: () => void;
   tab: "skill-test" | "ai-interview";
+  invitedTestResults: any[];
 }) => {
-  const { data: testData } = useGetCustomTestByCandidateQuery(
-    { candidateEmail: candidate.email || "" },
-    { skip: !candidate.email || tab !== "skill-test" },
-  );
-
-  const { data: invitedTestReportResponse } = useGetInvitedTestReportQuery();
-  const invitedTestResults = useMemo(
-    () => normalizeInvitedTestResults(invitedTestReportResponse),
-    [invitedTestReportResponse],
-  );
-
   const selectedCandidateReport = useMemo(() => {
     if (!candidate.email) {
       return undefined;
@@ -569,8 +560,8 @@ const SidebarCandidateItem = ({
       const report = item as Record<string, unknown>;
       const reportEmail = normalizeEmail(
         report.candidateEmail ??
-        report.email ??
-        (report.candidate as Record<string, unknown> | undefined)?.email,
+          report.email ??
+          (report.candidate as Record<string, unknown> | undefined)?.email,
       );
       return reportEmail === candidateEmail;
     });
@@ -583,7 +574,7 @@ const SidebarCandidateItem = ({
       statusDisplay = reportStatus;
     }
   }
-  console.log(candidate);
+
   return (
     <div
       onClick={onClick}
@@ -1039,8 +1030,8 @@ const EmployerAIShortlists = () => {
       selectedCandidateId == null
         ? undefined
         : candidates.find(
-          (c) => getEntityIdKey(c.id) === getEntityIdKey(selectedCandidateId),
-        ),
+            (c) => getEntityIdKey(c.id) === getEntityIdKey(selectedCandidateId),
+          ),
     [candidates, selectedCandidateId],
   );
 
@@ -1054,8 +1045,8 @@ const EmployerAIShortlists = () => {
       const report = item as Record<string, unknown>;
       const reportEmail = normalizeEmail(
         report.candidateEmail ??
-        report.email ??
-        (report.candidate as Record<string, unknown> | undefined)?.email,
+          report.email ??
+          (report.candidate as Record<string, unknown> | undefined)?.email,
       );
       return reportEmail === candidateEmail;
     });
@@ -1095,6 +1086,7 @@ const EmployerAIShortlists = () => {
             isSelected={selectedCandidateId === candidate.id}
             onClick={() => setSelectedCandidateId(candidate.id)}
             tab={tab}
+            invitedTestResults={invitedTestResults}
           />
         ))}
       </div>
@@ -1210,10 +1202,11 @@ const EmployerAIShortlists = () => {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={`h-10 rounded-xl border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50 shadow-sm flex items-center gap-2 ${bulkFilterStatus
-                        ? "border-[#08b8cc] text-[#08b8cc]"
-                        : ""
-                        }`}
+                      className={`h-10 rounded-xl border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50 shadow-sm flex items-center gap-2 ${
+                        bulkFilterStatus
+                          ? "border-[#08b8cc] text-[#08b8cc]"
+                          : ""
+                      }`}
                     >
                       <ChevronDown className="h-4 w-4 text-gray-500" />
                       Bulk Actions
@@ -1453,12 +1446,13 @@ const EmployerAIShortlists = () => {
                             candidate.stage !== "invited" &&
                             handleShortlist(candidate)
                           }
-                          className={`h-9 min-w-0 flex-1 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${candidate.stage === "invited"
-                            ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
-                            : candidate.stage === "shortlisted"
-                              ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
-                              : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                            }`}
+                          className={`h-9 min-w-0 flex-1 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${
+                            candidate.stage === "invited"
+                              ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
+                              : candidate.stage === "shortlisted"
+                                ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
+                                : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          }`}
                         >
                           {candidate.stage === "invited" ? (
                             <span className="flex items-center gap-1.5">
@@ -1521,8 +1515,8 @@ const EmployerAIShortlists = () => {
                   candidate={selectedCandidateForDetails}
                   report={
                     selectedCandidateSkillReport as
-                    | Record<string, unknown>
-                    | undefined
+                      | Record<string, unknown>
+                      | undefined
                   }
                   isLoading={invitedTestReportLoading}
                 />

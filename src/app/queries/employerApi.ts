@@ -106,7 +106,7 @@ export const employerApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["EmployerProfile", "EmployerProfileImage"],
+  tagTypes: ["EmployerProfile", "EmployerProfileImage", "InvitedTestReport"],
   endpoints: (builder) => ({
     updateEmployerProfile: builder.mutation<void, UpdateEmployerProfile>({
       query: (data) => ({
@@ -211,7 +211,8 @@ export const employerApi = createApi({
         method: "GET",
         url: "coding/tests/employer/invited-results",
       }),
-    })
+      providesTags: ["InvitedTestReport"],
+    }),
   }),
 });
 

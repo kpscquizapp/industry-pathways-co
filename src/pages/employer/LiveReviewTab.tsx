@@ -156,7 +156,15 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
   // Keyboard shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).tagName === "INPUT") return;
+      const target = e.target as Element | null;
+      if (
+        target?.closest(
+          'input, textarea, select, button, a, [contenteditable="true"]',
+        )
+      ) {
+        return;
+      }
+
       switch (e.key) {
         case " ":
         case "k":
@@ -237,12 +245,19 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ sessionId }) => {
   const typeStyle: Record<string, string> = {
     "Tab Switched": "bg-yellow-50 border-yellow-200 text-yellow-700",
     "Multiple monitors detected": "bg-red-50 border-red-200 text-red-700",
-    "Developer tools opened":
-      "bg-orange-50 border-orange-200 text-orange-700",
+    "Developer tools opened": "bg-orange-50 border-orange-200 text-orange-700",
     "Window resized": "bg-purple-50 border-purple-200 text-purple-700",
     "Copy attempt": "bg-rose-50 border-rose-200 text-rose-700",
     "Cut attempt": "bg-pink-50 border-pink-200 text-pink-700",
   };
+
+  if (skip) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center text-slate-500">
+        No live review session is available for this report.
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">

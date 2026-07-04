@@ -10,14 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-
-type CandidateListItem = {
-  id?: string | number;
-  name?: string;
-  email?: string;
-  stage: "matched" | "shortlisted" | "invited";
-  matchReasons: string[];
-};
+import { CandidateListItem } from "./EmployerAIShortlists";
 
 type CandidateSkillTestDetailsProps = {
   candidate: CandidateListItem | undefined;
