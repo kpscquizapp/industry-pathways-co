@@ -69,7 +69,7 @@ type CandidateProfileWithMeta = CandidateProfile & {
 };
 
 export type CandidateListItem = CandidateProfileWithMeta & {
-  stage: "matched" | "shortlisted" | "invited";
+  stage: "matched" | "shortlisted" | "invited" | "completed";
   matchReasons: string[];
 };
 
@@ -585,12 +585,14 @@ const SidebarCandidateItem = ({
           {candidate.name.charAt(0)}
         </AvatarFallback>
       </Avatar>
-      <div className="flex-1 min-w-0">
-        <h4 className="font-bold text-gray-900 text-[14px] truncate">
-          {candidate.name}
-        </h4>
-        <h5 className="text-[11px]">{candidate?.role}</h5>
-        <div className="mt-2 text-[11px] font-bold flex items-center justify-between tracking-wide">
+      <div className="flex lg:justify-between lg:items-center w-full flex-col lg:flex-row min-w-0">
+        <div>
+          <h4 className="font-bold text-gray-900 text-[14px] truncate">
+            {candidate.name}
+          </h4>
+          <h5 className="text-[11px] text-gray-600">{candidate?.role}</h5>
+        </div>
+        <div className="mt-1 text-[11px] font-bold flex items-center justify-between tracking-wide">
           <div
             className={`flex items-center gap-1.5 ${statusDisplay === "Correct" || statusDisplay === "Completed" ? "text-[#08b8cc]" : statusDisplay === "Incorrect" ? "text-red-500" : "text-gray-400"}`}
           >
