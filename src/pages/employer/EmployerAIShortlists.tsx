@@ -814,11 +814,13 @@ const EmployerAIShortlists = () => {
       .map((c) => ({
         ...c,
         stage:
-          stageById.get(getEntityIdKey(c.id)) === "invited"
-            ? "invited"
-            : shortlistedIdKeys.has(getEntityIdKey(c.id))
-              ? "shortlisted"
-              : "matched",
+          stageById.get(getEntityIdKey(c.id)) === "completed"
+            ? "completed"
+            : stageById.get(getEntityIdKey(c.id)) === "invited"
+              ? "invited"
+              : shortlistedIdKeys.has(getEntityIdKey(c.id))
+                ? "shortlisted"
+                : "matched",
         matchReasons: [],
       }));
   }, [loadedMatches, shortlistedIds]);

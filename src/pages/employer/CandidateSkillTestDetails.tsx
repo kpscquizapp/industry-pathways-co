@@ -74,7 +74,10 @@ const extractStatus = (report?: Record<string, unknown>) => {
     return statusValue;
   }
 
-  return extractScore(report) > 0 ? "Completed" : "Pending";
+  const hasCompletionSignal =
+    report.submittedAt ?? report.completedAt ?? report.createdAt;
+
+  return hasCompletionSignal ? "Completed" : "Pending";
 };
 
 const normalizeQuestions = (report?: Record<string, unknown>) => {
@@ -168,9 +171,7 @@ const CandidateSkillTestDetails = ({
             </p>
           </div>
           <Button
-            onClick={() =>
-              navigate(`/hire-talent/test/report?id=${report?.id}`)
-            }
+            onClick={() => navigate(`/hire-talent/test/report?id=${report.id}`)}
             className="bg-[#08b8cc] hover:bg-[#0a9fb8] text-white"
             size="sm"
           >

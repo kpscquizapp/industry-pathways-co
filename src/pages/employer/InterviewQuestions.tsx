@@ -765,7 +765,8 @@ function ManualEntryForm({
       return;
     }
 
-    if (!jobId) {
+    const numericJobId = Number(jobId);
+    if (!jobId || !Number.isFinite(numericJobId)) {
       showAlert(
         "Missing Job",
         "A job must be selected before sending an invite.",
@@ -1374,12 +1375,18 @@ function ManualEntryForm({
             <Button
               onClick={handleInvite}
               disabled={
-                isInviting || isScheduling || inviteSent || !defaultEmail
+                isInviting ||
+                isScheduling ||
+                inviteSent ||
+                !defaultEmail ||
+                !jobId
               }
               title={
                 !defaultEmail
                   ? "No candidate email — go back and select a candidate first"
-                  : undefined
+                  : !jobId
+                    ? "No job selected — go back and select a job first"
+                    : undefined
               }
               className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-sm px-6 h-11 font-bold animate-in fade-in slide-in-from-right-4 duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >

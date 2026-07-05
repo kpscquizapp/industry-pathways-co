@@ -464,6 +464,22 @@ const CodingChallenge: React.FC = () => {
     [user, startSessionMutation],
   );
 
+  const reportMultipleMonitors = useCallback(
+    async (sid: string) => {
+      const hasMultipleMonitors = await detectMultipleMonitors();
+      if (!hasMultipleMonitors || !sid) return;
+      await logViolationMutation({
+        sessionId: sid,
+        reason: "Multiple monitors detected",
+      })
+        .unwrap()
+        .catch(() => {});
+      setTotalViolations((prev) => prev + 1);
+      addLog("Violation: Multiple monitors detected");
+    },
+    [logViolationMutation, addLog],
+  );
+
   const handleViolation = useCallback(
     async (reason: string) => {
       if (!isMonitoringActive) return;
@@ -498,8 +514,9 @@ const CodingChallenge: React.FC = () => {
   }, [handleViolation, isMonitoringActive]);
 
   const onResize = useDebouncedCallback(() => {
+    const wasDevtoolsOpen = devtoolsOpenRef.current;
     checkDevtools();
-    if (devtoolsOpenRef.current) return;
+    if (wasDevtoolsOpen || devtoolsOpenRef.current) return;
     handleViolation("Window resized");
   }, 1000);
 
@@ -690,17 +707,7 @@ const CodingChallenge: React.FC = () => {
             setIsMonitoringActive(isToken);
             if (isToken) {
               const sid = sessionIdRef.current;
-              const hasMultipleMonitors = await detectMultipleMonitors();
-              if (hasMultipleMonitors && sid) {
-                await logViolationMutation({
-                  sessionId: sid,
-                  reason: "Multiple monitors detected",
-                })
-                  .unwrap()
-                  .catch(() => {});
-                setTotalViolations((prev) => prev + 1);
-                addLog("Violation: Multiple monitors detected");
-              }
+              await reportMultipleMonitors(sid);
             }
           } else if (!isToken) {
             // For mock tests (without token), start immediately with local timestamp
@@ -764,19 +771,7 @@ const CodingChallenge: React.FC = () => {
         toast.success("Test started!");
 
         // Multiple monitor check
-        const hasMultipleMonitors = await detectMultipleMonitors();
-        if (hasMultipleMonitors && sid) {
-          try {
-            await logViolationMutation({
-              sessionId: sid,
-              reason: "Multiple monitors detected",
-            }).unwrap();
-            setTotalViolations((prev) => prev + 1);
-            addLog("Violation: Multiple monitors detected");
-          } catch {
-            // Silent - don't disrupt candidate experience
-          }
-        }
+        await reportMultipleMonitors(sid);
       }
     } catch (err) {
       toast.error("Failed to start test");

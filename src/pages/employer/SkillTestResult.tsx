@@ -60,7 +60,7 @@ const SkillTestResult = () => {
     );
   }
 
-  if (error || !report) {
+  if (error || !report?.test) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <AlertCircle className="w-12 h-12 text-red-400" />

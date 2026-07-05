@@ -219,6 +219,14 @@ export const aiShortlistApi = createApi({
       }),
       // Refresh matches after invite so the invited count updates in EmployerSkillTests
       invalidatesTags: ["AiShortlistMatches"],
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(employerApi.util.invalidateTags(["InvitedTestReport"]));
+        } catch {
+          // ignore
+        }
+      },
     }),
     createCustomTest: builder.mutation<
       any,
