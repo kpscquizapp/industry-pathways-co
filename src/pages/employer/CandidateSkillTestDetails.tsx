@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { CandidateListItem } from "./EmployerAIShortlists";
+import type { CandidateListItem } from "./EmployerAIShortlists";
 
 type CandidateSkillTestDetailsProps = {
   candidate: CandidateListItem | undefined;
@@ -50,6 +50,9 @@ const extractScore = (report?: Record<string, unknown>) => {
   ];
 
   for (const candidate of scoreCandidates) {
+    if (candidate === null || candidate === undefined) {
+      continue;
+    }
     const parsed = Number(candidate);
     if (Number.isFinite(parsed)) {
       return parsed;
@@ -57,27 +60,6 @@ const extractScore = (report?: Record<string, unknown>) => {
   }
 
   return 0;
-};
-
-const extractStatus = (report?: Record<string, unknown>) => {
-  if (!report) {
-    return "Pending";
-  }
-
-  const statusValue =
-    report.status ??
-    report.resultStatus ??
-    report.testStatus ??
-    (report.result as Record<string, unknown> | undefined)?.status;
-
-  if (typeof statusValue === "string" && statusValue.trim()) {
-    return statusValue;
-  }
-
-  const hasCompletionSignal =
-    report.submittedAt ?? report.completedAt ?? report.createdAt;
-
-  return hasCompletionSignal ? "Completed" : "Pending";
 };
 
 const normalizeQuestions = (report?: Record<string, unknown>) => {
@@ -104,7 +86,6 @@ const CandidateSkillTestDetails = ({
   isLoading,
 }: CandidateSkillTestDetailsProps) => {
   const score = useMemo(() => extractScore(report), [report]);
-  const status = useMemo(() => extractStatus(report), [report]);
   const questions = useMemo(() => normalizeQuestions(report), [report]);
   const navigate = useNavigate();
 
@@ -171,7 +152,12 @@ const CandidateSkillTestDetails = ({
             </p>
           </div>
           <Button
-            onClick={() => navigate(`/hire-talent/test/report?id=${report.id}`)}
+            onClick={() => {
+              if (report.id !== undefined && report.id !== null) {
+                navigate(`/hire-talent/test/report?id=${report.id}`);
+              }
+            }}
+            disabled={report.id === undefined || report.id === null}
             className="bg-[#08b8cc] hover:bg-[#0a9fb8] text-white"
             size="sm"
           >
@@ -223,7 +209,7 @@ const CandidateSkillTestDetails = ({
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-gray-50 p-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gray-400">
                 Coding Accuracy
               </p>
               <p className="mt-2 text-sm font-semibold text-gray-700">
@@ -233,7 +219,7 @@ const CandidateSkillTestDetails = ({
               </p>
             </div>
             <div className="rounded-xl bg-gray-50 p-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gray-400">
                 Submitted on
               </p>
               <p className="mt-2 text-sm font-semibold text-gray-700">
