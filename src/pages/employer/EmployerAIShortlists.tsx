@@ -283,6 +283,23 @@ const mapMatchToCandidate = (match: Match): CandidateProfileWithMeta | null => {
   };
 };
 
+const findReportByCandidateEmail = (
+  candidateEmail: string | undefined,
+  invitedTestResults: unknown[],
+) => {
+  if (!candidateEmail) return undefined;
+  const normalizedCandidateEmail = normalizeEmail(candidateEmail);
+  return invitedTestResults.find((item) => {
+    const report = item as Record<string, unknown>;
+    const reportEmail = normalizeEmail(
+      report.candidateEmail ??
+      report.email ??
+      (report.candidate as Record<string, unknown> | undefined)?.email,
+    );
+    return reportEmail === normalizedCandidateEmail;
+  });
+};
+
 const CandidateAiInterviewDetails = ({
   candidate,
 }: {
@@ -316,25 +333,12 @@ const SidebarCandidateItem = ({
   invitedTestResults: any[];
 }) => {
   const selectedCandidateReport = useMemo(() => {
-    if (!candidate.email) {
-      return undefined;
-    }
-
-    const candidateEmail = normalizeEmail(candidate.email);
-    return invitedTestResults.find((item) => {
-      const report = item as Record<string, unknown>;
-      const reportEmail = normalizeEmail(
-        report.candidateEmail ??
-        report.email ??
-        (report.candidate as Record<string, unknown> | undefined)?.email,
-      );
-      return reportEmail === candidateEmail;
-    });
+    return findReportByCandidateEmail(candidate.email, invitedTestResults);
   }, [candidate.email, invitedTestResults]);
 
   let statusDisplay = tab === "skill-test" ? "Pending" : "Interviewed";
   if (tab === "skill-test" && selectedCandidateReport) {
-    const reportStatus = selectedCandidateReport?.status;
+    const reportStatus = (selectedCandidateReport as Record<string, unknown>)?.status;
     if (typeof reportStatus === "string" && reportStatus.trim()) {
       statusDisplay = reportStatus;
     }
@@ -789,20 +793,7 @@ const EmployerAIShortlists = () => {
   );
 
   const selectedCandidateSkillReport = useMemo(() => {
-    if (!selectedCandidateForDetails?.email) {
-      return undefined;
-    }
-
-    const candidateEmail = normalizeEmail(selectedCandidateForDetails.email);
-    return invitedTestResults.find((item) => {
-      const report = item as Record<string, unknown>;
-      const reportEmail = normalizeEmail(
-        report.candidateEmail ??
-        report.email ??
-        (report.candidate as Record<string, unknown> | undefined)?.email,
-      );
-      return reportEmail === candidateEmail;
-    });
+    return findReportByCandidateEmail(selectedCandidateForDetails?.email, invitedTestResults);
   }, [invitedTestResults, selectedCandidateForDetails?.email]);
 
   const renderSidebar = (tab: "skill-test" | "ai-interview") => (

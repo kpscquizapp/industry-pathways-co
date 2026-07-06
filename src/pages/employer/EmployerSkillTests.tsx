@@ -175,18 +175,34 @@ const EmployerSkillTests = () => {
   const lowerSearch = useMemo(() => searchQuery.toLowerCase(), [searchQuery]);
 
   const visibleAvailable = useMemo(
-    () => availableCandidates.filter((c) => c.name.toLowerCase().includes(lowerSearch)),
-    [availableCandidates, lowerSearch]
+    () =>
+      availableCandidates.filter((c) =>
+        c.name.toLowerCase().includes(lowerSearch),
+      ),
+    [availableCandidates, lowerSearch],
   );
   const visibleInvited = useMemo(
-    () => invitedCandidates.filter((c) => c.name.toLowerCase().includes(lowerSearch)),
-    [invitedCandidates, lowerSearch]
+    () =>
+      invitedCandidates.filter((c) =>
+        c.name.toLowerCase().includes(lowerSearch),
+      ),
+    [invitedCandidates, lowerSearch],
   );
   const visibleScheduled = useMemo(
-    () => scheduledCandidates.filter((c) => c.name.toLowerCase().includes(lowerSearch)),
-    [scheduledCandidates, lowerSearch]
+    () =>
+      scheduledCandidates.filter((c) =>
+        c.name.toLowerCase().includes(lowerSearch),
+      ),
+    [scheduledCandidates, lowerSearch],
   );
 
+  const visibleCompleted = useMemo(
+    () =>
+      completedCandidates.filter((c) =>
+        c.name.toLowerCase().includes(lowerSearch),
+      ),
+    [completedCandidates, lowerSearch],
+  );
 
   const handleSelectCandidate = (candidate: Candidate) => {
     setSelectedCandidate(candidate);
@@ -227,7 +243,7 @@ const EmployerSkillTests = () => {
         testDuration: scheduleData.duration,
         jobId: selectedJobId,
         talentSource: "candidate",
-      }
+      },
     });
   };
 
@@ -242,8 +258,10 @@ const EmployerSkillTests = () => {
   };
 
   const getScoreStyle = (score: number) => {
-    if (score >= 90) return { color: "text-[#08b8cc]", border: "border-[#08b8cc]" };
-    if (score >= 80) return { color: "text-[#3b82f6]", border: "border-[#3b82f6]" };
+    if (score >= 90)
+      return { color: "text-[#08b8cc]", border: "border-[#08b8cc]" };
+    if (score >= 80)
+      return { color: "text-[#3b82f6]", border: "border-[#3b82f6]" };
     return { color: "text-[#f59e0b]", border: "border-[#f59e0b]" };
   };
 
@@ -384,73 +402,69 @@ const EmployerSkillTests = () => {
                   </div>
                 ) : visibleAvailable.length > 0 ? (
                   <div className="divide-y divide-gray-100">
-                    {visibleAvailable.map(
-                      (candidate) => (
-                        <div
-                          key={candidate.id}
-                          className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 p-4 sm:p-6 hover:bg-[#fafafa] transition-all cursor-default group"
-                        >
-                          <Avatar className="h-14 w-14 border border-gray-200 shadow-sm shrink-0">
-                            <AvatarFallback className="font-bold text-gray-700 bg-gray-100 text-lg">
-                              {candidate.name.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <h3
-                              className="font-bold text-gray-900 text-[16px] truncate cursor-pointer"
-                              onClick={() => handleViewProfile(candidate)}
-                            >
-                              {candidate.name}
-                            </h3>
-                            <p className="text-[13px] text-gray-500 font-medium truncate mt-0.5">
-                              {candidate.role}
-                            </p>
-                            <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-                              {candidate.skills.slice(0, 4).map((skill) => (
-                                <span
-                                  key={skill}
-                                  className="max-w-full truncate px-2.5 py-1 rounded-md bg-white text-gray-600 text-[11px] font-bold border border-gray-200 shadow-sm"
-                                >
-                                  {skill}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                          {(() => {
-                            const score = Math.round(candidate.matchScore);
-                            const { color: scoreColor, border: scoreBorder } = getScoreStyle(
-                              Math.round(candidate.matchScore)
-                            );
-
-                            return (
-                              <div className="hidden md:flex flex-col items-center justify-center px-4 lg:px-6 shrink-0 border-l border-r border-gray-100 min-w-[110px] lg:min-w-[120px]">
-                                <div
-                                  className={`w-11 h-11 rounded-full border-2 ${scoreBorder} flex items-center justify-center`}
-                                >
-                                  <span
-                                    className={`font-extrabold text-[13px] ${scoreColor}`}
-                                  >
-                                    {score}%
-                                  </span>
-                                </div>
-                                <span className="text-[10px] text-gray-400 font-bold mt-1.5 uppercase tracking-wider">
-                                  AI Match
-                                </span>
-                              </div>
-                            );
-                          })()}
-                          <div className="w-full shrink-0 flex justify-end sm:w-auto sm:pl-2">
-                            <Button
-                              className="bg-white border hover:bg-[#f0f9ff] hover:border-[#0ea5e9] hover:text-[#0ea5e9] border-gray-200 text-gray-700 shadow-sm rounded-xl h-11 px-5 font-bold transition-all w-full sm:w-auto"
-                              onClick={() => handleSelectCandidate(candidate)}
-                            >
-                              <Code className="h-4 w-4 mr-2" />
-                              Send Questions
-                            </Button>
+                    {visibleAvailable.map((candidate) => (
+                      <div
+                        key={candidate.id}
+                        className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 p-4 sm:p-6 hover:bg-[#fafafa] transition-all cursor-default group"
+                      >
+                        <Avatar className="h-14 w-14 border border-gray-200 shadow-sm shrink-0">
+                          <AvatarFallback className="font-bold text-gray-700 bg-gray-100 text-lg">
+                            {candidate.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <h3
+                            className="font-bold text-gray-900 text-[16px] truncate cursor-pointer"
+                            onClick={() => handleViewProfile(candidate)}
+                          >
+                            {candidate.name}
+                          </h3>
+                          <p className="text-[13px] text-gray-500 font-medium truncate mt-0.5">
+                            {candidate.role}
+                          </p>
+                          <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                            {candidate.skills.slice(0, 4).map((skill) => (
+                              <span
+                                key={skill}
+                                className="max-w-full truncate px-2.5 py-1 rounded-md bg-white text-gray-600 text-[11px] font-bold border border-gray-200 shadow-sm"
+                              >
+                                {skill}
+                              </span>
+                            ))}
                           </div>
                         </div>
-                      ),
-                    )}
+                        {(() => {
+                          const score = Math.round(candidate.matchScore);
+                          const { color: scoreColor, border: scoreBorder } = getScoreStyle(score);
+
+                          return (
+                            <div className="hidden md:flex flex-col items-center justify-center px-4 lg:px-6 shrink-0 border-l border-r border-gray-100 min-w-[110px] lg:min-w-[120px]">
+                              <div
+                                className={`w-11 h-11 rounded-full border-2 ${scoreBorder} flex items-center justify-center`}
+                              >
+                                <span
+                                  className={`font-extrabold text-[13px] ${scoreColor}`}
+                                >
+                                  {score}%
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-gray-400 font-bold mt-1.5 uppercase tracking-wider">
+                                AI Match
+                              </span>
+                            </div>
+                          );
+                        })()}
+                        <div className="w-full shrink-0 flex justify-end sm:w-auto sm:pl-2">
+                          <Button
+                            className="bg-white border hover:bg-[#f0f9ff] hover:border-[#0ea5e9] hover:text-[#0ea5e9] border-gray-200 text-gray-700 shadow-sm rounded-xl h-11 px-5 font-bold transition-all w-full sm:w-auto"
+                            onClick={() => handleSelectCandidate(candidate)}
+                          >
+                            <Code className="h-4 w-4 mr-2" />
+                            Send Questions
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="text-center py-20 text-gray-400 bg-gray-50/50">
@@ -490,69 +504,66 @@ const EmployerSkillTests = () => {
                 <CardContent className="p-0">
                   {visibleInvited.length > 0 ? (
                     <div className="divide-y divide-violet-50">
-                      {visibleInvited.map(
-                        (candidate) => (
-                          <div
-                            key={candidate.id}
-                            className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 p-4 sm:p-6 hover:bg-[#fdf8ff] transition-all cursor-default"
-                          >
-                            <Avatar className="h-14 w-14 border border-violet-200 shadow-sm shrink-0">
-                              <AvatarFallback className="font-bold text-violet-700 bg-violet-50 text-lg">
-                                {candidate.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <h3
-                                className="font-bold text-gray-900 text-[16px] truncate cursor-pointer"
-                                onClick={() => handleViewProfile(candidate)}
-                              >
-                                {candidate.name}
-                              </h3>
-                              <p className="text-[13px] text-gray-500 font-medium truncate mt-0.5">
-                                {candidate.role}
-                              </p>
-                              <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-                                {candidate.skills.slice(0, 4).map((skill) => (
-                                  <span
-                                    key={skill}
-                                    className="max-w-full truncate px-2.5 py-1 rounded-md bg-white text-gray-600 text-[11px] font-bold border border-gray-200 shadow-sm"
-                                  >
-                                    {skill}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                            {(() => {
-                              const score = Math.round(candidate.matchScore);
-                              const { color: scoreColor, border: scoreBorder } = getScoreStyle(
-                                Math.round(candidate.matchScore)
-                              );
-                              return (
-                                <div className="hidden md:flex flex-col items-center justify-center px-4 lg:px-6 shrink-0 border-l border-r border-gray-100 min-w-[110px] lg:min-w-[120px]">
-                                  <div
-                                    className={`w-11 h-11 rounded-full border-2 ${scoreBorder} flex items-center justify-center`}
-                                  >
-                                    <span
-                                      className={`font-extrabold text-[13px] ${scoreColor}`}
-                                    >
-                                      {score}%
-                                    </span>
-                                  </div>
-                                  <span className="text-[10px] text-gray-400 font-bold mt-1.5 uppercase tracking-wider">
-                                    AI Match
-                                  </span>
-                                </div>
-                              );
-                            })()}
-                            <div className="w-full shrink-0 flex justify-start sm:w-auto sm:justify-end sm:pl-2">
-                              <Badge className="bg-violet-100 border-none text-violet-700 hover:bg-violet-100 px-3.5 py-1.5 font-bold shadow-none text-[12px]">
-                                <Send className="h-3 w-3 mr-1.5" />
-                                Invite Sent
-                              </Badge>
+                      {visibleInvited.map((candidate) => (
+                        <div
+                          key={candidate.id}
+                          className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 p-4 sm:p-6 hover:bg-[#fdf8ff] transition-all cursor-default"
+                        >
+                          <Avatar className="h-14 w-14 border border-violet-200 shadow-sm shrink-0">
+                            <AvatarFallback className="font-bold text-violet-700 bg-violet-50 text-lg">
+                              {candidate.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <h3
+                              className="font-bold text-gray-900 text-[16px] truncate cursor-pointer"
+                              onClick={() => handleViewProfile(candidate)}
+                            >
+                              {candidate.name}
+                            </h3>
+                            <p className="text-[13px] text-gray-500 font-medium truncate mt-0.5">
+                              {candidate.role}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                              {candidate.skills.slice(0, 4).map((skill) => (
+                                <span
+                                  key={skill}
+                                  className="max-w-full truncate px-2.5 py-1 rounded-md bg-white text-gray-600 text-[11px] font-bold border border-gray-200 shadow-sm"
+                                >
+                                  {skill}
+                                </span>
+                              ))}
                             </div>
                           </div>
-                        ),
-                      )}
+                          {(() => {
+                            const score = Math.round(candidate.matchScore);
+                            const { color: scoreColor, border: scoreBorder } = getScoreStyle(score);
+
+                            return (
+                              <div className="hidden md:flex flex-col items-center justify-center px-4 lg:px-6 shrink-0 border-l border-r border-gray-100 min-w-[110px] lg:min-w-[120px]">
+                                <div
+                                  className={`w-11 h-11 rounded-full border-2 ${scoreBorder} flex items-center justify-center`}
+                                >
+                                  <span
+                                    className={`font-extrabold text-[13px] ${scoreColor}`}
+                                  >
+                                    {score}%
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-gray-400 font-bold mt-1.5 uppercase tracking-wider">
+                                  AI Match
+                                </span>
+                              </div>
+                            );
+                          })()}
+                          <div className="w-full shrink-0 flex justify-start sm:w-auto sm:justify-end sm:pl-2">
+                            <Badge className="bg-violet-100 border-none text-violet-700 hover:bg-violet-100 px-3.5 py-1.5 font-bold shadow-none text-[12px]">
+                              <Send className="h-3 w-3 mr-1.5" />
+                              Invite Sent
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <div className="text-center py-20 text-gray-400 bg-gray-50/50">
@@ -570,7 +581,7 @@ const EmployerSkillTests = () => {
               </Card>
 
               {/* Scheduled Tests - Grouped with Invited */}
-              {scheduledCandidates.length > 0 && (
+              {visibleScheduled.length > 0 && (
                 <Card className="border border-amber-200 shadow-sm rounded-[24px] bg-white overflow-hidden mt-8">
                   <CardHeader className="bg-[#fffbeb] border-b border-amber-100 px-4 py-5 sm:px-7 sm:py-6">
                     <div className="flex min-w-0 items-start gap-3 sm:items-center">
@@ -589,39 +600,37 @@ const EmployerSkillTests = () => {
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="divide-y divide-amber-50">
-                      {visibleScheduled.map(
-                        (candidate) => (
-                          <div
-                            key={candidate.id}
-                            className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 p-4 sm:p-6 hover:bg-[#fffdf7] transition-all"
-                          >
-                            <Avatar className="h-12 w-12 border border-amber-200 shrink-0">
-                              <AvatarFallback className="font-bold text-amber-700 bg-amber-50">
-                                {candidate.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-bold text-gray-900 text-[15px] truncate">
-                                {candidate.name}
-                              </h3>
-                              <p className="text-[13px] text-gray-500 truncate mt-0.5">
-                                {candidate.role}
-                              </p>
-                            </div>
-                            <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-100 bg-amber-50 px-4 py-2 text-amber-700 font-bold text-[13px] sm:w-auto">
-                              <Calendar className="h-4 w-4" />
-                              <span className="truncate">
-                                {candidate.testDate}
-                              </span>
-                            </div>
-                            <div className="w-full shrink-0 flex justify-start sm:w-auto sm:justify-end sm:pl-2">
-                              <Badge className="bg-amber-100 border-none text-amber-700 hover:bg-amber-100 px-3.5 py-1.5 font-bold shadow-none text-[12px]">
-                                Pending Completion
-                              </Badge>
-                            </div>
+                      {visibleScheduled.map((candidate) => (
+                        <div
+                          key={candidate.id}
+                          className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 p-4 sm:p-6 hover:bg-[#fffdf7] transition-all"
+                        >
+                          <Avatar className="h-12 w-12 border border-amber-200 shrink-0">
+                            <AvatarFallback className="font-bold text-amber-700 bg-amber-50">
+                              {candidate.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-gray-900 text-[15px] truncate">
+                              {candidate.name}
+                            </h3>
+                            <p className="text-[13px] text-gray-500 truncate mt-0.5">
+                              {candidate.role}
+                            </p>
                           </div>
-                        ),
-                      )}
+                          <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-100 bg-amber-50 px-4 py-2 text-amber-700 font-bold text-[13px] sm:w-auto">
+                            <Calendar className="h-4 w-4" />
+                            <span className="truncate">
+                              {candidate.testDate}
+                            </span>
+                          </div>
+                          <div className="w-full shrink-0 flex justify-start sm:w-auto sm:justify-end sm:pl-2">
+                            <Badge className="bg-amber-100 border-none text-amber-700 hover:bg-amber-100 px-3.5 py-1.5 font-bold shadow-none text-[12px]">
+                              Pending Completion
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -648,38 +657,38 @@ const EmployerSkillTests = () => {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                {completedCandidates.length > 0 ? (
+                {visibleCompleted.length > 0 ? (
                   <div className="divide-y divide-emerald-50">
-                    {completedCandidates.map(
-                      (candidate) => (
-                        <div
-                          key={candidate.id}
-                          className="flex flex-col gap-4 p-4 hover:bg-[#f2fdf7] transition-all sm:flex-row sm:items-center sm:justify-between sm:p-6"
-                        >
-                          <div className="flex min-w-0 items-center gap-4">
-                            <Avatar className="h-12 w-12 border border-emerald-200 shrink-0">
-                              <AvatarFallback className="font-bold text-emerald-700 bg-emerald-50">
-                                {candidate.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0">
-                              <span
-                                className="block truncate font-bold text-gray-900 text-[15px] cursor-pointer"
-                                onClick={() => handleViewProfile(candidate)}
-                              >
-                                {candidate.name}
-                              </span>
-                              <p className="truncate text-[13px] text-gray-500 mt-0.5">
-                                {candidate.role}
-                              </p>
-                            </div>
+                    {visibleCompleted.map((candidate) => (
+                      <div
+                        key={candidate.id}
+                        className="flex flex-col gap-4 p-4 hover:bg-[#f2fdf7] transition-all sm:flex-row sm:items-center sm:justify-between sm:p-6"
+                      >
+                        <div className="flex min-w-0 items-center gap-4">
+                          <Avatar className="h-12 w-12 border border-emerald-200 shrink-0">
+                            <AvatarFallback className="font-bold text-emerald-700 bg-emerald-50">
+                              {candidate.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <span
+                              className="block truncate font-bold text-gray-900 text-[15px] cursor-pointer"
+                              onClick={() => handleViewProfile(candidate)}
+                            >
+                              {candidate.name}
+                            </span>
+                            <p className="truncate text-[13px] text-gray-500 mt-0.5">
+                              {candidate.role}
+                            </p>
                           </div>
-                          <Badge className="w-fit bg-emerald-100 text-emerald-700 hover:bg-emerald-100 px-3.5 py-1.5 font-bold text-[12px]">
-                            {candidate.testScore != null ? `Passed (${candidate.testScore}%)` : "Passed"}
-                          </Badge>
                         </div>
-                      ),
-                    )}
+                        <Badge className="w-fit bg-emerald-100 text-emerald-700 hover:bg-emerald-100 px-3.5 py-1.5 font-bold text-[12px]">
+                          {candidate.testScore != null
+                            ? `Passed (${candidate.testScore}%)`
+                            : "Passed"}
+                        </Badge>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="text-center py-20 text-gray-400 bg-gray-50/50">

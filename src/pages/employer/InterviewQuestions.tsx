@@ -1,5 +1,5 @@
-﻿import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useSearchParams } from "react-router-dom";
 import {
   useCreateCustomTestMutation,
   useSendInviteEmailMutation,
@@ -109,19 +109,18 @@ export default function InterviewQuestions() {
     role: roleValue,
     category: categoryValue,
   });
+  const [searchParams] = useSearchParams();
 
-  const role = state?.candidateRole || "";
-  const name = state?.candidateName || "";
-  const email = state?.candidateEmail || "";
-  const category = state?.testType || "";
-  const testId = state?.testId || "";
-  const testDate = state?.testDate || "";
-  const testDuration = state?.testDuration || "";
-  const jobId = state?.jobId || "";
-  const candidateId = state?.candidateId || "";
-  const talentSource = (state?.talentSource || "candidate") as
-    | "candidate"
-    | "bench";
+  const role = state?.candidateRole ?? searchParams.get("candidateRole") ?? "";
+  const name = state?.candidateName ?? searchParams.get("candidateName") ?? "";
+  const email = state?.candidateEmail ?? searchParams.get("candidateEmail") ?? "";
+  const category = state?.testType ?? searchParams.get("testType") ?? "";
+  const testId = state?.testId ?? searchParams.get("testId") ?? "";
+  const testDate = state?.testDate ?? searchParams.get("testDate") ?? "";
+  const testDuration = state?.testDuration ?? searchParams.get("testDuration") ?? "";
+  const jobId = state?.jobId ?? searchParams.get("jobId") ?? "";
+  const candidateId = state?.candidateId ?? searchParams.get("candidateId") ?? "";
+  const talentSource = (state?.talentSource ?? searchParams.get("talentSource") ?? "candidate") as "candidate" | "bench";
 
   const [questions, setQuestions] = useState<Question[]>([
     newQuestion(1, role, category),
@@ -247,7 +246,7 @@ export default function InterviewQuestions() {
     }
   };
 
-  const handleCustomQuestionDelete = async (q: Question) => {
+  const handleCustomQuestionDelete = (q: Question) => {
     toast.info("Question deletion is not yet available. Coming soon.");
     // not yet implemented functionality
   };

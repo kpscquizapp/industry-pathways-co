@@ -189,11 +189,10 @@ const HiringDashboardNew = () => {
     let active = true;
     setIsMatchCountsLoading(true);
     const run = async () => {
-
       // Batch with concurrency limit of 3
       async function limitedAll<T>(
         tasks: (() => Promise<T>)[],
-        limit: number
+        limit: number,
       ): Promise<T[]> {
         const results: T[] = [];
         for (let i = 0; i < tasks.length; i += limit) {
@@ -203,10 +202,13 @@ const HiringDashboardNew = () => {
         return results;
       }
       const results = await limitedAll(
-        activeJobs.map((job) => () =>
-          getJobMatches({ id: String(job.id), page: 1, limit: 5 }).unwrap().catch(() => null)
+        activeJobs.map(
+          (job) => () =>
+            getJobMatches({ id: String(job.id), page: 1, limit: 5 })
+              .unwrap()
+              .catch(() => null),
         ),
-        3
+        3,
       );
 
       if (!active) return;
@@ -410,7 +412,7 @@ const HiringDashboardNew = () => {
                       : job.status === "closed"
                         ? "Paused"
                         : (job.status ?? "").charAt(0).toUpperCase() +
-                        (job.status ?? "").slice(1);
+                          (job.status ?? "").slice(1);
                   const statusColor = isActive
                     ? "bg-emerald-50 text-emerald-500 border-emerald-200"
                     : statusLabel === "Draft"
@@ -420,10 +422,11 @@ const HiringDashboardNew = () => {
                   return (
                     <div
                       key={job.id}
-                      className={`px-6 py-5 cursor-pointer hover:bg-gray-50/50 transition-colors ${idx < Math.min(activeJobs.length, 3) - 1
-                        ? "border-b border-gray-100"
-                        : ""
-                        }`}
+                      className={`px-6 py-5 cursor-pointer hover:bg-gray-50/50 transition-colors ${
+                        idx < Math.min(activeJobs.length, 3) - 1
+                          ? "border-b border-gray-100"
+                          : ""
+                      }`}
                       onClick={() =>
                         navigate(`/hire-talent/ai-shortlists?jobId=${job.id}`)
                       }
@@ -519,7 +522,8 @@ const HiringDashboardNew = () => {
                 <>
                   {topCandidates.slice(0, 3).map((candidate, idx) => {
                     const skills = normalizeSkills(candidate.skills);
-                    const score = candidate.matchScore != null ? candidate.matchScore : 0;
+                    const score =
+                      candidate.matchScore != null ? candidate.matchScore : 0;
                     const isShortlisted = shortlistedIds.some(
                       (id) =>
                         getEntityIdKey(id) === getEntityIdKey(candidate.id),
@@ -528,11 +532,13 @@ const HiringDashboardNew = () => {
                     return (
                       <div
                         key={candidate.id}
-                        className={`px-6 py-5 hover:bg-gray-50/40 transition-colors relative ${isShortlisted ? "bg-teal-50/30" : ""
-                          } ${idx < Math.min(topCandidates.length, 3) - 1
+                        className={`px-6 py-5 hover:bg-gray-50/40 transition-colors relative ${
+                          isShortlisted ? "bg-teal-50/30" : ""
+                        } ${
+                          idx < Math.min(topCandidates.length, 3) - 1
                             ? "border-b border-gray-100"
                             : ""
-                          }`}
+                        }`}
                       >
                         {/* Main row: Avatar | Info | Ring | Actions */}
                         <div className="flex items-center gap-4">
@@ -574,12 +580,13 @@ const HiringDashboardNew = () => {
                           {/* Action buttons */}
                           <div className="flex items-center gap-2 shrink-0">
                             <div
-                              className={`h-9 min-w-0 flex items-center justify-center px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${candidate.stage === "invited"
-                                ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
-                                : candidate.stage === "shortlisted"
-                                  ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
-                                  : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                                }`}
+                              className={`h-9 min-w-0 flex items-center justify-center px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${
+                                candidate.stage === "invited"
+                                  ? "bg-indigo-50 text-indigo-600 border-indigo-200"
+                                  : candidate.stage && "shortlisted"
+                                    ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                    : "border-gray-200 text-gray-700"
+                              }`}
                             >
                               {candidate.stage === "invited" ? (
                                 <span className="flex items-center gap-1.5">

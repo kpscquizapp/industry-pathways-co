@@ -141,15 +141,15 @@ const CandidateSkillTestDetails = ({
   }
 
   const scoreTone =
-    score >= 70
+    clampedScore >= 70
       ? "text-emerald-600"
-      : score >= 40
+      : clampedScore >= 40
         ? "text-amber-600"
         : "text-rose-600";
   const scoreFill =
-    score >= 70
+    clampedScore >= 70
       ? "bg-emerald-500"
-      : score >= 40
+      : clampedScore >= 40
         ? "bg-amber-500"
         : "bg-rose-500";
 
@@ -202,7 +202,7 @@ const CandidateSkillTestDetails = ({
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-gray-200">
             <div
               className={`h-2 rounded-full ${scoreFill}`}
-              style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
+              style={{ width: `${clampedScore}%` }}
             />
           </div>
           <div className="mt-4 flex flex-wrap gap-2 text-sm text-gray-600">
@@ -278,7 +278,7 @@ const CandidateSkillTestDetails = ({
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-900">
                       {typeof question.question === "string" &&
-                        question.question.trim()
+                      question.question.trim()
                         ? question.question
                         : `Question ${index + 1}`}
                     </p>
