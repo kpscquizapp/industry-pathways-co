@@ -90,9 +90,7 @@ const ContractorSettings = lazy(
 const ContractorSkillTest = lazy(
   () => import("./pages/contractor/ContractorSkillTest"),
 );
-const MockTestReport = lazy(
-  () => import("./pages/contractor/MockTestReport"),
-);
+const MockTestReport = lazy(() => import("./pages/contractor/MockTestReport"));
 const BenchDashboard = lazy(() => import("./pages/bench/BenchDashboard"));
 // import HiringDashboardNew from "./pages/employer/HiringDashboardNew";
 // import EmployerPostJob from "./pages/employer/EmployerPostJob";
@@ -110,7 +108,6 @@ import { LazyRoute } from "./pages/LazyRoute";
 import ResetPassword from "./pages/ResetPassword";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsService from "./pages/TermsService";
-
 
 const HiringDashboardNew = lazy(
   () => import("./pages/employer/HiringDashboardNew"),
@@ -138,6 +135,7 @@ const InterviewQuestions = lazy(
 const CandidateProfileView = lazy(
   () => import("./pages/employer/CandidateProfileView"),
 );
+const SkillTestResult = lazy(() => import("./pages/employer/SkillTestResult"));
 
 // coding challenges
 const CodingChallenge = lazy(() => import("./pages/CodingChallenges"));
@@ -205,7 +203,10 @@ const App = () => {
                         path="/forgot-password"
                         element={<ForgotPassword />}
                       />
-                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route
+                        path="/reset-password"
+                        element={<ResetPassword />}
+                      />
 
                       {/* Coding Challenge Route */}
                       <Route
@@ -217,7 +218,9 @@ const App = () => {
                       {/* "candidate" role users access the contractor dashboard */}
                       {/* (UI role is "contractor", auth role is "candidate") */}
                       <Route
-                        element={<ProtectedLayout allowedRoles={["candidate"]} />}
+                        element={
+                          <ProtectedLayout allowedRoles={["candidate"]} />
+                        }
                       >
                         <Route
                           path="/contractor"
@@ -228,10 +231,22 @@ const App = () => {
                             path="dashboard"
                             element={<ContractorDashboard />}
                           />
-                          <Route path="profile" element={<ContractorProfile />} />
-                          <Route path="profile/update" element={<ContractorProfileUpdate />} />
-                          <Route path="tests" element={<ContractorSkillTest />} />
-                          <Route path="tests/report" element={<MockTestReport />} />
+                          <Route
+                            path="profile"
+                            element={<ContractorProfile />}
+                          />
+                          <Route
+                            path="profile/update"
+                            element={<ContractorProfileUpdate />}
+                          />
+                          <Route
+                            path="tests"
+                            element={<ContractorSkillTest />}
+                          />
+                          <Route
+                            path="tests/report"
+                            element={<MockTestReport />}
+                          />
                           {/* // TODO: replace with dedicated page components */}
                           {/* <Route
                             path="interviews"
@@ -246,11 +261,15 @@ const App = () => {
 
                       {/* NEW: Employer (old bench) Dashboard Routes */}
                       <Route
-                        element={<ProtectedLayout allowedRoles={["employer"]} />}
+                        element={
+                          <ProtectedLayout allowedRoles={["employer"]} />
+                        }
                       >
                         <Route
                           path="/hire-talent"
-                          element={<UnifiedDashboardLayout role="hire-talent" />}
+                          element={
+                            <UnifiedDashboardLayout role="hire-talent" />
+                          }
                         >
                           <Route index element={<HiringDashboardNew />} />
                           {/* <Route index element={<BenchDashboard />} />
@@ -264,7 +283,10 @@ const App = () => {
                             path="dashboard"
                             element={<HiringDashboardNew />}
                           />
-                          <Route path="post-job" element={<EmployerPostJob />} />
+                          <Route
+                            path="post-job"
+                            element={<EmployerPostJob />}
+                          />
                           <Route path="jobs" element={<ShowJobs />} />
                           <Route
                             path="ai-shortlists"
@@ -290,12 +312,21 @@ const App = () => {
                             path="contracts"
                             element={<EmployerContracts />}
                           />
-                          <Route path="settings" element={<EmployerSettings />} />
+                          <Route
+                            path="settings"
+                            element={<EmployerSettings />}
+                          />
+                          <Route
+                            path="test/report"
+                            element={<SkillTestResult />}
+                          />
                         </Route>
                       </Route>
 
                       {/* Legacy (Employer -Current using) HR Dashboard Routes */}
-                      <Route element={<ProtectedLayout allowedRoles={["hr"]} />}>
+                      <Route
+                        element={<ProtectedLayout allowedRoles={["hr"]} />}
+                      >
                         <Route
                           path="/bench-dashboard"
                           element={<EmployerLayoutOld />}
@@ -312,7 +343,10 @@ const App = () => {
                             path="hire-fulltime"
                             element={<HireFullTime />}
                           />
-                          <Route path="hire-interns" element={<HireInterns />} />
+                          <Route
+                            path="hire-interns"
+                            element={<HireInterns />}
+                          />
                           <Route
                             path="contract-hiring"
                             element={<ContractHiring />}
@@ -333,8 +367,14 @@ const App = () => {
                             path="visibility-settings"
                             element={<VisibilitySettings />}
                           />
-                          <Route path="ai-screening" element={<AIScreening />} />
-                          <Route path="job/:jobId" element={<JobDetailsPage />} />
+                          <Route
+                            path="ai-screening"
+                            element={<AIScreening />}
+                          />
+                          <Route
+                            path="job/:jobId"
+                            element={<JobDetailsPage />}
+                          />
                           <Route
                             path="job/:jobId/candidates"
                             element={<JobCandidates />}
@@ -347,7 +387,10 @@ const App = () => {
                             path="interview-results/:candidateId"
                             element={<AIInterviewResults />}
                           />
-                          <Route path="settings" element={<EmployerSettings />} />
+                          <Route
+                            path="settings"
+                            element={<EmployerSettings />}
+                          />
                         </Route>
                       </Route>
 

@@ -39,16 +39,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -68,6 +58,8 @@ import {
 } from "@/app/queries/aiShortlistApi";
 import { useGetTestReportQuery } from "@/app/queries/contractorSkillTest";
 import type { EntityId, Job, Match } from "@/app/queries/aiShortlistApi";
+import CandidateSkillTestDetails from "./CandidateSkillTestDetails";
+import { useGetInvitedTestReportQuery } from "@/app/queries/employerApi";
 
 type CandidateProfileWithMeta = CandidateProfile & {
   experienceYears?: number;
@@ -76,8 +68,8 @@ type CandidateProfileWithMeta = CandidateProfile & {
   mobileNumber?: string;
 };
 
-type CandidateListItem = CandidateProfileWithMeta & {
-  stage: "matched" | "shortlisted" | "invited";
+export type CandidateListItem = CandidateProfileWithMeta & {
+  stage: "matched" | "shortlisted" | "invited" | "completed";
   matchReasons: string[];
 };
 
@@ -204,6 +196,33 @@ const normalizeProjects = (
   return [];
 };
 
+const normalizeInvitedTestResults = (payload: unknown) => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload && typeof payload === "object") {
+    const maybeData = (payload as { data?: unknown }).data;
+    if (Array.isArray(maybeData)) {
+      return maybeData;
+    }
+
+    const maybeResults = (payload as { results?: unknown }).results;
+    if (Array.isArray(maybeResults)) {
+      return maybeResults;
+    }
+  }
+
+  return [];
+};
+
+const normalizeEmail = (value: unknown) => {
+  if (typeof value !== "string") {
+    return "";
+  }
+  return value.trim().toLowerCase();
+};
+
 const mapMatchToCandidate = (match: Match): CandidateProfileWithMeta | null => {
   const matchId = match.id;
   if (typeof matchId !== "number" && typeof matchId !== "string") {
@@ -262,215 +281,6 @@ const mapMatchToCandidate = (match: Match): CandidateProfileWithMeta | null => {
     email: match.email as string | undefined,
     mobileNumber: match.mobileNumber as string | undefined,
   };
-};
-
-const CandidateSkillTestDetails = ({
-  candidate,
-}: {
-  candidate: CandidateListItem | undefined;
-}) => {
-  const { data: testData, isLoading: isTestsLoading } =
-    useGetCustomTestByCandidateQuery(
-      { candidateEmail: candidate?.email || "" },
-      { skip: !candidate?.email },
-    );
-
-  const testId = testData?.data?.tests?.[0]?.id;
-
-  const { data: reportData, isLoading: isReportLoading } =
-    useGetTestReportQuery(testId as number, { skip: !testId });
-
-  if (!candidate)
-    return (
-      <div className="text-gray-400 font-medium text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-12">
-        Select a candidate to view their skill test scores
-      </div>
-    );
-  if (isTestsLoading || isReportLoading)
-    return (
-      <div className="text-gray-400 font-medium text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-12">
-        Loading test details...
-      </div>
-    );
-  if (!testId || !reportData?.data)
-    return (
-      <div className="text-gray-400 font-medium text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-12">
-        No skill test found for this candidate.
-      </div>
-    );
-
-  const report = reportData.data;
-  const overallScore = report.test?.overallScore || 0;
-  // Fallback integrity and time taken if not provided
-  const codingAccuracy = report.stats?.codingAccuracy || 0;
-  const durationStr = report.test?.duration
-    ? `${report.test.duration}m`
-    : "N/A";
-
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex min-w-0 flex-col p-4 sm:p-6">
-      {/* Header (No inner card wrapper, just layout) */}
-      <div className="flex flex-col gap-4 pb-6 border-b border-gray-100 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-4">
-          <Avatar className="h-14 w-14 shrink-0">
-            <AvatarFallback className="bg-gray-100 text-gray-700 text-lg font-bold">
-              {candidate.name.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-[18px] font-bold text-gray-900">
-              {candidate.name}
-            </h2>
-            <div className="flex min-w-0 items-center text-[13px] text-gray-500 mt-1">
-              {candidate.email && (
-                <span className="truncate text-[#08b8cc]">
-                  {candidate.email}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          {/* <Button className="h-9 text-xs font-bold bg-[#08b8cc] hover:bg-[#07a3b5] shadow-sm text-white"><ArrowRight className="h-3.5 w-3.5 mr-2" /> Move to Interview</Button> */}
-        </div>
-      </div>
-
-      {/* Grid Content */}
-      <div className="grid min-w-0 grid-cols-1 gap-6 pt-6 xl:grid-cols-3 xl:gap-8">
-        <div className="min-w-0 flex flex-col gap-6 xl:col-span-2 xl:gap-8">
-          {/* Score Cards */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl px-3 py-4 flex flex-col items-center text-center shadow-sm">
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-tight">
-                Overall Score
-              </p>
-              <p className="text-[28px] font-bold text-[#08b8cc] mt-1 leading-none">
-                {overallScore}%
-              </p>
-            </div>
-            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl px-3 py-4 flex flex-col items-center text-center shadow-sm">
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-tight">
-                Coding Accuracy
-              </p>
-              <p className="text-[28px] font-bold text-gray-900 mt-1 leading-none">
-                {report.stats?.codingAccuracy || 0}%
-              </p>
-            </div>
-            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl px-3 py-4 flex flex-col items-center text-center shadow-sm">
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-tight">
-                Time Taken
-              </p>
-              <p className="text-[28px] font-bold text-gray-900 mt-1 leading-none">
-                {durationStr}
-              </p>
-            </div>
-          </div>
-
-          {/* Test Recording (No card wrapper) */}
-          <div className="flex flex-col">
-            <h3 className="font-bold text-gray-900 mb-4 text-[15px]">
-              Test Recording
-            </h3>
-            <div className="relative bg-gray-900 aspect-video min-h-[180px] max-h-[260px] w-full flex items-center justify-center rounded-xl overflow-hidden shadow-sm">
-              <Video className="h-12 w-12 text-gray-700 sm:h-16 sm:w-16" />
-              <Button
-                variant="secondary"
-                className="absolute rounded-full h-12 w-12 p-0 bg-white/20 hover:bg-white/30 border-none items-center justify-center sm:h-14 sm:w-14"
-              >
-                <Play className="h-6 w-6 text-white ml-1" />
-              </Button>
-              <div className="absolute bottom-3 left-3 bg-black/60 text-white text-[11px] px-2 py-0.5 rounded font-bold">
-                42:15
-              </div>
-            </div>
-          </div>
-
-          {/* Skill Breakdown (No card wrapper) */}
-          <div className="flex flex-col">
-            <h3 className="font-bold text-gray-900 mb-5 text-[15px]">
-              Test Stats
-            </h3>
-            <div className="space-y-5">
-              <div className="flex flex-wrap justify-between gap-2 text-[13px] font-bold text-gray-800 mb-2">
-                <span>Questions Reviewed</span>
-                <span className="shrink-0">
-                  {report.stats?.questionsReviewed || 0}
-                </span>
-              </div>
-              <div className="flex flex-wrap justify-between gap-2 text-[13px] font-bold text-gray-800 mb-2">
-                <span>Correct Answers</span>
-                <span className="shrink-0">
-                  {report.stats?.correctAnswers || 0}
-                </span>
-              </div>
-              <div className="flex flex-wrap justify-between gap-2 text-[13px] font-bold text-gray-800 mb-2">
-                <span>Improvement Focus</span>
-                <span className="text-right text-[#f59e0b]">
-                  {report.stats?.improvementFocus || "N/A"}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="min-w-0 flex flex-col h-full xl:col-span-1">
-          {/* Proctoring Log (Side card) */}
-          <div className="bg-[#fcfdfc] border border-gray-100 rounded-xl shadow-sm p-4 sm:p-5 h-full">
-            <div className="flex flex-wrap justify-between items-center gap-2 mb-6">
-              <h3 className="font-bold text-gray-900 text-[15px]">
-                Proctoring Log
-              </h3>
-              <span className="bg-[#e0fafe] text-[#08b8cc] text-[10px] font-bold px-2 py-0.5 rounded">
-                Low Risk
-              </span>
-            </div>
-
-            {/* Timeline */}
-            <div className="relative pl-[18px] space-y-6 before:absolute before:left-[4px] before:top-1.5 before:bottom-1.5 before:w-[2px] before:bg-gray-200">
-              <div className="relative">
-                <div className="absolute -left-[24px] w-[10px] h-[10px] rounded-full bg-[#08b8cc] shadow-sm ring-[3px] ring-white"></div>
-                <h4 className="text-[13px] font-bold text-gray-900 leading-none">
-                  Identity Verified
-                </h4>
-                <p className="text-[11px] text-gray-400 mt-1">10:00 AM</p>
-              </div>
-              <div className="relative">
-                <div className="absolute -left-[24px] w-[10px] h-[10px] rounded-full bg-[#08b8cc] shadow-sm ring-[3px] ring-white"></div>
-                <h4 className="text-[13px] font-bold text-gray-900 leading-none">
-                  Test Started
-                </h4>
-                <p className="text-[11px] text-gray-400 mt-1">10:02 AM</p>
-              </div>
-              <div className="relative">
-                <div className="absolute -left-[24px] w-[10px] h-[10px] rounded-full bg-[#f59e0b] shadow-sm ring-[3px] ring-white"></div>
-                <h4 className="text-[13px] font-bold text-gray-900 leading-none">
-                  Browser tab switched
-                </h4>
-                <p className="text-[11px] text-gray-400 mt-1 mb-2">10:15 AM</p>
-                <div className="bg-[#fefce8] border border-[#fef08a] text-[#a16207] text-[11px] p-3 rounded-lg leading-relaxed shadow-sm">
-                  Candidate navigated away from the test window for 12 seconds.
-                </div>
-              </div>
-              <div className="relative">
-                <div className="absolute -left-[24px] w-[10px] h-[10px] rounded-full bg-[#08b8cc] shadow-sm ring-[3px] ring-white"></div>
-                <h4 className="text-[13px] font-bold text-gray-900 leading-none">
-                  Coding Challenge Submitted
-                </h4>
-                <p className="text-[11px] text-gray-400 mt-1">10:25 AM</p>
-              </div>
-              <div className="relative">
-                <div className="absolute -left-[24px] w-[10px] h-[10px] rounded-full bg-[#08b8cc] shadow-sm ring-[3px] ring-white"></div>
-                <h4 className="text-[13px] font-bold text-gray-900 leading-none">
-                  Test Completed
-                </h4>
-                <p className="text-[11px] text-gray-400 mt-1">10:42 AM</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 const CandidateAiInterviewDetails = ({
@@ -732,25 +542,37 @@ const SidebarCandidateItem = ({
   isSelected,
   onClick,
   tab,
+  invitedTestResults,
 }: {
   candidate: CandidateListItem;
   isSelected: boolean;
   onClick: () => void;
   tab: "skill-test" | "ai-interview";
+  invitedTestResults: any[];
 }) => {
-  const { data: testData } = useGetCustomTestByCandidateQuery(
-    { candidateEmail: candidate.email || "" },
-    { skip: !candidate.email || tab !== "skill-test" },
-  );
+  const selectedCandidateReport = useMemo(() => {
+    if (!candidate.email) {
+      return undefined;
+    }
 
-  const testId = testData?.data?.tests?.[0]?.id;
-  const { data: reportData } = useGetTestReportQuery(testId as number, {
-    skip: !testId || tab !== "skill-test",
-  });
+    const candidateEmail = normalizeEmail(candidate.email);
+    return invitedTestResults.find((item) => {
+      const report = item as Record<string, unknown>;
+      const reportEmail = normalizeEmail(
+        report.candidateEmail ??
+          report.email ??
+          (report.candidate as Record<string, unknown> | undefined)?.email,
+      );
+      return reportEmail === candidateEmail;
+    });
+  }, [candidate.email, invitedTestResults]);
 
   let statusDisplay = tab === "skill-test" ? "Pending" : "Interviewed";
-  if (tab === "skill-test" && reportData?.data?.questions?.length > 0) {
-    statusDisplay = reportData.data.questions[0].status;
+  if (tab === "skill-test" && selectedCandidateReport) {
+    const reportStatus = selectedCandidateReport?.status;
+    if (typeof reportStatus === "string" && reportStatus.trim()) {
+      statusDisplay = reportStatus;
+    }
   }
 
   return (
@@ -763,11 +585,14 @@ const SidebarCandidateItem = ({
           {candidate.name.charAt(0)}
         </AvatarFallback>
       </Avatar>
-      <div className="flex-1 min-w-0">
-        <h4 className="font-bold text-gray-900 text-[14px] truncate">
-          {candidate.name}
-        </h4>
-        <div className="mt-2 text-[11px] font-bold flex items-center justify-between tracking-wide">
+      <div className="flex lg:justify-between lg:items-center w-full flex-col lg:flex-row min-w-0">
+        <div>
+          <h4 className="font-bold text-gray-900 text-[14px] truncate">
+            {candidate.name}
+          </h4>
+          <h5 className="text-[11px] text-gray-600">{candidate?.role}</h5>
+        </div>
+        <div className="mt-1 text-[11px] font-bold flex items-center justify-between tracking-wide">
           <div
             className={`flex items-center gap-1.5 ${statusDisplay === "Correct" || statusDisplay === "Completed" ? "text-[#08b8cc]" : statusDisplay === "Incorrect" ? "text-red-500" : "text-gray-400"}`}
           >
@@ -806,6 +631,7 @@ const EmployerAIShortlists = () => {
       page: employerJobsPage,
       limit: EMPLOYER_JOBS_PAGE_SIZE,
     });
+
   const employerJobs = loadedEmployerJobs;
   const isAllJobsSelected = !selectedJob;
   const selectedJobId = !isAllJobsSelected ? String(selectedJob) : null;
@@ -833,6 +659,16 @@ const EmployerAIShortlists = () => {
   const [shortlistCandidateMutation] = useShortlistCandidateMutation();
   const [removeShortlistCandidateMutation] =
     useRemoveShortlistCandidateMutation();
+
+  const {
+    data: invitedTestReportResponse,
+    isLoading: invitedTestReportLoading,
+  } = useGetInvitedTestReportQuery();
+
+  const invitedTestResults = useMemo(
+    () => normalizeInvitedTestResults(invitedTestReportResponse),
+    [invitedTestReportResponse],
+  );
 
   // On component mount, ensure we load the correct job if it's in URL params
   useEffect(() => {
@@ -978,11 +814,13 @@ const EmployerAIShortlists = () => {
       .map((c) => ({
         ...c,
         stage:
-          stageById.get(getEntityIdKey(c.id)) === "invited"
-            ? "invited"
-            : shortlistedIdKeys.has(getEntityIdKey(c.id))
-              ? "shortlisted"
-              : "matched",
+          stageById.get(getEntityIdKey(c.id)) === "completed"
+            ? "completed"
+            : stageById.get(getEntityIdKey(c.id)) === "invited"
+              ? "invited"
+              : shortlistedIdKeys.has(getEntityIdKey(c.id))
+                ? "shortlisted"
+                : "matched",
         matchReasons: [],
       }));
   }, [loadedMatches, shortlistedIds]);
@@ -1019,7 +857,9 @@ const EmployerAIShortlists = () => {
   const sidebarCandidates = useMemo(
     () =>
       candidates
-        .filter((c) => c.stage === "shortlisted")
+        .filter((c) =>
+          ["shortlisted", "invited", "completed"].includes(c.stage),
+        )
         .filter((c) =>
           !normalizedSearchTerm
             ? true
@@ -1199,6 +1039,23 @@ const EmployerAIShortlists = () => {
     [candidates, selectedCandidateId],
   );
 
+  const selectedCandidateSkillReport = useMemo(() => {
+    if (!selectedCandidateForDetails?.email) {
+      return undefined;
+    }
+
+    const candidateEmail = normalizeEmail(selectedCandidateForDetails.email);
+    return invitedTestResults.find((item) => {
+      const report = item as Record<string, unknown>;
+      const reportEmail = normalizeEmail(
+        report.candidateEmail ??
+          report.email ??
+          (report.candidate as Record<string, unknown> | undefined)?.email,
+      );
+      return reportEmail === candidateEmail;
+    });
+  }, [invitedTestResults, selectedCandidateForDetails?.email]);
+
   const renderSidebar = (tab: "skill-test" | "ai-interview") => (
     <div className="w-full shrink-0 lg:sticky lg:top-[100px] lg:h-fit lg:w-[320px]">
       <div className="flex flex-col gap-2 mb-4 sm:flex-row">
@@ -1233,6 +1090,7 @@ const EmployerAIShortlists = () => {
             isSelected={selectedCandidateId === candidate.id}
             onClick={() => setSelectedCandidateId(candidate.id)}
             tab={tab}
+            invitedTestResults={invitedTestResults}
           />
         ))}
       </div>
@@ -1659,6 +1517,12 @@ const EmployerAIShortlists = () => {
               <div className="flex-1 min-w-0">
                 <CandidateSkillTestDetails
                   candidate={selectedCandidateForDetails}
+                  report={
+                    selectedCandidateSkillReport as
+                      | Record<string, unknown>
+                      | undefined
+                  }
+                  isLoading={invitedTestReportLoading}
                 />
               </div>
             </div>

@@ -106,7 +106,7 @@ export const employerApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["EmployerProfile", "EmployerProfileImage"],
+  tagTypes: ["EmployerProfile", "EmployerProfileImage", "InvitedTestReport"],
   endpoints: (builder) => ({
     updateEmployerProfile: builder.mutation<void, UpdateEmployerProfile>({
       query: (data) => ({
@@ -204,6 +204,15 @@ export const employerApi = createApi({
     //     body: data,
     //   }),
     // }),
+
+    // get invited test report for employer
+    getInvitedTestReport: builder.query<any, void>({
+      query: () => ({
+        method: "GET",
+        url: "coding/tests/employer/invited-results",
+      }),
+      providesTags: ["InvitedTestReport"],
+    }),
   }),
 });
 
@@ -216,5 +225,6 @@ export const {
   useGetCandidateByIdQuery,
   useLazyViewCandidateResumeQuery,
   useGetBenchDashboardQuery,
+  useGetInvitedTestReportQuery,
   // useChangePasswordMutation,
 } = employerApi;

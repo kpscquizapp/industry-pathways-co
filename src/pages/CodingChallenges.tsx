@@ -29,14 +29,13 @@ import {
   useParams,
   useLocation,
   useSearchParams,
-  Link,
 } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import ProblemPanel from "@/components/coding/ProblemPanel";
 import EditorPanel from "@/components/coding/EditorPanel";
 import ConsoleOutput from "@/components/coding/ConsoleOutput";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
-import { CodingProblem, SupportedLanguage, TestCase } from "@/types/coding";
+import { CodingProblem, TestCase } from "@/types/coding";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "@/hooks/useDebounce";
 import { useAppSelector } from "@/app/hooks";
@@ -286,10 +285,6 @@ const CodingChallenge: React.FC = () => {
     setViolationLogs((prev) => [{ id, message, time }, ...prev].slice(0, 50));
   }, []);
 
-  const [popupPosition, setPopupPosition] = useState({ x: 100, y: 100 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const popupRef = useRef<HTMLDivElement>(null);
   const [sessionId, setSessionId] = useState<string>("");
   const sessionIdRef = useRef<string>("");
   const [isMobile, setIsMobile] = useState(false);
@@ -299,12 +294,6 @@ const CodingChallenge: React.FC = () => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      if (mobile) {
-        setPopupPosition((prev) => ({
-          x: Math.min(prev.x, window.innerWidth - 120),
-          y: Math.min(prev.y, window.innerHeight - 100),
-        }));
-      }
     };
     checkMobile();
     window.addEventListener("resize", checkMobile);
@@ -428,7 +417,6 @@ const CodingChallenge: React.FC = () => {
     return user?.role === "candidate" ? "/contractor/dashboard" : "/";
   }, [user]);
 
-  const hasMountedRef = useRef(false);
   const suppressViolationsUntilRef = useRef(0);
   const devtoolsOpenRef = useRef(false);
 
@@ -476,6 +464,22 @@ const CodingChallenge: React.FC = () => {
     [user, startSessionMutation],
   );
 
+  const reportMultipleMonitors = useCallback(
+    async (sid: string) => {
+      const hasMultipleMonitors = await detectMultipleMonitors();
+      if (!hasMultipleMonitors || !sid) return;
+      await logViolationMutation({
+        sessionId: sid,
+        reason: "Multiple monitors detected",
+      })
+        .unwrap()
+        .catch(() => {});
+      setTotalViolations((prev) => prev + 1);
+      addLog("Violation: Multiple monitors detected");
+    },
+    [logViolationMutation, addLog],
+  );
+
   const handleViolation = useCallback(
     async (reason: string) => {
       if (!isMonitoringActive) return;
@@ -493,17 +497,9 @@ const CodingChallenge: React.FC = () => {
     [isMonitoringActive, logViolationMutation, addLog],
   );
 
-  const onResize = useDebouncedCallback(
-    () => handleViolation("Window resized"),
-    1000,
-  );
-
   const checkDevtools = useCallback(() => {
     if (!isMonitoringActive) return;
-    if (document.visibilityState !== "visible") {
-      devtoolsOpenRef.current = false;
-      return;
-    }
+    if (document.visibilityState !== "visible") return;
     const threshold = 160;
     const widthDiff = Math.abs(window.outerWidth - window.innerWidth);
     const heightDiff = Math.abs(window.outerHeight - window.innerHeight);
@@ -516,6 +512,13 @@ const CodingChallenge: React.FC = () => {
       handleViolation("Developer tools opened");
     } else if (!isOpen) devtoolsOpenRef.current = false;
   }, [handleViolation, isMonitoringActive]);
+
+  const onResize = useDebouncedCallback(() => {
+    const wasDevtoolsOpen = devtoolsOpenRef.current;
+    checkDevtools();
+    if (wasDevtoolsOpen || devtoolsOpenRef.current) return;
+    handleViolation("Window resized");
+  }, 1000);
 
   const performCleanup = useCallback(async () => {
     // 1. Stop frontend monitoring immediately so WebcamFeed begins finalizing
@@ -619,44 +622,6 @@ const CodingChallenge: React.FC = () => {
     };
   }, [testStatus, navigate, performCleanup]);
 
-  // Dragging logic for the floating monitor window
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent | TouchEvent) => {
-      if (isDragging) {
-        let clientX, clientY;
-        if ("touches" in e) {
-          clientX = e.touches[0].clientX;
-          clientY = e.touches[0].clientY;
-        } else {
-          clientX = e.clientX;
-          clientY = e.clientY;
-        }
-        setPopupPosition({
-          x: clientX - dragOffset.x,
-          y: clientY - dragOffset.y,
-        });
-      }
-    };
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove as EventListener);
-      window.addEventListener("mouseup", handleMouseUp);
-      window.addEventListener("touchmove", handleMouseMove as EventListener, {
-        passive: false,
-      });
-      window.addEventListener("touchend", handleMouseUp);
-    }
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove as EventListener);
-      window.removeEventListener("mouseup", handleMouseUp);
-      window.removeEventListener("touchmove", handleMouseMove as EventListener);
-      window.removeEventListener("touchend", handleMouseUp);
-    };
-  }, [isDragging, dragOffset]);
-
   // Cleanup initial streams on unmount only
   useEffect(() => {
     return () => {
@@ -735,10 +700,14 @@ const CodingChallenge: React.FC = () => {
             setTestStartTime(testMeta.startedAt);
             setTestStatus("active");
             setIsInterviewActive(true);
-            setIsMonitoringActive(isToken);
             // Re-initialize session for active test if not already present
             if (!sessionIdRef.current) {
-              initializeSession(String(testMeta.id));
+              await initializeSession(String(testMeta.id));
+            }
+            setIsMonitoringActive(isToken);
+            if (isToken) {
+              const sid = sessionIdRef.current;
+              await reportMultipleMonitors(sid);
             }
           } else if (!isToken) {
             // For mock tests (without token), start immediately with local timestamp
@@ -802,19 +771,7 @@ const CodingChallenge: React.FC = () => {
         toast.success("Test started!");
 
         // Multiple monitor check
-        const hasMultipleMonitors = await detectMultipleMonitors();
-        if (hasMultipleMonitors && sid) {
-          try {
-            await logViolationMutation({
-              sessionId: sid,
-              reason: "Multiple monitors detected",
-            }).unwrap();
-            setTotalViolations((prev) => prev + 1);
-            addLog("Violation: Multiple monitors detected");
-          } catch {
-            // Silent - don't disrupt candidate experience
-          }
-        }
+        await reportMultipleMonitors(sid);
       }
     } catch (err) {
       toast.error("Failed to start test");

@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { config } from "../../services/service";
 import { getAuthHeaders } from "../../lib/helpers";
 import { benchApi } from "./benchApi";
+import { employerApi } from "./employerApi";
 
 export interface Pagination {
   page?: number;
@@ -160,10 +161,11 @@ export const aiShortlistApi = createApi({
       invalidatesTags: (_result, _error, { jobId }) => [
         { type: "AiShortlistMatches", id: String(jobId) },
       ],
-       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
           dispatch(benchApi.util.invalidateTags(["BenchResources"]));
+          dispatch(employerApi.util.invalidateTags(["InvitedTestReport"]));
         } catch {
           // ignore
         }
@@ -182,7 +184,7 @@ export const aiShortlistApi = createApi({
       invalidatesTags: (_result, _error, { jobId }) => [
         { type: "AiShortlistMatches", id: String(jobId) },
       ],
-       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
           dispatch(benchApi.util.invalidateTags(["BenchResources"]));
@@ -203,7 +205,12 @@ export const aiShortlistApi = createApi({
     }),
     sendInviteEmail: builder.mutation<
       any,
-      { codingTestId: string; candidateEmail?: string; expiresInHours?: number }
+      {
+        codingTestId: string;
+        candidateEmail?: string;
+        expiresInHours?: number;
+        jobId: number;
+      }
     >({
       query: ({ codingTestId, ...body }) => ({
         method: "POST",
@@ -212,6 +219,14 @@ export const aiShortlistApi = createApi({
       }),
       // Refresh matches after invite so the invited count updates in EmployerSkillTests
       invalidatesTags: ["AiShortlistMatches"],
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(employerApi.util.invalidateTags(["InvitedTestReport"]));
+        } catch {
+          // ignore
+        }
+      },
     }),
     createCustomTest: builder.mutation<
       any,
