@@ -172,10 +172,21 @@ const EmployerSkillTests = () => {
     "shortlisted" | "invited" | "completed"
   >("shortlisted");
 
-  const filteredCandidates = (list: Candidate[]) =>
-    list.filter((c) =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+  const lowerSearch = useMemo(() => searchQuery.toLowerCase(), [searchQuery]);
+
+  const visibleAvailable = useMemo(
+    () => availableCandidates.filter((c) => c.name.toLowerCase().includes(lowerSearch)),
+    [availableCandidates, lowerSearch]
+  );
+  const visibleInvited = useMemo(
+    () => invitedCandidates.filter((c) => c.name.toLowerCase().includes(lowerSearch)),
+    [invitedCandidates, lowerSearch]
+  );
+  const visibleScheduled = useMemo(
+    () => scheduledCandidates.filter((c) => c.name.toLowerCase().includes(lowerSearch)),
+    [scheduledCandidates, lowerSearch]
+  );
+
 
   const handleSelectCandidate = (candidate: Candidate) => {
     setSelectedCandidate(candidate);
@@ -204,23 +215,23 @@ const EmployerSkillTests = () => {
     setShowScheduleModal(false);
 
     // Navigate to interview questions page
-    // The actual API scheduling happens there after employer selects questions
-    const params = new URLSearchParams({
-      candidateId: selectedCandidate.id.toString(),
-      candidateName: selectedCandidate.name,
-      candidateRole: selectedCandidate.role || "Professional",
-      candidateEmail: selectedCandidate.email || "",
-      testType: scheduleData.testType || "Technical Assessment",
-      testDate: scheduleData.date,
-      testDuration: scheduleData.duration,
-      jobId: selectedJobId,
-      talentSource: "candidate",
-    });
 
-    navigate(`/hire-talent/interview-questions?${params.toString()}`);
+    navigate("/hire-talent/interview-questions", {
+      state: {
+        candidateId: selectedCandidate.id.toString(),
+        candidateName: selectedCandidate.name,
+        candidateRole: selectedCandidate.role || "Professional",
+        candidateEmail: selectedCandidate.email || "",
+        testType: scheduleData.testType || "Technical Assessment",
+        testDate: scheduleData.date,
+        testDuration: scheduleData.duration,
+        jobId: selectedJobId,
+        talentSource: "candidate",
+      }
+    });
   };
 
-  const handleViewProfile = (candidate) => {
+  const handleViewProfile = (candidate: Candidate) => {
     if (candidate.type === "bench") {
       navigate(`/hire-talent/candidate/${candidate.id}?source=bench`, {
         state: { benchCandidate: candidate },
@@ -228,6 +239,12 @@ const EmployerSkillTests = () => {
     } else {
       navigate(`/hire-talent/candidate/${candidate.id}`);
     }
+  };
+
+  const getScoreStyle = (score: number) => {
+    if (score >= 90) return { color: "text-[#08b8cc]", border: "border-[#08b8cc]" };
+    if (score >= 80) return { color: "text-[#3b82f6]", border: "border-[#3b82f6]" };
+    return { color: "text-[#f59e0b]", border: "border-[#f59e0b]" };
   };
 
   return (
@@ -365,9 +382,9 @@ const EmployerSkillTests = () => {
                   <div className="flex justify-center p-14">
                     <SpinnerLoader className="w-8 h-8 text-[#0ea5e9]" />
                   </div>
-                ) : filteredCandidates(availableCandidates).length > 0 ? (
+                ) : visibleAvailable.length > 0 ? (
                   <div className="divide-y divide-gray-100">
-                    {filteredCandidates(availableCandidates).map(
+                    {visibleAvailable.map(
                       (candidate) => (
                         <div
                           key={candidate.id}
@@ -401,18 +418,9 @@ const EmployerSkillTests = () => {
                           </div>
                           {(() => {
                             const score = Math.round(candidate.matchScore);
-                            const scoreColor =
-                              score >= 90
-                                ? "text-[#08b8cc]"
-                                : score >= 80
-                                  ? "text-[#3b82f6]"
-                                  : "text-[#f59e0b]";
-                            const scoreBorder =
-                              score >= 90
-                                ? "border-[#08b8cc]"
-                                : score >= 80
-                                  ? "border-[#3b82f6]"
-                                  : "border-[#f59e0b]";
+                            const { color: scoreColor, border: scoreBorder } = getScoreStyle(
+                              Math.round(candidate.matchScore)
+                            );
 
                             return (
                               <div className="hidden md:flex flex-col items-center justify-center px-4 lg:px-6 shrink-0 border-l border-r border-gray-100 min-w-[110px] lg:min-w-[120px]">
@@ -480,9 +488,9 @@ const EmployerSkillTests = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                  {invitedCandidates.length > 0 ? (
+                  {visibleInvited.length > 0 ? (
                     <div className="divide-y divide-violet-50">
-                      {filteredCandidates(invitedCandidates).map(
+                      {visibleInvited.map(
                         (candidate) => (
                           <div
                             key={candidate.id}
@@ -516,18 +524,9 @@ const EmployerSkillTests = () => {
                             </div>
                             {(() => {
                               const score = Math.round(candidate.matchScore);
-                              const scoreColor =
-                                score >= 90
-                                  ? "text-[#08b8cc]"
-                                  : score >= 80
-                                    ? "text-[#3b82f6]"
-                                    : "text-[#f59e0b]";
-                              const scoreBorder =
-                                score >= 90
-                                  ? "border-[#08b8cc]"
-                                  : score >= 80
-                                    ? "border-[#3b82f6]"
-                                    : "border-[#f59e0b]";
+                              const { color: scoreColor, border: scoreBorder } = getScoreStyle(
+                                Math.round(candidate.matchScore)
+                              );
                               return (
                                 <div className="hidden md:flex flex-col items-center justify-center px-4 lg:px-6 shrink-0 border-l border-r border-gray-100 min-w-[110px] lg:min-w-[120px]">
                                   <div
@@ -590,7 +589,7 @@ const EmployerSkillTests = () => {
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="divide-y divide-amber-50">
-                      {filteredCandidates(scheduledCandidates).map(
+                      {visibleScheduled.map(
                         (candidate) => (
                           <div
                             key={candidate.id}
@@ -651,7 +650,7 @@ const EmployerSkillTests = () => {
               <CardContent className="p-0">
                 {completedCandidates.length > 0 ? (
                   <div className="divide-y divide-emerald-50">
-                    {filteredCandidates(completedCandidates).map(
+                    {completedCandidates.map(
                       (candidate) => (
                         <div
                           key={candidate.id}
@@ -676,7 +675,7 @@ const EmployerSkillTests = () => {
                             </div>
                           </div>
                           <Badge className="w-fit bg-emerald-100 text-emerald-700 hover:bg-emerald-100 px-3.5 py-1.5 font-bold text-[12px]">
-                            Passed ({candidate.testScore}%)
+                            {candidate.testScore != null ? `Passed (${candidate.testScore}%)` : "Passed"}
                           </Badge>
                         </div>
                       ),
@@ -745,7 +744,7 @@ const EmployerSkillTests = () => {
                           date: e.target.value,
                         })
                       }
-                      className="mt-1.5 h-11 rounded-xl border border-gray-200 text-sm font-semibold shadow-sm cursor-pointer w-full px-4 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[`#0ea5e9`]"
+                      className="mt-1.5 h-11 rounded-xl border border-gray-200 text-sm font-semibold shadow-sm cursor-pointer w-full px-4 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0ea5e9]"
                     />
                   </div>
                 </div>

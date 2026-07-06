@@ -9,16 +9,15 @@ import {
   Video,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useGetTestReportQuery } from "@/app/queries/contractorSkillTest";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import LiveReviewTab from "./LiveReviewTab";
 
 const SkillTestResult = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const queryParams = new URLSearchParams(location.search);
-  const testId = queryParams.get("id");
+  const [searchParams] = useSearchParams();
+  const testId = searchParams.get("id");
 
   const [activeTab, setActiveTab] = useState("detailed");
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
@@ -82,8 +81,8 @@ const SkillTestResult = () => {
   const questions = Array.isArray(report?.questions) ? report.questions : [];
   const currentQuestion =
     questions.length > 0 &&
-    activeQuestionIndex >= 0 &&
-    activeQuestionIndex < questions.length
+      activeQuestionIndex >= 0 &&
+      activeQuestionIndex < questions.length
       ? questions[activeQuestionIndex]
       : null;
 
@@ -96,7 +95,7 @@ const SkillTestResult = () => {
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-slate-400 hover:text-slate-600 text-[13px] font-bold transition-colors mb-3"
           >
-            <ArrowLeft size={16} /> Back to Mock Tests
+            <ArrowLeft size={16} /> Back
           </button>
           <h2 className="text-2xl md:text-[28px] font-black tracking-tight text-slate-900 leading-tight">
             {report.test.title}
@@ -187,10 +186,10 @@ const SkillTestResult = () => {
               <div className="text-[11px] font-bold text-slate-400 mb-2">
                 Attempt Count
               </div>
-              <div className="text-[22px] leading-none mb-1 mt-1 font-black text-slate-800">
+              <div className="text-3xl font-black text-slate-800 mb-2">
                 {report.stats.attemptedCount}
               </div>
-              <div className="text-[12px] font-medium text-slate-400 leading-snug mt-2">
+              <div className="text-[12px] font-medium text-slate-400 leading-snug">
                 Attempt count of all questions
               </div>
             </div>
@@ -280,7 +279,7 @@ const SkillTestResult = () => {
                         currentQuestion.status === "Correct"
                           ? "bg-[#f0fdfa] border-[#ccfbf1]"
                           : currentQuestion.status === "Incorrect" ||
-                              currentQuestion.status === "Failed"
+                            currentQuestion.status === "Failed"
                             ? "bg-red-50 border-red-100"
                             : "bg-slate-50 border-slate-200",
                       )}

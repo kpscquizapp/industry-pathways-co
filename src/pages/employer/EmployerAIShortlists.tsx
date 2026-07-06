@@ -297,242 +297,7 @@ const CandidateAiInterviewDetails = ({
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex min-w-0 flex-col p-4 sm:p-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 pb-6 border-b border-gray-100 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 items-center gap-4">
-          <Avatar className="h-14 w-14 shrink-0">
-            <AvatarFallback className="bg-gray-100 text-gray-700 text-lg font-bold">
-              {candidate.name.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-[18px] font-bold text-gray-900">
-              {candidate.name}
-            </h2>
-            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-gray-500 mt-1">
-              {candidate.email && (
-                <span className="min-w-0 truncate text-[#08b8cc]">
-                  {candidate.email}
-                </span>
-              )}
-              {candidate.email && candidate.mobileNumber && (
-                <span className="mx-2 text-gray-300">•</span>
-              )}
-              {candidate.mobileNumber && (
-                <span className="shrink-0">{candidate.mobileNumber}</span>
-              )}
-              {(candidate.email || candidate.mobileNumber) && (
-                <span className="mx-2 text-gray-300">•</span>
-              )}
-              <div className="flex items-center gap-1.5 text-[#08b8cc] font-bold">
-                <CheckCircle2 className="h-3.5 w-3.5" /> AI Interview Scored
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:flex-nowrap lg:justify-end">
-          <Button
-            variant="outline"
-            className="h-9 flex-1 text-xs font-bold text-gray-700 border-gray-200 shadow-sm sm:flex-none"
-          >
-            View Profile
-          </Button>
-          <Button
-            variant="outline"
-            className="h-9 flex-1 text-xs font-bold text-red-500 border-red-100 bg-white hover:bg-red-50 shadow-sm sm:flex-none"
-          >
-            Reject
-          </Button>
-          {/* <Button className="h-9 text-xs font-bold bg-[#08b8cc] hover:bg-[#07a3b5] shadow-sm text-white"><UserCheck className="h-3.5 w-3.5 mr-2" /> Shortlist & Offer</Button> */}
-        </div>
-      </div>
-
-      {/* Grid Content */}
-      <div className="grid min-w-0 grid-cols-1 gap-6 pt-6 xl:grid-cols-3 xl:gap-8">
-        <div className="min-w-0 flex flex-col gap-6 xl:col-span-2 xl:gap-8">
-          {/* Score Cards */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl px-3 py-4 flex flex-col items-center text-center shadow-sm">
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-tight">
-                Overall AI Score
-              </p>
-              <p className="text-[28px] font-bold text-[#08b8cc] mt-1 leading-none">
-                92%
-              </p>
-            </div>
-            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl px-3 py-4 flex flex-col items-center text-center shadow-sm">
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-tight">
-                Communication
-              </p>
-              <p className="text-[28px] font-bold text-gray-900 mt-1 leading-none">
-                95%
-              </p>
-            </div>
-            <div className="bg-[#fcfdfa] border border-[#f0f0f0] rounded-xl px-3 py-4 flex flex-col items-center text-center shadow-sm">
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-tight">
-                Technical Depth
-              </p>
-              <p className="text-[28px] font-bold text-gray-900 mt-1 leading-none">
-                89%
-              </p>
-            </div>
-          </div>
-
-          {/* Test Recording */}
-          <div className="flex flex-col">
-            <h3 className="font-bold text-gray-900 mb-4 text-[15px]">
-              Interview Recording
-            </h3>
-            <div className="relative bg-gray-900 aspect-video min-h-[180px] max-h-[260px] w-full flex items-center justify-center rounded-xl overflow-hidden shadow-sm">
-              <Video className="h-12 w-12 text-gray-700 sm:h-16 sm:w-16" />
-              <Button
-                variant="secondary"
-                className="absolute rounded-full h-12 w-12 p-0 bg-white/20 hover:bg-white/30 border-none items-center justify-center sm:h-14 sm:w-14"
-              >
-                <Play className="h-6 w-6 text-white ml-1" />
-              </Button>
-              <div className="absolute bottom-3 left-3 bg-black/60 text-white text-[11px] px-2 py-0.5 rounded font-bold">
-                18:45
-              </div>
-            </div>
-          </div>
-
-          {/* Questions & AI Evaluation */}
-          <div className="flex flex-col gap-4">
-            <h3 className="font-bold text-gray-900 mb-2 text-[15px]">
-              Questions & AI Evaluation
-            </h3>
-
-            {[
-              {
-                q: "Can you describe a complex problem you solved using React Hooks and how you approached state management?",
-                score: "95% Match",
-                text: "Candidate gave a detailed example of refactoring a legacy class component to functional components using useReducer and Context API. They clearly explained the performance benefits and how it reduced boilerplate code. Excellent technical depth.",
-              },
-              {
-                q: "How do you ensure your web applications are accessible (a11y) and performant?",
-                score: "75% Match",
-                text: "Addressed performance well (lazy loading, code splitting), but only briefly mentioned ARIA labels for accessibility. Lacked depth on semantic HTML and keyboard navigation testing.",
-                yellow: true,
-              },
-              {
-                q: "Tell me about a time you had a disagreement with a product manager about a feature.",
-                score: "92% Match",
-                text: "Candidate provided a great STAR method example showing excellent communication and negotiation skills without compromising standard design practices.",
-              },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="bg-[#fcfdfc] border border-gray-100 rounded-xl shadow-sm p-4 text-sm sm:p-5"
-              >
-                <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                  <h4 className="font-bold text-gray-900 leading-snug">
-                    {i + 1}. {item.q}
-                  </h4>
-                  <span
-                    className={`shrink-0 font-bold px-2 py-1 rounded text-[11px] ${item.yellow ? "bg-[#fefce8] border border-[#fef08a] text-[#a16207]" : "bg-[#e0fafe] text-[#08b8cc]"}`}
-                  >
-                    {item.score}
-                  </span>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3 text-[13px] text-gray-600 leading-relaxed shadow-sm sm:p-4">
-                  <span className="font-bold text-gray-800">AI Summary: </span>
-                  {item.text}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="min-w-0 flex flex-col gap-6 xl:col-span-1">
-          {/* AI Behavioral Insights */}
-          <div className="bg-[#fcfdfc] border border-gray-100 rounded-xl shadow-sm p-4 sm:p-5">
-            <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2 text-[14px]">
-              <Sparkles className="h-4 w-4 text-[#08b8cc] shrink-0" /> AI
-              Behavioral Insights
-            </h3>
-
-            <div className="space-y-5">
-              <div className="flex items-start gap-3">
-                <div className="bg-green-100 text-green-600 rounded-full p-0.5 mt-0.5">
-                  <CheckCircle2 className="h-3 w-3" />
-                </div>
-                <div className="text-[12px] text-gray-600 leading-relaxed">
-                  <strong className="text-gray-900">Confident Delivery:</strong>{" "}
-                  Maintained consistent eye contact with the camera and spoke
-                  clearly with steady pacing.
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="bg-green-100 text-green-600 rounded-full p-0.5 mt-0.5">
-                  <CheckCircle2 className="h-3 w-3" />
-                </div>
-                <div className="text-[12px] text-gray-600 leading-relaxed">
-                  <strong className="text-gray-900">
-                    Structured Thinking:
-                  </strong>{" "}
-                  Consistently used the STAR method (Situation, Task, Action,
-                  Result) when answering behavioral questions.
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="bg-red-100 text-red-600 rounded-full p-0.5 mt-0.5">
-                  <span className="h-3 w-3 flex items-center justify-center font-bold text-[13px] leading-none">
-                    -
-                  </span>
-                </div>
-                <div className="text-[12px] text-gray-600 leading-relaxed">
-                  <strong className="text-gray-900">
-                    Technical Vocabulary:
-                  </strong>{" "}
-                  Slightly overused jargon when explaining concepts to
-                  non-technical stakeholders in scenario 3.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Soft Skills Scoring */}
-          <div className="bg-[#fcfdfc] border border-gray-100 rounded-xl shadow-sm p-4 sm:p-5">
-            <h3 className="font-bold text-gray-900 mb-5 text-[14px]">
-              Soft Skills Scoring
-            </h3>
-            <div className="space-y-5">
-              {[
-                {
-                  name: "Clarity & Articulation",
-                  score: 95,
-                  color: "bg-[#08b8cc]",
-                },
-                {
-                  name: "Problem Solving Approach",
-                  score: 88,
-                  color: "bg-[#08b8cc]",
-                },
-                {
-                  name: "Enthusiasm & Energy",
-                  score: 92,
-                  color: "bg-[#08b8cc]",
-                },
-                { name: "Cultural Fit", score: 85, color: "bg-[#08b8cc]" },
-              ].map((skill) => (
-                <div key={skill.name}>
-                  <div className="flex justify-between gap-3 text-[13px] font-bold text-gray-700 mb-2">
-                    <span className="min-w-0">{skill.name}</span>
-                    <span className="shrink-0">{skill.score}%</span>
-                  </div>
-                  <div className="h-[6px] w-full bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${skill.color} rounded-full`}
-                      style={{ width: `${skill.score}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <h3 className="text-center">Coming soon...</h3>
     </div>
   );
 };
@@ -560,8 +325,8 @@ const SidebarCandidateItem = ({
       const report = item as Record<string, unknown>;
       const reportEmail = normalizeEmail(
         report.candidateEmail ??
-          report.email ??
-          (report.candidate as Record<string, unknown> | undefined)?.email,
+        report.email ??
+        (report.candidate as Record<string, unknown> | undefined)?.email,
       );
       return reportEmail === candidateEmail;
     });
@@ -689,7 +454,7 @@ const EmployerAIShortlists = () => {
     if (selectedJob !== jobIdFromUrl) {
       setSelectedJob(jobIdFromUrl);
     }
-  }, [searchParams.toString()]);
+  }, [searchParams]);
 
   useEffect(() => {
     const nextJobs = employerJobsResponse?.data ?? [];
@@ -796,9 +561,11 @@ const EmployerAIShortlists = () => {
     shouldFetchMatches,
   ]);
 
-  const stageById = new Map(
-    loadedMatches.map((m) => [getEntityIdKey(m.id), m.stage]),
+  const stageById = useMemo(
+    () => new Map(loadedMatches.map((m) => [getEntityIdKey(m.id), m.stage])),
+    [loadedMatches],
   );
+
 
   const candidates = useMemo<CandidateListItem[]>(() => {
     const shortlistedIdKeys = new Set(
@@ -828,7 +595,10 @@ const EmployerAIShortlists = () => {
   // No client-side filtering — display exactly what the backend returns for the selected job
 
   // Filter by tab and search term only — no additional relevance filtering
-  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const normalizedSearchTerm = useMemo(
+    () => searchTerm.trim().toLowerCase(),
+    [searchTerm]
+  );
 
   const filteredCandidates = useMemo(
     () =>
@@ -934,24 +704,21 @@ const EmployerAIShortlists = () => {
 
   // Helper function to highlight matching text in candidate name
   const getHighlightedName = (name: string, query: string) => {
-    const trimmedQuery = query.trim();
-    if (!trimmedQuery) return name;
+    const trimmedQuery = query.trim().slice(0, 100);
+    if (!trimmedQuery) return <span>{name}</span>;
 
-    const escapedQuery = trimmedQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(`(${escapedQuery})`, "i");
-    const parts = name.split(regex);
+    const lowerName = name.toLowerCase();
+    const lowerQuery = trimmedQuery.toLowerCase();
+    const idx = lowerName.indexOf(lowerQuery);
+    if (idx === -1) return <span>{name}</span>;
 
     return (
       <span>
-        {parts.map((part, index) =>
-          part.match(regex) ? (
-            <span key={index} className="bg-yellow-200 font-semibold">
-              {part}
-            </span>
-          ) : (
-            <span key={index}>{part}</span>
-          ),
-        )}
+        {name.slice(0, idx)}
+        <span className="bg-yellow-200 font-semibold">
+          {name.slice(idx, idx + trimmedQuery.length)}
+        </span>
+        {name.slice(idx + trimmedQuery.length)}
       </span>
     );
   };
@@ -1011,31 +778,13 @@ const EmployerAIShortlists = () => {
     }
   };
 
-  useEffect(() => {
-    // Force the whole page background to match EmployerPostJob
-    document.body.style.setProperty("background-color", "#f2f5fa", "important");
-    // Ensure the parent container doesn't have a background that conflicts
-    const root = document.getElementById("root");
-    if (root) root.style.backgroundColor = "#f2f5fa";
-
-    return () => {
-      document.body.style.backgroundColor = "";
-      if (root) root.style.backgroundColor = "";
-    };
-  }, []);
-
-  const handleSkillTest = (candidate: CandidateProfile) => {
-    toast.success(`Skill test scheduled for ${candidate.name}!`);
-    navigate("/hire-talent/skill-tests");
-  };
-
   const selectedCandidateForDetails = useMemo(
     () =>
       selectedCandidateId == null
         ? undefined
         : candidates.find(
-            (c) => getEntityIdKey(c.id) === getEntityIdKey(selectedCandidateId),
-          ),
+          (c) => getEntityIdKey(c.id) === getEntityIdKey(selectedCandidateId),
+        ),
     [candidates, selectedCandidateId],
   );
 
@@ -1049,8 +798,8 @@ const EmployerAIShortlists = () => {
       const report = item as Record<string, unknown>;
       const reportEmail = normalizeEmail(
         report.candidateEmail ??
-          report.email ??
-          (report.candidate as Record<string, unknown> | undefined)?.email,
+        report.email ??
+        (report.candidate as Record<string, unknown> | undefined)?.email,
       );
       return reportEmail === candidateEmail;
     });
@@ -1206,11 +955,10 @@ const EmployerAIShortlists = () => {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={`h-10 rounded-xl border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50 shadow-sm flex items-center gap-2 ${
-                        bulkFilterStatus
-                          ? "border-[#08b8cc] text-[#08b8cc]"
-                          : ""
-                      }`}
+                      className={`h-10 rounded-xl border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50 shadow-sm flex items-center gap-2 ${bulkFilterStatus
+                        ? "border-[#08b8cc] text-[#08b8cc]"
+                        : ""
+                        }`}
                     >
                       <ChevronDown className="h-4 w-4 text-gray-500" />
                       Bulk Actions
@@ -1450,13 +1198,12 @@ const EmployerAIShortlists = () => {
                             candidate.stage !== "invited" &&
                             handleShortlist(candidate)
                           }
-                          className={`h-9 min-w-0 flex-1 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${
-                            candidate.stage === "invited"
-                              ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
-                              : candidate.stage === "shortlisted"
-                                ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
-                                : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                          }`}
+                          className={`h-9 min-w-0 flex-1 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${candidate.stage === "invited"
+                            ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
+                            : candidate.stage === "shortlisted"
+                              ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
+                              : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                            }`}
                         >
                           {candidate.stage === "invited" ? (
                             <span className="flex items-center gap-1.5">
@@ -1519,8 +1266,8 @@ const EmployerAIShortlists = () => {
                   candidate={selectedCandidateForDetails}
                   report={
                     selectedCandidateSkillReport as
-                      | Record<string, unknown>
-                      | undefined
+                    | Record<string, unknown>
+                    | undefined
                   }
                   isLoading={invitedTestReportLoading}
                 />

@@ -109,28 +109,28 @@ const normalizeBenchCandidate = (c: BenchResourceRawDto) => {
     rawSkillsArr ??
     (typeof c.skills === "string" && c.skills
       ? c.skills
+        .split(",")
+        .map((s: string) => s.trim())
+        .filter(Boolean)
+      : typeof c.technicalSkills === "string" && c.technicalSkills
+        ? c.technicalSkills
           .split(",")
           .map((s: string) => s.trim())
           .filter(Boolean)
-      : typeof c.technicalSkills === "string" && c.technicalSkills
-        ? c.technicalSkills
-            .split(",")
-            .map((s: string) => s.trim())
-            .filter(Boolean)
         : []);
 
   const rawHourlyMin =
     c.hourlyRate != null && typeof c.hourlyRate === "object"
       ? c.hourlyRate.min
       : c.hourlyRate != null &&
-          (typeof c.hourlyRate === "number" || typeof c.hourlyRate === "string")
+        (typeof c.hourlyRate === "number" || typeof c.hourlyRate === "string")
         ? c.hourlyRate
         : (c.expectedSalary?.min ?? null);
   const rawHourlyMax =
     c.hourlyRate != null && typeof c.hourlyRate === "object"
       ? c.hourlyRate.max
       : c.hourlyRate != null &&
-          (typeof c.hourlyRate === "number" || typeof c.hourlyRate === "string")
+        (typeof c.hourlyRate === "number" || typeof c.hourlyRate === "string")
         ? c.hourlyRate
         : (c.expectedSalary?.max ?? null);
   const hourlyMin =
@@ -156,17 +156,17 @@ const normalizeBenchCandidate = (c: BenchResourceRawDto) => {
 
   const certs = Array.isArray(c.certifications)
     ? c.certifications.map((cert: any) =>
-        typeof cert === "string" ? { name: cert } : cert,
-      )
+      typeof cert === "string" ? { name: cert } : cert,
+    )
     : [];
 
   const deploymentPref: string[] = Array.isArray(c.deploymentPreference)
     ? c.deploymentPreference
     : typeof c.deploymentPreference === "string" && c.deploymentPreference
       ? c.deploymentPreference
-          .split(",")
-          .map((s: string) => s.trim())
-          .filter(Boolean)
+        .split(",")
+        .map((s: string) => s.trim())
+        .filter(Boolean)
       : [];
 
   return {
@@ -188,12 +188,12 @@ const normalizeBenchCandidate = (c: BenchResourceRawDto) => {
     hourlyRateMax: hourlyMax,
     expectedSalaryMin:
       c.expectedSalaryMin != null &&
-      Number.isFinite(Number(c.expectedSalaryMin))
+        Number.isFinite(Number(c.expectedSalaryMin))
         ? Number(c.expectedSalaryMin)
         : null,
     expectedSalaryMax:
       c.expectedSalaryMax != null &&
-      Number.isFinite(Number(c.expectedSalaryMax))
+        Number.isFinite(Number(c.expectedSalaryMax))
         ? Number(c.expectedSalaryMax)
         : null,
     yearsExperience: yearsExp,
@@ -459,13 +459,7 @@ const CandidateProfileView = () => {
             <div className="mb-4">
               <Button
                 size="sm"
-                onClick={() => {
-                  if (window.history.state?.idx > 0) {
-                    navigate(-1);
-                  } else {
-                    navigate("/candidates");
-                  }
-                }}
+                onClick={() => navigate(-1)}
                 className="bg-transparent text-slate-600 hover:bg-gray-50"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -524,25 +518,25 @@ const CandidateProfileView = () => {
                     <div className="flex flex-wrap gap-2 justify-center mb-4 flex-col items-center">
                       <Badge className="bg-green-100 text-green-700 hover:bg-green-100 font-bold text-xs">
                         {isBench ||
-                        profile?.candidateType === "bench" ||
-                        profile?.resourceType === "bench"
+                          profile?.candidateType === "bench" ||
+                          profile?.resourceType === "bench"
                           ? "BENCH RESOURCE"
                           : "CONTRACT RESOURCE"}
                       </Badge>
                       <div>
                         {Array.isArray(profile?.preferredWorkType) &&
-                        profile.preferredWorkType.length > 0
+                          profile.preferredWorkType.length > 0
                           ? profile.preferredWorkType
-                              .filter((w: string) => w)
-                              .map((workType: string) => (
-                                <Badge
-                                  key={workType}
-                                  variant="outline"
-                                  className="text-xs capitalize"
-                                >
-                                  {workType}
-                                </Badge>
-                              ))
+                            .filter((w: string) => w)
+                            .map((workType: string) => (
+                              <Badge
+                                key={workType}
+                                variant="outline"
+                                className="text-xs capitalize"
+                              >
+                                {workType}
+                              </Badge>
+                            ))
                           : null}
                       </div>
                     </div>
@@ -600,21 +594,21 @@ const CandidateProfileView = () => {
                       })()}
                       {(profile?.expectedSalaryMin != null ||
                         profile?.expectedSalaryMax != null) && (
-                        <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
-                          <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
-                            <DollarSign className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">Expected Salary</span>
-                          </span>
-                          <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
-                            {profile.expectedSalaryMin != null &&
-                            profile.expectedSalaryMax != null
-                              ? `${formatCurrency(profile.expectedSalaryMin)} - ${formatCurrency(profile.expectedSalaryMax)}`
-                              : profile.expectedSalaryMin != null
-                                ? `From ${formatCurrency(profile.expectedSalaryMin)}`
-                                : `Up to ${formatCurrency(profile.expectedSalaryMax)}`}
-                          </span>
-                        </div>
-                      )}
+                          <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
+                            <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
+                              <DollarSign className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate">Expected Salary</span>
+                            </span>
+                            <span className="font-semibold whitespace-nowrap dark:text-slate-200 text-right">
+                              {profile.expectedSalaryMin != null &&
+                                profile.expectedSalaryMax != null
+                                ? `${formatCurrency(profile.expectedSalaryMin)} - ${formatCurrency(profile.expectedSalaryMax)}`
+                                : profile.expectedSalaryMin != null
+                                  ? `From ${formatCurrency(profile.expectedSalaryMin)}`
+                                  : `Up to ${formatCurrency(profile.expectedSalaryMax)}`}
+                            </span>
+                          </div>
+                        )}
 
                       <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
                         <span className="text-gray-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2 min-w-0">
@@ -679,8 +673,8 @@ const CandidateProfileView = () => {
                         const rawSkills: any[] = profile?.primarySkills?.length
                           ? profile.primarySkills
                           : (benchData?.technicalSkills?.map((s: string) => ({
-                              name: s,
-                            })) ?? []);
+                            name: s,
+                          })) ?? []);
                         return rawSkills.length ? (
                           rawSkills.map((skill: any, index: number) => {
                             const name =
@@ -831,7 +825,7 @@ const CandidateProfileView = () => {
                         >
                           {isBench
                             ? benchData?.professionalSummary ||
-                              "No summary provided"
+                            "No summary provided"
                             : (profile?.bio ?? "No bio")}
                         </p>
                       </CardContent>
@@ -896,13 +890,13 @@ const CandidateProfileView = () => {
                             </p>
                             <p className="text-sm font-medium dark:text-slate-200 capitalize">
                               {benchData?.deploymentPreference &&
-                              benchData.deploymentPreference.length > 0
+                                benchData.deploymentPreference.length > 0
                                 ? benchData.deploymentPreference.join(", ")
                                 : Array.isArray(profile?.preferredWorkType) &&
-                                    profile.preferredWorkType.length > 0
+                                  profile.preferredWorkType.length > 0
                                   ? profile.preferredWorkType
-                                      .filter((w: string) => w)
-                                      .join(", ")
+                                    .filter((w: string) => w)
+                                    .join(", ")
                                   : "—"}
                             </p>
                           </div>
@@ -929,13 +923,13 @@ const CandidateProfileView = () => {
                                 profile?.availability ||
                                 (benchData?.availableFrom
                                   ? (() => {
-                                      const d = new Date(
-                                        benchData.availableFrom,
-                                      );
-                                      return Number.isNaN(d.getTime())
-                                        ? "—"
-                                        : d.toLocaleDateString();
-                                    })()
+                                    const d = new Date(
+                                      benchData.availableFrom,
+                                    );
+                                    return Number.isNaN(d.getTime())
+                                      ? "—"
+                                      : d.toLocaleDateString();
+                                  })()
                                   : "—")}
                             </p>
                           </div>
@@ -1078,8 +1072,8 @@ const CandidateProfileView = () => {
                                         ? description
                                         : description
                                           ? description
-                                              .split(/\r?\n/)
-                                              .filter(Boolean)
+                                            .split(/\r?\n/)
+                                            .filter(Boolean)
                                           : []
                                       ).map(
                                         (bullet: string, bIndex: number) => (
@@ -1157,12 +1151,12 @@ const CandidateProfileView = () => {
                                       <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 break-words">
                                         {Array.isArray(
                                           project.technologies ??
-                                            project.techStack,
+                                          project.techStack,
                                         )
                                           ? (
-                                              project.technologies ??
-                                              project.techStack
-                                            ).join(", ")
+                                            project.technologies ??
+                                            project.techStack
+                                          ).join(", ")
                                           : (project.technologies ??
                                             project.techStack)}
                                       </p>
@@ -1219,17 +1213,17 @@ const CandidateProfileView = () => {
                                     </div>
                                     <p className="text-xs text-gray-500 dark:text-slate-400">
                                       {typeof defaultResume.fileSize ===
-                                      "number"
+                                        "number"
                                         ? formatFileSize(defaultResume.fileSize)
                                         : "Unknown size"}{" "}
                                       •{" "}
                                       {defaultResume.uploadedAt &&
-                                      !Number.isNaN(
-                                        Date.parse(defaultResume.uploadedAt),
-                                      )
+                                        !Number.isNaN(
+                                          Date.parse(defaultResume.uploadedAt),
+                                        )
                                         ? new Date(
-                                            defaultResume.uploadedAt,
-                                          ).toLocaleDateString()
+                                          defaultResume.uploadedAt,
+                                        ).toLocaleDateString()
                                         : "Unknown date"}
                                     </p>
                                   </div>

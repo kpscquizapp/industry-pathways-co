@@ -15,15 +15,10 @@ import {
   ClipboardCheck,
   ChevronDown,
 } from "lucide-react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import {
   useGetEmployerJobsQuery,
   useLazyGetJobMatchesQuery,
-  useShortlistCandidateMutation,
-  useRemoveShortlistCandidateMutation,
   Job,
   Match,
   EntityId,
@@ -35,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
 import BarLoader from "@/components/loader/BarLoader";
 
 /* ── helpers ── */
@@ -169,10 +163,6 @@ const HiringDashboardNew = () => {
   const [selectedJobId, setSelectedJobId] = React.useState<string>("");
   const [shortlistedIds, setShortlistedIds] = React.useState<EntityId[]>([]);
 
-  const [shortlistCandidateMutation] = useShortlistCandidateMutation();
-  const [removeShortlistCandidateMutation] =
-    useRemoveShortlistCandidateMutation();
-
   const { data: jobsResponse, isLoading: jobsLoading } =
     useGetEmployerJobsQuery({ page: 1, limit: 100 });
   const [getJobMatches] = useLazyGetJobMatchesQuery();
@@ -199,13 +189,26 @@ const HiringDashboardNew = () => {
     let active = true;
     setIsMatchCountsLoading(true);
     const run = async () => {
-      const results = await Promise.all(
-        activeJobs.map((job) =>
-          getJobMatches({ id: String(job.id), page: 1, limit: 5 })
-            .unwrap()
-            .catch(() => null),
+
+      // Batch with concurrency limit of 3
+      async function limitedAll<T>(
+        tasks: (() => Promise<T>)[],
+        limit: number
+      ): Promise<T[]> {
+        const results: T[] = [];
+        for (let i = 0; i < tasks.length; i += limit) {
+          const batch = tasks.slice(i, i + limit).map((fn) => fn());
+          results.push(...(await Promise.all(batch)));
+        }
+        return results;
+      }
+      const results = await limitedAll(
+        activeJobs.map((job) => () =>
+          getJobMatches({ id: String(job.id), page: 1, limit: 5 }).unwrap().catch(() => null)
         ),
+        3
       );
+
       if (!active) return;
       const counts: Record<number | string, number> = {};
       let testsDone = 0;
@@ -227,7 +230,7 @@ const HiringDashboardNew = () => {
     return () => {
       active = false;
     };
-  }, [activeJobs, activeJobsCount, getJobMatches]);
+  }, [activeJobs, getJobMatches]);
 
   // Set default selected job
   React.useEffect(() => {
@@ -278,54 +281,6 @@ const HiringDashboardNew = () => {
 
   const getEntityIdKey = (id: EntityId) => String(id);
 
-  const handleShortlistToggle = (candidate: Match) => {
-    if (!selectedJobId) {
-      toast.error("Please select a job first.");
-      return;
-    }
-
-    const candidateKey = getEntityIdKey(candidate.id);
-    const isAlreadyShortlisted = shortlistedIds.some(
-      (id) => getEntityIdKey(id) === candidateKey,
-    );
-
-    if (isAlreadyShortlisted) {
-      // Undo Shortlist
-      setShortlistedIds((prev) =>
-        prev.filter((id) => getEntityIdKey(id) !== candidateKey),
-      );
-      toast.info(`${candidate.name} removed from shortlist`);
-
-      removeShortlistCandidateMutation({
-        jobId: selectedJobId,
-        talentId: candidate.id,
-        talentSource: candidate.source === "bench" ? "bench" : "candidate",
-      })
-        .unwrap()
-        .catch(() => {
-          setShortlistedIds((prev) => [...prev, candidate.id]);
-          toast.error("Failed to remove from shortlist.");
-        });
-    } else {
-      // Add to Shortlist
-      setShortlistedIds((prev) => [...prev, candidate.id]);
-      toast.success(`${candidate.name} added to shortlist!`);
-
-      shortlistCandidateMutation({
-        jobId: selectedJobId,
-        talentId: candidate.id,
-        talentSource: candidate.source === "bench" ? "bench" : "candidate",
-      })
-        .unwrap()
-        .catch(() => {
-          setShortlistedIds((prev) =>
-            prev.filter((id) => getEntityIdKey(id) !== candidateKey),
-          );
-          toast.error("Failed to shortlist candidate.");
-        });
-    }
-  };
-
   if (jobsLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -355,7 +310,7 @@ const HiringDashboardNew = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {/* Active Roles */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-            <div className="flex items-start justify-between mb-5">
+            <div className="flex items-start justify-between">
               <span className="text-[13px] font-semibold text-gray-500 tracking-wide">
                 Active Roles
               </span>
@@ -363,18 +318,18 @@ const HiringDashboardNew = () => {
                 <Briefcase className="w-[18px] h-[18px] text-blue-500" />
               </div>
             </div>
-            <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2">
+            <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2 ml-2">
               {activeJobsCount}
             </p>
             <div className="flex items-center gap-1.5 text-emerald-500 text-[13px] font-semibold">
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>+2 this week</span>
+              {/* <TrendingUp className="w-3.5 h-3.5" />
+              <span>+2 this week</span> */}
             </div>
           </div>
 
           {/* Coding Test Done */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-            <div className="flex items-start justify-between mb-5">
+            <div className="flex items-start justify-between">
               <span className="text-[13px] font-semibold text-gray-500 tracking-wide">
                 Coding Test Done
               </span>
@@ -382,7 +337,7 @@ const HiringDashboardNew = () => {
                 <ClipboardCheck className="w-[18px] h-[18px] text-amber-500" />
               </div>
             </div>
-            <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2">
+            <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2 ml-2">
               {isMatchCountsLoading ? (
                 <span className="text-gray-300 animate-pulse">Loading...</span>
               ) : (
@@ -390,14 +345,14 @@ const HiringDashboardNew = () => {
               )}
             </p>
             <div className="flex items-center gap-1.5 text-emerald-500 text-[13px] font-semibold">
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>+12% from last week</span>
+              {/* <TrendingUp className="w-3.5 h-3.5" />
+              <span>+12% from last week</span> */}
             </div>
           </div>
 
           {/* AI Matches */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-            <div className="flex items-start justify-between mb-5">
+            <div className="flex items-start justify-between">
               <span className="text-[13px] font-semibold text-gray-500 tracking-wide">
                 Candidate Matches
               </span>
@@ -405,7 +360,7 @@ const HiringDashboardNew = () => {
                 <Sparkles className="w-[18px] h-[18px] text-teal-500" />
               </div>
             </div>
-            <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2">
+            <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2 ml-2">
               {isMatchCountsLoading ? (
                 <span className="text-gray-300 animate-pulse">Loading...</span>
               ) : (
@@ -413,10 +368,10 @@ const HiringDashboardNew = () => {
               )}
             </p>
             <div className="flex items-center gap-1.5 text-gray-400 text-[13px] font-medium">
-              <div className="w-4 h-4 rounded-full border-[1.5px] border-gray-300 flex items-center justify-center text-[9px] font-bold text-gray-400">
+              {/* <div className="w-4 h-4 rounded-full border-[1.5px] border-gray-300 flex items-center justify-center text-[9px] font-bold text-gray-400">
                 i
               </div>
-              <span>Avg 85% match rate</span>
+              <span>Avg 85% match rate</span> */}
             </div>
           </div>
         </div>
@@ -455,7 +410,7 @@ const HiringDashboardNew = () => {
                       : job.status === "closed"
                         ? "Paused"
                         : (job.status ?? "").charAt(0).toUpperCase() +
-                          (job.status ?? "").slice(1);
+                        (job.status ?? "").slice(1);
                   const statusColor = isActive
                     ? "bg-emerald-50 text-emerald-500 border-emerald-200"
                     : statusLabel === "Draft"
@@ -465,11 +420,10 @@ const HiringDashboardNew = () => {
                   return (
                     <div
                       key={job.id}
-                      className={`px-6 py-5 cursor-pointer hover:bg-gray-50/50 transition-colors ${
-                        idx < Math.min(activeJobs.length, 3) - 1
-                          ? "border-b border-gray-100"
-                          : ""
-                      }`}
+                      className={`px-6 py-5 cursor-pointer hover:bg-gray-50/50 transition-colors ${idx < Math.min(activeJobs.length, 3) - 1
+                        ? "border-b border-gray-100"
+                        : ""
+                        }`}
                       onClick={() =>
                         navigate(`/hire-talent/ai-shortlists?jobId=${job.id}`)
                       }
@@ -565,7 +519,7 @@ const HiringDashboardNew = () => {
                 <>
                   {topCandidates.slice(0, 3).map((candidate, idx) => {
                     const skills = normalizeSkills(candidate.skills);
-                    const score = candidate.matchScore || 85;
+                    const score = candidate.matchScore != null ? candidate.matchScore : 0;
                     const isShortlisted = shortlistedIds.some(
                       (id) =>
                         getEntityIdKey(id) === getEntityIdKey(candidate.id),
@@ -574,13 +528,11 @@ const HiringDashboardNew = () => {
                     return (
                       <div
                         key={candidate.id}
-                        className={`px-6 py-5 hover:bg-gray-50/40 transition-colors relative ${
-                          isShortlisted ? "bg-teal-50/30" : ""
-                        } ${
-                          idx < Math.min(topCandidates.length, 3) - 1
+                        className={`px-6 py-5 hover:bg-gray-50/40 transition-colors relative ${isShortlisted ? "bg-teal-50/30" : ""
+                          } ${idx < Math.min(topCandidates.length, 3) - 1
                             ? "border-b border-gray-100"
                             : ""
-                        }`}
+                          }`}
                       >
                         {/* Main row: Avatar | Info | Ring | Actions */}
                         <div className="flex items-center gap-4">
@@ -621,43 +573,28 @@ const HiringDashboardNew = () => {
 
                           {/* Action buttons */}
                           <div className="flex items-center gap-2 shrink-0">
-                            {/* Shortlist Button */}
-                            <button
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
-                                isShortlisted
-                                  ? "bg-emerald-50 text-emerald-600 border-2 border-emerald-500 shadow-sm"
-                                  : "bg-white text-gray-400 border border-gray-200 hover:text-emerald-500 hover:border-emerald-200 hover:bg-emerald-50"
-                              }`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!isShortlisted)
-                                  handleShortlistToggle(candidate);
-                              }}
-                              title="Shortlist"
+                            <div
+                              className={`h-9 min-w-0 flex items-center justify-center px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${candidate.stage === "invited"
+                                ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
+                                : candidate.stage === "shortlisted"
+                                  ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
+                                  : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                }`}
                             >
-                              <Check className="w-6 h-6" strokeWidth={2.5} />
-                            </button>
-
-                            {/* Remove/Reject Button */}
-                            <button
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
-                                isShortlisted
-                                  ? "bg-white text-gray-400 border border-gray-200 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50"
-                                  : "bg-white text-gray-400 border border-gray-200 hover:text-gray-600 hover:bg-gray-50"
-                              }`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (isShortlisted)
-                                  handleShortlistToggle(candidate);
-                              }}
-                              title={
-                                isShortlisted
-                                  ? "Remove from Shortlist"
-                                  : "Reject"
-                              }
-                            >
-                              <X className="w-6 h-6" strokeWidth={2.5} />
-                            </button>
+                              {candidate.stage === "invited" ? (
+                                <span className="flex items-center gap-1.5">
+                                  <Check className="w-4 h-4" strokeWidth={3} />
+                                  Invited
+                                </span>
+                              ) : candidate.stage === "shortlisted" ? (
+                                <span className="flex items-center gap-1.5">
+                                  <Check className="w-4 h-4" strokeWidth={3} />
+                                  Shortlisted
+                                </span>
+                              ) : (
+                                "Shortlist"
+                              )}
+                            </div>
                           </div>
                         </div>
 

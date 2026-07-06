@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   useCreateCustomTestMutation,
   useSendInviteEmailMutation,
@@ -66,7 +66,7 @@ type TabMode = "manual" | "ai" | "bulk";
 export default function InterviewQuestions() {
   const [activeTab, setActiveTab] = useState<TabMode>("manual");
   const [isEdit, setIsEdit] = useState(false);
-  const [searchParams] = useSearchParams();
+  const { state } = useLocation();
 
   type Example = { input: string; output: string; explanation?: string };
   type TestCase = { input: string; expected_output: string };
@@ -110,16 +110,16 @@ export default function InterviewQuestions() {
     category: categoryValue,
   });
 
-  const role = searchParams.get("candidateRole") || "";
-  const name = searchParams.get("candidateName");
-  const email = searchParams.get("candidateEmail") || "";
-  const category = searchParams.get("testType") || "";
-  const testId = searchParams.get("testId") || "";
-  const testDate = searchParams.get("testDate") || "";
-  const testDuration = searchParams.get("testDuration") || "";
-  const jobId = searchParams.get("jobId") || "";
-  const candidateId = searchParams.get("candidateId") || "";
-  const talentSource = (searchParams.get("talentSource") || "candidate") as
+  const role = state?.candidateRole || "";
+  const name = state?.candidateName || "";
+  const email = state?.candidateEmail || "";
+  const category = state?.testType || "";
+  const testId = state?.testId || "";
+  const testDate = state?.testDate || "";
+  const testDuration = state?.testDuration || "";
+  const jobId = state?.jobId || "";
+  const candidateId = state?.candidateId || "";
+  const talentSource = (state?.talentSource || "candidate") as
     | "candidate"
     | "bench";
 
@@ -248,6 +248,7 @@ export default function InterviewQuestions() {
   };
 
   const handleCustomQuestionDelete = async (q: Question) => {
+    toast.info("Question deletion is not yet available. Coming soon.");
     // not yet implemented functionality
   };
 
@@ -332,6 +333,7 @@ export default function InterviewQuestions() {
                 testId={testId}
                 testDuration={testDuration}
                 candidateName={name || "Candidate"}
+                testDate={testDate}
               />
             )}
             {activeTab === "ai" && <AIGenerateForm jobId={jobId} />}
@@ -443,6 +445,7 @@ function ManualEntryForm({
   testId,
   testDuration,
   candidateName,
+  testDate,
 }: {
   defaultRole?: string;
   defaultCategory?: string;
@@ -458,6 +461,7 @@ function ManualEntryForm({
   testId?: string;
   testDuration?: string;
   candidateName?: string;
+  testDate?: string;
 }) {
   type Example = { input: string; output: string; explanation?: string };
   type TestCase = { input: string; expected_output: string };
@@ -474,7 +478,6 @@ function ManualEntryForm({
     role?: string;
     category?: string;
   };
-
   // StarterCode type and defaults are imported from `@/lib/starterCode`
 
   const newQuestion = (
@@ -500,19 +503,22 @@ function ManualEntryForm({
   >({});
   const [isSaved, setIsSaved] = useState(false);
   const [inviteSent, setInviteSent] = useState(false);
+
+  const parsedTestId = testId ? parseInt(testId, 10) : NaN;
   const [localTestId, setLocalTestId] = useState<number | null>(
-    testId ? parseInt(testId) : null,
-  );
+    Number.isFinite(parsedTestId) ? parsedTestId : null,
+  )
+
+  const firstQuestionTestId = questions.length > 0 ? questions[0]._testId : undefined;
 
   // Sync localTestId if editing an existing assessment
   useEffect(() => {
-    if (questions.length > 0 && questions[0]._testId) {
-      setLocalTestId(questions[0]._testId);
-    } else if (questions.length === 1 && !questions[0]._testId && !testId) {
-      // New fresh form, reset localTestId
+    if (firstQuestionTestId) {
+      setLocalTestId(firstQuestionTestId);
+    } else if (questions.length === 1 && !firstQuestionTestId && !testId) {
       setLocalTestId(null);
     }
-  }, [questions[0]?._testId, testId]);
+  }, [firstQuestionTestId, testId, questions.length]);
 
   const [createCustomTest, { isLoading: isCreating }] =
     useCreateCustomTestMutation();
@@ -895,7 +901,7 @@ function ManualEntryForm({
       showAlert(
         "Invite Error",
         error?.data?.message ||
-          "A network error occurred while sending the invite.",
+        "A network error occurred while sending the invite.",
       );
     }
   };
@@ -1303,7 +1309,7 @@ function ManualEntryForm({
               readOnly
             />
           ) : (
-            <span className="text-gray-400 text-sm">No role assigned</span>
+            <span className="text-gray-400 text-sm">No role available</span>
           )}
         </div>
         <div className="flex flex-col gap-2">
@@ -1317,7 +1323,7 @@ function ManualEntryForm({
               readOnly
             />
           ) : (
-            <span className="text-gray-400 text-sm">No category</span>
+            <span className="text-gray-400 text-sm">No category available</span>
           )}
         </div>
         <div className="flex flex-col gap-2">
@@ -1331,7 +1337,21 @@ function ManualEntryForm({
               readOnly
             />
           ) : (
-            <span className="text-gray-400 text-sm">No email</span>
+            <span className="text-gray-400 text-sm">No email available</span>
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-gray-700">
+            Test Date
+          </label>
+          {testDate ? (
+            <Input
+              className="bg-gray-50 border-gray-200 rounded-xl h-12 text-sm font-medium text-gray-700 max-w-full truncate"
+              value={testDate}
+              readOnly
+            />
+          ) : (
+            <span className="text-gray-400 text-sm">No test date available</span>
           )}
         </div>
       </div>
@@ -2173,7 +2193,7 @@ function QuestionCard({
               tag.color === "orange-solid" && "bg-orange-100 text-orange-700",
               tag.color === "green" && "bg-emerald-50 text-emerald-600",
               tag.color === "gray" &&
-                "bg-gray-50 text-gray-600 border border-gray-100",
+              "bg-gray-50 text-gray-600 border border-gray-100",
               tag.color === "gray-solid" && "bg-gray-100 text-gray-700",
             )}
           >

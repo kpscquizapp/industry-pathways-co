@@ -89,6 +89,8 @@ const CandidateSkillTestDetails = ({
   const questions = useMemo(() => normalizeQuestions(report), [report]);
   const navigate = useNavigate();
 
+  const clampedScore = Math.min(100, Math.max(0, score));
+
   if (!candidate) {
     return (
       <div className="text-gray-400 font-medium text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-12">
@@ -116,8 +118,23 @@ const CandidateSkillTestDetails = ({
           No skill test results found yet
         </h3>
         <p className="mt-2 text-sm text-gray-500">
-          The invited-results endpoint has not returned a score for{" "}
+          We haven't received a skill test score for{" "}
           {candidate.name || "this candidate"} yet.
+        </p>
+      </div>
+    );
+  }
+
+  if (report?.status === "active") {
+    return (
+      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center shadow-sm">
+        <AlertCircle className="mx-auto h-8 w-8 text-gray-400" />
+        <h3 className="mt-4 text-lg font-semibold text-gray-900">
+          Skill Test is Active, Candidate has not completed the test yet.
+        </h3>
+        <p className="mt-2 text-sm text-gray-500">
+          Skill test is currently active for{" "}
+          {candidate.name || "this candidate"}.
         </p>
       </div>
     );
@@ -175,7 +192,7 @@ const CandidateSkillTestDetails = ({
                 Overall score
               </p>
               <p className={`mt-2 text-4xl font-black ${scoreTone}`}>
-                {Math.round(score)}%
+                {Math.round(clampedScore)}%
               </p>
             </div>
             <div className="rounded-full bg-white p-3 shadow-sm">
@@ -215,7 +232,7 @@ const CandidateSkillTestDetails = ({
               <p className="mt-2 text-sm font-semibold text-gray-700">
                 {report?.codingAccuracy !== undefined
                   ? `${report?.codingAccuracy}%`
-                  : "%"}
+                  : "Not available"}
               </p>
             </div>
             <div className="rounded-xl bg-gray-50 p-3">
@@ -261,7 +278,7 @@ const CandidateSkillTestDetails = ({
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-900">
                       {typeof question.question === "string" &&
-                      question.question.trim()
+                        question.question.trim()
                         ? question.question
                         : `Question ${index + 1}`}
                     </p>
