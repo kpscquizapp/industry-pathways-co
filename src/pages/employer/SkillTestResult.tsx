@@ -365,7 +365,10 @@ const SkillTestResult = () => {
       )}
 
       {activeTab === "liveReview" && (
-        <LiveReviewTab sessionId={report.session?.id || report.sessionId} />
+        <LiveReviewTab
+          recordings={report.recordings ?? []}
+          violations={report.violations ?? []}
+        />
       )}
     </div>
   );

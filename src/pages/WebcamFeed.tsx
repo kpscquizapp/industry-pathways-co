@@ -20,20 +20,6 @@ type WebcamFeedProps = {
   initialScreenStream?: MediaStream | null;
 };
 
-type StreamingInitResponse = {
-  nextChunkIndex: number;
-  recordingId: number;
-};
-
-type StreamingEndResponse = {
-  integrity?: {
-    duplicateChunks?: number[];
-    isValid?: boolean;
-    missingChunks?: number[];
-  };
-  totalChunks: number;
-};
-
 const CHUNK_INTERVAL_MS = 3000;
 const MAX_RETRIES_PER_CHUNK = 3;
 const RETRY_DELAY_MS = 1000;
@@ -62,17 +48,26 @@ const WebcamFeed = ({
     webcam: 0,
     screen: 0,
   });
+
+  /**
+   * recordingIdRef holds the live recording IDs.
+   * We use a "take ownership" pattern: whichever code path finalizes a recording
+   * atomically swaps the ID to null first, preventing double /recordings/end calls.
+   */
   const recordingIdRef = useRef<{
     webcam: number | null;
     screen: number | null;
   }>({ webcam: null, screen: null });
+
   const pendingChunksRef = useRef<{ webcam: Set<number>; screen: Set<number> }>(
     { webcam: new Set(), screen: new Set() },
   );
   const isStreamingRef = useRef(false);
   const activeSessionIdRef = useRef(sessionId);
   const uploadIssueToastShownRef = useRef(false);
-  const cleanupMountedRef = useRef(false); // prevents cleanup running before first recording starts
+  // Tracks whether a recording has ever started, so the cleanup effect
+  // doesn't run on the very first render before any recording begins.
+  const hasRecordingStartedRef = useRef(false);
 
   // RTK Query mutation triggers
   const [startRecording] = useStartRecordingMutation();
@@ -84,6 +79,9 @@ const WebcamFeed = ({
   const [isRecording, setIsRecording] = useState(false);
   const [screenShareStream, setScreenShareStream] =
     useState<MediaStream | null>(null);
+  // Ref mirror of screenShareStream so the isInterviewActive cleanup
+  // can read the current value without re-running the effect.
+  const screenShareStreamRef = useRef<MediaStream | null>(null);
 
   const canScreenShare = useMemo(
     () =>
@@ -91,8 +89,15 @@ const WebcamFeed = ({
       !!navigator.mediaDevices?.getDisplayMedia,
     [],
   );
-  const isScreenSharing = !!screenShareStream;
 
+  // Keep session ID ref current so async callbacks always use the latest value.
+  useEffect(() => {
+    if (sessionId) {
+      activeSessionIdRef.current = sessionId;
+    }
+  }, [sessionId]);
+
+  // Sync initialStream → state once (for parent-provided streams)
   useEffect(() => {
     if (initialStream && !webcamStream) {
       setWebcamStream(initialStream);
@@ -102,9 +107,11 @@ const WebcamFeed = ({
   useEffect(() => {
     if (initialScreenStream && !screenShareStream) {
       setScreenShareStream(initialScreenStream);
+      screenShareStreamRef.current = initialScreenStream;
     }
   }, [initialScreenStream, screenShareStream]);
 
+  // Keep video elements updated
   useLayoutEffect(() => {
     if (videoRef.current) {
       videoRef.current.srcObject = webcamStream;
@@ -117,17 +124,10 @@ const WebcamFeed = ({
     }
   }, [screenShareStream]);
 
-  useEffect(() => {
-    if (sessionId) {
-      activeSessionIdRef.current = sessionId;
-    }
-  }, [sessionId]);
-
   const notifyUploadIssue = useCallback((message: string) => {
     if (uploadIssueToastShownRef.current) {
       return;
     }
-
     uploadIssueToastShownRef.current = true;
     toast.error(message);
   }, []);
@@ -182,21 +182,37 @@ const WebcamFeed = ({
     [uploadChunkMutation, notifyUploadIssue],
   );
 
-  const endStreaming = useCallback(
-    async (type: "webcam" | "screen") => {
+  /**
+   * Atomically "claims" the recording ID and calls /recordings/end exactly once.
+   * Returns true if the call was made, false if another path already claimed it.
+   */
+  const finalizeRecording = useCallback(
+    async (type: "webcam" | "screen"): Promise<boolean> => {
       const activeSessionId = activeSessionIdRef.current;
-      if (!activeSessionId) {
-        throw new Error("No active session ID is available.");
+      if (!activeSessionId) return false;
+
+      // Atomically take ownership: set to null and capture the previous value.
+      const claimedId = recordingIdRef.current[type];
+      if (claimedId === null) {
+        // Already finalized by another path — skip.
+        return false;
       }
-      const result = await endRecording({ sessionId: activeSessionId, type }).unwrap();
-      if (result.integrity && result.integrity.isValid === false) {
-        console.warn(`Recording integrity check failed for ${type}`, {
-          duplicateChunks: result.integrity.duplicateChunks || [],
-          missingChunks: result.integrity.missingChunks || [],
-        });
-        toast.error("Recording integrity check found issues and was flagged for review.");
+      recordingIdRef.current[type] = null;
+
+      try {
+        const result = await endRecording({ sessionId: activeSessionId, type }).unwrap();
+        if (result.integrity && result.integrity.isValid === false) {
+          console.warn(`Recording integrity check failed for ${type}`, {
+            duplicateChunks: result.integrity.duplicateChunks || [],
+            missingChunks: result.integrity.missingChunks || [],
+          });
+          toast.error("Recording integrity check found issues and was flagged for review.");
+        }
+        return true;
+      } catch (error) {
+        console.warn(`Failed to finalize ${type} recording`, error);
+        return false;
       }
-      return result;
     },
     [endRecording],
   );
@@ -212,64 +228,58 @@ const WebcamFeed = ({
     }
   }, [recordingPing]);
 
-  // Cleanup when interview ends — guarded to avoid running on mount before any recording started
+  // ── Cleanup when interview ends ─────────────────────────────────────
   useEffect(() => {
-    if (!cleanupMountedRef.current) {
-      cleanupMountedRef.current = true;
-      return;
-    }
-    if (isInterviewActive) {
-      uploadIssueToastShownRef.current = false;
+    // Skip: interview still active or no recording has started yet.
+    if (isInterviewActive || !hasRecordingStartedRef.current) {
+      if (isInterviewActive) {
+        uploadIssueToastShownRef.current = false;
+      }
       return;
     }
 
     uploadIssueToastShownRef.current = false;
-
-    const activeWebcamRecordingId = recordingIdRef.current.webcam;
-    const activeScreenRecordingId = recordingIdRef.current.screen;
-
-    recordingIdRef.current.webcam = null;
-    recordingIdRef.current.screen = null;
     isStreamingRef.current = false;
 
-    if (activeWebcamRecordingId) {
-      void endStreaming("webcam").catch((error) => {
-        console.warn("Failed to finalize webcam recording", error);
-      });
-    }
+    // Finalize webcam recording (atomic — won't double-call if already done)
+    void finalizeRecording("webcam").catch((err) => {
+      console.warn("Failed to finalize webcam recording", err);
+    });
 
-    if (activeScreenRecordingId) {
-      void endStreaming("screen").catch((error) => {
-        console.warn("Failed to finalize screen recording", error);
-      });
-    }
+    // Finalize screen recording (atomic — won't double-call if already done)
+    void finalizeRecording("screen").catch((err) => {
+      console.warn("Failed to finalize screen recording", err);
+    });
 
+    // Stop MediaRecorders if still running
     if (recorderRef.current && recorderRef.current.state !== "inactive") {
       recorderRef.current.stop();
     }
-
     if (screenRecorderRef.current && screenRecorderRef.current.state !== "inactive") {
       screenRecorderRef.current.stop();
     }
 
-    // Only stop tracks if we own them (not an initialStream passed from parent)
+    // Stop tracks we own (not parent-provided streams)
     if (streamRef.current && streamRef.current !== initialStream) {
       stopTracks(streamRef.current);
     }
     streamRef.current = null;
-    setScreenShareStream((prev) => {
-      if (prev && prev !== initialScreenStream) {
-        stopTracks(prev);
-      }
-      return null;
-    });
+
+    const currentScreenStream = screenShareStreamRef.current;
+    if (currentScreenStream && currentScreenStream !== initialScreenStream) {
+      stopTracks(currentScreenStream);
+    }
+    screenShareStreamRef.current = null;
+    setScreenShareStream(null);
+
     pendingChunksRef.current.webcam.clear();
     pendingChunksRef.current.screen.clear();
 
     if (videoRef.current) videoRef.current.srcObject = null;
     if (screenVideoRef.current) screenVideoRef.current.srcObject = null;
-  }, [endStreaming, isInterviewActive]);
+  }, [isInterviewActive, finalizeRecording, initialStream, initialScreenStream]);
 
+  // ── Webcam + recording setup ────────────────────────────────────────
   useEffect(() => {
     if (!isInterviewActive) {
       return;
@@ -278,9 +288,10 @@ const WebcamFeed = ({
     let isActive = true;
     let keepaliveInterval: NodeJS.Timeout | null = null;
 
-    // Auto start screen sharing when interview becomes active
+    // Auto-start screen sharing when interview becomes active
     const startScreenSharing = async () => {
-      if (!isInterviewActive || screenShareStream || initialScreenStream) return;
+      // Use ref to avoid stale closure on screenShareStream state
+      if (screenShareStreamRef.current || initialScreenStream) return;
       if (!canScreenShare) {
         toast.error("Screen capture is not supported.");
         return;
@@ -292,26 +303,27 @@ const WebcamFeed = ({
           video: {
             width: { ideal: 854 },
             height: { ideal: 480 },
-            frameRate: { ideal: 15 },
+            frameRate: { ideal: 10 }, // reduced fps saves storage; UI/text still readable
           },
           audio: true,
         });
         const [screenTrack] = stream.getVideoTracks();
         if (screenTrack) {
           screenTrack.addEventListener("ended", () => {
+            screenShareStreamRef.current = null;
             setScreenShareStream((prev) => {
               stopTracks(prev);
               return null;
             });
           });
         }
+        screenShareStreamRef.current = stream;
         setScreenShareStream(stream);
       } catch (error) {
         toast.error("You should allow access to your screen.");
       }
     };
 
-    // Start screen sharing automatically
     void startScreenSharing();
 
     const getStream = async () => {
@@ -325,21 +337,19 @@ const WebcamFeed = ({
           }
           stream = await navigator.mediaDevices.getUserMedia({
             video: {
-              width: { ideal: 640 },
-              height: { ideal: 360 },
-              frameRate: { ideal: 12 },
+              width: { ideal: 854 },
+              height: { ideal: 480 },
+              frameRate: { ideal: 10 }, // 480p at 10 fps — good quality, lower storage
             },
             audio: true,
           });
         }
 
         if (!isActive) {
-          // Don't stop tracks if this is the initialStream owned by the parent
           if (stream !== initialStream) stopTracks(stream);
           return;
         }
 
-        // Assign srcObject and refs immediately so video shows without waiting for the API
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -354,6 +364,7 @@ const WebcamFeed = ({
           recordingIdRef.current.webcam = recordingId;
           chunkIndexRef.current.webcam = initResult.nextChunkIndex;
           isStreamingRef.current = true;
+          hasRecordingStartedRef.current = true;
         } catch (error) {
           console.warn("Failed to initialize webcam streaming", error);
           notifyUploadIssue(
@@ -371,7 +382,7 @@ const WebcamFeed = ({
           "";
         const recorder = new MediaRecorder(stream, {
           mimeType: mimeType || undefined,
-          videoBitsPerSecond: 200000, // 200kbps for 360p webcam
+          videoBitsPerSecond: 300_000, // 300 kbps for 480p webcam
         });
 
         recorderRef.current = recorder;
@@ -381,7 +392,7 @@ const WebcamFeed = ({
           onRecordingStart?.();
           keepaliveInterval = setInterval(() => {
             void sendKeepalive();
-          }, 30000);
+          }, 30_000);
         };
 
         recorder.ondataavailable = async (event) => {
@@ -411,11 +422,12 @@ const WebcamFeed = ({
             keepaliveInterval = null;
           }
 
-          // NOTE: endStreaming for webcam is handled by the isInterviewActive
-          // cleanup effect to prevent double-calling /recordings/end
           if (pendingChunksRef.current.webcam.size > 0) {
             notifyUploadIssue("Some webcam recording chunks could not be uploaded.");
           }
+
+          // NOTE: finalizeRecording("webcam") is handled by the isInterviewActive
+          // cleanup effect to prevent double-calling /recordings/end.
         };
 
         recorder.start(CHUNK_INTERVAL_MS);
@@ -446,7 +458,6 @@ const WebcamFeed = ({
     };
   }, [
     canScreenShare,
-    endStreaming,
     initializeStreaming,
     isInterviewActive,
     notifyUploadIssue,
@@ -461,16 +472,13 @@ const WebcamFeed = ({
     // effect to re-run mid-async and stop the camera tracks prematurely.
   ]);
 
+  // ── Screen recording setup ─────────────────────────────────────────
   useEffect(() => {
     if (!screenShareStream) {
-      const activeRecordingId = recordingIdRef.current.screen;
-      recordingIdRef.current.screen = null;
-
-      if (activeRecordingId) {
-        void endStreaming("screen").catch((error) => {
-          console.warn("Failed to finalize screen recording", error);
-        });
-      }
+      // screenShareStream became null — finalize atomically (no double call).
+      void finalizeRecording("screen").catch((err) => {
+        console.warn("Failed to finalize screen recording on stream end", err);
+      });
 
       if (
         screenRecorderRef.current &&
@@ -490,6 +498,7 @@ const WebcamFeed = ({
         screenRecordingId = result.recordingId;
         recordingIdRef.current.screen = result.recordingId;
         chunkIndexRef.current.screen = result.nextChunkIndex;
+        hasRecordingStartedRef.current = true;
       })
       .catch((error) => {
         console.warn("Failed to initialize screen streaming", error);
@@ -507,7 +516,7 @@ const WebcamFeed = ({
       preferredTypes.find((type) => MediaRecorder.isTypeSupported(type)) || "";
     const recorder = new MediaRecorder(screenShareStream, {
       mimeType: mimeType || undefined,
-      videoBitsPerSecond: 500000, // 500kbps for 480p screen share
+      videoBitsPerSecond: 300_000, // 300 kbps — reduced bitrate, UI/text still legible at 480p
     });
 
     screenRecorderRef.current = recorder;
@@ -523,16 +532,9 @@ const WebcamFeed = ({
     };
 
     recorder.onstop = () => {
-      const activeRecordingId = recordingIdRef.current.screen;
-      recordingIdRef.current.screen = null;
-
-      if (activeRecordingId) {
-        void endStreaming("screen").catch((error) => {
-          console.warn("Failed to finalize screen recording", error);
-          notifyUploadIssue("Failed to finalize screen recording.");
-        });
-      }
-
+      // NOTE: finalizeRecording("screen") is handled either by the
+      // screenShareStream-becomes-null path above, or by the isInterviewActive
+      // cleanup effect — both are atomic, so only one will actually call the API.
       if (pendingChunksRef.current.screen.size > 0) {
         notifyUploadIssue(
           "Some screen-share recording chunks could not be uploaded.",
@@ -548,7 +550,7 @@ const WebcamFeed = ({
       }
     };
   }, [
-    endStreaming,
+    finalizeRecording,
     initializeStreaming,
     notifyUploadIssue,
     screenShareStream,
@@ -563,6 +565,7 @@ const WebcamFeed = ({
       screenRecorderRef.current.stop();
     }
 
+    screenShareStreamRef.current = null;
     setScreenShareStream((prev) => {
       stopTracks(prev);
       return null;
@@ -591,6 +594,7 @@ const WebcamFeed = ({
         screenTrack.addEventListener("ended", stopScreenShare, { once: true });
       }
 
+      screenShareStreamRef.current = stream;
       setScreenShareStream(stream);
     } catch (error) {
       toast.error("You should allow access to your screen.");

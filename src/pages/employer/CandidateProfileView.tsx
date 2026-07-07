@@ -428,7 +428,7 @@ const CandidateProfileView = () => {
   const benchData = profile && isBenchProfile(profile) ? profile : null;
 
   return (
-    <div className="min-h-screen max-w-full flex flex-col dark:bg-slate-900 p-8">
+    <div className="min-h-screen max-w-full flex flex-col dark:bg-slate-900 px-8 py-4">
       {loading && !profile ? (
         <BarLoader />
       ) : hasError ? (

@@ -473,7 +473,7 @@ const CodingChallenge: React.FC = () => {
         reason: "Multiple monitors detected",
       })
         .unwrap()
-        .catch(() => {});
+        .catch(() => { });
       setTotalViolations((prev) => prev + 1);
       addLog("Violation: Multiple monitors detected");
     },
@@ -655,17 +655,17 @@ const CodingChallenge: React.FC = () => {
     : false;
   const currentProblemHasResults = currentProblem
     ? Object.keys(testCasesMap).some((key) =>
-        key.startsWith(`${currentProblem.id}_`),
-      ) ||
-      (() => {
-        for (let i = 0; i < localStorage.length; i += 1) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith(`coding_results_${currentProblem.id}_`)) {
-            return true;
-          }
+      key.startsWith(`${currentProblem.id}_`),
+    ) ||
+    (() => {
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(`coding_results_${currentProblem.id}_`)) {
+          return true;
         }
-        return false;
-      })()
+      }
+      return false;
+    })()
     : false;
   const shouldBlockProblemSwitch =
     !!currentProblem && currentProblemHasResults && !isCurrentProblemSubmitted;
@@ -952,8 +952,8 @@ const CodingChallenge: React.FC = () => {
     } catch (err: any) {
       setError(
         err?.data?.message ||
-          err.message ||
-          "An error occurred during execution",
+        err.message ||
+        "An error occurred during execution",
       );
     } finally {
       setIsRunningCode(false);
@@ -1027,8 +1027,8 @@ const CodingChallenge: React.FC = () => {
     } catch (err: any) {
       setError(
         err?.data?.message ||
-          err.message ||
-          "An error occurred during submission",
+        err.message ||
+        "An error occurred during submission",
       );
     } finally {
       setIsSubmitting(false);
@@ -1241,11 +1241,10 @@ const CodingChallenge: React.FC = () => {
 
             <div className="space-y-4 mb-8">
               <button
-                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${
-                  hasWebcamPermission
-                    ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
-                    : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
-                }`}
+                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${hasWebcamPermission
+                  ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
+                  : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
+                  }`}
                 onClick={async () => {
                   if (hasWebcamPermission) return;
                   try {
@@ -1291,16 +1290,17 @@ const CodingChallenge: React.FC = () => {
               </button>
 
               <button
-                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${
-                  isScreenSelected
-                    ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
-                    : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
-                }`}
+                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${isScreenSelected
+                  ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
+                  : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
+                  }`}
                 onClick={async () => {
                   if (isScreenSelected) return;
                   try {
                     const stream = await navigator.mediaDevices.getDisplayMedia(
-                      { video: true },
+                      {
+                        video: true,
+                      },
                     );
 
                     const [track] = stream.getVideoTracks();
@@ -1438,11 +1438,10 @@ const CodingChallenge: React.FC = () => {
                       ? "1px solid #e2e8f0"
                       : "none",
                 }}
-                className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${
-                  !hasWebcamPermission || !isScreenSelected || !hasConsented
-                    ? "cursor-not-allowed opacity-100"
-                    : "hover:opacity-90"
-                }`}
+                className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${!hasWebcamPermission || !isScreenSelected || !hasConsented
+                  ? "cursor-not-allowed opacity-100"
+                  : "hover:opacity-90"
+                  }`}
                 disabled={
                   !hasWebcamPermission || !isScreenSelected || !hasConsented
                 }
@@ -1537,7 +1536,7 @@ const CodingChallenge: React.FC = () => {
               className={cn(
                 "gap-2 bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none shrink-0",
                 !isMobile &&
-                  "bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none",
+                "bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none",
               )}
             >
               {isRunningCode ? (
@@ -1666,10 +1665,10 @@ const CodingChallenge: React.FC = () => {
                   <ConsoleOutput
                     testCases={
                       testCasesMap[
-                        getTestCaseResultKey(
-                          currentProblem?.id,
-                          getLanguageId(language),
-                        )
+                      getTestCaseResultKey(
+                        currentProblem?.id,
+                        getLanguageId(language),
+                      )
                       ] ?? []
                     }
                     isRunning={isRunning}

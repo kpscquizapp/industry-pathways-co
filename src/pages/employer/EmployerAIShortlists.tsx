@@ -286,10 +286,24 @@ const mapMatchToCandidate = (match: Match): CandidateProfileWithMeta | null => {
 const findReportByCandidateEmail = (
   candidateEmail: string | undefined,
   invitedTestResults: unknown[],
+  scopedJobId?: string | null,
 ) => {
   if (!candidateEmail) return undefined;
   const normalizedCandidateEmail = normalizeEmail(candidateEmail);
-  return invitedTestResults.find((item) => {
+
+  // When a specific job is selected, only consider results for that job
+  const scopedResults = scopedJobId
+    ? invitedTestResults.filter((item) => {
+        const report = item as Record<string, unknown>;
+        const reportJobId =
+          report.jobId ??
+          report.job_id ??
+          (report.job as Record<string, unknown> | undefined)?.id;
+        return String(reportJobId) === String(scopedJobId);
+      })
+    : invitedTestResults;
+
+  return scopedResults.find((item) => {
     const report = item as Record<string, unknown>;
     const reportEmail = normalizeEmail(
       report.candidateEmail ??
@@ -325,16 +339,18 @@ const SidebarCandidateItem = ({
   onClick,
   tab,
   invitedTestResults,
+  selectedJobId,
 }: {
   candidate: CandidateListItem;
   isSelected: boolean;
   onClick: () => void;
   tab: "skill-test" | "ai-interview";
   invitedTestResults: any[];
+  selectedJobId?: string | null;
 }) => {
   const selectedCandidateReport = useMemo(() => {
-    return findReportByCandidateEmail(candidate.email, invitedTestResults);
-  }, [candidate.email, invitedTestResults]);
+    return findReportByCandidateEmail(candidate.email, invitedTestResults, selectedJobId);
+  }, [candidate.email, invitedTestResults, selectedJobId]);
 
   let statusDisplay = tab === "skill-test" ? "Pending" : "Interviewed";
   if (tab === "skill-test" && selectedCandidateReport) {
@@ -793,8 +809,8 @@ const EmployerAIShortlists = () => {
   );
 
   const selectedCandidateSkillReport = useMemo(() => {
-    return findReportByCandidateEmail(selectedCandidateForDetails?.email, invitedTestResults);
-  }, [invitedTestResults, selectedCandidateForDetails?.email]);
+    return findReportByCandidateEmail(selectedCandidateForDetails?.email, invitedTestResults, selectedJobId);
+  }, [invitedTestResults, selectedCandidateForDetails?.email, selectedJobId]);
 
   const renderSidebar = (tab: "skill-test" | "ai-interview") => (
     <div className="w-full shrink-0 lg:sticky lg:top-[100px] lg:h-fit lg:w-[320px]">
@@ -831,6 +847,7 @@ const EmployerAIShortlists = () => {
             onClick={() => setSelectedCandidateId(candidate.id)}
             tab={tab}
             invitedTestResults={invitedTestResults}
+            selectedJobId={selectedJobId}
           />
         ))}
       </div>
