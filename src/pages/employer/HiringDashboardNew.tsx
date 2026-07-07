@@ -583,7 +583,7 @@ const HiringDashboardNew = () => {
                               className={`h-9 min-w-0 flex items-center justify-center px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${
                                 candidate.stage === "invited"
                                   ? "bg-indigo-50 text-indigo-600 border-indigo-200"
-                                  : candidate.stage && "shortlisted"
+                                  : candidate.stage === "shortlisted"
                                     ? "bg-emerald-50 text-emerald-600 border-emerald-200"
                                     : "border-gray-200 text-gray-700"
                               }`}
