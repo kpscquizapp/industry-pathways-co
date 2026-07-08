@@ -797,35 +797,35 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ recordings, violations })
                     const isRed = typeStyle[v.type]?.includes("red");
                     const isOrange = typeStyle[v.type]?.includes("orange");
                     const isPurple = typeStyle[v.type]?.includes("purple");
-                    
-                    const borderColor = isYellow ? "border-l-yellow-400" 
-                      : isRed ? "border-l-red-400" 
-                      : isOrange ? "border-l-orange-400" 
-                      : isPurple ? "border-l-purple-400" 
-                      : "border-l-rose-400";
-                      
-                    const iconColor = isYellow ? "text-yellow-500" 
-                      : isRed ? "text-red-500" 
-                      : isOrange ? "text-orange-500" 
-                      : isPurple ? "text-purple-500" 
-                      : "text-rose-500";
-                      
-                    const bgColor = isYellow ? "bg-yellow-50" 
-                      : isRed ? "bg-red-50" 
-                      : isOrange ? "bg-orange-50" 
-                      : isPurple ? "bg-purple-50" 
-                      : "bg-rose-50";
+
+                    const borderColor = isYellow ? "border-l-yellow-400"
+                      : isRed ? "border-l-red-400"
+                        : isOrange ? "border-l-orange-400"
+                          : isPurple ? "border-l-purple-400"
+                            : "border-l-rose-400";
+
+                    const iconColor = isYellow ? "text-yellow-500"
+                      : isRed ? "text-red-500"
+                        : isOrange ? "text-orange-500"
+                          : isPurple ? "text-purple-500"
+                            : "text-rose-500";
+
+                    const bgColor = isYellow ? "bg-yellow-50"
+                      : isRed ? "bg-red-50"
+                        : isOrange ? "bg-orange-50"
+                          : isPurple ? "bg-purple-50"
+                            : "bg-rose-50";
 
                     return (
                       <div
                         key={v.type}
-                        className={`p-3 sm:p-4 rounded-xl border-y border-r border-slate-200 border-l-[4px] bg-white shadow-sm hover:shadow-md transition-shadow flex items-center justify-between gap-3 ${borderColor}`}
+                        className={`p-3 sm:p-4 rounded-xl border-y border-r border-slate-200 border-l-[4px] bg-white shadow-sm transition-shadow flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${borderColor}`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full ${bgColor} flex items-center justify-center flex-shrink-0`}>
+                        <div className="flex items-start sm:items-center gap-3 w-full sm:w-auto flex-wrap">
+                          <div className={`w-8 h-8 rounded-full ${bgColor} flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0`}>
                             <AlertTriangle size={14} className={iconColor} />
                           </div>
-                          <div className="flex flex-col">
+                          <div className="flex flex-col flex-1">
                             <span className="text-[13px] font-bold text-slate-800 leading-tight">
                               {v.type}
                             </span>
@@ -840,9 +840,9 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ recordings, violations })
                             ) : null}
                           </div>
                         </div>
-                        
-                        <div className="flex flex-col items-end flex-shrink-0">
-                          <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-1">
+
+                        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto pl-11 sm:pl-0 pt-2 sm:pt-0 border-t border-slate-50 sm:border-t-0 flex-shrink-0">
+                          <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-0 sm:mb-1">
                             Occurrences
                           </span>
                           <span className={`px-2.5 py-0.5 text-[11px] font-bold rounded-md ${typeStyle[v.type] ?? "bg-slate-100 text-slate-600"}`}>
