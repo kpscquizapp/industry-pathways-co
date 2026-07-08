@@ -156,7 +156,7 @@ const CandidateSkillTestDetails = ({
   return (
     <div className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       <div className="border-b border-gray-100 p-5 sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex flex-col gap-4 lg:gap-1 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#08b8cc]">
               Skill Test Scores
@@ -278,7 +278,7 @@ const CandidateSkillTestDetails = ({
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-900">
                       {typeof question.question === "string" &&
-                      question.question.trim()
+                        question.question.trim()
                         ? question.question
                         : `Question ${index + 1}`}
                     </p>
