@@ -126,6 +126,8 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ recordings, violations })
 
   const [screenBlobUrl, setScreenBlobUrl] = useState<string | null>(null);
   const [webcamBlobUrl, setWebcamBlobUrl] = useState<string | null>(null);
+  const screenBlobUrlRef = useRef<string | null>(null);
+  const webcamBlobUrlRef = useRef<string | null>(null);
   const [loadingMedia, setLoadingMedia] = useState(true);
 
   // Fetch blobs for videos to enable duration and seeking over CORP
@@ -139,7 +141,11 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ recordings, violations })
       return;
     }
 
-    async function fetchBlob(url: string | null, setBlob: (b: string) => void) {
+    async function fetchBlob(
+      url: string | null,
+      setBlob: (b: string) => void,
+      blobRef: React.MutableRefObject<string | null>
+    ) {
       if (!url) return;
       try {
         const { Authorization } = getAuthHeaders();
@@ -150,7 +156,9 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ recordings, violations })
         if (!res.ok) throw new Error("Failed to fetch media");
         const blob = await res.blob();
         if (active) {
-          setBlob(URL.createObjectURL(blob));
+          const objUrl = URL.createObjectURL(blob);
+          blobRef.current = objUrl;
+          setBlob(objUrl);
           loadedCount++;
           if (loadedCount === toLoad) setLoadingMedia(false);
         }
@@ -163,19 +171,21 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ recordings, violations })
       }
     }
 
-    fetchBlob(screenSrcUrl, setScreenBlobUrl);
-    fetchBlob(webcamSrcUrl, setWebcamBlobUrl);
+    fetchBlob(screenSrcUrl, setScreenBlobUrl, screenBlobUrlRef);
+    fetchBlob(webcamSrcUrl, setWebcamBlobUrl, webcamBlobUrlRef);
 
     return () => {
       active = false;
-      setScreenBlobUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
-      setWebcamBlobUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
+      if (screenBlobUrlRef.current) {
+        URL.revokeObjectURL(screenBlobUrlRef.current);
+        screenBlobUrlRef.current = null;
+      }
+      setScreenBlobUrl(null);
+      if (webcamBlobUrlRef.current) {
+        URL.revokeObjectURL(webcamBlobUrlRef.current);
+        webcamBlobUrlRef.current = null;
+      }
+      setWebcamBlobUrl(null);
     };
   }, [screenSrcUrl, webcamSrcUrl]);
 
@@ -428,6 +438,18 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ recordings, violations })
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const [activeTab, setActiveTab] = useState<"logs" | "reference">("logs");
+
+  const groupedViolations = React.useMemo(() => {
+    return Object.values(
+      violations.reduce((acc, v) => {
+        if (!acc[v.type]) {
+          acc[v.type] = { count: 0, sample: v };
+        }
+        acc[v.type].count += 1;
+        return acc;
+      }, {} as Record<string, { count: number; sample: any }>)
+    );
+  }, [violations]);
 
   if (!screenSrcUrl && !webcamSrcUrl) {
     return (
@@ -770,36 +792,66 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ recordings, violations })
                       </p>
                     </div>
                   )}
-                  {violations.map((v) => (
-                    <div
-                      key={v.id}
-                      className={`p-3 rounded-lg border-l-4 bg-slate-50 ${typeStyle[v.type]?.includes("yellow")
-                        ? "border-l-yellow-400"
-                        : typeStyle[v.type]?.includes("red")
-                          ? "border-l-red-400"
-                          : typeStyle[v.type]?.includes("orange")
-                            ? "border-l-orange-400"
-                            : typeStyle[v.type]?.includes("purple")
-                              ? "border-l-purple-400"
-                              : "border-l-rose-400"
-                        }`}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <span
-                          className={`px-2 py-0.5 text-[10px] font-bold rounded ${typeStyle[v.type] ??
-                            "bg-slate-100 border border-slate-200 text-slate-600"
-                            }`}
-                        >
-                          {v.type}
-                        </span>
+                  {groupedViolations.map(({ count, sample: v }) => {
+                    const isYellow = typeStyle[v.type]?.includes("yellow");
+                    const isRed = typeStyle[v.type]?.includes("red");
+                    const isOrange = typeStyle[v.type]?.includes("orange");
+                    const isPurple = typeStyle[v.type]?.includes("purple");
+                    
+                    const borderColor = isYellow ? "border-l-yellow-400" 
+                      : isRed ? "border-l-red-400" 
+                      : isOrange ? "border-l-orange-400" 
+                      : isPurple ? "border-l-purple-400" 
+                      : "border-l-rose-400";
+                      
+                    const iconColor = isYellow ? "text-yellow-500" 
+                      : isRed ? "text-red-500" 
+                      : isOrange ? "text-orange-500" 
+                      : isPurple ? "text-purple-500" 
+                      : "text-rose-500";
+                      
+                    const bgColor = isYellow ? "bg-yellow-50" 
+                      : isRed ? "bg-red-50" 
+                      : isOrange ? "bg-orange-50" 
+                      : isPurple ? "bg-purple-50" 
+                      : "bg-rose-50";
+
+                    return (
+                      <div
+                        key={v.type}
+                        className={`p-3 sm:p-4 rounded-xl border-y border-r border-slate-200 border-l-[4px] bg-white shadow-sm hover:shadow-md transition-shadow flex items-center justify-between gap-3 ${borderColor}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full ${bgColor} flex items-center justify-center flex-shrink-0`}>
+                            <AlertTriangle size={14} className={iconColor} />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[13px] font-bold text-slate-800 leading-tight">
+                              {v.type}
+                            </span>
+                            {v.questionId && count === 1 ? (
+                              <span className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                Question #{v.questionId}
+                              </span>
+                            ) : count > 1 ? (
+                              <span className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                Multiple integrity flags
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col items-end flex-shrink-0">
+                          <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-1">
+                            Occurrences
+                          </span>
+                          <span className={`px-2.5 py-0.5 text-[11px] font-bold rounded-md ${typeStyle[v.type] ?? "bg-slate-100 text-slate-600"}`}>
+                            {count}
+                          </span>
+                        </div>
                       </div>
-                      {v.questionId && (
-                        <p className="text-[12px] text-slate-600">
-                          Question #{v.questionId}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
