@@ -80,28 +80,11 @@ const typeStyle: Record<string, string> = {
   "Cut attempt": "bg-pink-50 border-pink-200 text-pink-700",
 };
 
-/**
- * Recordings produced by concatenating MediaRecorder chunks server-side
- * commonly end up as webm files whose container metadata does not declare
- * a real duration. Browsers then report `video.duration` as `Infinity`
- * (or sometimes `NaN`), which breaks:
- *  - reading/display of total duration
- *  - the seek/progress bar (since duration never resolves to a finite value)
- *  - `playbackRate` changes (Chromium-family browsers largely ignore rate
- *    changes on media that hasn't resolved a finite duration yet, since
- *    it's treated similarly to a live stream)
- *
- * The standard workaround is to seek to a huge timestamp and then back to 0.
- * This forces the browser to fully index the file and recompute a correct,
- * finite `duration`. Since we already have the entire file as a local blob
- * (fetched up front), this resolves essentially instantly with no buffering.
- */
 function fixBrokenDuration(
   video: HTMLVideoElement,
   onFixed: (duration: number) => void,
   fixingRef: React.MutableRefObject<boolean>
 ) {
-  // Already finite - nothing to do.
   if (isFinite(video.duration) && video.duration > 0) {
     onFixed(video.duration);
     return;
@@ -109,16 +92,28 @@ function fixBrokenDuration(
 
   fixingRef.current = true;
 
-  const handleTimeUpdate = () => {
-    video.removeEventListener("timeupdate", handleTimeUpdate);
+  let cleanupDone = false;
+  const cleanup = () => {
+    if (cleanupDone) return;
+    cleanupDone = true;
+
+    video.removeEventListener("timeupdate", cleanup);
+    video.removeEventListener("seeked", cleanup);
+    clearTimeout(fallbackTimeout);
+
     video.currentTime = 0;
+
     fixingRef.current = false;
+
     if (isFinite(video.duration) && video.duration > 0) {
       onFixed(video.duration);
     }
   };
 
-  video.addEventListener("timeupdate", handleTimeUpdate);
+  video.addEventListener("timeupdate", cleanup);
+  video.addEventListener("seeked", cleanup);
+  const fallbackTimeout = setTimeout(cleanup, 1000);
+
   video.currentTime = 1e101;
 }
 
@@ -173,6 +168,14 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ recordings, violations })
 
     return () => {
       active = false;
+      setScreenBlobUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      setWebcamBlobUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
     };
   }, [screenSrcUrl, webcamSrcUrl]);
 
@@ -447,7 +450,8 @@ const LiveReviewTab: React.FC<LiveReviewTabProps> = ({ recordings, violations })
 
           <div className="flex flex-col gap-2 text-right">
             <h4 className="text-sm font-medium text-slate-900 capitalize">Status : {recordings[0]?.status}</h4>
-            <h4 className="text-sm font-medium text-slate-900 capitalize">Completed At : {new Date(recordings[0]?.completedAt).toLocaleDateString()}</h4>
+            <h4 className="text-sm font-medium text-slate-900 capitalize">Completed At : {recordings[0]?.completedAt ? new Date(recordings[0].completedAt).toLocaleDateString() : "N/A"}</h4>
+
           </div>
         </div>
       </div>

@@ -210,6 +210,7 @@ const WebcamFeed = ({
         }
         return true;
       } catch (error) {
+        recordingIdRef.current[type] = claimedId;
         console.warn(`Failed to finalize ${type} recording`, error);
         return false;
       }
