@@ -30,10 +30,10 @@ const ContractorDashboard = () => {
   const stats = statsData?.data || {};
 
   const KPI = useMemo(() => [
-    { label: "Interview Invites", value: stats.interviewInvites, icon: Video, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "this week" },
-    { label: "Pending Tests", value: stats.pendingTests, icon: FileCheck, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "due soon" },
-    { label: "Profile Views", value: stats.profileViews, icon: Eye, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "total views" },
-    { label: "Skill Score", value: stats.skillScore ? `${stats.skillScore}%` : "0%", icon: Star, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: "0", sub: "highest score" },
+    { label: "Interview Invites", value: stats.interviewInvites, icon: Video, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: stats.interviewInvitesWeekly, sub: "total invites" },
+    { label: "Pending Tests", value: stats.pendingTests, icon: FileCheck, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: stats.pendingTestsWeekly, sub: "due soon" },
+    { label: "Profile Views", value: stats.profileViews, icon: Eye, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: stats.profileViewsWeekly, sub: "total views" },
+    { label: "Skill Score", value: stats.skillScore ? `${stats.skillScore}%` : "0%", icon: Star, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: stats.skillScoreWeekly, sub: "highest score" },
   ], [stats]);
 
   if (statsLoading) {

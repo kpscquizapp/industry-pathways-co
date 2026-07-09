@@ -34,7 +34,7 @@ export const jobApi = createApi({
       }),
       providesTags: ["Jobs"],
     }),
-    getDashboardJobs: builder.query({
+    getEmployerDashboardStatus: builder.query({
       query: () => ({
         headers: getAuthHeaders(),
         method: "GET",
@@ -102,7 +102,7 @@ export const {
   useCreateJobMutation,
   useGetJobsQuery,
   useGetJobsByIdQuery,
-  useGetDashboardJobsQuery,
+  useGetEmployerDashboardStatusQuery,
   useShowAllJobsQuery,
   useGetEmployerAllJobsQuery,
   useUpdateJobMutation,
