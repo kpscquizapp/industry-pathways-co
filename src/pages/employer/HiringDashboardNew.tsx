@@ -168,7 +168,7 @@ const HiringDashboardNew = () => {
     useGetEmployerJobsQuery({ page: 1, limit: 100 });
   const [getJobMatches] = useLazyGetJobMatchesQuery();
 
-  const { data: { data: dashboardData } = {}, isLoading: statsLoading } = useGetEmployerDashboardStatusQuery(0);
+  const { data: { data: dashboardData } = {}, isLoading: statsLoading } = useGetEmployerDashboardStatusQuery(undefined);
 
   const jobs = React.useMemo<Job[]>(() => {
     if (!jobsResponse) return [];
@@ -388,7 +388,7 @@ const HiringDashboardNew = () => {
               {dashboardData?.totalMatchesWeekly > 0 && (
                 <>
                   <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="text-emerald-500">+{dashboardData.totalMatchesWeekly} this week</span>
+                  <span className="text-emerald-500">+{dashboardData?.totalMatchesWeekly} this week</span>
                 </>
               )}
             </div>
