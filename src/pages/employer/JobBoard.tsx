@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  useGetDashboardJobsQuery,
+  useGetEmployerDashboardStatusQuery,
   useGetJobsQuery,
 } from "@/app/queries/jobApi";
 
@@ -56,7 +56,7 @@ const JobBoard = () => {
   const [sortBy, setSortBy] = useState("date");
   const { data: jobs, isLoading: jobsLoading } = useGetJobsQuery("");
   const { data: Dashboard, isLoading: DashboardLoading } =
-    useGetDashboardJobsQuery("");
+    useGetEmployerDashboardStatusQuery(undefined);
 
   const stats = [
     {

@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import BarLoader from "@/components/loader/BarLoader";
+import { useGetEmployerDashboardStatusQuery } from "@/app/queries/jobApi";
 
 /* ── helpers ── */
 
@@ -166,6 +167,8 @@ const HiringDashboardNew = () => {
   const { data: jobsResponse, isLoading: jobsLoading } =
     useGetEmployerJobsQuery({ page: 1, limit: 100 });
   const [getJobMatches] = useLazyGetJobMatchesQuery();
+
+  const { data: { data: dashboardData } = {}, isLoading: statsLoading } = useGetEmployerDashboardStatusQuery(undefined);
 
   const jobs = React.useMemo<Job[]>(() => {
     if (!jobsResponse) return [];
@@ -314,18 +317,26 @@ const HiringDashboardNew = () => {
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
             <div className="flex items-start justify-between">
               <span className="text-[13px] font-semibold text-gray-500 tracking-wide">
-                Active Roles
+                Total Active Roles
               </span>
               <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
                 <Briefcase className="w-[18px] h-[18px] text-blue-500" />
               </div>
             </div>
             <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2 ml-2">
-              {activeJobsCount}
+              {statsLoading ? (
+                <span className="text-gray-300 text-2xl animate-pulse">Loading...</span>
+              ) : (
+                dashboardData?.openJobs ?? activeJobsCount
+              )}
             </p>
-            <div className="flex items-center gap-1.5 text-emerald-500 text-[13px] font-semibold">
-              {/* <TrendingUp className="w-3.5 h-3.5" />
-              <span>+2 this week</span> */}
+            <div className="flex items-center gap-1.5 text-emerald-500 text-[13px] font-semibold h-5">
+              {dashboardData?.openJobsWeekly > 0 && (
+                <>
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>+{dashboardData.openJobsWeekly} this week</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -333,22 +344,26 @@ const HiringDashboardNew = () => {
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
             <div className="flex items-start justify-between">
               <span className="text-[13px] font-semibold text-gray-500 tracking-wide">
-                Coding Test Done
+                Total Coding Test Done
               </span>
               <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
                 <ClipboardCheck className="w-[18px] h-[18px] text-amber-500" />
               </div>
             </div>
             <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2 ml-2">
-              {isMatchCountsLoading ? (
-                <span className="text-gray-300 animate-pulse">Loading...</span>
+              {statsLoading ? (
+                <span className="text-gray-300 text-2xl animate-pulse">Loading...</span>
               ) : (
-                totalTestsDone.toLocaleString()
+                (dashboardData?.totalTestsDone ?? totalTestsDone).toLocaleString()
               )}
             </p>
-            <div className="flex items-center gap-1.5 text-emerald-500 text-[13px] font-semibold">
-              {/* <TrendingUp className="w-3.5 h-3.5" />
-              <span>+12% from last week</span> */}
+            <div className="flex items-center gap-1.5 text-emerald-500 text-[13px] font-semibold h-5">
+              {dashboardData?.totalTestsDoneWeekly > 0 && (
+                <>
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>+{dashboardData.totalTestsDoneWeekly} this week</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -356,24 +371,26 @@ const HiringDashboardNew = () => {
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
             <div className="flex items-start justify-between">
               <span className="text-[13px] font-semibold text-gray-500 tracking-wide">
-                Candidate Matches
+                Total Candidate AI Matches
               </span>
               <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
                 <Sparkles className="w-[18px] h-[18px] text-teal-500" />
               </div>
             </div>
             <p className="text-[36px] font-extrabold text-gray-900 leading-none tracking-tight mb-2 ml-2">
-              {isMatchCountsLoading ? (
-                <span className="text-gray-300 animate-pulse">Loading...</span>
+              {statsLoading || isMatchCountsLoading ? (
+                <span className="text-gray-300 text-2xl animate-pulse">Loading...</span>
               ) : (
-                matchCounts[selectedJobId] || 0
+                Object.values(matchCounts).reduce((a: any, b: any) => a + b, 0).toLocaleString()
               )}
             </p>
-            <div className="flex items-center gap-1.5 text-gray-400 text-[13px] font-medium">
-              {/* <div className="w-4 h-4 rounded-full border-[1.5px] border-gray-300 flex items-center justify-center text-[9px] font-bold text-gray-400">
-                i
-              </div>
-              <span>Avg 85% match rate</span> */}
+            <div className="flex items-center gap-1.5 text-gray-400 text-[13px] font-medium h-5">
+              {dashboardData?.totalMatchesWeekly > 0 && (
+                <>
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-emerald-500">+{dashboardData?.totalMatchesWeekly} this week</span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -412,7 +429,7 @@ const HiringDashboardNew = () => {
                       : job.status === "closed"
                         ? "Paused"
                         : (job.status ?? "").charAt(0).toUpperCase() +
-                          (job.status ?? "").slice(1);
+                        (job.status ?? "").slice(1);
                   const statusColor = isActive
                     ? "bg-emerald-50 text-emerald-500 border-emerald-200"
                     : statusLabel === "Draft"
@@ -422,11 +439,10 @@ const HiringDashboardNew = () => {
                   return (
                     <div
                       key={job.id}
-                      className={`px-6 py-5 cursor-pointer hover:bg-gray-50/50 transition-colors ${
-                        idx < Math.min(activeJobs.length, 3) - 1
-                          ? "border-b border-gray-100"
-                          : ""
-                      }`}
+                      className={`px-6 py-5 cursor-pointer hover:bg-gray-50/50 transition-colors ${idx < Math.min(activeJobs.length, 3) - 1
+                        ? "border-b border-gray-100"
+                        : ""
+                        }`}
                       onClick={() =>
                         navigate(`/hire-talent/ai-shortlists?jobId=${job.id}`)
                       }
@@ -532,13 +548,11 @@ const HiringDashboardNew = () => {
                     return (
                       <div
                         key={candidate.id}
-                        className={`px-6 py-5 hover:bg-gray-50/40 transition-colors relative ${
-                          isShortlisted ? "bg-teal-50/30" : ""
-                        } ${
-                          idx < Math.min(topCandidates.length, 3) - 1
+                        className={`px-6 py-5 hover:bg-gray-50/40 transition-colors relative ${isShortlisted ? "bg-teal-50/30" : ""
+                          } ${idx < Math.min(topCandidates.length, 3) - 1
                             ? "border-b border-gray-100"
                             : ""
-                        }`}
+                          }`}
                       >
                         {/* Main row: Avatar | Info | Ring | Actions */}
                         <div className="flex items-center gap-4">
@@ -580,13 +594,12 @@ const HiringDashboardNew = () => {
                           {/* Action buttons */}
                           <div className="flex items-center gap-2 shrink-0">
                             <div
-                              className={`h-9 min-w-0 flex items-center justify-center px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${
-                                candidate.stage === "invited"
-                                  ? "bg-indigo-50 text-indigo-600 border-indigo-200"
-                                  : candidate.stage === "shortlisted"
-                                    ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                                    : "border-gray-200 text-gray-700"
-                              }`}
+                              className={`h-9 min-w-0 flex items-center justify-center px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${candidate.stage === "invited"
+                                ? "bg-indigo-50 text-indigo-600 border-indigo-200"
+                                : candidate.stage === "shortlisted"
+                                  ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                  : "border-gray-200 text-gray-700"
+                                }`}
                             >
                               {candidate.stage === "invited" ? (
                                 <span className="flex items-center gap-1.5">
