@@ -1,5 +1,4 @@
 import React, { memo, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import { useGetDashboardStatsQuery } from "@/app/queries/profileApi";
@@ -13,36 +12,98 @@ import {
 } from "lucide-react";
 import ContractorProfile from "./ContractorProfile";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
+import type { JSX } from "react";
 
-const GlassCard = memo(({ children, gradient, className = "" }: { children: React.ReactNode; gradient: string; className?: string }) => (
-  <div className={`relative overflow-hidden rounded-2xl p-6 text-white shadow-lg ${gradient} ${className}`}>
-    <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-white/10" />
-    <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
-    <div className="relative z-10">{children}</div>
-  </div>
-));
+type CandidateDashboardStatus = {
+  interviewInvites: number;
+  interviewInvitesWeekly: number;
+  pendingTests: number;
+  pendingTestsWeekly: number;
+  profileViews: number;
+  profileViewsWeekly: number;
+  skillScore: number;
+  skillScoreWeekly: number;
+};
 
-const ContractorDashboard = () => {
+const GlassCard = memo(
+  ({
+    children,
+    gradient,
+    className = "",
+  }: {
+    children: React.ReactNode;
+    gradient: string;
+    className?: string;
+  }): JSX.Element => (
+    <div
+      className={`relative overflow-hidden rounded-2xl p-6 text-white shadow-lg ${gradient} ${className}`}
+    >
+      <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-white/10" />
+      <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
+      <div className="relative z-10">{children}</div>
+    </div>
+  ),
+);
+
+const ContractorDashboard = (): JSX.Element => {
   const { userDetails } = useSelector((state: RootState) => state.user);
-  const { data: statsData, isLoading: statsLoading } = useGetDashboardStatsQuery();
-  const navigate = useNavigate();
+  const { data: statsData, isLoading: statsLoading } =
+    useGetDashboardStatsQuery();
 
-  const stats = statsData?.data || {};
+  const stats: CandidateDashboardStatus = statsData?.data ?? {
+    interviewInvites: 0,
+    interviewInvitesWeekly: 0,
+    pendingTests: 0,
+    pendingTestsWeekly: 0,
+    profileViews: 0,
+    profileViewsWeekly: 0,
+    skillScore: 0,
+    skillScoreWeekly: 0,
+  };
 
-  const KPI = useMemo(() => [
-    { label: "Interview Invites", value: stats.interviewInvites, icon: Video, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: stats.interviewInvitesWeekly ?? 0, sub: "total invites" },
-    { label: "Pending Tests", value: stats.pendingTests, icon: FileCheck, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: stats.pendingTestsWeekly ?? 0, sub: "due soon" },
-    { label: "Profile Views", value: stats.profileViews, icon: Eye, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: stats.profileViewsWeekly ?? 0, sub: "total views" },
-    { label: "Skill Score", value: stats.skillScore ? `${stats.skillScore}%` : "0%", icon: Star, gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500", change: stats.skillScoreWeekly ?? 0, sub: "highest score" },
-  ], [stats]);
+  const KPI = useMemo(
+    () => [
+      {
+        label: "Interview Invites",
+        value: stats.interviewInvites,
+        icon: Video,
+        gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500",
+        change: stats.interviewInvitesWeekly ?? 0,
+        sub: "total invites",
+      },
+      {
+        label: "Pending Tests",
+        value: stats.pendingTests,
+        icon: FileCheck,
+        gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500",
+        change: stats.pendingTestsWeekly ?? 0,
+        sub: "due soon",
+      },
+      {
+        label: "Profile Views",
+        value: stats.profileViews,
+        icon: Eye,
+        gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500",
+        change: stats.profileViewsWeekly ?? 0,
+        sub: "total views",
+      },
+      {
+        label: "Skill Score",
+        value: stats.skillScore ? `${stats.skillScore}%` : "0%",
+        icon: Star,
+        gradient: "bg-gradient-to-br from-cyan-700 to-cyan-500",
+        change: stats.skillScoreWeekly ?? 0,
+        sub: "highest score",
+      },
+    ],
+    [stats],
+  );
 
   if (statsLoading) {
     return (
       <div className="flex items-center justify-center gap-4 h-full">
         <SpinnerLoader className="w-10 h-10" />
-        <p className="text-muted-foreground">
-          Personalizing your dashboard...
-        </p>
+        <p className="text-muted-foreground">Personalizing your dashboard...</p>
       </div>
     );
   }
@@ -53,7 +114,8 @@ const ContractorDashboard = () => {
         <AlertCircle className="w-12 h-12 text-slate-300" />
         <h3 className="text-xl font-bold text-slate-900">Stats Unavailable</h3>
         <p className="text-slate-500 max-w-sm text-center">
-          We couldn&apos;t retrieve your dashboard statistics. Some activity data might be temporarily unavailable.
+          We couldn&apos;t retrieve your dashboard statistics. Some activity
+          data might be temporarily unavailable.
         </p>
       </div>
     );
@@ -63,12 +125,16 @@ const ContractorDashboard = () => {
     <div className="py-6 sm:py-10 flex flex-col px-6 sm:px-9 md:px-8 font-inter">
       <div>
         <h2 className="text-2xl md:text-3xl font-bold">Dashboard</h2>
-        <p className="text-muted-foreground mt-2 mb-8">Welcome back, {userDetails?.firstName}. Here's your activity overview.</p>
+        <p className="text-muted-foreground mt-2 mb-8">
+          Welcome back, {userDetails?.firstName}. Here&apos;s your activity
+          overview.
+        </p>
       </div>
       {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {KPI.map((k, i) => {
-          const IconObj = k.icon;
+          const IconObj: React.ComponentType<JSX.IntrinsicElements["svg"]> =
+            k.icon;
           return (
             <GlassCard key={i} gradient={k.gradient} className="px-5 py-5 pb-6">
               <div className="flex items-start justify-between mb-4">
@@ -79,11 +145,17 @@ const ContractorDashboard = () => {
                   <TrendingUp className="w-3 h-3 text-white/90" /> {k.change}
                 </div>
               </div>
-              <div className="text-[32px] font-extrabold tracking-tight mb-0.5 leading-none">{k.value}</div>
-              <div className="text-[13px] font-semibold text-white/90">{k.label}</div>
-              <div className="text-[11px] font-medium text-white/60 mt-1">{k.sub}</div>
+              <div className="text-[32px] font-extrabold tracking-tight mb-0.5 leading-none">
+                {k.value}
+              </div>
+              <div className="text-[13px] font-semibold text-white/90">
+                {k.label}
+              </div>
+              <div className="text-[11px] font-medium text-white/60 mt-1">
+                {k.sub}
+              </div>
             </GlassCard>
-          )
+          );
         })}
       </div>
 

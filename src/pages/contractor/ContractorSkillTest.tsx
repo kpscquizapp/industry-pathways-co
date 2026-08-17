@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo } from "react";
+import { useState, useMemo } from "react";
 import {
   Target,
   Award,
@@ -28,6 +28,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/hoverCard";
+import type { JSX } from "react";
+
+type InviteTestResult = {
+  id: number;
+  title: string;
+  attemptedCount: number;
+  candidateEmail: string;
+  codingAccuracy: number;
+  inviteExpiresAt: string;
+  inviteSentAt: string;
+  overallScore: number;
+  startedAt: number;
+  status: string;
+  submissionCount: number;
+  submittedAt: string;
+  totalTime: number;
+};
+
+type MockTestResult = {
+  title: string;
+  totalTime: number;
+  difficultyDistribution: {
+    easy: number;
+    medium: number;
+    hard: number;
+  };
+  tags: string[];
+};
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -54,24 +82,24 @@ const C = {
   shadowLg: "0 8px 32px rgba(0,0,0,0.08)",
 };
 
-const formatDate = (dateStr?: string | null) => {
+const formatDate = (dateStr?: string | null): string => {
   if (!dateStr) return "N/A";
 
   const date = new Date(dateStr);
   return Number.isNaN(date.getTime())
     ? "N/A"
     : date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
 };
 
-const ContractorSkillTest = () => {
-  const [filter, setFilter] = useState("all");
-  const navigate = useNavigate();
-  const [mockDifficulty, setMockDifficulty] = useState("");
-  const [questionCount, setQuestionCount] = useState("");
+const ContractorSkillTest = (): JSX.Element => {
+  const [filter, setFilter] = useState<string>("all");
+  const [mockDifficulty, setMockDifficulty] = useState<string>("");
+  const [questionCount, setQuestionCount] = useState<string>("");
+
   const [createSkillTest, { isLoading: isCreating }] =
     useCreateSkillTestMutation();
   const { data: testResultsData, isLoading: isLoadingResults } =
@@ -81,17 +109,22 @@ const ContractorSkillTest = () => {
     isLoading: isLoadingTestStatus,
   } = useGetContractorInvitedTestStatusQuery();
 
-  const allAssessments = useMemo(
-    () => isLoadingTestStatus ? [] : [
-      ...(invitedTestStatus?.availableTests || []),
-      ...(invitedTestStatus?.completedTests || []),
-    ],
-    [isLoadingTestStatus, invitedTestStatus]
+  const navigate = useNavigate();
+
+  const allAssessments: InviteTestResult[] = useMemo(
+    () =>
+      isLoadingTestStatus
+        ? []
+        : [
+            ...(invitedTestStatus?.availableTests || []),
+            ...(invitedTestStatus?.completedTests || []),
+          ],
+    [isLoadingTestStatus, invitedTestStatus],
   );
 
   // Pre-compute expensive Intl date formatting once per data change,
   // so render-time .map() callbacks just read plain strings.
-  const formattedAssessments = useMemo(
+  const formattedAssessments: InviteTestResult[] = useMemo(
     () =>
       allAssessments.map((res: any) => ({
         ...res,
@@ -102,7 +135,8 @@ const ContractorSkillTest = () => {
   );
 
   const testResults = testResultsData?.data || [];
-  const [mockTest, setMockTest] = useState({
+
+  const [mockTest, setMockTest] = useState<MockTestResult>({
     title: "",
     totalTime: 0,
     difficultyDistribution: {
@@ -117,7 +151,7 @@ const ContractorSkillTest = () => {
 
   const mockTestResults = useMemo(
     () => testResults.filter((r) => r.difficultyDistribution),
-    [testResults]
+    [testResults],
   );
 
   const startMockTest = async () => {
@@ -949,8 +983,7 @@ const ContractorSkillTest = () => {
                   <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
                   <span className="ml-2 text-slate-400">Loading...</span>
                 </div>
-              ) : mockTestResults.length >
-                0 ? (
+              ) : mockTestResults.length > 0 ? (
                 mockTestResults.map((res: any, i: number) => {
                   const scoreVal = Number(res.overallScore ?? res.score ?? 0);
                   const scoreColor =
@@ -1083,9 +1116,7 @@ const ContractorSkillTest = () => {
                               className="text-[15px] font-semibold"
                               style={{ color: color ?? undefined }}
                             >
-                              <span
-                                className={!color ? "text-slate-700" : ""}
-                              >
+                              <span className={!color ? "text-slate-700" : ""}>
                                 {value}
                               </span>
                             </p>
