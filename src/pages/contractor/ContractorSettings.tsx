@@ -120,38 +120,7 @@ const FormField = memo(
   ),
 );
 
-// const Toggle = memo(
-//   ({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) => (
-//     <button
-//       onClick={onToggle}
-//       className={cn(
-//         "relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 min-h-0 min-w-0",
-//         enabled ? "bg-[#4DD9E8]" : "bg-slate-200",
-//       )}
-//     >
-//       <div
-//         className={cn(
-//           "absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 shadow-sm",
-//           enabled ? "translate-x-5" : "",
-//         )}
-//       />
-//     </button>
-//   ),
-// );
-
-  // const [notifications, setNotifications] = useState({
-  //   emailJobAlerts: true,
-  //   emailInterviews: true,
-  //   pushNotifications: true,
-  //   marketingEmails: false,
-  // });
-  // const [visibility, setVisibility] = useState({
-  //   employers: true,
-  //   contact: true,
-  // });
-
 const ContractorSettings = (): JSX.Element => {
-
   const [passwords, setPasswords] = useState<PasswordsState>({
     current: "",
     new: "",

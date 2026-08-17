@@ -283,7 +283,11 @@ const ContractorProfile = (): JSX.Element => {
             {profile?.primaryJobRole || "No primary job role specified"}
           </p>
           <span className="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase bg-green-50 text-green-600">
-            {data?.role === "candidate" && "CONTRACT RESOURCE"}
+            {data?.role === "candidate" && (
+              <span className="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase bg-green-50 text-green-600">
+                CONTRACT RESOURCE
+              </span>
+            )}
           </span>
 
           <div className="mt-5 pt-4 border-t border-gray-100 flex flex-col gap-3 text-left">
@@ -362,8 +366,7 @@ const ContractorProfile = (): JSX.Element => {
             profile.primarySkills.length > 0 ? (
               profile.primarySkills.map(
                 (skill: string, index: number): JSX.Element => {
-                  const name: string =
-                    typeof skill === "string" && skill;
+                  const name: string = typeof skill === "string" && skill;
                   if (!name) return null;
                   return <SkillChip key={index} label={name} />;
                 },
@@ -382,8 +385,7 @@ const ContractorProfile = (): JSX.Element => {
             profile.secondarySkills.length > 0 ? (
               profile.secondarySkills.map(
                 (skill: string, index: number): JSX.Element => {
-                  const name: string =
-                    typeof skill === "string" && skill;
+                  const name: string = typeof skill === "string" && skill;
                   if (!name) return null;
                   return <SkillChip key={index} label={name} />;
                 },
