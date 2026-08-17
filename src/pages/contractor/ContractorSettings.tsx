@@ -34,9 +34,21 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import SpinnerLoader from "@/components/loader/SpinnerLoader";
 import Cookies from "js-cookie";
 import { Card } from "@/components/ui/hoverCard";
+import type { JSX } from "react";
+
+type PasswordsState = {
+  current: string;
+  new: string;
+  confirm: string;
+};
+
+type ShowPasswordsState = {
+  current: boolean;
+  new: boolean;
+  confirm: boolean;
+};
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -69,7 +81,7 @@ const SectionTitle = memo(
     icon: any;
     title: string;
     subtitle?: string;
-  }) => (
+  }): JSX.Element => (
     <div className="flex items-start gap-4 mb-6">
       <div className="w-10 h-10 rounded-xl bg-[#4DD9E8]/10 flex items-center justify-center text-[#0e8a96] shrink-0">
         <Icon size={20} strokeWidth={2.2} />
@@ -95,7 +107,7 @@ const FormField = memo(
     htmlFor?: string;
     required?: boolean;
     children: React.ReactNode;
-  }) => (
+  }): JSX.Element => (
     <div className="flex flex-col gap-2 w-full">
       <label
         htmlFor={htmlFor}
@@ -108,60 +120,33 @@ const FormField = memo(
   ),
 );
 
-const Toggle = memo(
-  ({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) => (
-    <button
-      onClick={onToggle}
-      className={cn(
-        "relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 min-h-0 min-w-0",
-        enabled ? "bg-[#4DD9E8]" : "bg-slate-200",
-      )}
-    >
-      <div
-        className={cn(
-          "absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 shadow-sm",
-          enabled ? "translate-x-5" : "",
-        )}
-      />
-    </button>
-  ),
-);
-
-const ContractorSettings = () => {
-  const [notifications, setNotifications] = React.useState({
-    emailJobAlerts: true,
-    emailInterviews: true,
-    pushNotifications: true,
-    marketingEmails: false,
-  });
-  const [visibility, setVisibility] = React.useState({
-    employers: true,
-    contact: true,
-  });
-
-  const [passwords, setPasswords] = useState({
+const ContractorSettings = (): JSX.Element => {
+  const [passwords, setPasswords] = useState<PasswordsState>({
     current: "",
     new: "",
     confirm: "",
   });
-  const [showPasswords, setShowPasswords] = useState({
+
+  const [showPasswords, setShowPasswords] = useState<ShowPasswordsState>({
     current: false,
     new: false,
     confirm: false,
   });
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletePassword, setDeletePassword] = useState("");
 
-  const navigate = useNavigate();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [deletePassword, setDeletePassword] = useState<string>("");
+
   const [changePassword, { isLoading: isChangingPassword }] =
     useChangePasswordMutation();
   const [deleteMyAccount, { isLoading: isDeletingAccount }] =
     useDeleteMyAccountMutation();
   const [logout] = useLogoutMutation();
+
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
 
-  const handleUpdatePassword = async () => {
+  const handleUpdatePassword = async (): Promise<void> => {
     if (!passwords.current || !passwords.new || !passwords.confirm) {
       toast.error("Please fill in all password fields");
       return;
@@ -188,14 +173,14 @@ const ContractorSettings = () => {
     }
   };
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccount = async (): Promise<void> => {
     if (!deletePassword) {
       toast.error("Please enter your password to confirm account deletion");
       return;
     }
 
     try {
-      const refreshToken = localStorage.getItem("refreshToken") || "";
+      const refreshToken: string = localStorage.getItem("refreshToken") || "";
       await deleteMyAccount({ password: deletePassword }).unwrap();
       toast.success("Account deleted successfully");
 
@@ -203,7 +188,7 @@ const ContractorSettings = () => {
       try {
         await logout(refreshToken).unwrap();
       } catch {
-        // Logout failure is expected after deletion; safe to ignore
+        // do nothing
       }
 
       dispatch(removeUser());
@@ -216,7 +201,7 @@ const ContractorSettings = () => {
     } catch (err: any) {
       toast.error(
         err?.data?.message ||
-        "Failed to delete account. Please check your password.",
+          "Failed to delete account. Please check your password.",
       );
       setIsDeleteDialogOpen(false);
       setDeletePassword("");

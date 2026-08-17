@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo } from "react";
+import { useState, useMemo } from "react";
 import {
   Target,
   Award,
@@ -28,6 +28,39 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/hoverCard";
+import type { JSX } from "react";
+
+type InviteTestResult = {
+  id: number;
+  title: string;
+  attemptedCount: number;
+  candidateEmail: string;
+  codingAccuracy: number;
+  inviteExpiresAt: string;
+  inviteSentAt: string;
+  overallScore: number;
+  startedAt: number;
+  status: string;
+  submissionCount: number;
+  submittedAt: string;
+  totalTime: number;
+};
+
+type FormattedInviteTestResult = InviteTestResult & {
+  expiresAtFormatted: string;
+  submittedAtFormatted: string;
+};
+
+type MockTestResult = {
+  title: string;
+  totalTime: number;
+  difficultyDistribution: {
+    easy: number;
+    medium: number;
+    hard: number;
+  };
+  tags: string[];
+};
 
 /* ═══════════ DESIGN TOKENS ═══════════ */
 const C = {
@@ -54,24 +87,24 @@ const C = {
   shadowLg: "0 8px 32px rgba(0,0,0,0.08)",
 };
 
-const formatDate = (dateStr?: string | null) => {
+const formatDate = (dateStr?: string | null): string => {
   if (!dateStr) return "N/A";
 
   const date = new Date(dateStr);
   return Number.isNaN(date.getTime())
     ? "N/A"
     : date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
 };
 
-const ContractorSkillTest = () => {
-  const [filter, setFilter] = useState("all");
-  const navigate = useNavigate();
-  const [mockDifficulty, setMockDifficulty] = useState("");
-  const [questionCount, setQuestionCount] = useState("");
+const ContractorSkillTest = (): JSX.Element => {
+  const [filter, setFilter] = useState<string>("all");
+  const [mockDifficulty, setMockDifficulty] = useState<string>("");
+  const [questionCount, setQuestionCount] = useState<string>("");
+
   const [createSkillTest, { isLoading: isCreating }] =
     useCreateSkillTestMutation();
   const { data: testResultsData, isLoading: isLoadingResults } =
@@ -81,28 +114,36 @@ const ContractorSkillTest = () => {
     isLoading: isLoadingTestStatus,
   } = useGetContractorInvitedTestStatusQuery();
 
-  const allAssessments = useMemo(
-    () => isLoadingTestStatus ? [] : [
-      ...(invitedTestStatus?.availableTests || []),
-      ...(invitedTestStatus?.completedTests || []),
-    ],
-    [isLoadingTestStatus, invitedTestStatus]
+  const navigate = useNavigate();
+
+  const allAssessments: InviteTestResult[] = useMemo(
+    () =>
+      isLoadingTestStatus
+        ? []
+        : [
+            ...(invitedTestStatus?.availableTests || []),
+            ...(invitedTestStatus?.completedTests || []),
+          ],
+    [isLoadingTestStatus, invitedTestStatus],
   );
 
   // Pre-compute expensive Intl date formatting once per data change,
   // so render-time .map() callbacks just read plain strings.
-  const formattedAssessments = useMemo(
+  const formattedAssessments: FormattedInviteTestResult[] = useMemo(
     () =>
-      allAssessments.map((res: any) => ({
-        ...res,
-        expiresAtFormatted: formatDate(res.inviteExpiresAt),
-        submittedAtFormatted: formatDate(res.submittedAt),
-      })),
+      allAssessments.map(
+        (res: InviteTestResult): FormattedInviteTestResult => ({
+          ...res,
+          expiresAtFormatted: formatDate(res.inviteExpiresAt),
+          submittedAtFormatted: formatDate(res.submittedAt),
+        }),
+      ),
     [allAssessments],
   );
 
   const testResults = testResultsData?.data || [];
-  const [mockTest, setMockTest] = useState({
+
+  const [mockTest, setMockTest] = useState<MockTestResult>({
     title: "",
     totalTime: 0,
     difficultyDistribution: {
@@ -117,7 +158,7 @@ const ContractorSkillTest = () => {
 
   const mockTestResults = useMemo(
     () => testResults.filter((r) => r.difficultyDistribution),
-    [testResults]
+    [testResults],
   );
 
   const startMockTest = async () => {
@@ -248,212 +289,214 @@ const ContractorSkillTest = () => {
                   <span className="ml-2 text-slate-400">Loading...</span>
                 </div>
               ) : formattedAssessments.length > 0 ? (
-                formattedAssessments.map((res: any, i: number) => {
-                  const scoreVal = Number(res.overallScore ?? res.score ?? 0);
-                  const isCompleted = res.status === "completed";
+                formattedAssessments.map(
+                  (res: FormattedInviteTestResult, i: number) => {
+                    const scoreVal = Number(res.overallScore ?? 0);
+                    const isCompleted = res.status === "completed";
 
-                  const scoreColor =
-                    scoreVal >= 70
-                      ? "#22c55e"
-                      : scoreVal >= 40
-                        ? "#f59e0b"
-                        : "#ef4444";
+                    const scoreColor =
+                      scoreVal >= 70
+                        ? "#22c55e"
+                        : scoreVal >= 40
+                          ? "#f59e0b"
+                          : "#ef4444";
 
-                  const expiresAt = res.expiresAtFormatted;
-                  const submittedAt = res.submittedAtFormatted;
+                    const expiresAt = res.expiresAtFormatted;
+                    const submittedAt = res.submittedAtFormatted;
 
-                  // SVG ring math
-                  const radius = 19;
-                  const circumference = 2 * Math.PI * radius;
-                  const offset =
-                    circumference - (scoreVal / 100) * circumference;
+                    // SVG ring math
+                    const radius = 19;
+                    const circumference = 2 * Math.PI * radius;
+                    const offset =
+                      circumference - (scoreVal / 100) * circumference;
 
-                  return (
-                    <div
-                      key={i}
-                      className="rounded-xl border border-slate-100 bg-white overflow-hidden"
-                    >
-                      {/* Card body */}
-                      <div className="flex items-start gap-4 p-5">
-                        {/* Left: score ring (completed) or icon (active) */}
-                        {isCompleted ? (
-                          <div className="flex-shrink-0 mt-0.5">
-                            <svg
-                              width="46"
-                              height="46"
-                              viewBox="0 0 46 46"
-                              aria-label={`Score: ${scoreVal}%`}
-                            >
-                              <circle
-                                cx="23"
-                                cy="23"
-                                r={radius}
-                                fill="none"
-                                stroke="#e2e8f0"
-                                strokeWidth="3.5"
-                              />
-                              <circle
-                                cx="23"
-                                cy="23"
-                                r={radius}
-                                fill="none"
-                                stroke={scoreColor}
-                                strokeWidth="3.5"
-                                strokeDasharray={circumference}
-                                strokeDashoffset={offset}
-                                strokeLinecap="round"
-                                transform="rotate(-90 23 23)"
-                              />
-                              <text
-                                x="23"
-                                y="27"
-                                textAnchor="middle"
-                                fontSize="11"
-                                fontWeight="600"
-                                fill={scoreColor}
-                                fontFamily="inherit"
+                    return (
+                      <div
+                        key={i}
+                        className="rounded-xl border border-slate-100 bg-white overflow-hidden"
+                      >
+                        {/* Card body */}
+                        <div className="flex items-start gap-4 p-5">
+                          {/* Left: score ring (completed) or icon (active) */}
+                          {isCompleted ? (
+                            <div className="flex-shrink-0 mt-0.5">
+                              <svg
+                                width="46"
+                                height="46"
+                                viewBox="0 0 46 46"
+                                aria-label={`Score: ${scoreVal}%`}
                               >
-                                {scoreVal}%
-                              </text>
-                            </svg>
-                          </div>
-                        ) : (
-                          <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <Code className="w-5 h-5 text-blue-500" />
-                          </div>
-                        )}
+                                <circle
+                                  cx="23"
+                                  cy="23"
+                                  r={radius}
+                                  fill="none"
+                                  stroke="#e2e8f0"
+                                  strokeWidth="3.5"
+                                />
+                                <circle
+                                  cx="23"
+                                  cy="23"
+                                  r={radius}
+                                  fill="none"
+                                  stroke={scoreColor}
+                                  strokeWidth="3.5"
+                                  strokeDasharray={circumference}
+                                  strokeDashoffset={offset}
+                                  strokeLinecap="round"
+                                  transform="rotate(-90 23 23)"
+                                />
+                                <text
+                                  x="23"
+                                  y="27"
+                                  textAnchor="middle"
+                                  fontSize="11"
+                                  fontWeight="600"
+                                  fill={scoreColor}
+                                  fontFamily="inherit"
+                                >
+                                  {scoreVal}%
+                                </text>
+                              </svg>
+                            </div>
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <Code className="w-5 h-5 text-blue-500" />
+                            </div>
+                          )}
 
-                        {/* Info */}
-                        <div className="flex-1 min-w-0 relative">
-                          <div className="flex items-start justify-between gap-3 flex-wrap">
-                            <div>
-                              <h4 className="text-[15px] font-semibold text-slate-800 leading-snug mb-1.5 pr-20">
-                                {res.title}
-                              </h4>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                {isCompleted ? (
-                                  <>
-                                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 px-2.5 py-1 rounded-full">
-                                      <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                                      Completed
-                                    </span>
-                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full">
-                                      <WandSparkles className="w-3 h-3" />
-                                      AI generated
-                                    </span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                      Active
-                                    </span>
-                                    <span className="text-[12px] text-slate-400 flex items-center gap-1">
-                                      <Clock className="w-3.5 h-3.5" />
-                                      {res.totalTime} min
-                                    </span>
-                                  </>
-                                )}
+                          {/* Info */}
+                          <div className="flex-1 min-w-0 relative">
+                            <div className="flex items-start justify-between gap-3 flex-wrap">
+                              <div>
+                                <h4 className="text-[15px] font-semibold text-slate-800 leading-snug mb-1.5 pr-20">
+                                  {res.title}
+                                </h4>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {isCompleted ? (
+                                    <>
+                                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 px-2.5 py-1 rounded-full">
+                                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                                        Completed
+                                      </span>
+                                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full">
+                                        <WandSparkles className="w-3 h-3" />
+                                        AI generated
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                        Active
+                                      </span>
+                                      <span className="text-[12px] text-slate-400 flex items-center gap-1">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        {res.totalTime} min
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Date */}
+                              <div className="absolute top-0 right-0 text-right">
+                                <p className="text-[11px] text-slate-400">
+                                  {isCompleted ? "Submitted" : "Expires"}
+                                </p>
+                                <p className="text-[13px] font-medium text-slate-600">
+                                  {isCompleted ? submittedAt : expiresAt}
+                                </p>
                               </div>
                             </div>
-
-                            {/* Date */}
-                            <div className="absolute top-0 right-0 text-right">
-                              <p className="text-[11px] text-slate-400">
-                                {isCompleted ? "Submitted" : "Expires"}
-                              </p>
-                              <p className="text-[13px] font-medium text-slate-600">
-                                {isCompleted ? submittedAt : expiresAt}
-                              </p>
-                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Stats row — completed only */}
-                      {isCompleted && (
-                        <div className="grid grid-cols-3 gap-2.5 px-5 pb-4">
-                          {[
-                            {
-                              label: "Overall score",
-                              value: `${scoreVal}%`,
-                              highlight: true,
-                            },
-                            {
-                              label: "Coding accuracy",
-                              value: res.codingAccuracy
-                                ? `${res.codingAccuracy}%`
-                                : "—",
-                            },
-                            {
-                              label: "Duration",
-                              value: res.totalTime
-                                ? `${res.totalTime} min`
-                                : "—",
-                            },
-                          ].map(({ label, value, highlight }) => (
-                            <div
-                              key={label}
-                              className="bg-slate-50 rounded-lg px-3 py-2.5"
-                            >
-                              <p className="text-[11px] text-slate-400 mb-0.5">
-                                {label}
-                              </p>
-                              <p
-                                className="text-[15px] font-semibold"
-                                style={{
-                                  color: highlight ? scoreColor : undefined,
-                                }}
+                        {/* Stats row — completed only */}
+                        {isCompleted && (
+                          <div className="grid grid-cols-3 gap-2.5 px-5 pb-4">
+                            {[
+                              {
+                                label: "Overall score",
+                                value: `${scoreVal}%`,
+                                highlight: true,
+                              },
+                              {
+                                label: "Coding accuracy",
+                                value: res.codingAccuracy
+                                  ? `${res.codingAccuracy}%`
+                                  : "—",
+                              },
+                              {
+                                label: "Duration",
+                                value: res.totalTime
+                                  ? `${res.totalTime} min`
+                                  : "—",
+                              },
+                            ].map(({ label, value, highlight }) => (
+                              <div
+                                key={label}
+                                className="bg-slate-50 rounded-lg px-3 py-2.5"
                               >
-                                {highlight ? (
-                                  value
-                                ) : (
-                                  <span className="text-slate-700">
-                                    {value}
-                                  </span>
-                                )}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Footer */}
-                      <div className="border-t border-slate-100 bg-slate-50 px-5 py-3 flex items-center justify-between gap-3 flex-wrap">
-                        {isCompleted ? (
-                          <div className="flex w-full justify-end">
-                            <button
-                              onClick={() =>
-                                navigate(
-                                  `/contractor/tests/report?id=${res.id}`,
-                                )
-                              }
-                              className="inline-flex items-center gap-1.5 text-[13px] font-medium px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:border-slate-300 transition-all"
-                            >
-                              <Eye className="w-4 h-4 text-slate-400" />
-                              View insights
-                            </button>
+                                <p className="text-[11px] text-slate-400 mb-0.5">
+                                  {label}
+                                </p>
+                                <p
+                                  className="text-[15px] font-semibold"
+                                  style={{
+                                    color: highlight ? scoreColor : undefined,
+                                  }}
+                                >
+                                  {highlight ? (
+                                    value
+                                  ) : (
+                                    <span className="text-slate-700">
+                                      {value}
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                            ))}
                           </div>
-                        ) : (
-                          <>
-                            <div className="flex items-center gap-2 min-w-0">
-                              <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                              <p className="text-[13px] text-slate-500 truncate">
-                                Invite sent to{" "}
-                                <span className="font-medium text-slate-700">
-                                  {res.candidateEmail}
-                                </span>
-                              </p>
-                            </div>
-                            <p className="text-[12px] text-slate-400 flex-shrink-0">
-                              Check your inbox
-                            </p>
-                          </>
                         )}
+
+                        {/* Footer */}
+                        <div className="border-t border-slate-100 bg-slate-50 px-5 py-3 flex items-center justify-between gap-3 flex-wrap">
+                          {isCompleted ? (
+                            <div className="flex w-full justify-end">
+                              <button
+                                onClick={() =>
+                                  navigate(
+                                    `/contractor/tests/report?id=${res.id}`,
+                                  )
+                                }
+                                className="inline-flex items-center gap-1.5 text-[13px] font-medium px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:border-slate-300 transition-all"
+                              >
+                                <Eye className="w-4 h-4 text-slate-400" />
+                                View insights
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                                <p className="text-[13px] text-slate-500 truncate">
+                                  Invite sent to{" "}
+                                  <span className="font-medium text-slate-700">
+                                    {res.candidateEmail}
+                                  </span>
+                                </p>
+                              </div>
+                              <p className="text-[12px] text-slate-400 flex-shrink-0">
+                                Check your inbox
+                              </p>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })
+                    );
+                  },
+                )
               ) : (
                 <div className="col-span-full p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
                   <p className="text-slate-400 font-medium">
@@ -949,8 +992,7 @@ const ContractorSkillTest = () => {
                   <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
                   <span className="ml-2 text-slate-400">Loading...</span>
                 </div>
-              ) : mockTestResults.length >
-                0 ? (
+              ) : mockTestResults.length > 0 ? (
                 mockTestResults.map((res: any, i: number) => {
                   const scoreVal = Number(res.overallScore ?? res.score ?? 0);
                   const scoreColor =
@@ -1083,9 +1125,7 @@ const ContractorSkillTest = () => {
                               className="text-[15px] font-semibold"
                               style={{ color: color ?? undefined }}
                             >
-                              <span
-                                className={!color ? "text-slate-700" : ""}
-                              >
+                              <span className={!color ? "text-slate-700" : ""}>
                                 {value}
                               </span>
                             </p>

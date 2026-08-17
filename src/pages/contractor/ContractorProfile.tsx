@@ -1,5 +1,5 @@
-import React, { lazy, Suspense, useCallback, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import {
@@ -15,11 +15,125 @@ import {
   Globe,
   Banknote,
   Code,
-  Video,
   User,
 } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currency";
 import SpinnerLoader from "@/components/loader/SpinnerLoader";
+import type { JSX } from "react";
+
+interface Certifications {
+  candidateProfileId: number;
+  createdAt: string;
+  credentialUrl: string;
+  expiryDate: string | null;
+  id: number;
+  issueDate: string;
+  issuedBy: string;
+  name: string;
+  updatedAt: string;
+}
+
+interface Projects {
+  candidateProfileId: number;
+  createdAt: string;
+  description: string;
+  id: number;
+  isFeatured: boolean;
+  projectUrl: string;
+  techStack: string[];
+  title: string;
+  updatedAt: string;
+}
+
+interface Resumes {
+  fileSize: number;
+  id: number;
+  mimeType: string;
+  isDefault: boolean;
+  originalName: string;
+  uploadedAt: string;
+}
+
+interface WorkExperiences {
+  candidateProfileId: number;
+  companyName: string;
+  createdAt: string;
+  description: string;
+  employmentType: string;
+  endDate: string;
+  id: number;
+  location: string;
+  role: string;
+  startDate: string;
+  updatedAt: string;
+}
+
+interface CandidateProfile {
+  acceptedPrivacyPolicy: boolean;
+  acceptedTerms: boolean;
+  availability: string;
+  availableIn: string;
+  availableToJoin: string;
+  bio: string;
+  candidateType: string;
+  certifications: Certifications[];
+  city: string;
+  country: string;
+  createdAt: string;
+  currency: string;
+  enableAiMatching: boolean;
+  englishProficiency: string;
+  expectedSalaryMax: string;
+  expectedSalaryMin: string;
+  headline: string;
+  hourlyRateMax: number;
+  hourlyRateMin: number;
+  id: number;
+  location: string;
+  mobileNumber: string;
+  preferredJobLocations: string[];
+  preferredWorkType: string[];
+  primaryJobRole: string;
+  primarySkills: string[];
+  projects: Projects[];
+  resourceType: string;
+  resume: Resumes[];
+  scheduleAiInterview: boolean;
+  secondarySkills: string[];
+  skills: string[];
+  takeSkillAssessment: boolean;
+  updatedAt: string;
+  userId: number;
+  viewCount: number;
+  workExperiences: WorkExperiences[];
+  yearsExperience: number;
+}
+interface CandidateDetails {
+  avatar: string;
+  candidateProfile: CandidateProfile;
+  email: string;
+  firstName: string;
+  id: number;
+  language: string;
+  lastLoginAt: string | null;
+  lastLoginIp: string | null;
+  lastName: string;
+  lockedUntil: string | null;
+  loginAttempts: number;
+  role: string;
+  status: string;
+  timezone: string;
+  updatedAt: string;
+  uuid: string;
+}
+
+type QuickActions = {
+  label: string;
+  icon: React.ComponentType<{ className: string }>;
+  color: string;
+  bg: string;
+  route: string;
+};
 
 const DashCard = ({
   children,
@@ -29,7 +143,7 @@ const DashCard = ({
   children: React.ReactNode;
   className?: string;
   noPadding?: boolean;
-}) => (
+}): JSX.Element => (
   <div
     className={`bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-transform duration-300 ${noPadding ? "" : "p-6"} ${className}`}
   >
@@ -37,94 +151,99 @@ const DashCard = ({
   </div>
 );
 
-const SkillChip = ({ label }: { label: string }) => (
+const SkillChip = ({ label }: { label: string }): JSX.Element => (
   <span className="inline-flex items-center gap-1.5 bg-cyan-400/10 text-cyan-700 rounded-full px-3.5 py-1 text-[13px] font-medium border border-cyan-400/20 shadow-sm">
     {label}
   </span>
 );
 
-// const ACTIVITY = [
-//   { time: "2 hours ago", text: "Your profile was viewed by TechCorp Inc.", color: "bg-purple-500" },
-//   { time: "5 hours ago", text: "New skill test invitation: React Advanced", color: "bg-cyan-400" },
-//   { time: "1 day ago", text: "AI Interview completed for Senior QA role", color: "bg-green-500" },
-//   { time: "2 days ago", text: "Profile updated successfully", color: "bg-gray-400" },
-// ];
-
-const isCurrentWorkExperience = (endDate?: string | null) => {
+const isCurrentWorkExperience = (endDate?: string | null): boolean => {
   if (typeof endDate !== "string") return endDate == null;
   return endDate.trim().length === 0;
 };
 
-const getDateSortValue = (date?: string | null) => {
+const getDateSortValue = (date?: string | null): number => {
   if (typeof date !== "string" || date.trim().length === 0) {
     return Number.NEGATIVE_INFINITY;
   }
-  const timestamp = new Date(date).getTime();
+  const timestamp: number = new Date(date).getTime();
   return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp;
 };
 
-const getSafeProjectUrl = (value?: string) => {
+const getSafeProjectUrl = (value?: string): string | undefined => {
   if (typeof value !== "string") return undefined;
-  const trimmed = value.trim();
+  const trimmed: string = value.trim();
   return /^https?:\/\//i.test(trimmed) ? trimmed : undefined;
 };
 
-const ContractorProfile = () => {
+const ContractorProfile = (): JSX.Element => {
   const { token, userDetails } = useSelector((state: RootState) => state.user);
   const navigate = useNavigate();
 
-  const handleNav = useCallback((path: string) => navigate(path), [navigate]);
-
-  const { data: response, isLoading: isLoadingProfile } = useGetProfileQuery(
-    undefined,
-    { skip: !token },
+  const handleNav = useCallback(
+    (path: string): void => navigate(path),
+    [navigate],
   );
 
-  const data = response?.data;
-  const profile = data?.candidateProfile;
-  const hasAvatar = !!data?.avatar;
+  const { data: response } = useGetProfileQuery(undefined, { skip: !token });
+
+  const data: CandidateDetails | undefined = response?.data;
+  const profile: CandidateProfile | undefined = data?.candidateProfile;
+  const hasAvatar: boolean = !!data?.avatar;
 
   const { currentData: profileImage, isLoading: isLoadingImage } =
     useGetCandidateProfileImageQuery(
-      hasAvatar ? (data?.id ?? skipToken) : skipToken,
+      hasAvatar ? (data?.id?.toString() ?? skipToken) : skipToken,
     );
 
-  const workItems = useMemo(() => Array.isArray(profile?.workExperiences)
-    ? profile.workExperiences.filter(
-      (item: any) => item != null && typeof item === "object",
-    )
-    : [],
-    [profile?.workExperiences])
+  const workItems: WorkExperiences[] = useMemo(
+    () =>
+      Array.isArray(profile?.workExperiences)
+        ? profile.workExperiences.filter(
+            (item: WorkExperiences): item is WorkExperiences =>
+              item != null && typeof item === "object",
+          )
+        : [],
+    [profile?.workExperiences],
+  );
 
-  const projectItems = useMemo(() => Array.isArray(profile?.projects)
-    ? profile.projects.filter(
-      (item: any) => item != null && typeof item === "object",
-    )
-    : [],
-    [profile?.projects])
+  const projectItems: Projects[] = useMemo(
+    () =>
+      Array.isArray(profile?.projects)
+        ? profile.projects.filter(
+            (item: Projects): item is Projects =>
+              item != null && typeof item === "object",
+          )
+        : [],
+    [profile?.projects],
+  );
 
-  const certificationItems = useMemo(() => Array.isArray(profile?.certifications)
-    ? profile.certifications.filter(
-      (item: any) => item != null && typeof item === "object",
-    )
-    : [],
-    [profile?.certifications])
+  const certificationItems: Certifications[] = useMemo(
+    () =>
+      Array.isArray(profile?.certifications)
+        ? profile.certifications.filter(
+            (item: Certifications): item is Certifications =>
+              item != null && typeof item === "object",
+          )
+        : [],
+    [profile?.certifications],
+  );
 
-  const sortedWorkItems = useMemo(
+  const sortedWorkItems: WorkExperiences[] = useMemo(
     () =>
       [...workItems].sort((a, b) => {
-        const aIsCurrent = isCurrentWorkExperience(a.endDate);
-        const bIsCurrent = isCurrentWorkExperience(b.endDate);
+        const aIsCurrent: boolean = isCurrentWorkExperience(a.endDate);
+        const bIsCurrent: boolean = isCurrentWorkExperience(b.endDate);
         if (aIsCurrent !== bIsCurrent) return aIsCurrent ? -1 : 1;
-        const aStart = getDateSortValue(a.startDate);
-        const bStart = getDateSortValue(b.startDate);
+        const aStart: number = getDateSortValue(a.startDate);
+        const bStart: number = getDateSortValue(b.startDate);
         if (aStart !== bStart) return bStart - aStart;
         return (b.startDate ?? "").localeCompare(a.startDate ?? "");
       }),
     [workItems],
   );
 
-  const renderProfileImage = () => {
+  const renderProfileImage = (): JSX.Element => {
     if (isLoadingImage) {
       return (
         <div className="w-[72px] h-[72px] rounded-full bg-gray-50 border-2 border-gray-100 flex items-center justify-center absolute top-2 left-2">
@@ -161,12 +280,14 @@ const ContractorProfile = () => {
             {data?.lastName || userDetails?.lastName}
           </h3>
           <p className="text-[13px] text-gray-500 mb-2.5">
-            {profile?.primaryJobRole ?? data?.title ?? "QA Engineer"}
+            {profile?.primaryJobRole || "No primary job role specified"}
           </p>
           <span className="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase bg-green-50 text-green-600">
-            {profile?.profileType === "bench"
-              ? "BENCH RESOURCE"
-              : "CONTRACT RESOURCE"}
+            {data?.role === "candidate" && (
+              <span className="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase bg-green-50 text-green-600">
+                CONTRACT RESOURCE
+              </span>
+            )}
           </span>
 
           <div className="mt-5 pt-4 border-t border-gray-100 flex flex-col gap-3 text-left">
@@ -242,12 +363,14 @@ const ContractorProfile = () => {
           </h4>
           <div className="flex flex-wrap gap-2">
             {Array.isArray(profile?.primarySkills) &&
-              profile.primarySkills.length > 0 ? (
-              profile.primarySkills.map((skill: any, index: number) => {
-                const name = typeof skill === "string" ? skill : skill.name;
-                if (!name) return null;
-                return <SkillChip key={index} label={name} />;
-              })
+            profile.primarySkills.length > 0 ? (
+              profile.primarySkills.map(
+                (skill: string, index: number): JSX.Element => {
+                  const name: string = typeof skill === "string" && skill;
+                  if (!name) return null;
+                  return <SkillChip key={index} label={name} />;
+                },
+              )
             ) : (
               <span className="text-[13px] text-gray-500">
                 No primary skills listed
@@ -259,12 +382,14 @@ const ContractorProfile = () => {
           </h4>
           <div className="flex flex-wrap gap-2">
             {Array.isArray(profile?.secondarySkills) &&
-              profile.secondarySkills.length > 0 ? (
-              profile.secondarySkills.map((skill: any, index: number) => {
-                const name = typeof skill === "string" ? skill : skill.name;
-                if (!name) return null;
-                return <SkillChip key={index} label={name} />;
-              })
+            profile.secondarySkills.length > 0 ? (
+              profile.secondarySkills.map(
+                (skill: string, index: number): JSX.Element => {
+                  const name: string = typeof skill === "string" && skill;
+                  if (!name) return null;
+                  return <SkillChip key={index} label={name} />;
+                },
+              )
             ) : (
               <span className="text-[13px] text-gray-500">
                 No secondary skills listed
@@ -279,21 +404,23 @@ const ContractorProfile = () => {
           </h4>
           <div className="space-y-3">
             {certificationItems.length ? (
-              certificationItems.map((cert: any, index: number) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-blue-50 rounded flex items-center justify-center flex-shrink-0 text-[14px]">
-                    🎓
+              certificationItems.map(
+                (cert: Certifications, index: number): JSX.Element => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-blue-50 rounded flex items-center justify-center flex-shrink-0 text-[14px]">
+                      🎓
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-[13px] text-gray-900 break-words">
+                        {cert.name}
+                      </p>
+                      <p className="text-[12px] text-gray-500">
+                        {cert.issueDate}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-[13px] text-gray-900 break-words">
-                      {cert.name}
-                    </p>
-                    <p className="text-[12px] text-gray-500">
-                      {cert.issueDate}
-                    </p>
-                  </div>
-                </div>
-              ))
+                ),
+              )
             ) : (
               <div className="flex items-center gap-2 text-gray-500 text-[13px]">
                 🎓 No Certifications
@@ -323,7 +450,7 @@ const ContractorProfile = () => {
               bg: "bg-cyan-50",
               route: "/contractor/profile/update",
             },
-          ].map((a, i) => (
+          ].map((a: QuickActions, i: number) => (
             <DashCard
               key={i}
               className="cursor-pointer hover:bg-gray-50"
@@ -366,44 +493,48 @@ const ContractorProfile = () => {
           </h4>
           <div className="space-y-6">
             {sortedWorkItems.length > 0 ? (
-              sortedWorkItems.map((entry: any, index: number) => {
-                const isCurrentRole = isCurrentWorkExperience(entry.endDate);
-                return (
-                  <div key={index} className="flex gap-4">
-                    <div
-                      className={`w-1 ${isCurrentRole ? "bg-[#4DD9E8]" : "bg-gray-200"} rounded-full flex-shrink-0`}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-[15px] text-gray-900 break-words">
-                        {entry.role}
-                      </h4>
-                      <p className="text-[13px] font-semibold text-cyan-600 break-words">
-                        {entry.companyName}
-                      </p>
-                      <p className="text-[12px] text-gray-500 mb-2">
-                        {entry.startDate} -{" "}
-                        {isCurrentRole ? "Present" : entry.endDate} •{" "}
-                        {entry.location}
-                      </p>
-                      <div className="text-[13px] text-gray-600 space-y-1">
-                        {(Array.isArray(entry.description)
-                          ? entry.description
-                          : entry.description
-                            ? entry.description.split(/\r?\n/).filter(Boolean)
-                            : []
-                        ).map((bullet: string, bIndex: number) => (
-                          <p
-                            key={bIndex}
-                            className="break-words leading-relaxed"
-                          >
-                            {bullet}
-                          </p>
-                        ))}
+              sortedWorkItems.map(
+                (entry: WorkExperiences, index: number): JSX.Element => {
+                  const isCurrentRole: boolean = isCurrentWorkExperience(
+                    entry.endDate,
+                  );
+                  return (
+                    <div key={index} className="flex gap-4">
+                      <div
+                        className={`w-1 ${isCurrentRole ? "bg-[#4DD9E8]" : "bg-gray-200"} rounded-full flex-shrink-0`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-[15px] text-gray-900 break-words">
+                          {entry.role}
+                        </h4>
+                        <p className="text-[13px] font-semibold text-cyan-600 break-words">
+                          {entry.companyName}
+                        </p>
+                        <p className="text-[12px] text-gray-500 mb-2">
+                          {entry.startDate} -{" "}
+                          {isCurrentRole ? "Present" : entry.endDate} •{" "}
+                          {entry.location}
+                        </p>
+                        <div className="text-[13px] text-gray-600 space-y-1">
+                          {(Array.isArray(entry.description)
+                            ? entry.description
+                            : entry.description
+                              ? entry.description.split(/\r?\n/).filter(Boolean)
+                              : []
+                          ).map((bullet: string, bIndex: number) => (
+                            <p
+                              key={bIndex}
+                              className="break-words leading-relaxed"
+                            >
+                              {bullet}
+                            </p>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })
+                  );
+                },
+              )
             ) : (
               <p className="text-[14px] text-gray-500">
                 No work experience listed.
@@ -423,44 +554,46 @@ const ContractorProfile = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {projectItems.length > 0 ? (
-              projectItems.map((project: any, pIndex: number) => {
-                const safeUrl = getSafeProjectUrl(project.projectUrl);
-                return (
-                  <div
-                    key={pIndex}
-                    className="border border-gray-100 rounded-xl p-4 hover:shadow-sm transition-shadow"
-                  >
-                    <div className="w-full h-24 bg-gray-50 rounded-lg flex items-center justify-center mb-4 border border-gray-100/50">
-                      <div className="w-10 h-14 border-2 border-gray-200 rounded flex items-center justify-center text-xl bg-white shadow-sm">
-                        {project.projectUrl ? "🌐" : "📂"}
+              projectItems.map(
+                (project: Projects, pIndex: number): JSX.Element => {
+                  const safeUrl: string = getSafeProjectUrl(project.projectUrl);
+                  return (
+                    <div
+                      key={pIndex}
+                      className="border border-gray-100 rounded-xl p-4 hover:shadow-sm transition-shadow"
+                    >
+                      <div className="w-full h-24 bg-gray-50 rounded-lg flex items-center justify-center mb-4 border border-gray-100/50">
+                        <div className="w-10 h-14 border-2 border-gray-200 rounded flex items-center justify-center text-xl bg-white shadow-sm">
+                          {project.projectUrl ? "🌐" : "📂"}
+                        </div>
                       </div>
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-bold text-[14px] text-gray-900 break-words">
+                          {project.title}
+                        </h4>
+                        {safeUrl && (
+                          <a
+                            href={safeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] text-cyan-600 font-semibold hover:underline bg-cyan-50 px-2 py-0.5 rounded-md min-h-0 min-w-0"
+                          >
+                            Link
+                          </a>
+                        )}
+                      </div>
+                      <p className="text-[12px] text-gray-500 break-words mb-2 font-medium">
+                        {Array.isArray(project.techStack)
+                          ? project.techStack.join(", ")
+                          : project.techStack}
+                      </p>
+                      <p className="text-[13px] text-gray-600 break-words line-clamp-2 leading-relaxed">
+                        {project.description}
+                      </p>
                     </div>
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-bold text-[14px] text-gray-900 break-words">
-                        {project.title}
-                      </h4>
-                      {safeUrl && (
-                        <a
-                          href={safeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[11px] text-cyan-600 font-semibold hover:underline bg-cyan-50 px-2 py-0.5 rounded-md min-h-0 min-w-0"
-                        >
-                          Link
-                        </a>
-                      )}
-                    </div>
-                    <p className="text-[12px] text-gray-500 break-words mb-2 font-medium">
-                      {Array.isArray(project.techStack)
-                        ? project.techStack.join(", ")
-                        : project.techStack}
-                    </p>
-                    <p className="text-[13px] text-gray-600 break-words line-clamp-2 leading-relaxed">
-                      {project.description}
-                    </p>
-                  </div>
-                );
-              })
+                  );
+                },
+              )
             ) : (
               <p className="text-[14px] text-gray-500 col-span-2">
                 No projects yet
