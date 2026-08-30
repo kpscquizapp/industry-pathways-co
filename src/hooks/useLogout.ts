@@ -7,6 +7,7 @@ import { employerApi } from "@/app/queries/employerApi";
 import { profileApi } from "@/app/queries/profileApi";
 import { isTokenExpired } from "@/lib/helpers";
 import { isExpectedLogoutError } from "@/lib/authErrorUtils";
+import { benchApi } from "@/app/queries/benchApi";
 
 const useLogout = () => {
   const user = useSelector((state: any) => state.user.userDetails);
@@ -34,6 +35,7 @@ const useLogout = () => {
         dispatch(employerApi.util.resetApiState());
         dispatch(profileApi.util.resetApiState());
         dispatch(loginApi.util.resetApiState());
+        dispatch(benchApi.util.resetApiState());
       }, 0);
     }
   };

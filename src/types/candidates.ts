@@ -4,6 +4,7 @@ export interface CandidateProfile {
   id: EntityId;
   name: string;
   role: string;
+  email?: string;
   avatar?: string;
   matchScore?: number;
   technicalScore?: number;

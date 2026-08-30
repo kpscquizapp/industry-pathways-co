@@ -118,6 +118,7 @@ const PostBenchResource = () => {
 
   // ── Other state ──────────────────────────────────────────────────────────────
   const [autoFill, setAutoFill] = useState(true);
+  const [existingResumeName, setExistingResumeName] = useState<string | null>(null);
 
   // Use a ref so processExtractedSkills always reads latest formData without
   // being recreated on every render (avoids stale-closure bugs).
@@ -181,6 +182,11 @@ const PostBenchResource = () => {
         requireNonSolicitation: resource.requireNonSolicitation || false,
         resumeFile: null,
       });
+      if (resource.resumeOriginalName || resource.resumePath) {
+        setExistingResumeName(resource.resumeOriginalName || resource.resumePath);
+      } else {
+        setExistingResumeName(null);
+      }
     }
   }, [isEditMode, resourceData]);
 
@@ -550,9 +556,9 @@ const PostBenchResource = () => {
         });
       }
       navigate("/bench-dashboard/active-resources");
-    } catch (error) {
+    } catch (error:any) {
       console.error(`Failed to ${isEditMode ? "update" : "post"} bench resource:`, error);
-      toast.error(`Failed to ${isEditMode ? "update" : "post"} bench resource`);
+      toast.error(error?.data?.message || `Failed to ${isEditMode ? "update" : "post"} bench resource`);
     }
   };
 
@@ -632,10 +638,12 @@ const PostBenchResource = () => {
                   )}
                 </div>
                 <p className="text-sm font-medium text-slate-600 group-hover:text-blue-600 transition-colors">
-                  {isExtracting
-                    ? "Extracting information..."
-                    : formData.resumeFile
-                      ? formData.resumeFile.name
+                {isExtracting
+                  ? "Extracting information..."
+                  : formData.resumeFile
+                    ? formData.resumeFile.name
+                    : existingResumeName
+                      ? existingResumeName
                       : "Click or drag anonymized resume to upload"}
                 </p>
                 <p className="text-xs text-slate-400 mt-1">Supported formats: PDF. Max size: 5MB.</p>

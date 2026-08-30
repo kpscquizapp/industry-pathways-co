@@ -94,6 +94,7 @@ const ActiveResources = () => {
     requireNonSolicitation?: boolean;
     employeeId?: string;
     minimumContractDuration?: string | number;
+    email?: string;
   };
 
   const clearAllFilters = () => {
@@ -182,6 +183,7 @@ const ActiveResources = () => {
       primarySkills: resource.primarySkills || [],
       secondarySkills: resource.secondarySkills || [],
       about: resource.professionalSummary || "",
+      email: resource.email,
       shortlistedFor: shortlistDetail && shortlistDetail.length > 0
         ? shortlistDetail.map((s) => ({ jobTitle: s.jobTitle, companyName: s.companyName }))
         : undefined,
