@@ -126,10 +126,10 @@ const BenchLogin = () => {
     return true;
   };
 
+  // Commented out previous form validation and API authentication logic:
+  /*
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    window.location.href = 'https://hr.quickrekruit.com/'
-    return
 
     // Validate form before submitting
     if (!validateForm()) {
@@ -161,6 +161,13 @@ const BenchLogin = () => {
         });
       }
     }
+  };
+  */
+
+  // New function for direct redirection on submit click
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    window.location.href = "https://hr.quickrekruit.com/";
   };
 
   return (
