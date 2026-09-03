@@ -128,6 +128,8 @@ const BenchLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    window.location.href = 'https://hr.quickrekruit.com/'
+    return
 
     // Validate form before submitting
     if (!validateForm()) {
