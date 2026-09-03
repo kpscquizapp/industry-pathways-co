@@ -162,7 +162,9 @@ export default function Navbar() {
                       <Link to="/hire-talent-login" className="w-full flex items-center gap-2 text-gray-700 font-medium whitespace-nowrap"><Building2 className="w-4 h-4 text-gray-500" /> For Hiring</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-2 transition-colors mt-1">
-                      <Link to="/bench-login" className="w-full flex items-center gap-2 text-gray-700 font-medium whitespace-nowrap"><Users className="w-4 h-4 text-gray-500" /> For Bench</Link>
+                      {/* <Link to="/bench-login" className="w-full flex items-center gap-2 text-gray-700 font-medium whitespace-nowrap"><Users className="w-4 h-4 text-gray-500" /> For Bench</Link> */}
+                       <a href="https://hr.quickrekruit.com/" className="w-full flex items-center gap-2 text-gray-700 font-medium whitespace-nowrap"><Users className="w-4 h-4 text-gray-500" /> For Bench</a> 
+
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
