@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useDispatch } from "react-redux";
 import {
   RefreshCw,
@@ -434,6 +440,9 @@ const EmployerAIShortlists = () => {
   const shortlistRequestVersionsRef = useRef<
     Record<CandidateIdentityKey, number>
   >({});
+  const shortlistRequestSequenceRef = useRef(0);
+  const shortlistRequestQueuesRef = useRef<Record<string, Promise<void>>>({});
+  const shortlistJobContextRef = useRef<string | null>(null);
   const backendShortlistStateRef = useRef(
     new Map<CandidateIdentityKey, boolean>(),
   );
@@ -453,8 +462,17 @@ const EmployerAIShortlists = () => {
   const employerJobs = loadedEmployerJobs;
   const isAllJobsSelected = !selectedJob;
   const selectedJobId = !isAllJobsSelected ? String(selectedJob) : null;
+  shortlistJobContextRef.current = selectedJobId;
   const shouldFetchMatches = selectedJobId !== null;
   const jobMatchesQueryId = selectedJobId ?? "";
+  const resetSelectedJobState = useCallback((nextJobId: string | null) => {
+    setLoadedMatches([]);
+    setJobMatchesPage(1);
+    setShortlistedIds([]);
+    setPendingShortlistChanges({});
+    shortlistJobContextRef.current = nextJobId;
+    backendShortlistStateRef.current.clear();
+  }, []);
   const stateJob = (location.state as { job?: Job } | null)?.job;
   const selectedJobDetails =
     employerJobs.find((job) => String(job.id) === selectedJobId) ??
@@ -505,9 +523,10 @@ const EmployerAIShortlists = () => {
     const jobIdFromUrl =
       currentJobIdParam && currentJobIdParam !== "all" ? currentJobIdParam : "";
     if (selectedJob !== jobIdFromUrl) {
+      resetSelectedJobState(jobIdFromUrl || null);
       setSelectedJob(jobIdFromUrl);
     }
-  }, [searchParams]);
+  }, [resetSelectedJobState, searchParams, selectedJob]);
 
   useEffect(() => {
     const nextJobs = employerJobsResponse?.data ?? [];
@@ -757,13 +776,9 @@ const EmployerAIShortlists = () => {
   };
 
   const handleSelectedJobChange = (value: string) => {
-    setSelectedJob(value === "all" ? "" : value);
-    setLoadedMatches([]);
-    setJobMatchesPage(1);
-    setShortlistedIds([]);
-    setPendingShortlistChanges({});
-    shortlistRequestVersionsRef.current = {};
-    backendShortlistStateRef.current.clear();
+    const nextJobId = value === "all" ? "" : value;
+    setSelectedJob(nextJobId);
+    resetSelectedJobState(nextJobId || null);
     // Update URL search params so jobId persists across navigation
     const nextParams = new URLSearchParams(searchParams);
     if (!value) {
@@ -823,6 +838,28 @@ const EmployerAIShortlists = () => {
     );
   };
 
+  const enqueueShortlistRequest = (
+    queueKey: string,
+    request: () => Promise<unknown>,
+  ) => {
+    const previousRequest =
+      shortlistRequestQueuesRef.current[queueKey] ?? Promise.resolve();
+    const currentRequest = previousRequest.then(request);
+    const queuedRequest = currentRequest.then(
+      () => undefined,
+      () => undefined,
+    );
+
+    shortlistRequestQueuesRef.current[queueKey] = queuedRequest;
+    queuedRequest.then(() => {
+      if (shortlistRequestQueuesRef.current[queueKey] === queuedRequest) {
+        delete shortlistRequestQueuesRef.current[queueKey];
+      }
+    });
+
+    return currentRequest;
+  };
+
   const handleShortlist = (
     candidate: CandidateProfile & { talentSource?: "candidate" | "bench" },
   ) => {
@@ -839,10 +876,11 @@ const EmployerAIShortlists = () => {
     const hasAlreadyShortlisted = shortlistedIds.includes(
       shortlistedCandidateKey,
     );
-    const requestVersion =
-      (shortlistRequestVersionsRef.current[shortlistedCandidateKey] ?? 0) + 1;
+    const requestVersion = ++shortlistRequestSequenceRef.current;
     shortlistRequestVersionsRef.current[shortlistedCandidateKey] =
       requestVersion;
+    const requestJobContext = selectedJobId;
+    const requestQueueKey = `${requestJobContext}:${shortlistedCandidateKey}`;
 
     if (hasAlreadyShortlisted) {
       // Logic for undoing shortlist
@@ -859,16 +897,18 @@ const EmployerAIShortlists = () => {
       );
       toast.info(`${candidate.name} removed from shortlist`);
 
-      removeShortlistCandidateMutation({
-        jobId: selectedJobId,
-        talentId: candidate.id,
-        talentSource,
-      })
-        .unwrap()
+      enqueueShortlistRequest(requestQueueKey, () =>
+        removeShortlistCandidateMutation({
+          jobId: selectedJobId,
+          talentId: candidate.id,
+          talentSource,
+        }).unwrap(),
+      )
         .then(() => {
           if (
+            shortlistJobContextRef.current !== requestJobContext ||
             shortlistRequestVersionsRef.current[shortlistedCandidateKey] !==
-            requestVersion
+              requestVersion
           ) {
             return;
           }
@@ -884,8 +924,9 @@ const EmployerAIShortlists = () => {
         .catch(() => {
           // Rollback on error
           if (
+            shortlistJobContextRef.current !== requestJobContext ||
             shortlistRequestVersionsRef.current[shortlistedCandidateKey] !==
-            requestVersion
+              requestVersion
           ) {
             return;
           }
@@ -912,16 +953,18 @@ const EmployerAIShortlists = () => {
       setShortlistedIds((prev) => [...prev, shortlistedCandidateKey]);
       toast.success(`${candidate.name} added to shortlist!`);
 
-      shortlistCandidateMutation({
-        jobId: selectedJobId,
-        talentId: candidate.id,
-        talentSource,
-      })
-        .unwrap()
+      enqueueShortlistRequest(requestQueueKey, () =>
+        shortlistCandidateMutation({
+          jobId: selectedJobId,
+          talentId: candidate.id,
+          talentSource,
+        }).unwrap(),
+      )
         .then(() => {
           if (
+            shortlistJobContextRef.current !== requestJobContext ||
             shortlistRequestVersionsRef.current[shortlistedCandidateKey] !==
-            requestVersion
+              requestVersion
           ) {
             return;
           }
@@ -937,8 +980,9 @@ const EmployerAIShortlists = () => {
         .catch(() => {
           // Rollback on error
           if (
+            shortlistJobContextRef.current !== requestJobContext ||
             shortlistRequestVersionsRef.current[shortlistedCandidateKey] !==
-            requestVersion
+              requestVersion
           ) {
             return;
           }
