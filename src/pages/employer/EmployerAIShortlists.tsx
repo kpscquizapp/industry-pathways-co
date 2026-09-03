@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import {
   RefreshCw,
@@ -100,6 +100,11 @@ const getEntityIdKey = (id: EntityId) => String(id);
 
 type TalentSource = "candidate" | "bench";
 type CandidateIdentityKey = `${TalentSource}:${string}`;
+type PendingShortlistChange = {
+  isShortlisted: boolean;
+  version: number;
+  settled: boolean;
+};
 
 const getTalentSource = (source: Match["source"]): TalentSource =>
   source === "bench" ? "bench" : "candidate";
@@ -424,8 +429,14 @@ const EmployerAIShortlists = () => {
     [],
   );
   const [pendingShortlistChanges, setPendingShortlistChanges] = useState<
-    Record<CandidateIdentityKey, boolean>
+    Record<CandidateIdentityKey, PendingShortlistChange>
   >({});
+  const shortlistRequestVersionsRef = useRef<
+    Record<CandidateIdentityKey, number>
+  >({});
+  const backendShortlistStateRef = useRef(
+    new Map<CandidateIdentityKey, boolean>(),
+  );
   const [bulkFilterStatus, setBulkFilterStatus] = useState<
     "" | "shortlisted" | "unshortlisted"
   >("");
@@ -527,6 +538,7 @@ const EmployerAIShortlists = () => {
   useEffect(() => {
     if (!shouldFetchMatches) {
       setLoadedMatches([]);
+      backendShortlistStateRef.current.clear();
       return;
     }
 
@@ -541,24 +553,26 @@ const EmployerAIShortlists = () => {
 
     // Rebuild from the latest backend snapshot, then reapply only mutations
     // that are still pending so stale backend data cannot erase local intent.
-    const backendShortlistedIds = nextMatches
-      .filter((m: Match) => m.isShortlisted === true)
-      .map((m: Match) =>
-        getCandidateIdentityKey(m.id, getTalentSource(m.source)),
-      );
-    const backendShortlistState = new Map(
-      nextMatches.map((m: Match) => [
+    const backendShortlistState = backendShortlistStateRef.current;
+    if (jobMatchesPage === 1) {
+      backendShortlistState.clear();
+    }
+    nextMatches.forEach((m: Match) => {
+      backendShortlistState.set(
         getCandidateIdentityKey(m.id, getTalentSource(m.source)),
         m.isShortlisted === true,
-      ]),
-    );
+      );
+    });
+    const backendShortlistedIds = Array.from(backendShortlistState.entries())
+      .filter(([, isShortlisted]) => isShortlisted)
+      .map(([id]) => id);
 
     setShortlistedIds(() => {
       const reconciled = new Set<string>(backendShortlistedIds);
       Object.keys(pendingShortlistChanges).forEach((id) => {
         const shortlistId = id as CandidateIdentityKey;
-        const isShortlisted = pendingShortlistChanges[shortlistId];
-        if (isShortlisted) {
+        const pendingChange = pendingShortlistChanges[shortlistId];
+        if (pendingChange.isShortlisted) {
           reconciled.add(shortlistId);
         } else {
           reconciled.delete(shortlistId);
@@ -571,7 +585,13 @@ const EmployerAIShortlists = () => {
       let next = prev;
       Object.keys(prev).forEach((id) => {
         const shortlistId = id as CandidateIdentityKey;
-        if (backendShortlistState.get(shortlistId) !== prev[shortlistId]) {
+        const pendingChange = prev[shortlistId];
+        if (
+          shortlistRequestVersionsRef.current[shortlistId] !==
+            pendingChange.version ||
+          !pendingChange.settled ||
+          backendShortlistState.get(shortlistId) !== pendingChange.isShortlisted
+        ) {
           return;
         }
         if (next === prev) next = { ...prev };
@@ -742,6 +762,8 @@ const EmployerAIShortlists = () => {
     setJobMatchesPage(1);
     setShortlistedIds([]);
     setPendingShortlistChanges({});
+    shortlistRequestVersionsRef.current = {};
+    backendShortlistStateRef.current.clear();
     // Update URL search params so jobId persists across navigation
     const nextParams = new URLSearchParams(searchParams);
     if (!value) {
@@ -767,6 +789,7 @@ const EmployerAIShortlists = () => {
     dispatch(aiShortlistApi.util.invalidateTags(["AiShortlistMatches"]));
     setLoadedMatches([]);
     setJobMatchesPage(1);
+    backendShortlistStateRef.current.clear();
   };
 
   const handleViewProfile = (candidate: CandidateProfile) => {
@@ -816,12 +839,20 @@ const EmployerAIShortlists = () => {
     const hasAlreadyShortlisted = shortlistedIds.includes(
       shortlistedCandidateKey,
     );
+    const requestVersion =
+      (shortlistRequestVersionsRef.current[shortlistedCandidateKey] ?? 0) + 1;
+    shortlistRequestVersionsRef.current[shortlistedCandidateKey] =
+      requestVersion;
 
     if (hasAlreadyShortlisted) {
       // Logic for undoing shortlist
       setPendingShortlistChanges((prev) => ({
         ...prev,
-        [shortlistedCandidateKey]: false,
+        [shortlistedCandidateKey]: {
+          isShortlisted: false,
+          version: requestVersion,
+          settled: false,
+        },
       }));
       setShortlistedIds((prev) =>
         prev.filter((id) => id !== shortlistedCandidateKey),
@@ -834,10 +865,33 @@ const EmployerAIShortlists = () => {
         talentSource,
       })
         .unwrap()
+        .then(() => {
+          if (
+            shortlistRequestVersionsRef.current[shortlistedCandidateKey] !==
+            requestVersion
+          ) {
+            return;
+          }
+          setPendingShortlistChanges((prev) => {
+            const pendingChange = prev[shortlistedCandidateKey];
+            if (pendingChange?.version !== requestVersion) return prev;
+            return {
+              ...prev,
+              [shortlistedCandidateKey]: { ...pendingChange, settled: true },
+            };
+          });
+        })
         .catch(() => {
           // Rollback on error
+          if (
+            shortlistRequestVersionsRef.current[shortlistedCandidateKey] !==
+            requestVersion
+          ) {
+            return;
+          }
           setPendingShortlistChanges((prev) => {
-            if (prev[shortlistedCandidateKey] !== false) return prev;
+            if (prev[shortlistedCandidateKey]?.version !== requestVersion)
+              return prev;
             const next = { ...prev };
             delete next[shortlistedCandidateKey];
             return next;
@@ -849,7 +903,11 @@ const EmployerAIShortlists = () => {
       // Logic for adding to shortlist
       setPendingShortlistChanges((prev) => ({
         ...prev,
-        [shortlistedCandidateKey]: true,
+        [shortlistedCandidateKey]: {
+          isShortlisted: true,
+          version: requestVersion,
+          settled: false,
+        },
       }));
       setShortlistedIds((prev) => [...prev, shortlistedCandidateKey]);
       toast.success(`${candidate.name} added to shortlist!`);
@@ -860,10 +918,33 @@ const EmployerAIShortlists = () => {
         talentSource,
       })
         .unwrap()
+        .then(() => {
+          if (
+            shortlistRequestVersionsRef.current[shortlistedCandidateKey] !==
+            requestVersion
+          ) {
+            return;
+          }
+          setPendingShortlistChanges((prev) => {
+            const pendingChange = prev[shortlistedCandidateKey];
+            if (pendingChange?.version !== requestVersion) return prev;
+            return {
+              ...prev,
+              [shortlistedCandidateKey]: { ...pendingChange, settled: true },
+            };
+          });
+        })
         .catch(() => {
           // Rollback on error
+          if (
+            shortlistRequestVersionsRef.current[shortlistedCandidateKey] !==
+            requestVersion
+          ) {
+            return;
+          }
           setPendingShortlistChanges((prev) => {
-            if (prev[shortlistedCandidateKey] !== true) return prev;
+            if (prev[shortlistedCandidateKey]?.version !== requestVersion)
+              return prev;
             const next = { ...prev };
             delete next[shortlistedCandidateKey];
             return next;
