@@ -29,6 +29,7 @@ export interface BenchResourceRawDto {
   expectedSalaryMin?: number | string;
   expectedSalaryMax?: number | string;
   currency?: string;
+  weeklyWorkingHours?: number | string;
   certifications?: Array<
     | string
     | {

@@ -88,6 +88,7 @@ const PostBenchResource = () => {
     minimumDuration: string;
     locationPreferences: { remote: boolean; hybrid: boolean; onSite: boolean };
     requireNonSolicitation: boolean;
+    weeklyWorkingHours: string;
     resumeFile: File | null;
   }>({
     resourceName: "",
@@ -104,6 +105,7 @@ const PostBenchResource = () => {
     minimumDuration: "3",
     locationPreferences: { remote: false, hybrid: false, onSite: false },
     requireNonSolicitation: false,
+    weeklyWorkingHours: "",
     resumeFile: null,
   });
 
@@ -179,6 +181,7 @@ const PostBenchResource = () => {
           onSite: deploymentPrefs.includes("onsite"),
         },
         requireNonSolicitation: resource.requireNonSolicitation || false,
+        weeklyWorkingHours: resource.weeklyWorkingHours?.toString() || "",
         resumeFile: null,
       });
     }
@@ -522,6 +525,9 @@ const PostBenchResource = () => {
     formDataToSend.append("primarySkills", JSON.stringify(formData.primarySkills));
     formDataToSend.append("secondarySkills", JSON.stringify(formData.secondarySkills));
     formDataToSend.append("hourlyRate", formData.hourlyRate);
+    if (formData.weeklyWorkingHours) {
+      formDataToSend.append("weeklyWorkingHours", formData.weeklyWorkingHours);
+    }
     formDataToSend.append("currency", formData.currency);
     formDataToSend.append("availableFrom", formData.availableFrom);
     formDataToSend.append("employeeId", formData.employeeId);
@@ -1233,6 +1239,25 @@ const PostBenchResource = () => {
                     className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700">
+                  Weekly Working Hours <span className="text-muted-foreground font-normal">(max 40)</span>
+                </Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="40"
+                  placeholder="e.g. 40"
+                  value={formData.weeklyWorkingHours}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (Number(val) > 40) return;
+                    setFormData({ ...formData, weeklyWorkingHours: val });
+                  }}
+                  className="h-12 w-full md:w-1/2 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
+                />
               </div>
 
               <div className="space-y-2">

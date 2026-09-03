@@ -63,6 +63,7 @@ import { useGetInvitedTestReportQuery } from "@/app/queries/employerApi";
 
 type CandidateProfileWithMeta = CandidateProfile & {
   experienceYears?: number;
+  availableWeeklyHours?: number;
   talentSource: "candidate" | "bench";
   email?: string;
   mobileNumber?: string;
@@ -79,14 +80,15 @@ const JOB_MATCHES_PAGE_SIZE = 10;
 const mergeUniqueById = <T extends { id: EntityId }>(
   existingItems: T[],
   nextItems: T[],
+  getItemKey: (item: T) => string = (item) => String(item.id),
 ) => {
-  const seenIds = new Set(existingItems.map((item) => String(item.id)));
+  const seenIds = new Set(existingItems.map(getItemKey));
   const mergedItems = [...existingItems];
 
   nextItems.forEach((item) => {
-    const itemId = String(item.id);
-    if (!seenIds.has(itemId)) {
-      seenIds.add(itemId);
+    const itemKey = getItemKey(item);
+    if (!seenIds.has(itemKey)) {
+      seenIds.add(itemKey);
       mergedItems.push(item);
     }
   });
@@ -95,6 +97,17 @@ const mergeUniqueById = <T extends { id: EntityId }>(
 };
 
 const getEntityIdKey = (id: EntityId) => String(id);
+
+type TalentSource = "candidate" | "bench";
+type CandidateIdentityKey = `${TalentSource}:${string}`;
+
+const getTalentSource = (source: Match["source"]): TalentSource =>
+  source === "bench" ? "bench" : "candidate";
+
+const getCandidateIdentityKey = (
+  id: EntityId,
+  talentSource: TalentSource,
+): CandidateIdentityKey => `${talentSource}:${getEntityIdKey(id)}`;
 
 const normalizeSkills = (skills: unknown): string[] => {
   if (Array.isArray(skills)) {
@@ -268,9 +281,7 @@ const mapMatchToCandidate = (match: Match): CandidateProfileWithMeta | null => {
         : undefined,
     availability: "Not specified",
     type: match.source === "bench" ? "bench" : "individual",
-    talentSource: (match.source === "bench" ? "bench" : "candidate") as
-      | "candidate"
-      | "bench",
+    talentSource: getTalentSource(match.source),
     hourlyRate: { min: hourlyFallback, max: hourlyMax },
     location: match.location || "Not specified",
     englishLevel: match.englishLevel,
@@ -280,6 +291,7 @@ const mapMatchToCandidate = (match: Match): CandidateProfileWithMeta | null => {
     projects: normalizeProjects(match.projects),
     email: match.email as string | undefined,
     mobileNumber: match.mobileNumber as string | undefined,
+    availableWeeklyHours: match.availableWeeklyHours as number | undefined,
   };
 };
 
@@ -307,8 +319,8 @@ const findReportByCandidateEmail = (
     const report = item as Record<string, unknown>;
     const reportEmail = normalizeEmail(
       report.candidateEmail ??
-      report.email ??
-      (report.candidate as Record<string, unknown> | undefined)?.email,
+        report.email ??
+        (report.candidate as Record<string, unknown> | undefined)?.email,
     );
     return reportEmail === normalizedCandidateEmail;
   });
@@ -349,12 +361,17 @@ const SidebarCandidateItem = ({
   selectedJobId?: string | null;
 }) => {
   const selectedCandidateReport = useMemo(() => {
-    return findReportByCandidateEmail(candidate.email, invitedTestResults, selectedJobId);
+    return findReportByCandidateEmail(
+      candidate.email,
+      invitedTestResults,
+      selectedJobId,
+    );
   }, [candidate.email, invitedTestResults, selectedJobId]);
 
   let statusDisplay = tab === "skill-test" ? "Pending" : "Interviewed";
   if (tab === "skill-test" && selectedCandidateReport) {
-    const reportStatus = (selectedCandidateReport as Record<string, unknown>)?.status;
+    const reportStatus = (selectedCandidateReport as Record<string, unknown>)
+      ?.status;
     if (typeof reportStatus === "string" && reportStatus.trim()) {
       statusDisplay = reportStatus;
     }
@@ -402,8 +419,10 @@ const EmployerAIShortlists = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [selectedCandidateId, setSelectedCandidateId] =
-    useState<EntityId | null>(null);
-  const [shortlistedIds, setShortlistedIds] = useState<EntityId[]>([]);
+    useState<CandidateIdentityKey | null>(null);
+  const [shortlistedIds, setShortlistedIds] = useState<CandidateIdentityKey[]>(
+    [],
+  );
   const [bulkFilterStatus, setBulkFilterStatus] = useState<
     "" | "shortlisted" | "unshortlisted"
   >("");
@@ -512,29 +531,29 @@ const EmployerAIShortlists = () => {
     setLoadedMatches((previousMatches) =>
       jobMatchesPage === 1
         ? nextMatches
-        : mergeUniqueById(previousMatches, nextMatches),
+        : mergeUniqueById(previousMatches, nextMatches, (match) =>
+            getCandidateIdentityKey(match.id, getTalentSource(match.source)),
+          ),
     );
 
     // Seed shortlistedIds from backend-persisted isShortlisted flag.
-    // This means on page refresh, candidates the backend already knows are
-    // shortlisted will immediately show up with the correct "shortlisted" stage.
+    // Always merge — never overwrite — so optimistic updates from
+    // handleShortlist() are not wiped out when the query re-fetches.
     const backendShortlistedIds = nextMatches
       .filter((m: Match) => m.isShortlisted === true)
-      .map((m: Match) => m.id);
+      .map((m: Match) =>
+        getCandidateIdentityKey(m.id, getTalentSource(m.source)),
+      );
 
     setShortlistedIds((prev) => {
-      if (jobMatchesPage === 1) {
-        return backendShortlistedIds;
-      }
-
-      const merged = new Set(prev.map(getEntityIdKey));
-      backendShortlistedIds.forEach((id) => merged.add(getEntityIdKey(id)));
-      return [
-        ...prev,
-        ...backendShortlistedIds.filter(
-          (id) => !prev.some((p) => getEntityIdKey(p) === getEntityIdKey(id)),
-        ),
-      ];
+      // On the first page of a fresh job selection prev will be empty,
+      // so this is effectively a direct set.  On subsequent fetches /
+      // refetches we keep any IDs the user has already toggled locally.
+      const merged = new Set(prev);
+      backendShortlistedIds.forEach((id) => {
+        merged.add(id);
+      });
+      return Array.from(merged);
     });
   }, [jobMatchesPage, matchesResponse?.data, shouldFetchMatches]);
 
@@ -582,15 +601,18 @@ const EmployerAIShortlists = () => {
   ]);
 
   const stageById = useMemo(
-    () => new Map(loadedMatches.map((m) => [getEntityIdKey(m.id), m.stage])),
+    () =>
+      new Map(
+        loadedMatches.map((m) => [
+          getCandidateIdentityKey(m.id, getTalentSource(m.source)),
+          m.stage,
+        ]),
+      ),
     [loadedMatches],
   );
 
-
   const candidates = useMemo<CandidateListItem[]>(() => {
-    const shortlistedIdKeys = new Set(
-      shortlistedIds.map((shortlistedId) => getEntityIdKey(shortlistedId)),
-    );
+    const shortlistedIdKeys = new Set(shortlistedIds);
 
     return loadedMatches
       .map(mapMatchToCandidate)
@@ -601,11 +623,15 @@ const EmployerAIShortlists = () => {
       .map((c) => ({
         ...c,
         stage:
-          stageById.get(getEntityIdKey(c.id)) === "completed"
+          stageById.get(getCandidateIdentityKey(c.id, c.talentSource)) ===
+          "completed"
             ? "completed"
-            : stageById.get(getEntityIdKey(c.id)) === "invited"
+            : stageById.get(getCandidateIdentityKey(c.id, c.talentSource)) ===
+                "invited"
               ? "invited"
-              : shortlistedIdKeys.has(getEntityIdKey(c.id))
+              : shortlistedIdKeys.has(
+                    getCandidateIdentityKey(c.id, c.talentSource),
+                  )
                 ? "shortlisted"
                 : "matched",
         matchReasons: [],
@@ -617,7 +643,7 @@ const EmployerAIShortlists = () => {
   // Filter by tab and search term only — no additional relevance filtering
   const normalizedSearchTerm = useMemo(
     () => searchTerm.trim().toLowerCase(),
-    [searchTerm]
+    [searchTerm],
   );
 
   const filteredCandidates = useMemo(
@@ -685,6 +711,7 @@ const EmployerAIShortlists = () => {
     setSelectedJob(value === "all" ? "" : value);
     setLoadedMatches([]);
     setJobMatchesPage(1);
+    setShortlistedIds([]);
     // Update URL search params so jobId persists across navigation
     const nextParams = new URLSearchParams(searchParams);
     if (!value) {
@@ -751,45 +778,48 @@ const EmployerAIShortlists = () => {
       return;
     }
 
-    const shortlistedCandidateKey = getEntityIdKey(candidate.id);
-    const hasAlreadyShortlisted = shortlistedIds.some(
-      (shortlistedId) =>
-        getEntityIdKey(shortlistedId) === shortlistedCandidateKey,
+    const talentSource = candidate.talentSource ?? "candidate";
+    const shortlistedCandidateKey = getCandidateIdentityKey(
+      candidate.id,
+      talentSource,
+    );
+    const hasAlreadyShortlisted = shortlistedIds.includes(
+      shortlistedCandidateKey,
     );
 
     if (hasAlreadyShortlisted) {
       // Logic for undoing shortlist
       setShortlistedIds((prev) =>
-        prev.filter((id) => getEntityIdKey(id) !== shortlistedCandidateKey),
+        prev.filter((id) => id !== shortlistedCandidateKey),
       );
       toast.info(`${candidate.name} removed from shortlist`);
 
       removeShortlistCandidateMutation({
         jobId: selectedJobId,
         talentId: candidate.id,
-        talentSource: candidate.talentSource ?? "candidate",
+        talentSource,
       })
         .unwrap()
         .catch(() => {
           // Rollback on error
-          setShortlistedIds((prev) => [...prev, candidate.id]);
+          setShortlistedIds((prev) => [...prev, shortlistedCandidateKey]);
           toast.error("Failed to remove from shortlist. Please try again.");
         });
     } else {
       // Logic for adding to shortlist
-      setShortlistedIds((prev) => [...prev, candidate.id]);
+      setShortlistedIds((prev) => [...prev, shortlistedCandidateKey]);
       toast.success(`${candidate.name} added to shortlist!`);
 
       shortlistCandidateMutation({
         jobId: selectedJobId,
         talentId: candidate.id,
-        talentSource: candidate.talentSource ?? "candidate",
+        talentSource,
       })
         .unwrap()
         .catch(() => {
           // Rollback on error
           setShortlistedIds((prev) =>
-            prev.filter((id) => getEntityIdKey(id) !== shortlistedCandidateKey),
+            prev.filter((id) => id !== shortlistedCandidateKey),
           );
           toast.error(
             `Failed to shortlist ${candidate.name}. Please try again.`,
@@ -803,13 +833,19 @@ const EmployerAIShortlists = () => {
       selectedCandidateId == null
         ? undefined
         : candidates.find(
-          (c) => getEntityIdKey(c.id) === getEntityIdKey(selectedCandidateId),
-        ),
+            (c) =>
+              getCandidateIdentityKey(c.id, c.talentSource) ===
+              selectedCandidateId,
+          ),
     [candidates, selectedCandidateId],
   );
 
   const selectedCandidateSkillReport = useMemo(() => {
-    return findReportByCandidateEmail(selectedCandidateForDetails?.email, invitedTestResults, selectedJobId);
+    return findReportByCandidateEmail(
+      selectedCandidateForDetails?.email,
+      invitedTestResults,
+      selectedJobId,
+    );
   }, [invitedTestResults, selectedCandidateForDetails?.email, selectedJobId]);
 
   const renderSidebar = (tab: "skill-test" | "ai-interview") => (
@@ -841,10 +877,17 @@ const EmployerAIShortlists = () => {
         )}
         {sidebarCandidates.map((candidate) => (
           <SidebarCandidateItem
-            key={candidate.id}
+            key={getCandidateIdentityKey(candidate.id, candidate.talentSource)}
             candidate={candidate}
-            isSelected={selectedCandidateId === candidate.id}
-            onClick={() => setSelectedCandidateId(candidate.id)}
+            isSelected={
+              selectedCandidateId ===
+              getCandidateIdentityKey(candidate.id, candidate.talentSource)
+            }
+            onClick={() =>
+              setSelectedCandidateId(
+                getCandidateIdentityKey(candidate.id, candidate.talentSource),
+              )
+            }
             tab={tab}
             invitedTestResults={invitedTestResults}
             selectedJobId={selectedJobId}
@@ -963,10 +1006,11 @@ const EmployerAIShortlists = () => {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={`h-10 rounded-xl border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50 shadow-sm flex items-center gap-2 ${bulkFilterStatus
-                        ? "border-[#08b8cc] text-[#08b8cc]"
-                        : ""
-                        }`}
+                      className={`h-10 rounded-xl border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50 shadow-sm flex items-center gap-2 ${
+                        bulkFilterStatus
+                          ? "border-[#08b8cc] text-[#08b8cc]"
+                          : ""
+                      }`}
                     >
                       <ChevronDown className="h-4 w-4 text-gray-500" />
                       Bulk Actions
@@ -1132,7 +1176,10 @@ const EmployerAIShortlists = () => {
 
                 return (
                   <div
-                    key={candidate.id}
+                    key={getCandidateIdentityKey(
+                      candidate.id,
+                      candidate.talentSource,
+                    )}
                     className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 shadow-sm xl:flex-row xl:items-center xl:gap-6"
                   >
                     <div className="flex items-center gap-4 w-full min-w-0 xl:w-[280px] xl:shrink-0">
@@ -1175,6 +1222,15 @@ const EmployerAIShortlists = () => {
                           </span>
                         )}
                       </div>
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-gray-600 mt-3 min-w-0 bg-blue-50/50 px-2.5 py-1.5 rounded-md border border-blue-100/50 w-fit">
+                        <Clock className="text-blue-600" size={16} />
+                        <span className="font-medium text-gray-600 whitespace-nowrap">
+                          Available Weekly Hours:
+                        </span>
+                        <span className="font-bold text-blue-600 shrink-0">
+                          {candidate?.availableWeeklyHours ?? "N/A"}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="flex w-full min-w-0 flex-col gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3 sm:flex-row sm:items-center sm:justify-between xl:w-auto xl:min-w-[430px] xl:border-0 xl:bg-transparent xl:p-0">
@@ -1206,12 +1262,13 @@ const EmployerAIShortlists = () => {
                             candidate.stage !== "invited" &&
                             handleShortlist(candidate)
                           }
-                          className={`h-9 min-w-0 flex-1 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${candidate.stage === "invited"
-                            ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
-                            : candidate.stage === "shortlisted"
-                              ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
-                              : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                            }`}
+                          className={`h-9 min-w-0 flex-1 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${
+                            candidate.stage === "invited"
+                              ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
+                              : candidate.stage === "shortlisted"
+                                ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
+                                : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          }`}
                         >
                           {candidate.stage === "invited" ? (
                             <span className="flex items-center gap-1.5">
@@ -1274,8 +1331,8 @@ const EmployerAIShortlists = () => {
                   candidate={selectedCandidateForDetails}
                   report={
                     selectedCandidateSkillReport as
-                    | Record<string, unknown>
-                    | undefined
+                      | Record<string, unknown>
+                      | undefined
                   }
                   isLoading={invitedTestReportLoading}
                 />

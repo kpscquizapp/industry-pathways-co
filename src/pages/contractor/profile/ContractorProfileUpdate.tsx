@@ -105,6 +105,7 @@ interface FormDataState {
   candidateType: string;
   bio: string;
   yearsExperience: string | number;
+  weeklyWorkingHours: string | number;
   primarySkills: string[];
   secondarySkills: string[];
   primaryJobRole: string;
@@ -136,6 +137,7 @@ interface CandidateProfileUpdateProps {
       candidateType?: string;
       bio?: string;
       yearsExperience?: string | number;
+      weeklyWorkingHours?: string | number;
       primarySkills?: Skill[];
       secondarySkills?: any[];
       primaryJobRole?: string;
@@ -545,6 +547,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
         candidateType: "",
         bio: "",
         yearsExperience: "",
+        weeklyWorkingHours: "",
         primarySkills: [],
         secondarySkills: [],
         primaryJobRole: "",
@@ -573,6 +576,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
         candidateType: "",
         bio: "",
         yearsExperience: "",
+        weeklyWorkingHours: "",
         primarySkills: [],
         secondarySkills: [],
         primaryJobRole: "",
@@ -600,6 +604,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
       candidateType: profile.candidateType || "",
       bio: profile.bio || "",
       yearsExperience: profile.yearsExperience ?? "",
+      weeklyWorkingHours: profile.weeklyWorkingHours ?? "",
       primarySkills: profileSkills || [],
       secondarySkills:
         profile.secondarySkills
@@ -1729,6 +1734,16 @@ const CandidateProfileUpdate = (): JSX.Element => {
     );
     if (experienceError) errors.yearsExperience = experienceError;
 
+    if (
+      formData.weeklyWorkingHours !== "" &&
+      formData.weeklyWorkingHours != null
+    ) {
+      const hoursNum = Number(formData.weeklyWorkingHours);
+      if (!Number.isFinite(hoursNum) || hoursNum < 0 || hoursNum > 40) {
+        errors.weeklyWorkingHours = "Weekly hours must be between 0 and 40";
+      }
+    }
+
     const rateError = VALIDATION.hourlyRate.validate(
       formData.hourlyRateMin,
       formData.hourlyRateMax,
@@ -1905,6 +1920,10 @@ const CandidateProfileUpdate = (): JSX.Element => {
         formData.expectedSalaryMax === ""
           ? null
           : Number(formData.expectedSalaryMax),
+      weeklyWorkingHours:
+        formData.weeklyWorkingHours === ""
+          ? null
+          : Number(formData.weeklyWorkingHours),
       certifications: formData.certifications
         .filter(
           (cert) =>
