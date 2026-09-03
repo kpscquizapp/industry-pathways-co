@@ -42,11 +42,25 @@ import { currencySymbols } from "@/lib/currency";
 import { useNavigate } from "react-router-dom";
 import { clearExtractedSkills } from "@/app/slices/extractResumeSkills";
 
-const BasicInfoSection = lazy(() => import("./BasicInfoSection").then(m => ({ default: m.BasicInfoSection })));
-const SkillsSection = lazy(() => import("./SkillsSection").then(m => ({ default: m.SkillsSection })));
-const WorkExperienceSection = lazy(() => import("./WorkExperienceSection").then(m => ({ default: m.WorkExperienceSection })));
-const ProjectsSection = lazy(() => import("./ProjectsSection").then(m => ({ default: m.ProjectsSection })));
-const CertificationsSection = lazy(() => import("./CertificationsSection").then(m => ({ default: m.CertificationsSection })));
+const BasicInfoSection = lazy(() =>
+  import("./BasicInfoSection").then((m) => ({ default: m.BasicInfoSection })),
+);
+const SkillsSection = lazy(() =>
+  import("./SkillsSection").then((m) => ({ default: m.SkillsSection })),
+);
+const WorkExperienceSection = lazy(() =>
+  import("./WorkExperienceSection").then((m) => ({
+    default: m.WorkExperienceSection,
+  })),
+);
+const ProjectsSection = lazy(() =>
+  import("./ProjectsSection").then((m) => ({ default: m.ProjectsSection })),
+);
+const CertificationsSection = lazy(() =>
+  import("./CertificationsSection").then((m) => ({
+    default: m.CertificationsSection,
+  })),
+);
 
 // ==================== TYPES ====================
 type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -624,26 +638,74 @@ const CandidateProfileUpdate = (): JSX.Element => {
       })(),
       workExperiences:
         profile.workExperiences?.map(
-          ({ id, localId, companyName, role, employmentType, startDate, endDate, description, location }) => ({
-            id, localId, companyName, role, employmentType, startDate, endDate, description, location,
+          ({
+            id,
+            localId,
+            companyName,
+            role,
+            employmentType,
+            startDate,
+            endDate,
+            description,
+            location,
+          }) => ({
+            id,
+            localId,
+            companyName,
+            role,
+            employmentType,
+            startDate,
+            endDate,
+            description,
+            location,
           }),
         ) || [],
       projects:
         profile.projects?.map(
-          ({ id, localId, title, description, techStack, projectUrl, isFeatured }) => ({
-            id, localId, title, description, techStack, projectUrl, isFeatured,
+          ({
+            id,
+            localId,
+            title,
+            description,
+            techStack,
+            projectUrl,
+            isFeatured,
+          }) => ({
+            id,
+            localId,
+            title,
+            description,
+            techStack,
+            projectUrl,
+            isFeatured,
           }),
         ) || [],
       certifications:
         profile.certifications?.map(
-          ({ id, localId, name, issueDate, issuedBy, expiryDate, credentialUrl }) => ({
-            id, localId, name, issueDate, issuedBy, expiryDate, credentialUrl,
+          ({
+            id,
+            localId,
+            name,
+            issueDate,
+            issuedBy,
+            expiryDate,
+            credentialUrl,
+          }) => ({
+            id,
+            localId,
+            name,
+            issueDate,
+            issuedBy,
+            expiryDate,
+            credentialUrl,
           }),
         ) || [],
     };
   }, [data, profileSkills]);
 
-  const [formData, setFormData] = useState<FormDataState>(() => initialFormData);
+  const [formData, setFormData] = useState<FormDataState>(
+    () => initialFormData,
+  );
 
   useEffect(() => {
     primarySkillsRef.current = formData.primarySkills;
@@ -690,14 +752,14 @@ const CandidateProfileUpdate = (): JSX.Element => {
   useEffect(() => {
     const validResumeSkills = Array.isArray(resumeData)
       ? resumeData.filter(
-        (s): s is string => typeof s === "string" && s.trim() !== "",
-      )
+          (s): s is string => typeof s === "string" && s.trim() !== "",
+        )
       : [];
 
     if (
       validResumeSkills.length === 0 ||
       JSON.stringify(validResumeSkills) ===
-      JSON.stringify(processedResumeDataRef.current)
+        JSON.stringify(processedResumeDataRef.current)
     ) {
       return;
     }
@@ -1004,7 +1066,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
         typeof skill === "string"
           ? skill.toLowerCase() === skillToRemove.toLowerCase()
           : (skill as { name: string }).name.toLowerCase() ===
-          skillToRemove.toLowerCase(),
+            skillToRemove.toLowerCase(),
     );
 
     // Guard clause: skill not found (local, not persisted)
@@ -1161,6 +1223,8 @@ const CandidateProfileUpdate = (): JSX.Element => {
   const handleSaveSkillsOnly = async (secondarySkillsOverride?: string[]) => {
     // Since check/uncheck/edit/delete actions already keep formData in sync,
     // we can directly save the current state from formData.
+    const { weeklyWorkingHours: _weeklyWorkingHours, ...skillUpdateFormData } =
+      formData;
     const primarySkillsToSave = formData.primarySkills;
     const baseSecondarySkills =
       secondarySkillsOverride ?? formData.secondarySkills;
@@ -1174,7 +1238,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
     };
 
     const payload = {
-      ...formData,
+      ...skillUpdateFormData,
       firstName: formData.firstName.trim(),
       lastName: formData.lastName.trim(),
       email: formData.email.toLowerCase().trim(),
@@ -1223,9 +1287,9 @@ const CandidateProfileUpdate = (): JSX.Element => {
           techStack: Array.isArray(project.techStack)
             ? project.techStack
             : String(project.techStack ?? "")
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean),
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean),
         })),
       workExperiences: formData.workExperiences
         .filter(
@@ -1947,9 +2011,9 @@ const CandidateProfileUpdate = (): JSX.Element => {
           techStack: Array.isArray(project.techStack)
             ? project.techStack
             : String(project.techStack ?? "")
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean),
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean),
         })),
       workExperiences: formData.workExperiences
         .filter(
@@ -2062,7 +2126,7 @@ const CandidateProfileUpdate = (): JSX.Element => {
           }
         },
       },
-      cancel: { label: "Cancel", onClick: () => { } },
+      cancel: { label: "Cancel", onClick: () => {} },
     });
   };
 
@@ -2344,7 +2408,6 @@ const CandidateProfileUpdate = (): JSX.Element => {
             removingCertificateId={removingCertificateId}
           />
         </Suspense>
-
 
         {/* Submit Button */}
         <div className="flex flex-col sm:flex-row flex-col gap-3 sm:gap-4 pt-6 pb-8 border-t border-gray-100 dark:border-slate-800/50 mt-8">

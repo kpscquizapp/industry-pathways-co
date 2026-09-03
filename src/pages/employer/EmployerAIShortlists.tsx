@@ -423,6 +423,9 @@ const EmployerAIShortlists = () => {
   const [shortlistedIds, setShortlistedIds] = useState<CandidateIdentityKey[]>(
     [],
   );
+  const [pendingShortlistChanges, setPendingShortlistChanges] = useState<
+    Record<CandidateIdentityKey, boolean>
+  >({});
   const [bulkFilterStatus, setBulkFilterStatus] = useState<
     "" | "shortlisted" | "unshortlisted"
   >("");
@@ -536,26 +539,52 @@ const EmployerAIShortlists = () => {
           ),
     );
 
-    // Seed shortlistedIds from backend-persisted isShortlisted flag.
-    // Always merge — never overwrite — so optimistic updates from
-    // handleShortlist() are not wiped out when the query re-fetches.
+    // Rebuild from the latest backend snapshot, then reapply only mutations
+    // that are still pending so stale backend data cannot erase local intent.
     const backendShortlistedIds = nextMatches
       .filter((m: Match) => m.isShortlisted === true)
       .map((m: Match) =>
         getCandidateIdentityKey(m.id, getTalentSource(m.source)),
       );
+    const backendShortlistState = new Map(
+      nextMatches.map((m: Match) => [
+        getCandidateIdentityKey(m.id, getTalentSource(m.source)),
+        m.isShortlisted === true,
+      ]),
+    );
 
-    setShortlistedIds((prev) => {
-      // On the first page of a fresh job selection prev will be empty,
-      // so this is effectively a direct set.  On subsequent fetches /
-      // refetches we keep any IDs the user has already toggled locally.
-      const merged = new Set(prev);
-      backendShortlistedIds.forEach((id) => {
-        merged.add(id);
+    setShortlistedIds(() => {
+      const reconciled = new Set<string>(backendShortlistedIds);
+      Object.keys(pendingShortlistChanges).forEach((id) => {
+        const shortlistId = id as CandidateIdentityKey;
+        const isShortlisted = pendingShortlistChanges[shortlistId];
+        if (isShortlisted) {
+          reconciled.add(shortlistId);
+        } else {
+          reconciled.delete(shortlistId);
+        }
       });
-      return Array.from(merged);
+      return Array.from(reconciled) as CandidateIdentityKey[];
     });
-  }, [jobMatchesPage, matchesResponse?.data, shouldFetchMatches]);
+
+    setPendingShortlistChanges((prev) => {
+      let next = prev;
+      Object.keys(prev).forEach((id) => {
+        const shortlistId = id as CandidateIdentityKey;
+        if (backendShortlistState.get(shortlistId) !== prev[shortlistId]) {
+          return;
+        }
+        if (next === prev) next = { ...prev };
+        delete next[shortlistId];
+      });
+      return next;
+    });
+  }, [
+    jobMatchesPage,
+    matchesResponse?.data,
+    pendingShortlistChanges,
+    shouldFetchMatches,
+  ]);
 
   const hasMoreEmployerJobs = useMemo(() => {
     const totalPages = employerJobsResponse?.meta?.totalPages;
@@ -712,6 +741,7 @@ const EmployerAIShortlists = () => {
     setLoadedMatches([]);
     setJobMatchesPage(1);
     setShortlistedIds([]);
+    setPendingShortlistChanges({});
     // Update URL search params so jobId persists across navigation
     const nextParams = new URLSearchParams(searchParams);
     if (!value) {
@@ -789,6 +819,10 @@ const EmployerAIShortlists = () => {
 
     if (hasAlreadyShortlisted) {
       // Logic for undoing shortlist
+      setPendingShortlistChanges((prev) => ({
+        ...prev,
+        [shortlistedCandidateKey]: false,
+      }));
       setShortlistedIds((prev) =>
         prev.filter((id) => id !== shortlistedCandidateKey),
       );
@@ -802,11 +836,21 @@ const EmployerAIShortlists = () => {
         .unwrap()
         .catch(() => {
           // Rollback on error
+          setPendingShortlistChanges((prev) => {
+            if (prev[shortlistedCandidateKey] !== false) return prev;
+            const next = { ...prev };
+            delete next[shortlistedCandidateKey];
+            return next;
+          });
           setShortlistedIds((prev) => [...prev, shortlistedCandidateKey]);
           toast.error("Failed to remove from shortlist. Please try again.");
         });
     } else {
       // Logic for adding to shortlist
+      setPendingShortlistChanges((prev) => ({
+        ...prev,
+        [shortlistedCandidateKey]: true,
+      }));
       setShortlistedIds((prev) => [...prev, shortlistedCandidateKey]);
       toast.success(`${candidate.name} added to shortlist!`);
 
@@ -818,6 +862,12 @@ const EmployerAIShortlists = () => {
         .unwrap()
         .catch(() => {
           // Rollback on error
+          setPendingShortlistChanges((prev) => {
+            if (prev[shortlistedCandidateKey] !== true) return prev;
+            const next = { ...prev };
+            delete next[shortlistedCandidateKey];
+            return next;
+          });
           setShortlistedIds((prev) =>
             prev.filter((id) => id !== shortlistedCandidateKey),
           );

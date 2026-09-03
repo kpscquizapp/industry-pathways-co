@@ -51,6 +51,16 @@ type ExtractedSkill = {
 const createLocalId = (prefix = "local") =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+const validateWeeklyWorkingHours = (value: string) => {
+  const normalizedValue = value.trim();
+  if (!normalizedValue) return null;
+
+  const hours = Number(normalizedValue);
+  return Number.isFinite(hours) && hours >= 0 && hours <= 40
+    ? null
+    : "Weekly working hours must be between 0 and 40";
+};
+
 const normalizeSkill = (value: string) => value.toLowerCase().trim();
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -62,9 +72,12 @@ const PostBenchResource = () => {
   const isEditMode = !!editIdNumber;
   const token = useSelector((state: any) => state.user?.token);
 
-  const [extractResume, { isLoading: isExtracting }] = useExtractResumeMutation();
-  const [postBenchResource, { isLoading: isSubmitting }] = usePostBenchResourceMutation();
-  const [updateBenchResource, { isLoading: isUpdating }] = useUpdateBenchResourceMutation();
+  const [extractResume, { isLoading: isExtracting }] =
+    useExtractResumeMutation();
+  const [postBenchResource, { isLoading: isSubmitting }] =
+    usePostBenchResourceMutation();
+  const [updateBenchResource, { isLoading: isUpdating }] =
+    useUpdateBenchResourceMutation();
 
   const {
     data: resourceData,
@@ -113,8 +126,11 @@ const PostBenchResource = () => {
   const [primarySkillInput, setPrimarySkillInput] = useState("");
   const [secondarySkillInput, setSecondarySkillInput] = useState("");
   const [extractedSkills, setExtractedSkills] = useState<ExtractedSkill[]>([]);
-  const [editingExtractedSkillId, setEditingExtractedSkillId] = useState<string | null>(null);
-  const [editingExtractedSkillName, setEditingExtractedSkillName] = useState("");
+  const [editingExtractedSkillId, setEditingExtractedSkillId] = useState<
+    string | null
+  >(null);
+  const [editingExtractedSkillName, setEditingExtractedSkillName] =
+    useState("");
   const [isEditingPrimarySkills, setIsEditingPrimarySkills] = useState(false);
   const [showExtractedBanner, setShowExtractedBanner] = useState(false);
 
@@ -142,8 +158,6 @@ const PostBenchResource = () => {
         deploymentPrefs = [];
       }
 
-
-
       setFormData({
         resourceName: resource.resourceName || "",
         email: resource.email || "",
@@ -157,14 +171,34 @@ const PostBenchResource = () => {
         primarySkills: (() => {
           const arr = Array.isArray(resource.primarySkills)
             ? resource.primarySkills
-            : (() => { try { return JSON.parse(resource.primarySkills || "[]"); } catch { return []; } })();
-          return arr.map((item: any) => typeof item === "string" ? item : item?.name || "").filter(Boolean);
+            : (() => {
+                try {
+                  return JSON.parse(resource.primarySkills || "[]");
+                } catch {
+                  return [];
+                }
+              })();
+          return arr
+            .map((item: any) =>
+              typeof item === "string" ? item : item?.name || "",
+            )
+            .filter(Boolean);
         })(),
         secondarySkills: (() => {
           const arr = Array.isArray(resource.secondarySkills)
             ? resource.secondarySkills
-            : (() => { try { return JSON.parse(resource.secondarySkills || "[]"); } catch { return []; } })();
-          return arr.map((item: any) => typeof item === "string" ? item : item?.name || "").filter(Boolean);
+            : (() => {
+                try {
+                  return JSON.parse(resource.secondarySkills || "[]");
+                } catch {
+                  return [];
+                }
+              })();
+          return arr
+            .map((item: any) =>
+              typeof item === "string" ? item : item?.name || "",
+            )
+            .filter(Boolean);
         })(),
         professionalSummary: resource.professionalSummary || "",
         hourlyRate: resource.hourlyRate?.toString() || "",
@@ -204,27 +238,47 @@ const PostBenchResource = () => {
 
     // Existing primary → checked in the banner
     currentPrimary.forEach((skill) => {
-      newExtractedObjects.push({ id: createLocalId("ext"), name: skill, isPrimary: true });
+      newExtractedObjects.push({
+        id: createLocalId("ext"),
+        name: skill,
+        isPrimary: true,
+      });
     });
 
     // Existing secondary → unchecked in the banner
     currentSecondary.forEach((skill) => {
-      newExtractedObjects.push({ id: createLocalId("ext"), name: skill, isPrimary: false });
+      newExtractedObjects.push({
+        id: createLocalId("ext"),
+        name: skill,
+        isPrimary: false,
+      });
     });
 
     // New skills from resume
     let autoCheckedCount = currentPrimary.length;
     for (const skill of resumeSkills) {
       const normalized = normalizeSkill(skill);
-      const inPrimary = currentPrimary.some((p) => normalizeSkill(p) === normalized);
-      const inSecondary = currentSecondary.some((s) => normalizeSkill(s) === normalized);
+      const inPrimary = currentPrimary.some(
+        (p) => normalizeSkill(p) === normalized,
+      );
+      const inSecondary = currentSecondary.some(
+        (s) => normalizeSkill(s) === normalized,
+      );
       if (!inPrimary && !inSecondary) {
         if (autoCheckedCount < 5) {
           newPrimarySkills.push(skill);
-          newExtractedObjects.push({ id: createLocalId("ext"), name: skill, isPrimary: true });
+          newExtractedObjects.push({
+            id: createLocalId("ext"),
+            name: skill,
+            isPrimary: true,
+          });
           autoCheckedCount++;
         } else {
-          newExtractedObjects.push({ id: createLocalId("ext"), name: skill, isPrimary: false });
+          newExtractedObjects.push({
+            id: createLocalId("ext"),
+            name: skill,
+            isPrimary: false,
+          });
         }
       }
     }
@@ -240,21 +294,31 @@ const PostBenchResource = () => {
 
     if (checked) {
       if (formData.primarySkills.length >= 5) {
-        toast.error("You can only select up to 5 primary skills. Uncheck one first.");
+        toast.error(
+          "You can only select up to 5 primary skills. Uncheck one first.",
+        );
         return;
       }
       setFormData((prev) => {
         const newPrimary = [...prev.primarySkills];
-        if (!newPrimary.some((s) => normalizeSkill(s) === normalizeSkill(skill.name))) {
+        if (
+          !newPrimary.some(
+            (s) => normalizeSkill(s) === normalizeSkill(skill.name),
+          )
+        ) {
           newPrimary.push(skill.name);
         }
         const newSecondary = prev.secondarySkills.filter(
-          (s) => normalizeSkill(s) !== normalizeSkill(skill.name)
+          (s) => normalizeSkill(s) !== normalizeSkill(skill.name),
         );
-        return { ...prev, primarySkills: newPrimary, secondarySkills: newSecondary };
+        return {
+          ...prev,
+          primarySkills: newPrimary,
+          secondarySkills: newSecondary,
+        };
       });
       setExtractedSkills((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, isPrimary: true } : s))
+        prev.map((s) => (s.id === id ? { ...s, isPrimary: true } : s)),
       );
     } else {
       if (formData.primarySkills.length <= 1) {
@@ -264,14 +328,14 @@ const PostBenchResource = () => {
       setFormData((prev) => ({
         ...prev,
         primarySkills: prev.primarySkills.filter(
-          (s) => normalizeSkill(s) !== normalizeSkill(skill.name)
+          (s) => normalizeSkill(s) !== normalizeSkill(skill.name),
         ),
         secondarySkills: prev.secondarySkills.filter(
-          (s) => normalizeSkill(s) !== normalizeSkill(skill.name)
+          (s) => normalizeSkill(s) !== normalizeSkill(skill.name),
         ),
       }));
       setExtractedSkills((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, isPrimary: false } : s))
+        prev.map((s) => (s.id === id ? { ...s, isPrimary: false } : s)),
       );
     }
   };
@@ -280,25 +344,38 @@ const PostBenchResource = () => {
     const skill = extractedSkills.find((s) => s.id === id);
     if (!skill) return;
     const newName = editingExtractedSkillName.trim();
-    if (!newName) { toast.error("Skill name cannot be empty"); return; }
-    if (newName.length > 50) { toast.error("Skill name must be less than 50 characters"); return; }
-    if (extractedSkills.some((s) => s.id !== id && normalizeSkill(s.name) === normalizeSkill(newName))) {
+    if (!newName) {
+      toast.error("Skill name cannot be empty");
+      return;
+    }
+    if (newName.length > 50) {
+      toast.error("Skill name must be less than 50 characters");
+      return;
+    }
+    if (
+      extractedSkills.some(
+        (s) =>
+          s.id !== id && normalizeSkill(s.name) === normalizeSkill(newName),
+      )
+    ) {
       toast.error("This skill already exists");
       return;
     }
-    setExtractedSkills((prev) => prev.map((s) => (s.id === id ? { ...s, name: newName } : s)));
+    setExtractedSkills((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, name: newName } : s)),
+    );
     if (skill.isPrimary) {
       setFormData((prev) => ({
         ...prev,
         primarySkills: prev.primarySkills.map((s) =>
-          normalizeSkill(s) === normalizeSkill(skill.name) ? newName : s
+          normalizeSkill(s) === normalizeSkill(skill.name) ? newName : s,
         ),
       }));
     } else {
       setFormData((prev) => ({
         ...prev,
         secondarySkills: prev.secondarySkills.map((s) =>
-          normalizeSkill(s) === normalizeSkill(skill.name) ? newName : s
+          normalizeSkill(s) === normalizeSkill(skill.name) ? newName : s,
         ),
       }));
     }
@@ -318,14 +395,14 @@ const PostBenchResource = () => {
       setFormData((prev) => ({
         ...prev,
         primarySkills: prev.primarySkills.filter(
-          (s) => normalizeSkill(s) !== normalizeSkill(skill.name)
+          (s) => normalizeSkill(s) !== normalizeSkill(skill.name),
         ),
       }));
     } else {
       setFormData((prev) => ({
         ...prev,
         secondarySkills: prev.secondarySkills.filter(
-          (s) => normalizeSkill(s) !== normalizeSkill(skill.name)
+          (s) => normalizeSkill(s) !== normalizeSkill(skill.name),
         ),
       }));
     }
@@ -336,13 +413,15 @@ const PostBenchResource = () => {
    * Unchecked extracted skills move to secondarySkills, banner hides.
    */
   const handleConfirmExtractedSkills = () => {
-    const seen = new Set(formData.secondarySkills.map((s) => normalizeSkill(s)));
+    const seen = new Set(
+      formData.secondarySkills.map((s) => normalizeSkill(s)),
+    );
     const newSecondary = [...formData.secondarySkills];
     extractedSkills.forEach((s) => {
       if (!s.isPrimary) {
         const normalized = normalizeSkill(s.name);
         const inPrimary = formData.primarySkills.some(
-          (p) => normalizeSkill(p) === normalized
+          (p) => normalizeSkill(p) === normalized,
         );
         if (!seen.has(normalized) && !inPrimary) {
           seen.add(normalized);
@@ -362,13 +441,20 @@ const PostBenchResource = () => {
       return;
     }
     if (
-      formData.primarySkills.some((s) => normalizeSkill(s) === normalizeSkill(trimmed)) ||
-      formData.secondarySkills.some((s) => normalizeSkill(s) === normalizeSkill(trimmed))
+      formData.primarySkills.some(
+        (s) => normalizeSkill(s) === normalizeSkill(trimmed),
+      ) ||
+      formData.secondarySkills.some(
+        (s) => normalizeSkill(s) === normalizeSkill(trimmed),
+      )
     ) {
       toast.error("This skill already exists.");
       return;
     }
-    setFormData((prev) => ({ ...prev, primarySkills: [...prev.primarySkills, trimmed] }));
+    setFormData((prev) => ({
+      ...prev,
+      primarySkills: [...prev.primarySkills, trimmed],
+    }));
     setPrimarySkillInput("");
   };
 
@@ -387,13 +473,20 @@ const PostBenchResource = () => {
     const trimmed = secondarySkillInput.trim().toLowerCase();
     if (!trimmed) return;
     if (
-      formData.secondarySkills.some((s) => normalizeSkill(s) === normalizeSkill(trimmed)) ||
-      formData.primarySkills.some((s) => normalizeSkill(s) === normalizeSkill(trimmed))
+      formData.secondarySkills.some(
+        (s) => normalizeSkill(s) === normalizeSkill(trimmed),
+      ) ||
+      formData.primarySkills.some(
+        (s) => normalizeSkill(s) === normalizeSkill(trimmed),
+      )
     ) {
       toast.error("This skill already exists.");
       return;
     }
-    setFormData((prev) => ({ ...prev, secondarySkills: [...prev.secondarySkills, trimmed] }));
+    setFormData((prev) => ({
+      ...prev,
+      secondarySkills: [...prev.secondarySkills, trimmed],
+    }));
     setSecondarySkillInput("");
   };
 
@@ -441,7 +534,9 @@ const PostBenchResource = () => {
         console.error("OCR API error, trying AI fallback:", error);
         try {
           if (file.type !== "application/pdf") {
-            toast.error("Fallback parser only supports PDF. Please upload a PDF file.");
+            toast.error(
+              "Fallback parser only supports PDF. Please upload a PDF file.",
+            );
             setFormData((prev) => ({ ...prev, resumeFile: null }));
             input.value = "";
             return;
@@ -455,7 +550,7 @@ const PostBenchResource = () => {
           //   totalExperience: parsed.totalExperience || prev.totalExperience,
           // }));
           processExtractedSkills(
-            parsed.technicalSkills.length > 0 ? parsed.technicalSkills : []
+            parsed.technicalSkills.length > 0 ? parsed.technicalSkills : [],
           );
           toast.success("Resume processed with AI!", {
             description: "Skills have been populated from your resume.",
@@ -472,11 +567,19 @@ const PostBenchResource = () => {
 
   // ── Submit ────────────────────────────────────────────────────────────────────
   const handleProceed = async () => {
-
     const trimmedResourceName = formData.resourceName.trim();
-    if (!trimmedResourceName) { toast.error("Resource name is required"); return; }
-    if (!formData.currentRole.trim()) { toast.error("Current role is required"); return; }
-    if (!formData.email.trim()) { toast.error("Email is required"); return; }
+    if (!trimmedResourceName) {
+      toast.error("Resource name is required");
+      return;
+    }
+    if (!formData.currentRole.trim()) {
+      toast.error("Current role is required");
+      return;
+    }
+    if (!formData.email.trim()) {
+      toast.error("Email is required");
+      return;
+    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email.trim())) {
@@ -488,14 +591,20 @@ const PostBenchResource = () => {
       toast.error("At least one primary skill is required");
       return;
     }
-    if (!formData.hourlyRate) { toast.error("Hourly rate is required"); return; }
+    if (!formData.hourlyRate) {
+      toast.error("Hourly rate is required");
+      return;
+    }
 
     const hourlyRateNum = parseFloat(formData.hourlyRate);
     if (isNaN(hourlyRateNum) || hourlyRateNum <= 0) {
       toast.error("Hourly rate must be a positive number");
       return;
     }
-    if (!formData.availableFrom.trim()) { toast.error("Available from is required"); return; }
+    if (!formData.availableFrom.trim()) {
+      toast.error("Available from is required");
+      return;
+    }
     if (formData.totalExperience === null || formData.totalExperience === "") {
       toast.error("Total experience is required");
       return;
@@ -506,10 +615,26 @@ const PostBenchResource = () => {
       toast.error("Total experience must be a non-negative number");
       return;
     }
-    if (!formData.employeeId.trim()) { toast.error("Employee ID is required"); return; }
-    if (!formData.minimumDuration) { toast.error("Minimum contract duration is required"); return; }
+    if (!formData.employeeId.trim()) {
+      toast.error("Employee ID is required");
+      return;
+    }
+    if (!formData.minimumDuration) {
+      toast.error("Minimum contract duration is required");
+      return;
+    }
 
-    const hasLocationPreference = Object.values(formData.locationPreferences).some((v) => v);
+    const weeklyWorkingHours = formData.weeklyWorkingHours.trim();
+    const weeklyWorkingHoursError =
+      validateWeeklyWorkingHours(weeklyWorkingHours);
+    if (weeklyWorkingHoursError) {
+      toast.error(weeklyWorkingHoursError);
+      return;
+    }
+
+    const hasLocationPreference = Object.values(
+      formData.locationPreferences,
+    ).some((v) => v);
     if (!hasLocationPreference) {
       toast.error("At least one location preference is required");
       return;
@@ -519,26 +644,41 @@ const PostBenchResource = () => {
     formDataToSend.append("resourceName", trimmedResourceName);
     formDataToSend.append("email", formData.email.trim());
     formDataToSend.append("currentRole", formData.currentRole);
-    formDataToSend.append("totalExperience", formData.totalExperience.toString());
+    formDataToSend.append(
+      "totalExperience",
+      formData.totalExperience.toString(),
+    );
     // Merge primary + secondary into technicalSkills until BE splits them
     // ADD THIS
-    formDataToSend.append("primarySkills", JSON.stringify(formData.primarySkills));
-    formDataToSend.append("secondarySkills", JSON.stringify(formData.secondarySkills));
+    formDataToSend.append(
+      "primarySkills",
+      JSON.stringify(formData.primarySkills),
+    );
+    formDataToSend.append(
+      "secondarySkills",
+      JSON.stringify(formData.secondarySkills),
+    );
     formDataToSend.append("hourlyRate", formData.hourlyRate);
-    if (formData.weeklyWorkingHours) {
-      formDataToSend.append("weeklyWorkingHours", formData.weeklyWorkingHours);
+    if (weeklyWorkingHours) {
+      formDataToSend.append("weeklyWorkingHours", weeklyWorkingHours);
     }
     formDataToSend.append("currency", formData.currency);
     formDataToSend.append("availableFrom", formData.availableFrom);
     formDataToSend.append("employeeId", formData.employeeId);
     formDataToSend.append("minimumContractDuration", formData.minimumDuration);
     formDataToSend.append("professionalSummary", formData.professionalSummary);
-    formDataToSend.append("requireNonSolicitation", String(formData.requireNonSolicitation));
+    formDataToSend.append(
+      "requireNonSolicitation",
+      String(formData.requireNonSolicitation),
+    );
 
     const deploymentPreference = Object.entries(formData.locationPreferences)
       .filter(([, v]) => v)
       .map(([k]) => (k === "onSite" ? "onsite" : k));
-    formDataToSend.append("deploymentPreference", JSON.stringify(deploymentPreference));
+    formDataToSend.append(
+      "deploymentPreference",
+      JSON.stringify(deploymentPreference),
+    );
 
     if (formData.resumeFile) {
       formDataToSend.append("resume", formData.resumeFile);
@@ -547,7 +687,10 @@ const PostBenchResource = () => {
     try {
       if (isEditMode) {
         if (!editIdNumber) return;
-        await updateBenchResource({ id: editIdNumber, formData: formDataToSend }).unwrap();
+        await updateBenchResource({
+          id: editIdNumber,
+          formData: formDataToSend,
+        }).unwrap();
         toast.success("Bench resource updated successfully!");
       } else {
         await postBenchResource(formDataToSend).unwrap();
@@ -557,7 +700,10 @@ const PostBenchResource = () => {
       }
       navigate("/bench-dashboard/active-resources");
     } catch (error) {
-      console.error(`Failed to ${isEditMode ? "update" : "post"} bench resource:`, error);
+      console.error(
+        `Failed to ${isEditMode ? "update" : "post"} bench resource:`,
+        error,
+      );
       toast.error(`Failed to ${isEditMode ? "update" : "post"} bench resource`);
     }
   };
@@ -579,7 +725,9 @@ const PostBenchResource = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <AlertCircle className="h-12 w-12 text-red-500" />
-          <p className="text-slate-600 font-medium">Failed to load resource data</p>
+          <p className="text-slate-600 font-medium">
+            Failed to load resource data
+          </p>
           <Button onClick={() => navigate(-1)}>Go Back</Button>
         </div>
       </div>
@@ -592,7 +740,6 @@ const PostBenchResource = () => {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto p-6 space-y-6 animate-fade-in">
-
         {/* Page Title */}
         <div className="mb-6 p-5 border border-slate-200 rounded-xl bg-white">
           <h1 className="text-2xl font-bold text-slate-800">
@@ -606,7 +753,6 @@ const PostBenchResource = () => {
         </div>
 
         <div className="space-y-6">
-
           {/* ── Document Upload ─────────────────────────────────────────────── */}
           <Card className="border border-slate-200 shadow-sm rounded-xl bg-white">
             <CardHeader className="pb-4 border-b border-slate-100">
@@ -620,7 +766,9 @@ const PostBenchResource = () => {
             <CardContent className="p-6 space-y-4">
               <div
                 className={`border-2 border-dashed ${isExtracting ? "border-blue-400 bg-blue-50/30" : "border-slate-200"} rounded-xl p-10 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer group relative`}
-                onClick={() => document.getElementById("resume-upload")?.click()}
+                onClick={() =>
+                  document.getElementById("resume-upload")?.click()
+                }
               >
                 <input
                   id="resume-upload"
@@ -644,7 +792,9 @@ const PostBenchResource = () => {
                       ? formData.resumeFile.name
                       : "Click or drag anonymized resume to upload"}
                 </p>
-                <p className="text-xs text-slate-400 mt-1">Supported formats: PDF. Max size: 5MB.</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Supported formats: PDF. Max size: 5MB.
+                </p>
                 <Button
                   type="button"
                   variant="outline"
@@ -662,20 +812,56 @@ const PostBenchResource = () => {
               {/* Auto-fill toggle */}
               <div className="flex items-center justify-between px-4 py-3 bg-slate-50 rounded-xl border border-slate-200">
                 <div>
-                  <p className="text-sm font-medium text-slate-800">Auto-fill details from resume</p>
+                  <p className="text-sm font-medium text-slate-800">
+                    Auto-fill details from resume
+                  </p>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Our AI will automatically extract skills.
                   </p>
                 </div>
-                <label style={{ position: "relative", display: "inline-block", width: 44, height: 24, flexShrink: 0, cursor: "pointer" }}>
+                <label
+                  style={{
+                    position: "relative",
+                    display: "inline-block",
+                    width: 44,
+                    height: 24,
+                    flexShrink: 0,
+                    cursor: "pointer",
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={autoFill}
                     onChange={(e) => setAutoFill(e.target.checked)}
-                    style={{ opacity: 0, width: 0, height: 0, position: "absolute" }}
+                    style={{
+                      opacity: 0,
+                      width: 0,
+                      height: 0,
+                      position: "absolute",
+                    }}
                   />
-                  <span style={{ position: "absolute", inset: 0, borderRadius: 24, background: autoFill ? "#3b82f6" : "#cbd5e1", transition: "background 0.2s" }} />
-                  <span style={{ position: "absolute", top: 3, left: autoFill ? 23 : 3, width: 18, height: 18, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.2)", transition: "left 0.2s" }} />
+                  <span
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      borderRadius: 24,
+                      background: autoFill ? "#3b82f6" : "#cbd5e1",
+                      transition: "background 0.2s",
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 3,
+                      left: autoFill ? 23 : 3,
+                      width: 18,
+                      height: 18,
+                      borderRadius: "50%",
+                      background: "#fff",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                      transition: "left 0.2s",
+                    }}
+                  />
                 </label>
               </div>
             </CardContent>
@@ -695,12 +881,15 @@ const PostBenchResource = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-slate-700">
-                    Resource Name (Internal) <span className="text-destructive">*</span>
+                    Resource Name (Internal){" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     placeholder="John D."
                     value={formData.resourceName}
-                    onChange={(e) => setFormData({ ...formData, resourceName: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, resourceName: e.target.value })
+                    }
                     className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                   />
                 </div>
@@ -712,7 +901,9 @@ const PostBenchResource = () => {
                     type="email"
                     placeholder="johndoe@example.com"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                   />
                 </div>
@@ -721,25 +912,34 @@ const PostBenchResource = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-slate-700">
-                    Employee ID / Reference Code <span className="text-destructive">*</span>
+                    Employee ID / Reference Code{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     placeholder="e.g. EMP-001"
                     value={formData.employeeId}
-                    onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, employeeId: e.target.value })
+                    }
                     className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-slate-700">
-                    Total Experience (Years) <span className="text-destructive">*</span>
+                    Total Experience (Years){" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     type="number"
                     min="0"
                     placeholder="e.g. 5"
                     value={formData.totalExperience ?? ""}
-                    onChange={(e) => setFormData({ ...formData, totalExperience: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        totalExperience: e.target.value,
+                      })
+                    }
                     className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                   />
                 </div>
@@ -747,12 +947,15 @@ const PostBenchResource = () => {
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-slate-700">
-                  Current Role / Designation <span className="text-destructive">*</span>
+                  Current Role / Designation{" "}
+                  <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   placeholder="e.g. Senior Java Developer"
                   value={formData.currentRole}
-                  onChange={(e) => setFormData({ ...formData, currentRole: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, currentRole: e.target.value })
+                  }
                   className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                 />
               </div>
@@ -765,7 +968,12 @@ const PostBenchResource = () => {
                 <Textarea
                   placeholder="Brief summary of their expertise and key projects..."
                   value={formData.professionalSummary}
-                  onChange={(e) => setFormData({ ...formData, professionalSummary: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      professionalSummary: e.target.value,
+                    })
+                  }
                   rows={4}
                   className="px-4 py-2.5 rounded-xl resize-none bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                 />
@@ -802,93 +1010,111 @@ const PostBenchResource = () => {
               </div>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
-
               {/* ── Extracted skills banner (shown after resume upload) ─── */}
-              {showExtractedBanner && extractedSkills.length > 0 && !isEditingPrimarySkills && (
-                <div className="p-4 border border-blue-200 bg-blue-50/50 rounded-xl space-y-4">
-                  <div className="flex items-center gap-2">
-                    <CheckSquare className="h-4 w-4 text-blue-500" />
-                    <h4 className="text-sm font-semibold text-slate-800">
-                      Skills extracted from resume
-                    </h4>
-                  </div>
-                  <p className="text-xs text-slate-500">
-                    Select up to 5 as primary. Unchecked skills will be saved as secondary.
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {extractedSkills.map((skill) => (
-                      <div
-                        key={skill.id}
-                        className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={skill.isPrimary}
-                          onChange={(e) => handleToggleExtractedSkill(skill.id, e.target.checked)}
-                          className="w-4 h-4 min-w-0 min-h-0 rounded border-gray-300 accent-[#4DD9E8]"
-                        />
-                        {editingExtractedSkillId === skill.id ? (
-                          <div className="flex-1 flex gap-2 items-center">
-                            <input
-                              type="text"
-                              value={editingExtractedSkillName}
-                              onChange={(e) => setEditingExtractedSkillName(e.target.value)}
-                              className="flex-1 px-2 py-1 text-sm bg-white border border-slate-200 rounded outline-none focus:border-[#4DD9E8]"
-                              autoFocus
-                            />
-                            <button
-                              type="button"
-                              onClick={() => saveExtractedSkillEdit(skill.id)}
-                              className="text-green-500 hover:text-green-600 transition-colors"
-                            >
-                              <Check className="w-4 h-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => { setEditingExtractedSkillId(null); setEditingExtractedSkillName(""); }}
-                              className="text-slate-400 hover:text-slate-500 transition-colors"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex-1 flex items-center justify-between">
-                            <span className="text-sm font-medium text-slate-700">{skill.name}</span>
-                            <div className="flex items-center gap-2">
+              {showExtractedBanner &&
+                extractedSkills.length > 0 &&
+                !isEditingPrimarySkills && (
+                  <div className="p-4 border border-blue-200 bg-blue-50/50 rounded-xl space-y-4">
+                    <div className="flex items-center gap-2">
+                      <CheckSquare className="h-4 w-4 text-blue-500" />
+                      <h4 className="text-sm font-semibold text-slate-800">
+                        Skills extracted from resume
+                      </h4>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Select up to 5 as primary. Unchecked skills will be saved
+                      as secondary.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {extractedSkills.map((skill) => (
+                        <div
+                          key={skill.id}
+                          className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={skill.isPrimary}
+                            onChange={(e) =>
+                              handleToggleExtractedSkill(
+                                skill.id,
+                                e.target.checked,
+                              )
+                            }
+                            className="w-4 h-4 min-w-0 min-h-0 rounded border-gray-300 accent-[#4DD9E8]"
+                          />
+                          {editingExtractedSkillId === skill.id ? (
+                            <div className="flex-1 flex gap-2 items-center">
+                              <input
+                                type="text"
+                                value={editingExtractedSkillName}
+                                onChange={(e) =>
+                                  setEditingExtractedSkillName(e.target.value)
+                                }
+                                className="flex-1 px-2 py-1 text-sm bg-white border border-slate-200 rounded outline-none focus:border-[#4DD9E8]"
+                                autoFocus
+                              />
                               <button
                                 type="button"
-                                onClick={() => { setEditingExtractedSkillId(skill.id); setEditingExtractedSkillName(skill.name); }}
-                                className="text-slate-400 hover:text-[#4DD9E8] transition-colors"
+                                onClick={() => saveExtractedSkillEdit(skill.id)}
+                                className="text-green-500 hover:text-green-600 transition-colors"
                               >
-                                <PencilLine className="w-4 h-4" />
+                                <Check className="w-4 h-4" />
                               </button>
                               <button
                                 type="button"
-                                onClick={() => deleteExtractedSkill(skill.id)}
-                                className="text-slate-400 hover:text-red-500 transition-colors"
+                                onClick={() => {
+                                  setEditingExtractedSkillId(null);
+                                  setEditingExtractedSkillName("");
+                                }}
+                                className="text-slate-400 hover:text-slate-500 transition-colors"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <X className="w-4 h-4" />
                               </button>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                          ) : (
+                            <div className="flex-1 flex items-center justify-between">
+                              <span className="text-sm font-medium text-slate-700">
+                                {skill.name}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingExtractedSkillId(skill.id);
+                                    setEditingExtractedSkillName(skill.name);
+                                  }}
+                                  className="text-slate-400 hover:text-[#4DD9E8] transition-colors"
+                                >
+                                  <PencilLine className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteExtractedSkill(skill.id)}
+                                  className="text-slate-400 hover:text-red-500 transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <p className="text-xs text-slate-400 font-medium">
+                        {extractedSkills.filter((s) => s.isPrimary).length} / 5
+                        primary selected
+                      </p>
+                      <Button
+                        type="button"
+                        onClick={handleConfirmExtractedSkills}
+                        className="h-9 px-4 rounded-lg bg-[#0f172a] hover:bg-[#1e293b] text-white text-sm font-medium"
+                      >
+                        Confirm Skills
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between pt-1">
-                    <p className="text-xs text-slate-400 font-medium">
-                      {extractedSkills.filter((s) => s.isPrimary).length} / 5 primary selected
-                    </p>
-                    <Button
-                      type="button"
-                      onClick={handleConfirmExtractedSkills}
-                      className="h-9 px-4 rounded-lg bg-[#0f172a] hover:bg-[#1e293b] text-white text-sm font-medium"
-                    >
-                      Confirm Skills
-                    </Button>
-                  </div>
-                </div>
-              )}
+                )}
 
               {/* ── Edit mode: checkbox grid of primary + secondary ───────── */}
               {isEditingPrimarySkills && (
@@ -898,14 +1124,16 @@ const PostBenchResource = () => {
                       Edit Skills
                     </h4>
                     <p className="text-xs text-slate-500 mt-1">
-                      Select up to 5 as primary · Check to promote · Uncheck to move to secondary
+                      Select up to 5 as primary · Check to promote · Uncheck to
+                      move to secondary
                     </p>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {/* Primary skills — checked */}
                     {formData.primarySkills.map((skillName, idx) => {
                       const extractedSkill = extractedSkills.find(
-                        (s) => normalizeSkill(s.name) === normalizeSkill(skillName)
+                        (s) =>
+                          normalizeSkill(s.name) === normalizeSkill(skillName),
                       );
                       return (
                         <div
@@ -918,64 +1146,100 @@ const PostBenchResource = () => {
                             onChange={(e) => {
                               if (!e.target.checked) {
                                 if (formData.primarySkills.length <= 1) {
-                                  toast.warning("You must have at least one primary skill.");
+                                  toast.warning(
+                                    "You must have at least one primary skill.",
+                                  );
                                   return;
                                 }
                                 setFormData((prev) => ({
                                   ...prev,
                                   primarySkills: prev.primarySkills.filter(
-                                    (s) => s.toLowerCase() !== skillName.toLowerCase()
+                                    (s) =>
+                                      s.toLowerCase() !==
+                                      skillName.toLowerCase(),
                                   ),
                                   secondarySkills: [
                                     ...prev.secondarySkills,
                                     skillName,
                                   ].filter(
                                     (skill, i, self) =>
-                                      self.findIndex((s) => s.toLowerCase() === skill.toLowerCase()) === i
+                                      self.findIndex(
+                                        (s) =>
+                                          s.toLowerCase() ===
+                                          skill.toLowerCase(),
+                                      ) === i,
                                   ),
                                 }));
                                 if (extractedSkill) {
                                   setExtractedSkills((prev) =>
                                     prev.map((s) =>
-                                      s.id === extractedSkill.id ? { ...s, isPrimary: false } : s
-                                    )
+                                      s.id === extractedSkill.id
+                                        ? { ...s, isPrimary: false }
+                                        : s,
+                                    ),
                                   );
                                 }
                               }
                             }}
                             className="w-4 h-4 min-w-0 min-h-0 rounded border-gray-300 accent-[#4DD9E8]"
                           />
-                          {extractedSkill && editingExtractedSkillId === extractedSkill.id ? (
+                          {extractedSkill &&
+                          editingExtractedSkillId === extractedSkill.id ? (
                             <div className="flex-1 flex gap-2 items-center">
                               <input
                                 type="text"
                                 value={editingExtractedSkillName}
-                                onChange={(e) => setEditingExtractedSkillName(e.target.value)}
+                                onChange={(e) =>
+                                  setEditingExtractedSkillName(e.target.value)
+                                }
                                 className="flex-1 px-2 py-1 text-sm bg-white border border-slate-200 rounded outline-none focus:border-[#4DD9E8]"
                                 autoFocus
                               />
-                              <button type="button" onClick={() => saveExtractedSkillEdit(extractedSkill.id)} className="text-green-500 hover:text-green-600">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  saveExtractedSkillEdit(extractedSkill.id)
+                                }
+                                className="text-green-500 hover:text-green-600"
+                              >
                                 <Check className="w-4 h-4" />
                               </button>
-                              <button type="button" onClick={() => { setEditingExtractedSkillId(null); setEditingExtractedSkillName(""); }} className="text-slate-400 hover:text-slate-500">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingExtractedSkillId(null);
+                                  setEditingExtractedSkillName("");
+                                }}
+                                className="text-slate-400 hover:text-slate-500"
+                              >
                                 <X className="w-4 h-4" />
                               </button>
                             </div>
                           ) : (
                             <div className="flex-1 flex items-center justify-between">
-                              <span className="text-sm font-medium text-slate-700">{skillName}</span>
+                              <span className="text-sm font-medium text-slate-700">
+                                {skillName}
+                              </span>
                               <div className="flex items-center gap-2">
                                 <button
                                   type="button"
                                   onClick={() => {
                                     if (extractedSkill) {
-                                      setEditingExtractedSkillId(extractedSkill.id);
-                                      setEditingExtractedSkillName(extractedSkill.name);
+                                      setEditingExtractedSkillId(
+                                        extractedSkill.id,
+                                      );
+                                      setEditingExtractedSkillName(
+                                        extractedSkill.name,
+                                      );
                                     } else {
                                       const newId = createLocalId("ext");
                                       setExtractedSkills((prev) => [
                                         ...prev,
-                                        { id: newId, name: skillName, isPrimary: true },
+                                        {
+                                          id: newId,
+                                          name: skillName,
+                                          isPrimary: true,
+                                        },
                                       ]);
                                       setEditingExtractedSkillId(newId);
                                       setEditingExtractedSkillName(skillName);
@@ -1008,7 +1272,8 @@ const PostBenchResource = () => {
                     {/* Secondary skills — unchecked */}
                     {formData.secondarySkills.map((skillName, idx) => {
                       const extractedSkill = extractedSkills.find(
-                        (s) => normalizeSkill(s.name) === normalizeSkill(skillName)
+                        (s) =>
+                          normalizeSkill(s.name) === normalizeSkill(skillName),
                       );
                       return (
                         <div
@@ -1021,26 +1286,39 @@ const PostBenchResource = () => {
                             onChange={(e) => {
                               if (e.target.checked) {
                                 if (formData.primarySkills.length >= 5) {
-                                  toast.error("You can only select up to 5 primary skills.");
+                                  toast.error(
+                                    "You can only select up to 5 primary skills.",
+                                  );
                                   return;
                                 }
                                 setFormData((prev) => ({
                                   ...prev,
-                                  primarySkills: [...prev.primarySkills, skillName],
+                                  primarySkills: [
+                                    ...prev.primarySkills,
+                                    skillName,
+                                  ],
                                   secondarySkills: prev.secondarySkills.filter(
-                                    (s) => s.toLowerCase() !== skillName.toLowerCase()
+                                    (s) =>
+                                      s.toLowerCase() !==
+                                      skillName.toLowerCase(),
                                   ),
                                 }));
                                 if (extractedSkill) {
                                   setExtractedSkills((prev) =>
                                     prev.map((s) =>
-                                      s.id === extractedSkill.id ? { ...s, isPrimary: true } : s
-                                    )
+                                      s.id === extractedSkill.id
+                                        ? { ...s, isPrimary: true }
+                                        : s,
+                                    ),
                                   );
                                 } else {
                                   setExtractedSkills((prev) => [
                                     ...prev,
-                                    { id: createLocalId("ext"), name: skillName, isPrimary: true },
+                                    {
+                                      id: createLocalId("ext"),
+                                      name: skillName,
+                                      isPrimary: true,
+                                    },
                                   ]);
                                 }
                               }
@@ -1048,7 +1326,9 @@ const PostBenchResource = () => {
                             className="w-4 h-4 min-w-0 min-h-0 rounded border-gray-300 accent-[#4DD9E8]"
                           />
                           <div className="flex-1 flex items-center justify-between">
-                            <span className="text-sm font-medium text-slate-500">{skillName}</span>
+                            <span className="text-sm font-medium text-slate-500">
+                              {skillName}
+                            </span>
                             <button
                               type="button"
                               onClick={() => removeSecondarySkill(skillName)}
@@ -1063,7 +1343,8 @@ const PostBenchResource = () => {
                   </div>
                   {formData.primarySkills.length > 0 && (
                     <p className="text-xs font-medium text-blue-600">
-                      {formData.primarySkills.length} / 5 primary skills selected
+                      {formData.primarySkills.length} / 5 primary skills
+                      selected
                     </p>
                   )}
                 </div>
@@ -1073,7 +1354,10 @@ const PostBenchResource = () => {
               {!isEditingPrimarySkills && !showExtractedBanner && (
                 <div className=" rounded-xl space-y-3">
                   <h4 className="text-sm font-semibold text-slate-800">
-                    Primary Skills <span className="text-xs text-slate-400 font-normal">(max 5)</span>
+                    Primary Skills{" "}
+                    <span className="text-xs text-slate-400 font-normal">
+                      (max 5)
+                    </span>
                   </h4>
 
                   {/* Skills badges */}
@@ -1101,7 +1385,12 @@ const PostBenchResource = () => {
                         placeholder="e.g. React, Java, AWS…"
                         value={primarySkillInput}
                         onChange={(e) => setPrimarySkillInput(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPrimarySkill(); } }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addPrimarySkill();
+                          }
+                        }}
                         maxLength={50}
                         className="h-12 flex-1 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none "
                       />
@@ -1120,7 +1409,9 @@ const PostBenchResource = () => {
                   <p className="text-xs text-slate-400 font-medium">
                     {formData.primarySkills.length}/5 primary skills added
                     {formData.primarySkills.length === 0 && (
-                      <span className="ml-1 text-slate-400 italic">— add at least one</span>
+                      <span className="ml-1 text-slate-400 italic">
+                        — add at least one
+                      </span>
                     )}
                   </p>
                 </div>
@@ -1128,16 +1419,22 @@ const PostBenchResource = () => {
 
               {/* ── Add primary skill input — only when no banner and no primary skills yet ── */}
 
-
               {/* ── Secondary skills ──────────────────────────────────────── */}
               <div className="space-y-2 pt-2 border-t border-slate-100">
-                <Label className="text-sm font-medium text-slate-700">Secondary Skills</Label>
+                <Label className="text-sm font-medium text-slate-700">
+                  Secondary Skills
+                </Label>
                 <div className="flex gap-2">
                   <Input
                     placeholder="e.g. TypeScript, Docker, GraphQL…"
                     value={secondarySkillInput}
                     onChange={(e) => setSecondarySkillInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSecondarySkill(); } }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addSecondarySkill();
+                      }
+                    }}
                     maxLength={50}
                     className="h-12 flex-1 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                   />
@@ -1164,12 +1461,15 @@ const PostBenchResource = () => {
                     </Badge>
                   ))}
                   {formData.secondarySkills.length === 0 && (
-                    <p className="text-sm text-slate-400 italic">No secondary skills added yet.</p>
+                    <p className="text-sm text-slate-400 italic">
+                      No secondary skills added yet.
+                    </p>
                   )}
                 </div>
                 {formData.secondarySkills.length > 0 && (
                   <p className="text-xs text-slate-400">
-                    {formData.secondarySkills.length} secondary skill{formData.secondarySkills.length !== 1 ? "s" : ""} added
+                    {formData.secondarySkills.length} secondary skill
+                    {formData.secondarySkills.length !== 1 ? "s" : ""} added
                   </p>
                 )}
               </div>
@@ -1187,7 +1487,6 @@ const PostBenchResource = () => {
                   Update Skills
                 </Button>
               </div> */}
-
             </CardContent>
           </Card>
 
@@ -1205,16 +1504,21 @@ const PostBenchResource = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-slate-700">
-                    Hourly Rate (Client Billable) <span className="text-destructive">*</span>
+                    Hourly Rate (Client Billable){" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <div className="flex gap-2">
                     <select
                       value={formData.currency}
-                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, currency: e.target.value })
+                      }
                       className="h-12 w-28 px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none rounded-xl text-sm text-slate-600 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] bg-[length:1em_1em] pr-8"
                     >
                       {Object.keys(currencySymbols).map((curr) => (
-                        <option key={curr} value={curr}>{curr}</option>
+                        <option key={curr} value={curr}>
+                          {curr}
+                        </option>
                       ))}
                     </select>
                     <Input
@@ -1223,7 +1527,9 @@ const PostBenchResource = () => {
                       step="0.01"
                       placeholder="45.00"
                       value={formData.hourlyRate ?? ""}
-                      onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, hourlyRate: e.target.value })
+                      }
                       className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                     />
                   </div>
@@ -1235,7 +1541,12 @@ const PostBenchResource = () => {
                   <Input
                     type="date"
                     value={formData.availableFrom}
-                    onChange={(e) => setFormData({ ...formData, availableFrom: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        availableFrom: e.target.value,
+                      })
+                    }
                     className="h-12 px-4 py-2.5 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] focus-visible:ring-[#4DD9E8] focus-visible:ring-2 outline-none"
                   />
                 </div>
@@ -1243,7 +1554,10 @@ const PostBenchResource = () => {
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-slate-700">
-                  Weekly Working Hours <span className="text-muted-foreground font-normal">(max 40)</span>
+                  Weekly Working Hours{" "}
+                  <span className="text-muted-foreground font-normal">
+                    (max 40)
+                  </span>
                 </Label>
                 <Input
                   type="number"
@@ -1262,11 +1576,17 @@ const PostBenchResource = () => {
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-slate-700">
-                  Minimum Contract Duration <span className="text-destructive">*</span>
+                  Minimum Contract Duration{" "}
+                  <span className="text-destructive">*</span>
                 </Label>
                 <select
                   value={formData.minimumDuration}
-                  onChange={(e) => setFormData({ ...formData, minimumDuration: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      minimumDuration: e.target.value,
+                    })
+                  }
                   className="h-12 w-full px-4 py-3 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-[#4DD9E8] outline-none rounded-xl text-sm text-slate-600 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] bg-[length:1.2em_1.2em] pr-10"
                 >
                   {[
@@ -1275,20 +1595,35 @@ const PostBenchResource = () => {
                     { value: "6", label: "6 Months" },
                     { value: "12", label: "12 Months" },
                   ].map((dur) => (
-                    <option key={dur.value} value={dur.value}>{dur.label}</option>
+                    <option key={dur.value} value={dur.value}>
+                      {dur.label}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="space-y-3">
                 <Label className="text-sm font-medium text-slate-700">
-                  Deployment Location Preference <span className="text-destructive">*</span>
+                  Deployment Location Preference{" "}
+                  <span className="text-destructive">*</span>
                 </Label>
                 <div className="flex flex-col gap-2 md:flex-row md:flex-wrap md:gap-4">
                   {[
-                    { id: "remote", label: "Remote", checked: formData.locationPreferences.remote },
-                    { id: "hybrid", label: "Hybrid", checked: formData.locationPreferences.hybrid },
-                    { id: "onSite", label: "On-site", checked: formData.locationPreferences.onSite },
+                    {
+                      id: "remote",
+                      label: "Remote",
+                      checked: formData.locationPreferences.remote,
+                    },
+                    {
+                      id: "hybrid",
+                      label: "Hybrid",
+                      checked: formData.locationPreferences.hybrid,
+                    },
+                    {
+                      id: "onSite",
+                      label: "On-site",
+                      checked: formData.locationPreferences.onSite,
+                    },
                   ].map((loc) => (
                     <div
                       key={loc.id}
@@ -1307,24 +1642,49 @@ const PostBenchResource = () => {
                             },
                           })
                         }
-                        style={{ position: "absolute", opacity: 0, width: 1, height: 1 }}
+                        style={{
+                          position: "absolute",
+                          opacity: 0,
+                          width: 1,
+                          height: 1,
+                        }}
                       />
                       <label
                         htmlFor={loc.id}
                         style={{
-                          display: "inline-flex", alignItems: "center", justifyContent: "center",
-                          width: 18, height: 18, minWidth: 18, minHeight: 18, borderRadius: "50%",
-                          border: loc.checked ? "2px solid #3b82f6" : "2px solid #94a3b8",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: 18,
+                          height: 18,
+                          minWidth: 18,
+                          minHeight: 18,
+                          borderRadius: "50%",
+                          border: loc.checked
+                            ? "2px solid #3b82f6"
+                            : "2px solid #94a3b8",
                           background: loc.checked ? "#3b82f6" : "#fff",
-                          cursor: "pointer", flexShrink: 0,
+                          cursor: "pointer",
+                          flexShrink: 0,
                           transition: "background 0.15s, border-color 0.15s",
                         }}
                       >
                         {loc.checked && (
-                          <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#fff", display: "block" }} />
+                          <span
+                            style={{
+                              width: 7,
+                              height: 7,
+                              borderRadius: "50%",
+                              background: "#fff",
+                              display: "block",
+                            }}
+                          />
                         )}
                       </label>
-                      <label htmlFor={loc.id} className="text-sm cursor-pointer text-slate-600 font-medium whitespace-nowrap">
+                      <label
+                        htmlFor={loc.id}
+                        className="text-sm cursor-pointer text-slate-600 font-medium whitespace-nowrap"
+                      >
                         {loc.label}
                       </label>
                     </div>
@@ -1338,18 +1698,60 @@ const PostBenchResource = () => {
                     Non-Solicitation Agreement Required
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
-                    Clients must agree not to hire this resource directly for 12 months post-contract.
+                    Clients must agree not to hire this resource directly for 12
+                    months post-contract.
                   </p>
                 </div>
-                <label style={{ position: "relative", display: "inline-block", width: 44, height: 24, flexShrink: 0, cursor: "pointer" }}>
+                <label
+                  style={{
+                    position: "relative",
+                    display: "inline-block",
+                    width: 44,
+                    height: 24,
+                    flexShrink: 0,
+                    cursor: "pointer",
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={formData.requireNonSolicitation}
-                    onChange={(e) => setFormData({ ...formData, requireNonSolicitation: e.target.checked })}
-                    style={{ opacity: 0, width: 0, height: 0, position: "absolute" }}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        requireNonSolicitation: e.target.checked,
+                      })
+                    }
+                    style={{
+                      opacity: 0,
+                      width: 0,
+                      height: 0,
+                      position: "absolute",
+                    }}
                   />
-                  <span style={{ position: "absolute", inset: 0, borderRadius: 24, background: formData.requireNonSolicitation ? "#3b82f6" : "#cbd5e1", transition: "background 0.2s" }} />
-                  <span style={{ position: "absolute", top: 3, left: formData.requireNonSolicitation ? 23 : 3, width: 18, height: 18, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.2)", transition: "left 0.2s" }} />
+                  <span
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      borderRadius: 24,
+                      background: formData.requireNonSolicitation
+                        ? "#3b82f6"
+                        : "#cbd5e1",
+                      transition: "background 0.2s",
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 3,
+                      left: formData.requireNonSolicitation ? 23 : 3,
+                      width: 18,
+                      height: 18,
+                      borderRadius: "50%",
+                      background: "#fff",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                      transition: "left 0.2s",
+                    }}
+                  />
                 </label>
               </div>
             </CardContent>
@@ -1360,8 +1762,9 @@ const PostBenchResource = () => {
             <div className="flex items-start gap-2 w-full md:flex-1">
               <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
               <p className="text-xs text-slate-600">
-                <strong>Compliance Notice:</strong> By publishing this resource, you confirm they
-                are currently on your payroll and you adhere to the bench marketplace guidelines.
+                <strong>Compliance Notice:</strong> By publishing this resource,
+                you confirm they are currently on your payroll and you adhere to
+                the bench marketplace guidelines.
               </p>
             </div>
             <div className="flex w-full md:w-auto items-center justify-end gap-3 md:ml-6 shrink-0">
@@ -1381,7 +1784,6 @@ const PostBenchResource = () => {
               </Button>
             </div>
           </div>
-
         </div>
       </div>
     </div>

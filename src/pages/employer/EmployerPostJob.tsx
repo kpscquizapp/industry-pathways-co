@@ -205,7 +205,9 @@ const EmployerPostJob = () => {
   >(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [formData, setFormData] = useState({ ...INITIAL_FORM_DATA });
-  const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
+  const [fieldErrors, setFieldErrors] = useState<
+    Record<string, boolean | string>
+  >({});
   const [skillsExtracted, setSkillsExtracted] = useState(false);
   const descriptionRef = useRef<HTMLDivElement>(null);
 
@@ -334,6 +336,13 @@ const EmployerPostJob = () => {
     if (value === "" || value === null || value === undefined) return undefined;
     const n = typeof value === "number" ? value : Number(value);
     return Number.isFinite(n) && n > 0 ? n : undefined;
+  };
+  const validateWeeklyWorkingHours = (value: string | number) => {
+    if (value === "" || value === null || value === undefined) return null;
+    const hours = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(hours) && hours >= 0 && hours <= 40
+      ? null
+      : "Weekly working hours must be between 0 and 40";
   };
   const normalizeDurationUnit = (u: string) =>
     ({ weeks: "week", months: "month", years: "year" })[u] || u;
@@ -829,15 +838,23 @@ const EmployerPostJob = () => {
   };
 
   const validateForm = (): boolean => {
-    const errors: Record<string, boolean> = {};
+    const errors: Record<string, boolean | string> = {};
     if (!formData.title.trim()) errors.title = true;
     if (!formData.description.trim()) errors.description = true;
     if (!formData.employmentType.trim()) errors.employmentType = true;
     if (!formData.workMode.trim()) errors.workMode = true;
     if (primarySkills.length === 0) errors.skills = true;
+    const weeklyWorkingHoursError = validateWeeklyWorkingHours(
+      formData.weeklyWorkingHours,
+    );
+    if (weeklyWorkingHoursError) {
+      errors.weeklyWorkingHours = weeklyWorkingHoursError;
+    }
     if (Object.keys(errors).length > 0) {
       setFieldErrors((prev) => ({ ...prev, ...errors }));
-      toast.error("Please fill in all required fields.");
+      toast.error(
+        weeklyWorkingHoursError || "Please fill in all required fields.",
+      );
       return false;
     }
     return true;
