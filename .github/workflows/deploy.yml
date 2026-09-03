@@ -55,7 +55,7 @@ jobs:
           rm: true
 
       - name: Deploy Frontend
-        uses: appleboy/ssh-action@f05aefe35198889279586149174092b77a064821
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
