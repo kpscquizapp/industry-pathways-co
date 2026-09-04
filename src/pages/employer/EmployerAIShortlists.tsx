@@ -481,6 +481,7 @@ const EmployerAIShortlists = () => {
 
   const {
     data: matchesResponse,
+    currentData: currentMatchesResponse,
     isLoading: matchesLoading,
     isError: matchesError,
     refetch: refetchMatches,
@@ -562,7 +563,7 @@ const EmployerAIShortlists = () => {
       return;
     }
 
-    const nextMatches = matchesResponse?.data ?? [];
+    const nextMatches = currentMatchesResponse?.data ?? [];
     setLoadedMatches((previousMatches) =>
       jobMatchesPage === 1
         ? nextMatches
@@ -580,7 +581,7 @@ const EmployerAIShortlists = () => {
     nextMatches.forEach((m: Match) => {
       backendShortlistState.set(
         getCandidateIdentityKey(m.id, getTalentSource(m.source)),
-        m.isShortlisted === true,
+        m.isShortlisted === true || m.stage === "shortlisted",
       );
     });
     const backendShortlistedIds = Array.from(backendShortlistState.entries())
@@ -620,8 +621,8 @@ const EmployerAIShortlists = () => {
       return next;
     });
   }, [
+    currentMatchesResponse?.data,
     jobMatchesPage,
-    matchesResponse?.data,
     pendingShortlistChanges,
     shouldFetchMatches,
   ]);
