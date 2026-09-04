@@ -100,6 +100,7 @@ const INITIAL_FORM_DATA = {
   urgency: "normal",
   openToBenchResources: false,
   certifications: "",
+  weeklyWorkingHours: "",
   educationQualification: "",
   languagesKnown: "",
   healthInsurance: false,
@@ -197,13 +198,16 @@ const EmployerPostJob = () => {
   >(null);
   const [editingExtractedSkillName, setEditingExtractedSkillName] =
     useState("");
+  const [primarySkillInput, setPrimarySkillInput] = useState("");
   const [skillInput, setSkillInput] = useState("");
   const [postingAction, setPostingAction] = useState<
     "post" | "postAndShow" | null
   >(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [formData, setFormData] = useState({ ...INITIAL_FORM_DATA });
-  const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
+  const [fieldErrors, setFieldErrors] = useState<
+    Record<string, boolean | string>
+  >({});
   const [skillsExtracted, setSkillsExtracted] = useState(false);
   const descriptionRef = useRef<HTMLDivElement>(null);
 
@@ -224,6 +228,7 @@ const EmployerPostJob = () => {
           job.multipleLocationsAllowed || job.mltipleLocationsAllowed || false,
         employmentType: job.employmentType || "",
         workMode: job.workMode || "",
+        weeklyWorkingHours: job.weeklyWorkingHours?.toString() || "",
         minExperience: job.minExperience?.toString() || "",
         maxExperience: job.maxExperience?.toString() || "",
         experienceLevel: job.experienceLevel || "",
@@ -332,6 +337,13 @@ const EmployerPostJob = () => {
     const n = typeof value === "number" ? value : Number(value);
     return Number.isFinite(n) && n > 0 ? n : undefined;
   };
+  const validateWeeklyWorkingHours = (value: string | number) => {
+    if (value === "" || value === null || value === undefined) return null;
+    const hours = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(hours) && hours >= 0 && hours <= 40
+      ? null
+      : "Weekly working hours must be between 0 and 40";
+  };
   const normalizeDurationUnit = (u: string) =>
     ({ weeks: "week", months: "month", years: "year" })[u] || u;
   const mapDurationUnit = (u: string) =>
@@ -429,6 +441,7 @@ const EmployerPostJob = () => {
       jobVisibility: formData.jobVisibility || "public",
       urgency: formData.urgency || "normal",
       openToBenchResources: formData.openToBenchResources,
+      weeklyWorkingHours: parseOptionalNumber(formData.weeklyWorkingHours),
       certifications: parseCertifications(formData.certifications),
       educationQualification: formData.educationQualification || undefined,
       languagesKnown: formData.languagesKnown || undefined,
@@ -664,6 +677,58 @@ const EmployerPostJob = () => {
     }
   };
 
+  const addPrimarySkill = () => {
+    const name = primarySkillInput.trim();
+
+    if (!name) {
+      toast.error("Please enter a skill name");
+      return;
+    }
+
+    if (name.length > 50) {
+      toast.error("Skill name must be less than 50 characters");
+      return;
+    }
+
+    if (primarySkills.length >= 5) {
+      toast.error("You can add a maximum of 5 primary skills");
+      return;
+    }
+
+    if (
+      primarySkills.some(
+        (skill) => normalizeSkill(skill) === normalizeSkill(name),
+      )
+    ) {
+      toast.error("This skill has already been added to primary skills");
+      return;
+    }
+
+    if (
+      optionalSkills.some(
+        (skill) => normalizeSkill(skill) === normalizeSkill(name),
+      )
+    ) {
+      toast.error("This skill is already in optional skills");
+      return;
+    }
+
+    setPrimarySkills((prev) => [...prev, name]);
+    setExtractedSkills((prev) => [
+      ...prev,
+      { id: createLocalId("ext"), name, isPrimary: true },
+    ]);
+    setPrimarySkillInput("");
+
+    if (fieldErrors.skills) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.skills;
+        return newErrors;
+      });
+    }
+  };
+
   const addSecondarySkill = () => {
     const name = skillInput.trim();
 
@@ -773,15 +838,23 @@ const EmployerPostJob = () => {
   };
 
   const validateForm = (): boolean => {
-    const errors: Record<string, boolean> = {};
+    const errors: Record<string, boolean | string> = {};
     if (!formData.title.trim()) errors.title = true;
     if (!formData.description.trim()) errors.description = true;
     if (!formData.employmentType.trim()) errors.employmentType = true;
     if (!formData.workMode.trim()) errors.workMode = true;
     if (primarySkills.length === 0) errors.skills = true;
+    const weeklyWorkingHoursError = validateWeeklyWorkingHours(
+      formData.weeklyWorkingHours,
+    );
+    if (weeklyWorkingHoursError) {
+      errors.weeklyWorkingHours = weeklyWorkingHoursError;
+    }
     if (Object.keys(errors).length > 0) {
       setFieldErrors((prev) => ({ ...prev, ...errors }));
-      toast.error("Please fill in all required fields.");
+      toast.error(
+        weeklyWorkingHoursError || "Please fill in all required fields.",
+      );
       return false;
     }
     return true;
@@ -1205,6 +1278,42 @@ const EmployerPostJob = () => {
                           <SelectItem value="lead">15+ years</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-bold text-foreground mb-2 block">
+                        Weekly Working Hours
+                        <span className="font-normal text-muted-foreground ml-1">
+                          (max 40)
+                        </span>
+                      </Label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="40"
+                        value={formData.weeklyWorkingHours}
+                        onChange={(e) => {
+                          setFormData({
+                            ...formData,
+                            weeklyWorkingHours: e.target.value,
+                          });
+                          if (fieldErrors.weeklyWorkingHours)
+                            setFieldErrors((p) => ({
+                              ...p,
+                              weeklyWorkingHours: false,
+                            }));
+                        }}
+                        placeholder="Enter hours required"
+                        className={`w-full px-4 py-2.5 bg-gray-50 border-0 ring-1 outline-none ring-inset ${
+                          fieldErrors.weeklyWorkingHours
+                            ? "ring-rose-500 dark:ring-rose-500 focus:ring-rose-500"
+                            : "ring-gray-200 focus:ring-[#4DD9E8] dark:ring-slate-700"
+                        } focus:ring-1 focus:ring-inset dark:bg-slate-900 rounded-xl`}
+                      />
+                      {fieldErrors.weeklyWorkingHours && (
+                        <p className="text-xs text-destructive mt-1.5">
+                          {fieldErrors.weeklyWorkingHours}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -1839,6 +1948,38 @@ const EmployerPostJob = () => {
                     At least one primary skill is required.
                   </p>
                 )}
+
+                {/* Manual Primary Skills Entry */}
+                <div className="pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                    Primary Skills
+                  </h4>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={primarySkillInput}
+                      onChange={(e) => setPrimarySkillInput(e.target.value)}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" &&
+                        (e.preventDefault(), addPrimarySkill())
+                      }
+                      maxLength={50}
+                      placeholder="Add a primary skill (e.g., React)"
+                      className="flex-1 px-4 py-2.5 bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-[#4DD9E8] outline-none rounded-xl"
+                    />
+                    <Button
+                      type="button"
+                      onClick={addPrimarySkill}
+                      className="px-5 py-2.5 bg-[#4DD9E8] text-white rounded-xl hover:bg-[#4DD9E8]/90 transition shadow-sm"
+                      aria-label="Add primary skill"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Add up to 5 primary skills.
+                  </p>
+                </div>
 
                 {/* Optional Skills Subsection */}
                 <div className="pt-4 border-t border-gray-100">
