@@ -442,7 +442,9 @@ const EmployerAIShortlists = () => {
   >({});
   const shortlistRequestSequenceRef = useRef(0);
   const shortlistRequestQueuesRef = useRef<Record<string, Promise<void>>>({});
-  const shortlistJobContextRef = useRef<string | null>(null);
+  const shortlistJobContextRef = useRef<string | null>(
+    jobIdParam && jobIdParam !== "all" ? jobIdParam : null,
+  );
   const backendShortlistStateRef = useRef(
     new Map<CandidateIdentityKey, boolean>(),
   );
@@ -462,7 +464,6 @@ const EmployerAIShortlists = () => {
   const employerJobs = loadedEmployerJobs;
   const isAllJobsSelected = !selectedJob;
   const selectedJobId = !isAllJobsSelected ? String(selectedJob) : null;
-  shortlistJobContextRef.current = selectedJobId;
   const shouldFetchMatches = selectedJobId !== null;
   const jobMatchesQueryId = selectedJobId ?? "";
   const resetSelectedJobState = useCallback((nextJobId: string | null) => {
