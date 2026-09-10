@@ -144,9 +144,26 @@ const EmployerSkillTests = () => {
   const scheduledCandidates = fullCandidates.filter(
     (c) => c.status === "scheduled",
   );
-  const completedCandidates = fullCandidates.filter(
-    (c) => c.status === "completed",
-  );
+  const completedCandidates = useMemo<Candidate[]>(() => {
+    if (!matchesResponse?.data) return [];
+    return matchesResponse.data
+      .filter((match: any) => match.stage === "coding_test_completed")
+      .map((match: any) => ({
+        id: match.id,
+        name: match.name || "Unknown Candidate",
+        role: match.role || "Professional",
+        matchScore: match.matchScore || 0,
+        skills: Array.isArray(match.skills)
+          ? match.skills
+          : typeof match.skills === "string"
+            ? match.skills.split(",")
+            : [],
+        status: "completed" as const,
+        testScore: match.testScore,
+        email: match.email || "",
+        type: match.source === "bench" ? "bench" : "individual",
+      }));
+  }, [matchesResponse]);
 
   // Invited candidates — backend now returns stage === 'invited' on the match record
   const invitedCandidates = useMemo<Candidate[]>(() => {
@@ -435,7 +452,8 @@ const EmployerSkillTests = () => {
                         </div>
                         {(() => {
                           const score = Math.round(candidate.matchScore);
-                          const { color: scoreColor, border: scoreBorder } = getScoreStyle(score);
+                          const { color: scoreColor, border: scoreBorder } =
+                            getScoreStyle(score);
 
                           return (
                             <div className="hidden md:flex flex-col items-center justify-center px-4 lg:px-6 shrink-0 border-l border-r border-gray-100 min-w-[110px] lg:min-w-[120px]">
@@ -537,7 +555,8 @@ const EmployerSkillTests = () => {
                           </div>
                           {(() => {
                             const score = Math.round(candidate.matchScore);
-                            const { color: scoreColor, border: scoreBorder } = getScoreStyle(score);
+                            const { color: scoreColor, border: scoreBorder } =
+                              getScoreStyle(score);
 
                             return (
                               <div className="hidden md:flex flex-col items-center justify-center px-4 lg:px-6 shrink-0 border-l border-r border-gray-100 min-w-[110px] lg:min-w-[120px]">
@@ -662,7 +681,7 @@ const EmployerSkillTests = () => {
                     {visibleCompleted.map((candidate) => (
                       <div
                         key={candidate.id}
-                        className="flex flex-col gap-4 p-4 hover:bg-[#f2fdf7] transition-all sm:flex-row sm:items-center sm:justify-between sm:p-6"
+                        className="flex flex-col gap-4 p-4 transition-all sm:flex-row sm:items-center sm:justify-between sm:p-6"
                       >
                         <div className="flex min-w-0 items-center gap-4">
                           <Avatar className="h-12 w-12 border border-emerald-200 shrink-0">
@@ -682,11 +701,18 @@ const EmployerSkillTests = () => {
                             </p>
                           </div>
                         </div>
-                        <Badge className="w-fit bg-emerald-100 text-emerald-700 hover:bg-emerald-100 px-3.5 py-1.5 font-bold text-[12px]">
-                          {candidate.testScore != null
-                            ? `Passed (${candidate.testScore}%)`
-                            : "Passed"}
-                        </Badge>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-fit border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                          onClick={() =>
+                            navigate(
+                              `/hire-talent/ai-shortlists?jobId=${encodeURIComponent(selectedJobId)}&tab=skill-test`,
+                            )
+                          }
+                        >
+                          View Result
+                        </Button>
                       </div>
                     ))}
                   </div>
