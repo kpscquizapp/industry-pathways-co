@@ -76,7 +76,12 @@ type CandidateProfileWithMeta = CandidateProfile & {
 };
 
 export type CandidateListItem = CandidateProfileWithMeta & {
-  stage: "matched" | "shortlisted" | "invited" | "completed";
+  stage:
+    | "matched"
+    | "shortlisted"
+    | "invited"
+    | "coding_test_completed"
+    | "completed";
   matchReasons: string[];
 };
 
@@ -119,6 +124,13 @@ const getCandidateIdentityKey = (
   id: EntityId,
   talentSource: TalentSource,
 ): CandidateIdentityKey => `${talentSource}:${getEntityIdKey(id)}`;
+
+const parseCandidateIdentityKey = (
+  value: string | null,
+): CandidateIdentityKey | null =>
+  value && /^(candidate|bench):.+$/.test(value)
+    ? (value as CandidateIdentityKey)
+    : null;
 
 const normalizeSkills = (skills: unknown): string[] => {
   if (Array.isArray(skills)) {
@@ -424,13 +436,19 @@ const EmployerAIShortlists = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const jobIdParam = searchParams.get("jobId");
+  const tabParam = searchParams.get("tab");
+  const candidateIdParam = searchParams.get("candidateId");
   const [selectedJob, setSelectedJob] = useState(
     jobIdParam && jobIdParam !== "all" ? jobIdParam : "",
   );
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState(
+    tabParam === "skill-test" || tabParam === "ai-interview" ? tabParam : "all",
+  );
   const [selectedCandidateId, setSelectedCandidateId] =
-    useState<CandidateIdentityKey | null>(null);
+    useState<CandidateIdentityKey | null>(
+      parseCandidateIdentityKey(candidateIdParam),
+    );
   const [shortlistedIds, setShortlistedIds] = useState<CandidateIdentityKey[]>(
     [],
   );
@@ -699,11 +717,14 @@ const EmployerAIShortlists = () => {
             : stageById.get(getCandidateIdentityKey(c.id, c.talentSource)) ===
                 "invited"
               ? "invited"
-              : shortlistedIdKeys.has(
-                    getCandidateIdentityKey(c.id, c.talentSource),
-                  )
-                ? "shortlisted"
-                : "matched",
+              : stageById.get(getCandidateIdentityKey(c.id, c.talentSource)) ===
+                  "coding_test_completed"
+                ? "coding_test_completed"
+                : shortlistedIdKeys.has(
+                      getCandidateIdentityKey(c.id, c.talentSource),
+                    )
+                  ? "shortlisted"
+                  : "matched",
         matchReasons: [],
       }));
   }, [loadedMatches, shortlistedIds]);
@@ -744,7 +765,12 @@ const EmployerAIShortlists = () => {
     () =>
       candidates
         .filter((c) =>
-          ["shortlisted", "invited", "completed"].includes(c.stage),
+          [
+            "shortlisted",
+            "invited",
+            "coding_test_completed",
+            "completed",
+          ].includes(c.stage),
         )
         .filter((c) =>
           !normalizedSearchTerm
@@ -1323,6 +1349,12 @@ const EmployerAIShortlists = () => {
                       Invited
                     </Badge>
                   );
+                } else if (candidate.stage === "coding_test_completed") {
+                  badgeUI = (
+                    <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none px-2.5 py-0.5 font-semibold text-[11px] rounded-sm">
+                      Coding Test Completed
+                    </Badge>
+                  );
                 } else if (candidate.stage === "shortlisted") {
                   badgeUI = (
                     <Badge className="bg-[#ccfbf1] text-[#0f766e] hover:bg-[#ccfbf1] border-none px-2.5 py-0.5 font-semibold text-[11px] rounded-sm">
@@ -1437,20 +1469,28 @@ const EmployerAIShortlists = () => {
                           onClick={() =>
                             candidate.stage !== "shortlisted" &&
                             candidate.stage !== "invited" &&
+                            candidate.stage !== "coding_test_completed" &&
                             handleShortlist(candidate)
                           }
                           className={`h-9 min-w-0 flex-1 px-4 text-[13px] font-bold rounded-xl border shadow-sm transition-all sm:flex-none ${
                             candidate.stage === "invited"
                               ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700"
-                              : candidate.stage === "shortlisted"
+                              : candidate.stage === "coding_test_completed"
                                 ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
-                                : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                : candidate.stage === "shortlisted"
+                                  ? "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700"
+                                  : "border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                           }`}
                         >
                           {candidate.stage === "invited" ? (
                             <span className="flex items-center gap-1.5">
                               <Check className="w-4 h-4" strokeWidth={3} />
                               Invited
+                            </span>
+                          ) : candidate.stage === "coding_test_completed" ? (
+                            <span className="flex items-center gap-1.5">
+                              <Check className="w-4 h-4" strokeWidth={3} />
+                              Test Completed
                             </span>
                           ) : candidate.stage === "shortlisted" ? (
                             <span className="flex items-center gap-1.5">

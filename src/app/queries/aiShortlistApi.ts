@@ -59,7 +59,12 @@ export interface Match {
   /** Backend-persisted shortlist status */
   isShortlisted?: boolean;
   /** Pipeline stage persisted in EmployerShortlist — returned by GET /jobs/:id/matches */
-  stage?: "shortlisted" | "invited" | "completed" | null;
+  stage?:
+    | "shortlisted"
+    | "invited"
+    | "coding_test_completed"
+    | "completed"
+    | null;
   [key: string]: unknown;
 }
 
