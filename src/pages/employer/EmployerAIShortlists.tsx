@@ -125,6 +125,13 @@ const getCandidateIdentityKey = (
   talentSource: TalentSource,
 ): CandidateIdentityKey => `${talentSource}:${getEntityIdKey(id)}`;
 
+const parseCandidateIdentityKey = (
+  value: string | null,
+): CandidateIdentityKey | null =>
+  value && /^(candidate|bench):.+$/.test(value)
+    ? (value as CandidateIdentityKey)
+    : null;
+
 const normalizeSkills = (skills: unknown): string[] => {
   if (Array.isArray(skills)) {
     return skills.filter(
@@ -430,6 +437,7 @@ const EmployerAIShortlists = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const jobIdParam = searchParams.get("jobId");
   const tabParam = searchParams.get("tab");
+  const candidateIdParam = searchParams.get("candidateId");
   const [selectedJob, setSelectedJob] = useState(
     jobIdParam && jobIdParam !== "all" ? jobIdParam : "",
   );
@@ -438,7 +446,9 @@ const EmployerAIShortlists = () => {
     tabParam === "skill-test" || tabParam === "ai-interview" ? tabParam : "all",
   );
   const [selectedCandidateId, setSelectedCandidateId] =
-    useState<CandidateIdentityKey | null>(null);
+    useState<CandidateIdentityKey | null>(
+      parseCandidateIdentityKey(candidateIdParam),
+    );
   const [shortlistedIds, setShortlistedIds] = useState<CandidateIdentityKey[]>(
     [],
   );

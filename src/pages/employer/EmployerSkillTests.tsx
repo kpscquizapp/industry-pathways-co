@@ -58,6 +58,18 @@ interface Candidate {
   type?: "individual" | "bench";
 }
 
+interface CodingTestMatch {
+  id: string | number;
+  name?: string;
+  role?: string;
+  matchScore?: number;
+  skills?: string[] | string;
+  stage?: string;
+  source?: string;
+  email?: unknown;
+  testScore?: unknown;
+}
+
 const EmployerSkillTests = () => {
   const navigate = useNavigate();
   const [selectedJobId, setSelectedJobId] = useState<string>("");
@@ -147,8 +159,10 @@ const EmployerSkillTests = () => {
   const completedCandidates = useMemo<Candidate[]>(() => {
     if (!matchesResponse?.data) return [];
     return matchesResponse.data
-      .filter((match: any) => match.stage === "coding_test_completed")
-      .map((match: any) => ({
+      .filter(
+        (match: CodingTestMatch) => match.stage === "coding_test_completed",
+      )
+      .map((match: CodingTestMatch) => ({
         id: match.id,
         name: match.name || "Unknown Candidate",
         role: match.role || "Professional",
@@ -159,8 +173,9 @@ const EmployerSkillTests = () => {
             ? match.skills.split(",")
             : [],
         status: "completed" as const,
-        testScore: match.testScore,
-        email: match.email || "",
+        testScore:
+          typeof match.testScore === "number" ? match.testScore : undefined,
+        email: typeof match.email === "string" ? match.email : "",
         type: match.source === "bench" ? "bench" : "individual",
       }));
   }, [matchesResponse]);
@@ -699,20 +714,54 @@ const EmployerSkillTests = () => {
                             <p className="truncate text-[13px] text-gray-500 mt-0.5">
                               {candidate.role}
                             </p>
+                            <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                              {candidate.skills.slice(0, 4).map((skill) => (
+                                <span
+                                  key={skill}
+                                  className="max-w-full truncate px-2.5 py-1 rounded-md bg-white text-gray-600 text-[11px] font-bold border border-gray-200 shadow-sm"
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-fit border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
-                          onClick={() =>
-                            navigate(
-                              `/hire-talent/ai-shortlists?jobId=${encodeURIComponent(selectedJobId)}&tab=skill-test`,
-                            )
-                          }
-                        >
-                          View Result
-                        </Button>
+                        <div className="flex items-center gap-4 sm:gap-6 mt-2 sm:mt-0">
+                          {(() => {
+                            const score = Math.round(candidate.matchScore);
+                            const { color: scoreColor, border: scoreBorder } =
+                              getScoreStyle(score);
+
+                            return (
+                              <div className="hidden md:flex flex-col items-center justify-center px-4 lg:px-6 shrink-0 border-l border-r border-gray-100 min-w-[110px] lg:min-w-[120px]">
+                                <div
+                                  className={`w-11 h-11 rounded-full border-2 ${scoreBorder} flex items-center justify-center`}
+                                >
+                                  <span
+                                    className={`font-extrabold text-[13px] ${scoreColor}`}
+                                  >
+                                    {score}%
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-gray-400 font-bold mt-1.5 uppercase tracking-wider">
+                                  AI Match
+                                </span>
+                              </div>
+                            );
+                          })()}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-fit border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                            onClick={() =>
+                              navigate(
+                                `/hire-talent/ai-shortlists?jobId=${encodeURIComponent(selectedJobId)}&tab=skill-test&candidateId=${encodeURIComponent(`${candidate.type === "bench" ? "bench" : "candidate"}:${candidate.id}`)}`,
+                              )
+                            }
+                          >
+                            View Result
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>

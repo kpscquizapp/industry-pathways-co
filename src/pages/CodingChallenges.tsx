@@ -598,7 +598,7 @@ const CodingChallenge: React.FC = () => {
       );
       if (confirmed) {
         toast.info("Ending session and saving progress...", { duration: 2000 });
-        await handleSubmitAndEndTest();
+        await performCleanup();
         navigate(getTestsPath());
       } else {
         // Re-push the dummy state so the back button still works next time
