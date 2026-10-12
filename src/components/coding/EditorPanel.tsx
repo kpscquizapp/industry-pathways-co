@@ -152,19 +152,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
   }, [isFullscreen]);
   const [fontSize, setFontSize] = useState(14);
   const [copied, setCopied] = useState(false);
-  const [theme, setTheme] = useState<string>("vs-dark");
-
-  // Sync with system theme
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    setTheme(mediaQuery.matches ? "vs-dark" : "light");
-    const handler = (e: MediaQueryListEvent) => {
-      setTheme(e.matches ? "vs-dark" : "light");
-    };
-
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
-  }, []);
+  const theme = "vs-dark";
 
   const handleReset = () => {
     if (!language) return;
@@ -204,12 +192,12 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
 
   return (
     <Card
-      className={`h-full border-none rounded-none shadow-none flex flex-col ${
+      className={`h-full flex flex-col rounded-none border-none bg-[#17212d] text-[#e6edf6] shadow-none ${
         isFullscreen ? "fixed inset-0 z-50" : ""
       }`}
     >
       {/* Toolbar */}
-      <div className="border-b border-border px-4 py-2 flex items-center justify-between gap-4 bg-card flex-shrink-0">
+      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[#344353] bg-[#202e3f] px-4 py-2">
         <div className="flex items-center gap-3">
           <Select
             value={selectedLanguageValue}
@@ -220,10 +208,10 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
               if (selected) onLanguageChange(selected);
             }}
           >
-            <SelectTrigger className="w-[180px] h-9">
+            <SelectTrigger className="h-9 w-[180px] border-[#344353] bg-[#1d2734] text-[#e6edf6] focus:ring-sky-500">
               <SelectValue placeholder="Select Language" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="border-[#344353] bg-[#1d2734] text-[#e6edf6]">
               {filteredLanguages.map((lang) => {
                 const key = getDropdownLanguageKey(lang.name);
                 const label = key ? DROPDOWN_LANGUAGE_LABELS[key] : lang.name;
@@ -240,7 +228,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
           <Button
             size="sm"
             onClick={handleReset}
-            className="h-9 bg-transparent text-foreground hover:bg-muted font-semibold"
+            className="h-9 bg-transparent font-semibold text-[#c8d4e0] hover:bg-[#263b4b] hover:text-white"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset
@@ -252,12 +240,15 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
             <DropdownMenuTrigger asChild>
               <Button
                 size="sm"
-                className="h-9 bg-transparent text-foreground hover:bg-muted font-semibold"
+                className="h-9 bg-transparent font-semibold text-[#c8d4e0] hover:bg-[#263b4b] hover:text-white"
               >
                 <Settings className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent
+              align="end"
+              className="w-48 border-[#344353] bg-[#1d2734] text-[#e6edf6]"
+            >
               <DropdownMenuLabel>Editor Settings</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setFontSize(12)}>
@@ -275,7 +266,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
           <Button
             size="sm"
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="h-9 bg-transparent text-foreground hover:bg-muted font-semibold"
+            className="h-9 bg-transparent font-semibold text-[#c8d4e0] hover:bg-[#263b4b] hover:text-white"
           >
             {isFullscreen ? (
               <Minimize2 className="h-4 w-4" />
@@ -316,10 +307,10 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
             },
           }}
           loading={
-            <div className="flex items-center justify-center h-full">
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <span>Loading editor...</span>
+            <div className="flex h-full items-center justify-center bg-[#17212d]">
+              <div className="flex items-center gap-3 text-[#a5b5c6]">
+                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-sky-400"></div>
+                <span className="text-[#a5b5c6]">Loading editor...</span>
               </div>
             </div>
           }
