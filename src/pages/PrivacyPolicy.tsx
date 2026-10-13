@@ -1,587 +1,703 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  Shield,
-  Lock,
-  Eye,
-  FileText,
-  UserCheck,
-  Globe,
-  Mail,
-  MapPin,
-  Clock,
-  Cpu,
-  Database,
-  Share2,
-  AlertCircle,
-} from "lucide-react";
+import { ArrowLeft, ArrowUp, Shield } from "lucide-react";
 import logo from "@/assets/Dark Option.png";
 
-const SECTIONS = [
-  { id: "introduction", title: "1. Introduction" },
-  { id: "contact", title: "2. Data Controller & Contact Information" },
-  { id: "collection", title: "3. Information We Collect" },
-  { id: "legal-basis", title: "4. Legal Basis for Processing" },
-  { id: "usage", title: "5. How We Use Your Information" },
-  { id: "sharing", title: "6. Sharing of Your Information" },
-  { id: "retention", title: "7. Data Retention" },
-  { id: "rights", title: "8. Your Data Rights" },
-  { id: "cookies", title: "9. Cookies and Tracking Technologies" },
-  { id: "security", title: "10. Data Security" },
-  { id: "transfers", title: "11. Cross-Border Data Transfers" },
-  { id: "ai-processing", title: "12. AI Processing and Automated Decision-Making" },
-  { id: "children", title: "13. Children's Privacy" },
-  { id: "links", title: "14. Third-Party Links and Integrations" },
-  { id: "changes", title: "15. Changes to This Privacy Policy" },
-  { id: "governing-law", title: "16. Governing Law and Dispute Resolution" },
+const POLICY_METADATA = [
+  "NAME OF THE COMPANY: MAX STACK LABS TECHNOLOGIES PRIVATE LIMITED",
+  "CIN: U72900KL2017PTC051031",
+  "REGISTERED OFFICE: T.C 17/3478, 1ST Floor, Relcon Plaza, Pattom Palace, Thiruvananthapuram - 695004",
+  "NAME OF PRODUCT: “QUICKREKRUIT”",
+  "WEBSITE: https://quickrekruit.com/",
+  "APPROVED BY THE BOARD ON: 12 December 2026",
 ];
 
-export default function PrivacyPolicy() {
-  return (
-    <div id="top" className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-100 selection:text-blue-900">
+const POLICY_TEXT = `
+1. DEFINITIONS
+For the purposes of this Policy, the following terms shall have the meanings set out below:
+Consent – a freely given, specific, informed and unambiguous indication of the Data Principal’s wishes by clear affirmative action for a specified purpose.
+Data Principal – the individual to whom the personal data relates.
+Data Fiduciary – an individual, organisation, public authority, agency or other body which alone or jointly determines the purpose and means of processing personal data.
+Data Processor – any person who processes personal data on behalf of a Data Fiduciary.
+Personal Data – any data about an individual who is identifiable by or in relation to such data.
+Personal Data Breach – any unauthorised processing of personal data or accidental disclosure, acquisition, sharing, use, alteration, destruction or loss of access that compromises the confidentiality, integrity or availability of personal data.
+Processing – an automated operation or set of operations performed on digital personal data, including collection, recording, organisation, storage, retrieval, consultation, use, sharing, disclosure, restriction, erasure or destruction.
+Disclosure – making personal data available or accessible to any person or entity, including by transmission, sharing, dissemination or publication.
+Third Party – any person other than the Data Principal, the Company or a Data Processor engaged by the Company.
+These definitions shall be interpreted in accordance with applicable law, including the Digital Personal Data Protection Act, 2023 and applicable Rules.
+2. INTRODUCTION
+Max Stack Labs Technologies Private Limited (“Company”, “we”, “us” or “our”) is committed to protecting the privacy and security of personal data processed through QUICKREKRUIT. The Company recognises the importance of responsible collection, processing, storage, use, disclosure and deletion of personal data and seeks to process such data in a lawful, fair, transparent and secure manner.
+This Policy establishes the principles, responsibilities and procedures governing the processing of personal data by the Company and shall be read together with applicable security policies, employee policies, contractual arrangements, website terms and other applicable policies and procedures.
+3. OBJECTIVES
+This Policy establishes a framework for the lawful and responsible processing of personal data and seeks to:
+a. Protect personal data against unauthorised access, use, disclosure, alteration, loss, destruction or misuse.
+b. Ensure that personal data is processed for specified and legitimate purposes.
+c. Promote transparency regarding processing activities.
+d. Establish procedures for handling personal-data requests.
+e. Establish processes for personal-data breach management.
+f. Establish appropriate retention and deletion practices.
+g. Promote accountability among employees, officers, contractors and service providers and support compliance with applicable data-protection and privacy laws.
+4. SCOPE
+This Policy applies to the processing of personal data undertaken by or on behalf of the Company, whether such processing is carried out electronically or through other systems that are subsequently digitised, to the extent applicable under law.
+The Policy applies to:
+a. Customers and prospective customers.
+b. Candidates and job seekers.
+c. Employees and prospective employees.
+d. Directors and officers.
+e. Vendors, suppliers and service providers.
+f. Consultants and professional advisers.
+g. Business partners.
+h. Website and application users.
+i. Agents and representatives and other individuals whose personal data is processed by the Company.
+The Policy applies to employees, officers, consultants, contractors and other persons who have access to personal data in the course of their association with the Company.
+This Policy also applies to the processing of personal data undertaken through or in connection with the Company’s software platform, “QUICKREKRUIT”, including its websites, applications, portals, tools, modules and other technology-enabled services.
+Depending upon the nature and purpose of the processing activity, the Company may act either as a Data Fiduciary or as a Data Processor.
+As a Data Processor, the Company processes personal data on behalf of clients pursuant to documented instructions and applicable data-processing agreements. This may include platform access, client-uploaded data, vendor/workforce management, resource augmentation, and processing of personnel, candidate, consultant, contractor or vendor data.
+The applicable Data Processing Agreement shall govern the respective rights and obligations of the Company and the client, including in relation to candidate and applicant data.
+As a Data Fiduciary, the Company determines the purposes and means of processing for direct QUICKREKRUIT services, including job boards and recruitment services, marketplaces, mock interviews and assessments, user accounts, communications, support, security and fraud prevention, analytics and service improvement.
+5. APPLICABLE LAW
+This Policy shall be governed by and interpreted in accordance with applicable data-protection and privacy laws, including the Digital Personal Data Protection Act, 2023, the Digital Personal Data Protection Rules, 2025, applicable provisions of the Information Technology Act, 2000, and other applicable privacy, data-security and information-security laws and regulations.
+Where another applicable law, regulation, contractual requirement or regulatory direction imposes a higher or additional requirement, the Company shall comply with such requirement to the extent applicable.
+6. PRINCIPLES GOVERNING PROCESSING OF PERSONAL DATA
+6.1 Lawfulness and Transparency
+Personal data shall be processed lawfully, fairly and transparently and in accordance with applicable law.
+6.2 Purpose Limitation
+Personal data shall be collected and processed only for specified, explicit and legitimate purposes communicated to the Data Principal, unless otherwise permitted by law.
+6.3 Data Minimisation
+The Company shall seek to collect and process only such personal data as is reasonably necessary for the relevant purpose.
+6.4 Accuracy
+Reasonable steps shall be taken to ensure that personal data is accurate, complete and kept up to date where necessary.
+6.5 Security
+Appropriate technical and organisational measures shall be implemented to protect personal data against unauthorised access, disclosure, alteration, loss, destruction or other unlawful processing.
+6.6 Retention Limitation
+Personal data shall not be retained for longer than necessary for the purpose for which it is processed or as required or permitted by applicable law.
+6.7 Accountability
+The Company shall maintain appropriate policies, procedures, records and controls to demonstrate compliance with applicable privacy and data-protection requirements.
+7. PERSONAL DATA COLLECTED BY THE COMPANY
+Depending upon the nature of the processing activity, the Company may collect personal data relating to candidates and job seekers, recruiters, client users, employees and other individuals.
+7.1 Identification Information
+Name, photograph, age/date of birth, gender where required, identification details and other information used to identify an individual.
+7.2 Contact Information
+Residential address, email address, telephone/mobile number and other communication details.
+7.3 Financial Information
+Bank account details, payment information, remuneration, transaction details, billing information and tax-related information.
+7.4 Employment Information
+In relation to employees and prospective employees of the Company: educational qualifications, employment history, professional qualifications, attendance, remuneration, statutory employment information and information required for employment administration.
+7.5 Candidate and Job Seeker Information
+Resume/CV and profile information, skills and competencies, professional interests, education and academic information, employment/work history, current and expected CTC/remuneration, notice period and availability, campus/academic details including college/institution and marks, job preferences, application information and other recruitment-related information.
+7.6 Interview and Assessment Data
+AI interview video and audio, interview transcripts, call recordings, assessment submissions and responses, AI-generated scores/evaluations/reports, anomaly signals including tab-switching and mouse activity, and other interview or assessment information.
+7.7 Technical and Electronic Information
+IP address, browser information, device information, login and access logs, cookies and similar technologies, interaction information and other technical information.
+Personal data shall not be collected merely because it is technically possible to collect it; collection shall be limited to what is reasonably necessary for the applicable purpose.
+7.8 Client and Recruiter Information
+Name, designation, work email, telephone and login credentials of recruiters and client users; contact details of authorised representatives of client organisations; job postings, job descriptions and hiring requirements; billing contacts and tax details; and platform usage and activity records. Where such users record candidate shortlists, feedback or hiring decisions on the platform, the Company processes that data as a Data Processor on the client’s instructions under clause 4.
+8. PURPOSES OF PROCESSING
+The Company may process personal data for purposes including:
+a. Providing and administering products and services.
+b. Responding to customer requests and processing transactions.
+c. Communicating with users, customers, candidates and other individuals.
+d. Processing payments and related financial transactions.
+e. Complying with legal, regulatory and contractual obligations.
+f. Maintaining business and operational records.
+g. Detecting, preventing and investigating fraud, misuse and unlawful activity.
+h. Maintaining platform, information and workplace security.
+i. Recruitment, employment and human-resources administration.
+j. Managing vendors, service providers and business partners.
+k. Receiving, investigating and responding to complaints and requests.
+l. Analysing and improving products, services and user experience.
+m. Audits, investigations and compliance reviews.
+n. Establishing, exercising or defending legal claims.
+o. Managing client accounts, job postings and hiring activity on the platform and other purposes notified to the Data Principal or otherwise permitted by applicable law.
+9. NOTICE AND TRANSPARENCY
+Before or at the time of collecting personal data, the Company shall provide the relevant Data Principal with an appropriate Privacy Notice in accordance with applicable law.
+The Company shall maintain and publish a standalone Privacy Notice on its website and application and shall make the Privacy Notice available to individuals at the time of registration or sign-up, wherever applicable.
+The Privacy Notice shall, as applicable:
+a. Identify the categories and specific items of personal data proposed to be collected or otherwise processed.
+b. Specify the purpose or purposes for which each category of personal data is collected or processed.
+c. Provide information regarding the legal basis for processing, including where processing is based on consent.
+d. Explain the manner in which consent may be given and withdrawn, where processing is based on consent.
+e. Explain the manner in which the Data Principal may exercise applicable rights in relation to their personal data.
+f. Provide details of the mechanism for raising grievances with the Company and, where applicable, the manner of approaching the Data Protection Board of India.
+g. Provide such other information as may be required under applicable law.
+Recruiters and client users shall be provided with the Privacy Notice, or a business-user notice, at the time of registration on the platform.
+The Privacy Notice shall be made available in English and, upon request, in any language specified in the Eighth Schedule to the Constitution of India, subject to applicable law and reasonable operational requirements.
+The Company may also provide or supplement such notice through forms, contracts, employment documentation, platform interfaces or other appropriate means, where required by the nature of the processing activity.
+10. CONSENT
+Where consent is the applicable basis for processing, consent shall be voluntary, specific, informed and unambiguous and shall be capable of being withdrawn.
+Where applicable, separate consent may be obtained for user profiles; sharing of profiles, resumes or interview reports; recording, AI analysis and scoring; call recording; marketing communications; and AI/model improvement or training.
+Withdrawal of consent shall be as easy as giving consent. Upon withdrawal, the Company shall cease the relevant processing unless continued processing is permitted or required by applicable law. Withdrawal shall not affect the lawfulness of processing carried out before withdrawal.
+11. PROCESSING WITHOUT CONSENT
+The Company may process personal data without consent where permitted or required under applicable law, including for certain legitimate uses specified under Section 7 of the Digital Personal Data Protection Act, 2023, as applicable.
+Such processing may include:
+a. Processing for compliance with a legal or regulatory obligation.
+b. Processing for compliance with an order or judgment of a court or tribunal or an order or direction issued under applicable law.
+c. Processing in response to a medical emergency involving a threat to the life or immediate threat to the health of the Data Principal or another individual.
+d. Processing for taking measures to provide medical treatment or health services during a threat to public health.
+e. Processing for taking measures to provide assistance or services to an individual during a breakdown of public order or a disaster.
+f. Processing for the purposes specified under applicable law in relation to employment or safeguarding the employer from loss or liability and such other processing as may constitute a certain legitimate use or otherwise be permitted without consent under applicable law.
+12. RIGHTS OF DATA PRINCIPALS
+Subject to applicable law, Data Principals may have rights including the right to:
+a. Obtain information regarding processing.
+b. Access, download or obtain a copy of personal data, where applicable.
+c. Request correction or updating.
+d. Request erasure where legally available.
+e. Know the clients or recruiters with whom personal data has been shared, where applicable.
+f. Withdraw consent where processing is based on consent.
+g. Raise grievances and nominate another individual as permitted by law.
+The Company shall provide self-service mechanisms where feasible and shall process requests in accordance with applicable law and its procedures.
+13. PROCEDURE FOR DATA PRINCIPAL REQUESTS 
+Data Protection / Privacy Contact:
+Name: Arun K Thampy
+Designation: Director
+Email: arun@quickrekruit.com
+Address: Max Stack Labs Technologies Private Limited, Module C-14, -2 Level, Thejaswini Building, Phase I, Technopark, Thiruvananthapuram, Kerala
+The Company may require reasonable identity verification before acting on a request. Requests shall be processed within the period prescribed by applicable law. Where a request cannot be complied with, the Company shall provide reasons to the extent required by law.
+14. GRIEVANCE REDRESSAL
+Grievance Officer / Privacy Contact:
+Name: Vishnu.S
+Designation: Grievance officer/Operations
+Email: vishnu.s@quickrekruit.com
+Telephone: +91 79079 83873
+The Company shall maintain a mechanism for receiving, recording, investigating and resolving privacy and personal-data grievances and shall publish the relevant contact details.
+The Company shall resolve grievances within the period prescribed by applicable law, not exceeding 90 days. Data Principals may have further remedies available under applicable law.
+15. DATA SECURITY
+The Company shall implement reasonable technical and organisational measures appropriate to the nature and risk of processing, including, as appropriate, encryption or masking, role-based access controls, access management, logging and monitoring, backups, network and endpoint security, physical security, confidentiality obligations, vendor and processor security controls, assessments and training.
+Access to personal data shall be limited on a need-to-know and role-based basis and shall be reviewed periodically.
+16. EMPLOYEE RESPONSIBILITIES
+Employees, officers, contractors and other persons with access to personal data shall use such data only for authorised business purposes, maintain confidentiality, comply with Company policies, avoid unauthorised disclosure, use Company systems responsibly and immediately report suspected personal-data breaches or security incidents.
+Violations of this Policy may result in disciplinary, contractual or other action as applicable.
+17. DATA PROCESSORS AND THIRD PARTIES
+The Company may engage third-party processors and subprocessors, including cloud and hosting providers, AI/LLM and analytics providers, speech/transcription/voice providers, telephony and communications providers, payment gateways, and interview or assessment providers.
+Written data-processing agreements shall require documented instructions, confidentiality, security safeguards, breach notification, controls on sub-processing, and deletion or return of personal data.
+When processing personal data for a client, the Company shall act only on documented instructions and in accordance with applicable law. The client shall be responsible for establishing the lawful basis and obtaining permissions required for processing for which it is the Data Fiduciary.
+Where a third-party interview platform is used, the applicable agreement shall address India hosting, storage and processing, restrictions on independent use or model training, breach notification, return/deletion on termination, and restrictions on unilateral amendment of applicable privacy terms.
+The Company shall take reasonable steps to ensure that processors and subprocessors maintain appropriate security and comply with applicable contractual requirements.
+18. SHARING AND DISCLOSURE
+The Company may disclose personal data where reasonably necessary for providing products or services, engaging service providers and contractors, responding to regulators or government authorities, supporting auditors and professional advisers, processing financial or payment transactions, obtaining legal advice, complying with courts or tribunals, detecting fraud or unlawful activity, or where otherwise permitted or required by law.
+Disclosures shall be limited to personal data reasonably necessary for the relevant purpose.
+19. CROSS-BORDER PROCESSING
+Personal data of QuickRekruit users is hosted, stored and processed in India on dedicated infrastructure.
+Such personal data shall not be transferred outside India, except where permitted by applicable law and after the Privacy Notice has been updated.
+20. CHILDREN’S PERSONAL DATA
+The QUICKREKRUIT platform is intended for individuals aged 18 years and above. The Company shall not knowingly permit registration or use by persons below 18 years where prohibited by applicable law and shall implement age-verification measures where required.
+The Company shall not unlawfully process children’s personal data.
+21. PERSONAL DATA BREACH MANAGEMENT
+The Company shall maintain procedures for identifying, assessing, containing, mitigating and reporting personal-data breaches.
+Employees and service providers shall promptly report suspected breaches, including unauthorised access or disclosure, lost devices, cyberattacks, ransomware, accidental deletion or destruction and similar incidents.
+Upon a breach, the Company shall, as applicable:
+a. Assess, contain and mitigate the incident.
+b. Identify the affected personal data and Data Principals.
+c. Preserve relevant evidence and implement corrective and preventive measures.
+d. Notify the Data Protection Board of India and affected Data Principals without delay and in accordance with applicable law.
+e. Provide detailed information to the Board within the applicable statutory period, including any prescribed 72-hour period or extension.
+f. Report incidents to CERT-In within the applicable timeline, including the six-hour timeline where applicable.
+g. Maintain a breach register and notify and assist clients where the Company acts as a Data Processor, in accordance with the applicable Data Processing Agreement.
+Each breach and the measures taken shall be documented appropriately.
+22. DATA RETENTION
+Personal data shall be retained only for as long as necessary for the purpose for which it was collected or processed, contractual or business requirements, legal obligations, claims, audit, security or other lawful purposes.
+Data Retention Schedule:
+inactive profiles: 2 years;
+interview video/audio, transcripts, AI reports and scores: 12 months;
+call recordings: 12 months;
+consent records: at least 3 years;
+security/access logs: at least one year or longer where required by law; and
+other personal data: as specified in the applicable retention schedule or required by law.
+Personal data held by processors and service providers shall be deleted or returned in accordance with the Company’s instructions and the applicable agreement, and in any case within three months after termination of that agreement, including backup copies.
+Personal data may be retained for longer where necessary or permitted for legal proceedings, audit, disputes, regulatory requirements or other lawful purposes.
+23. COOKIES AND TRACKING
+The Company may use cookies and similar technologies for functionality, authentication, security, analytics, performance and user-experience purposes.
+Consent mechanisms shall be provided where required by applicable law.
+24. DIRECT MARKETING
+The Company shall undertake direct marketing in accordance with applicable law and the relevant Privacy Notice.
+Where required, individuals shall be provided with appropriate mechanisms to manage or withdraw marketing preferences.
+25. EMPLOYEE AND HUMAN RESOURCES DATA
+The Company may process personal data of its employees and individuals applying for employment with the Company for legitimate employment-related purposes, including:
+a. Recruitment.
+b. Background verification.
+c. Payroll.
+d. Benefits.
+e. Attendance.
+f. Performance management.
+g. Statutory compliance.
+h. Employee communication.
+i. Workplace security.
+j. Disciplinary proceedings and termination and separation.
+Employee personal data shall be accessed only by authorised personnel having a legitimate business requirement.
+26. CONFIDENTIALITY
+Personal data shall be treated as confidential. Employees, contractors, service providers and other persons with access to personal data shall be subject to appropriate confidentiality obligations.
+Such confidentiality obligations shall continue after termination of employment or engagement where applicable.
+27. DATA ACCURACY AND CORRECTION
+The Company shall take reasonable steps to maintain accurate and up-to-date personal data where necessary for the relevant purpose.
+Data Principals shall be provided with appropriate mechanisms to request correction or updating of their personal data, subject to applicable law.
+28. DATA DELETION
+The Company shall delete or securely dispose of personal data when the purpose for processing has been fulfilled, the applicable retention period has expired, deletion has been lawfully requested, or continued retention is no longer necessary or permitted.
+Where applicable, the Company shall comply with the prior-notice requirements for erasure prescribed under the Digital Personal Data Protection Rules, 2025.
+Deletion and disposal shall be carried out using methods appropriate to the nature of the data and the storage medium.
+29. DATA PROTECTION GOVERNANCE
+The Company shall designate appropriate personnel to oversee privacy and data-protection compliance. The Data Protection / Privacy Contact and the Grievance Officer named in clauses 13, 14 and 38 are the designated personnel and are responsible for handling Data Principal requests and grievances.
+Where the Company is notified or classified as a Significant Data Fiduciary, it shall comply with the additional obligations applicable to such entity.
+30. AI-ASSISTED AND AUTOMATED PROCESSING
+Candidates shall be informed in advance where an interview is conducted using AI.
+AI scoring shall be limited to technical answer content and communication and shall not involve emotion or affect analysis or sensitive behavioural analysis.
+Candidate matching shall use keyword and semantic search and shall not constitute AI ranking.
+Mock interview reports shall be provided only to the candidate.
+No candidate shall be rejected solely on the basis of an AI score.
+Where anomaly signals or flags are generated, the candidate shall have an opportunity to review and contest the relevant flag before it is shared with a client.
+31. TRAINING AND AWARENESS
+The Company shall provide appropriate training and awareness programmes on privacy, information security, confidentiality, phishing and social engineering, secure handling of personal data, incident reporting and responsibilities under this Policy.
+32. AUDIT AND MONITORING
+The Company shall periodically review its privacy and data-protection controls and may conduct internal audits and reviews covering security, vendors, access controls, retention, policy compliance and incidents.
+Material deficiencies identified through such reviews shall be addressed through appropriate corrective measures.
+33. CONTRACTUAL REQUIREMENTS
+Contracts and agreements may include provisions relating to confidentiality, personal-data protection, security, permitted use, access controls, breach notification, retention and deletion, and regulatory or legal cooperation, as appropriate.
+34. DATA PROTECTION BY DESIGN
+The Company shall, where practicable, consider privacy and data-protection requirements at the design and development stage of products, services and processes and seek to avoid unnecessary collection or processing of personal data.
+35. RECORDS AND DOCUMENTATION
+The Company shall maintain appropriate records and documentation relating to privacy notices, consent records, processing arrangements, retention schedules, personal-data breaches, Data Principal requests, grievances, vendor assessments, training and policy reviews.
+36. NON-COMPLIANCE
+Non-compliance with this Policy may expose the Company to legal, regulatory, financial, contractual and reputational risks.
+Employees and other persons who violate this Policy may be subject to disciplinary, contractual or other action, as applicable.
+37. POLICY REVIEW
+This Policy shall be reviewed at least once every six months and whenever there is a material change in applicable law, business operations, processing activities, security environment or regulatory requirements, or following a significant security or privacy incident.
+Amendments shall be made with the approval of the competent authority of the Company.
+38. CONTACT DETAILS
+Company: Max Stack Labs Technologies Private Limited
+Data Protection / Privacy Contact: Arun K Thampy
+Designation: Director
+Email: arun@quickrekruit.com
+Telephone: +91 77368 05150
+Office Address: Max Stack Labs Technologies Private Limited, Module C-14, -2 Level, Thejaswini Building, Phase I, Technopark, Thiruvananthapuram, Kerala
+Website: https://quickrekruit.com/
+`;
 
-      {/* Header */}
+const POLICY_LINES = POLICY_TEXT.trim().split("\n");
+const SECTION_HEADING_PATTERN = /^\d{1,2}\. [A-Z].*$/;
+const SECTION_GROUPS = [
+  { label: "Overview", sectionNumbers: [1, 2, 3, 4, 5] },
+  {
+    label: "Data collection and use",
+    sectionNumbers: [6, 7, 8, 9, 10, 11],
+  },
+  {
+    label: "Sharing and retention",
+    sectionNumbers: [16, 17, 18, 19, 20, 22, 23, 24, 25],
+  },
+  {
+    label: "User rights",
+    sectionNumbers: [12, 13, 14, 27, 28],
+  },
+  {
+    label: "Security and AI",
+    sectionNumbers: [15, 21, 26, 29, 30, 31, 32, 33, 34, 35, 36, 37],
+  },
+  { label: "Contact", sectionNumbers: [38] },
+];
+const IMPORTANT_SECTIONS = new Set([
+  "10-consent",
+  "12-rights-of-data-principals",
+  "14-grievance-redressal",
+  "21-personal-data-breach-management",
+  "28-data-deletion",
+  "30-ai-assisted-and-automated-processing",
+  "38-contact-details",
+]);
+const POLICY_SECTIONS = POLICY_LINES.reduce<
+  Array<{ heading: string; lines: string[] }>
+>((sections, line) => {
+  if (SECTION_HEADING_PATTERN.test(line)) {
+    sections.push({ heading: line, lines: [] });
+  } else if (sections.length > 0) {
+    sections[sections.length - 1].lines.push(line);
+  }
+  return sections;
+}, []);
+
+function getSectionId(heading: string) {
+  return heading
+    .replace(/^\d+\.\s*/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function getSectionNumber(heading: string) {
+  return Number(heading.match(/^\d+/)?.[0]);
+}
+
+function formatSectionHeading(heading: string) {
+  const [number, ...words] = heading.split(" ");
+  const title = words
+    .join(" ")
+    .toLowerCase()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+    .replace(/\bAi\b/g, "AI");
+  return `${number} ${title}`;
+}
+
+function getSectionContent(lines: string[]) {
+  const content: Array<
+    | { type: "paragraph"; text: string }
+    | { type: "subheading"; text: string }
+    | { type: "list"; items: string[] }
+  > = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (!line) continue;
+
+    if (/^\d{1,2}\.\d{1,2}\s/.test(line)) {
+      content.push({ type: "subheading", text: line });
+      continue;
+    }
+
+    if (/^(?:[a-p]|\d{1,2})\.\s/.test(line)) {
+      const items: string[] = [];
+      while (
+        index < lines.length &&
+        /^(?:[a-p]|\d{1,2})\.\s/.test(lines[index])
+      ) {
+        items.push(lines[index].replace(/^(?:[a-p]|\d{1,2})\.\s*/, ""));
+        index += 1;
+      }
+      index -= 1;
+      content.push({ type: "list", items });
+      continue;
+    }
+
+    content.push({ type: "paragraph", text: line });
+  }
+
+  return content;
+}
+
+export default function PrivacyPolicy() {
+  const [activeGroup, setActiveGroup] = useState("Overview");
+  const readingTime = Math.max(
+    1,
+    Math.ceil(POLICY_TEXT.trim().split(/\s+/).length / 220),
+  );
+
+  useEffect(() => {
+    const sectionGroupById = new Map<string, string>();
+    SECTION_GROUPS.forEach((group) => {
+      group.sectionNumbers.forEach((sectionNumber) => {
+        const section = POLICY_SECTIONS.find(
+          ({ heading }) => getSectionNumber(heading) === sectionNumber,
+        );
+        if (section) {
+          sectionGroupById.set(getSectionId(section.heading), group.label);
+        }
+      });
+    });
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleSections = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort(
+            (first, second) =>
+              first.boundingClientRect.top - second.boundingClientRect.top,
+          );
+        const nextGroup = visibleSections[0]
+          ? sectionGroupById.get(visibleSections[0].target.id)
+          : undefined;
+        if (nextGroup) setActiveGroup(nextGroup);
+      },
+      { rootMargin: "-18% 0px -72% 0px" },
+    );
+
+    POLICY_SECTIONS.forEach(({ heading }) => {
+      const section = document.getElementById(getSectionId(heading));
+      if (section) observer.observe(section);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const groupedNavigation = SECTION_GROUPS.map((group) => {
+    const firstSection = POLICY_SECTIONS.find(
+      ({ heading }) =>
+        getSectionNumber(heading) === group.sectionNumbers[0],
+    );
+    return {
+      ...group,
+      href: firstSection ? `#${getSectionId(firstSection.heading)}` : "#top",
+    };
+  });
+
+  return (
+    <div
+      id="top"
+      className="min-h-screen bg-slate-50 font-inter text-slate-900 selection:bg-blue-100 selection:text-blue-900"
+    >
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
+          <Link
+            to="/"
+            className="flex items-center gap-2 transition-opacity hover:opacity-80"
+          >
             <img src={logo} alt="Quick Recruit" className="h-12 w-auto" />
           </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              to="/"
-              className="flex items-center gap-1.5 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back to Home</span>
-            </Link>
-          </div>
+          <Link
+            to="/"
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Back to Home</span>
+          </Link>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-12 lg:flex-row">
-          {/* Sidebar Navigation */}
           <aside className="hidden w-64 shrink-0 lg:block">
             <div className="sticky top-28 space-y-1">
               <p className="mb-4 px-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-                On this page
+                Contents
               </p>
               <nav className="flex flex-col gap-1">
-                {SECTIONS.map((section) => (
+                {groupedNavigation.map((group) => (
                   <a
-                    key={section.id}
-                    href={`#${section.id}`}
-                    className="rounded-lg px-3 py-2 text-sm text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900"
+                    key={group.label}
+                    href={group.href}
+                    aria-current={activeGroup === group.label ? "location" : undefined}
+                    className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+                      activeGroup === group.label
+                        ? "bg-blue-50 font-semibold text-blue-800"
+                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
                   >
-                    {section.title}
+                    {group.label}
                   </a>
                 ))}
               </nav>
             </div>
           </aside>
 
-          {/* Content */}
-          <div className="max-w-3xl flex-1">
-            <div className="mb-12">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600 ring-1 ring-inset ring-blue-600/20">
-                <Shield className="h-3 w-3" />
-                Privacy Protection
+          <article className="max-w-3xl flex-1">
+            <header className="mb-12">
+              <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 p-6 text-white shadow-xl shadow-slate-900/10 sm:p-9">
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-blue-100 ring-1 ring-inset ring-white/15">
+                  <Shield className="h-3.5 w-3.5" />
+                  QUICKREKRUIT PRIVACY NOTICE
+                </div>
+                <h1 className="max-w-2xl text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
+                  QuickRekruit Privacy Notice
+                </h1>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200">
+                  Data Privacy and Personal Data Protection Policy
+                </p>
+                <div className="mt-6 grid gap-3 border-t border-white/15 pt-5 text-sm text-slate-200 sm:grid-cols-3">
+                  <p>
+                    <strong className="block text-xs font-semibold uppercase tracking-wider text-blue-200">
+                      Reading time
+                    </strong>
+                    <span className="mt-1 block">About {readingTime} minutes</span>
+                  </p>
+                  {POLICY_METADATA.filter((item) =>
+                    item.startsWith("APPROVED BY THE BOARD ON:"),
+                  ).map((item) => {
+                    const [label, ...value] = item.split(":");
+                    return (
+                      <p key={label}>
+                        <strong className="block text-xs font-semibold uppercase tracking-wider text-blue-200">
+                          Board approval date
+                        </strong>
+                        <span className="mt-1 block">{value.join(":")}</span>
+                      </p>
+                    );
+                  })}
+                  <p>
+                    <strong className="block text-xs font-semibold uppercase tracking-wider text-blue-200">
+                      Website
+                    </strong>
+                    <a
+                      href="https://quickrekruit.com/"
+                      className="mt-1 block underline decoration-white/40 underline-offset-2 hover:decoration-white"
+                    >
+                      quickrekruit.com
+                    </a>
+                  </p>
+                </div>
               </div>
-              <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-                Privacy Policy
-              </h1>
-              {/* <p className="mt-4 text-lg text-slate-600">
-                Effective Date: April 4, 2024
-              </p> */}
+              <details className="mt-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
+                <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                  Policy details
+                </summary>
+                <div className="mt-3 grid gap-3 border-t border-slate-100 pt-3 text-sm text-slate-600 sm:grid-cols-2">
+                  {POLICY_METADATA.filter(
+                    (item) =>
+                      !item.startsWith("APPROVED BY THE BOARD ON:") &&
+                      !item.startsWith("WEBSITE:"),
+                  ).map((item) => {
+                    const [label, ...value] = item.split(":");
+                    return (
+                      <p key={label}>
+                        <strong className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          {label}
+                        </strong>
+                        <span className="mt-1 block">{value.join(":")}</span>
+                      </p>
+                    );
+                  })}
+                </div>
+              </details>
+            </header>
+
+            <section className="mb-6 rounded-2xl border border-blue-100 bg-blue-50/70 p-5 sm:p-6">
+              <h2 className="text-lg font-bold text-slate-900">
+                Your privacy, at a glance
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-700">
+                This policy explains what information QuickRekruit collects, how
+                we use it, when we share it, and how you can control your data.
+              </p>
+              <nav
+                aria-label="Privacy notice highlights"
+                className="mt-4 grid gap-2 sm:grid-cols-2"
+              >
+                {[
+                  { label: "Information we collect", href: "#personal-data-collected-by-the-company" },
+                  { label: "How we use information", href: "#purposes-of-processing" },
+                  { label: "Who we share it with", href: "#sharing-and-disclosure" },
+                  { label: "Your privacy choices", href: "#rights-of-data-principals" },
+                  { label: "Request data deletion", href: "#data-deletion" },
+                  { label: "Withdraw consent", href: "#consent" },
+                  { label: "Contact us", href: "#contact-details" },
+                ].map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-blue-800 ring-1 ring-blue-100 transition-colors hover:bg-blue-100"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+            </section>
+
+            <details className="mb-6 rounded-xl border border-slate-200 bg-white lg:hidden">
+              <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-slate-800">
+                Jump to section
+              </summary>
+              <nav aria-label="Privacy notice contents" className="grid gap-1 px-3 pb-3">
+                {groupedNavigation.map((group) => (
+                  <a
+                    key={group.label}
+                    href={group.href}
+                    aria-current={activeGroup === group.label ? "location" : undefined}
+                    className={`rounded-lg px-3 py-2 text-sm ${
+                      activeGroup === group.label
+                        ? "bg-blue-50 font-semibold text-blue-800"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {group.label}
+                  </a>
+                ))}
+              </nav>
+            </details>
+
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              {POLICY_SECTIONS.map(({ heading, lines }) => (
+                <section
+                  id={getSectionId(heading)}
+                  key={heading}
+                  className={`scroll-mt-28 border-b border-slate-200 px-5 py-6 last:border-b-0 sm:px-8 sm:py-8 ${
+                    IMPORTANT_SECTIONS.has(getSectionId(heading))
+                      ? "border-l-4 border-l-blue-500 bg-blue-50/30"
+                      : ""
+                  }`}
+                >
+                  <h2 className="text-lg font-bold leading-snug text-slate-900 sm:text-xl">
+                    {formatSectionHeading(heading)}
+                  </h2>
+                  <div className="mt-4 space-y-4 text-sm leading-7 text-slate-600 sm:text-base">
+                    {getSectionContent(lines).map((block, index) => {
+                      if (block.type === "subheading") {
+                        return (
+                          <h3
+                            key={`${index}-${block.text}`}
+                            className="pt-2 text-base font-bold text-slate-900"
+                          >
+                            {block.text}
+                          </h3>
+                        );
+                      }
+
+                      if (block.type === "list") {
+                        return (
+                          <ul
+                            key={`list-${index}`}
+                            className="list-disc space-y-2 py-1 pl-6 marker:text-blue-600"
+                          >
+                            {block.items.map((item) => (
+                              <li key={item} className="pl-1">
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        );
+                      }
+
+                      const colonIndex = block.text.indexOf(":");
+                      const isLabel = colonIndex > 0 && colonIndex < 45;
+                      const definition = block.text.indexOf(" – ");
+                      return (
+                        <p
+                          key={`${index}-${block.text}`}
+                          className={
+                            definition > 0
+                              ? "rounded-lg bg-slate-50 px-4 py-3"
+                              : ""
+                          }
+                        >
+                          {definition > 0 ? (
+                            <>
+                              <strong className="font-semibold text-slate-900">
+                                {block.text.slice(0, definition)}
+                              </strong>
+                              {block.text.slice(definition)}
+                            </>
+                          ) : isLabel ? (
+                            <>
+                              <strong className="font-semibold text-slate-900">
+                                {block.text.slice(0, colonIndex)}:
+                              </strong>
+                              {block.text.slice(colonIndex + 1)}
+                            </>
+                          ) : (
+                            block.text
+                          )}
+                        </p>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
             </div>
 
-            <div className="space-y-16">
-              {/* 1. Introduction */}
-              <section id="introduction" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">1. Introduction</h2>
-                </div>
-                <div className="mt-6 space-y-4 text-base leading-relaxed text-slate-600">
-                  <p>
-                    Welcome to <strong>Quick Recruit</strong> ("Platform", "we", "us", or "our"). Quick Recruit is an AI-powered recruitment marketplace that connects employers, hiring managers, and HR professionals ("Employers") with contractors, freelancers, and bench resources ("Candidates"). We are committed to protecting the privacy and security of your personal data in accordance with applicable laws in India and the United Arab Emirates.
-                  </p>
-                  <p>
-                    This Privacy Policy explains how we collect, use, store, share, and protect your personal information when you access or use the Quick Recruit platform, website, mobile application, or any related services. By accessing or using our Platform, you acknowledge that you have read, understood, and agree to this Privacy Policy.
-                  </p>
-                  <p>
-                    This Policy applies to all users including Employers, Candidates, contractors, and HR professionals across India and the UAE.
-                  </p>
-                </div>
-              </section>
-
-              {/* 2. Data Controller & Contact Information */}
-              <section id="contact" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <MapPin className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">2. Data Controller & Contact Information</h2>
-                </div>
-                <div className="mt-6 text-base leading-relaxed text-slate-600">
-                  <p className="mb-4">
-                    Quick Recruit is the Data Controller responsible for your personal data. For any privacy-related queries, requests, or complaints, please contact our Data Protection Officer:
-                  </p>
-                  <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                    <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                      Data Protection Officer (DPO)
-                    </h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <Mail className="mt-1 h-4 w-4 text-blue-500 shrink-0" />
-                        <span>Email: <a href="mailto:hello@quickrekruit.com" className="text-blue-600 hover:underline">hello@quickrekruit.com</a></span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <MapPin className="mt-1 h-4 w-4 text-blue-500 shrink-0" />
-                        <span>Address: [Registered Office Address — India / UAE]</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Clock className="mt-1 h-4 w-4 text-blue-500 shrink-0" />
-                        <span>Response Time: Within 30 days of receiving your request</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </section>
-
-              {/* 3. Information We Collect */}
-              <section id="collection" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <Database className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">3. Information We Collect</h2>
-                </div>
-                <div className="mt-6 space-y-8 text-base leading-relaxed text-slate-600">
-                  <p>
-                    We collect personal data that you provide directly, data generated through your use of the Platform, and data from third-party sources, in order to deliver our AI-powered recruitment services.
-                  </p>
-
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold text-slate-900">3.1 Information Provided by Employers / HR Professionals</h3>
-                    <ul className="list-disc space-y-2 pl-5">
-                      <li>Full name, job title, and professional designation</li>
-                      <li>Company name, industry, size, and registered address</li>
-                      <li>Business email address and phone number</li>
-                      <li>Job descriptions, role requirements, and hiring preferences</li>
-                      <li>Billing and payment information (processed via secure third-party gateways)</li>
-                      <li>Communication history and hiring activity on the Platform</li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold text-slate-900">3.2 Information Provided by Candidates / Contractors</h3>
-                    <ul className="list-disc space-y-2 pl-5">
-                      <li>Full name, date of birth, nationality, and contact details</li>
-                      <li>Resume/CV, work history, educational qualifications, and certifications</li>
-                      <li>Skills profile, portfolio links, and professional references</li>
-                      <li>Government-issued identification for verification purposes</li>
-                      <li>Availability status, expected compensation, and bench resource status</li>
-                      <li>Results of AI-administered coding tests, skill assessments, and domain evaluations</li>
-                      <li>AI interview responses, video recordings (where consented), and interview scores</li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold text-slate-900">3.3 Automatically Collected Information</h3>
-                    <ul className="list-disc space-y-2 pl-5">
-                      <li>IP address, browser type, operating system, and device identifiers</li>
-                      <li>Platform usage data including pages visited, features used, and time spent</li>
-                      <li>Log data and session identifiers</li>
-                      <li>Cookies and similar tracking technologies (see Section 9)</li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold text-slate-900">3.4 AI-Generated and Processed Data</h3>
-                    <ul className="list-disc space-y-2 pl-5">
-                      <li>Resume-to-Job Description semantic match scores</li>
-                      <li>Skill gap analysis results and competency ratings</li>
-                      <li>Automated interview scoring including communication, technical depth, and confidence metrics</li>
-                      <li>Bias-reduced candidate ranking data derived from skills and qualifications</li>
-                    </ul>
-                  </div>
-
-                  <div className="rounded-xl bg-amber-50 p-4 ring-1 ring-inset ring-amber-600/10">
-                    <p className="flex items-start gap-2 text-sm text-amber-800">
-                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                      Sensitive personal data (such as health information, caste, religion, or biometric data) is NOT collected by Quick Recruit unless legally required and with explicit consent.
-                    </p>
-                  </div>
-                </div>
-              </section>
-
-              {/* 4. Legal Basis for Processing */}
-              <section id="legal-basis" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <UserCheck className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">4. Legal Basis for Processing</h2>
-                </div>
-                <div className="mt-6 space-y-6 text-base leading-relaxed text-slate-600">
-                  <p>
-                    We process your personal data only where we have a lawful basis to do so. Our legal grounds for processing vary by jurisdiction:
-                  </p>
-
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                      <h3 className="mb-4 font-bold text-slate-900">4.1 India — DPDP Act, 2023</h3>
-                      <ul className="space-y-2 text-sm">
-                        <li><strong>Consent:</strong> Explicit, informed consent for specific purposes.</li>
-                        <li><strong>Legitimate Use:</strong> Performance of a contract or legal obligation.</li>
-                        <li><strong>Public Interest:</strong> Related to employment and workforce management.</li>
-                      </ul>
-                    </div>
-                    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                      <h3 className="mb-4 font-bold text-slate-900">4.2 UAE — Federal Decree-Law No. 45</h3>
-                      <ul className="space-y-2 text-sm">
-                        <li><strong>Contractual Necessity:</strong> To fulfill agreed services upon registration.</li>
-                        <li><strong>Legitimate Interests:</strong> Fraud prevention and platform security.</li>
-                        <li><strong>Consent:</strong> Explicit consent for specific activities.</li>
-                        <li><strong>Legal Obligation:</strong> To comply with federal or emirate laws.</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* 5. How We Use Your Information */}
-              <section id="usage" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <Eye className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">5. How We Use Your Information</h2>
-                </div>
-                <div className="mt-6 space-y-4 text-base leading-relaxed text-slate-600">
-                  <p>
-                    We use your personal data to deliver, improve, and personalize our recruitment services:
-                  </p>
-                  <ul className="grid gap-3 pl-5 list-disc">
-                    <li>Create, manage, and maintain your account on the Platform</li>
-                    <li>Match Candidates to Job Descriptions using our AI semantic matching engine</li>
-                    <li>Conduct automated skill assessments, coding tests, and domain evaluations</li>
-                    <li>Facilitate and score AI-powered interviews and generate candidate insights</li>
-                    <li>Provide Employers with ranked candidate shortlists and skill gap analysis reports</li>
-                    <li>Process payments and invoices for Platform subscriptions and services</li>
-                    <li>Verify the identity and credentials of Candidates and Employers</li>
-                    <li>Send transactional communications such as match alerts and interview invites</li>
-                    <li>Send marketing communications (opt-out available at any time)</li>
-                    <li>Improve our AI algorithms, matching accuracy, and platform features</li>
-                    <li>Comply with applicable laws, regulations, and legal processes</li>
-                    <li>Detect and prevent fraud, abuse, and unauthorized access</li>
-                  </ul>
-                  <p className="mt-4 font-semibold text-slate-900">
-                    We do NOT sell your personal data to third parties for their independent marketing purposes.
-                  </p>
-                </div>
-              </section>
-
-              {/* 6. Sharing of Your Information */}
-              <section id="sharing" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <Share2 className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">6. Sharing of Your Information</h2>
-                </div>
-                <div className="mt-6 space-y-6 text-base leading-relaxed text-slate-600">
-                  <p>
-                    We do not sell your personal data. We may share your information in the following limited circumstances:
-                  </p>
-
-                  <div className="space-y-4">
-                    <h3 className="font-bold text-slate-900">6.1 Between Platform Users</h3>
-                    <p className="text-sm">
-                      Candidate profiles, resumes, skill scores, and interview results may be shared with verified Employers who post relevant job listings. Employers' job postings and company details will be visible to registered Candidates. Sharing occurs only within the scope of the recruitment process.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-bold text-slate-900">6.2 Service Providers and Sub-Processors</h3>
-                    <p className="text-sm">
-                      We engage trusted third-party service providers who process data on our behalf under strict data processing agreements. These include cloud hosting, payment processors, identity verification, and AI infrastructure providers. All sub-processors are bound by contractual obligations equivalent to or stricter than this Policy.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-bold text-slate-900">6.3 Legal and Regulatory Disclosure</h3>
-                    <p className="text-sm">
-                      We may disclose your information to government authorities, law enforcement, or regulatory bodies in India or the UAE where required by law, court order, or to protect the legal rights of Quick Recruit or our users.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-bold text-slate-900">6.4 Business Transfers</h3>
-                    <p className="text-sm">
-                      In the event of a merger, acquisition, restructuring, or sale of Quick Recruit, your personal data may be transferred to the acquiring entity. We will notify you of any such transfer and your rights in relation to it.
-                    </p>
-                  </div>
-                </div>
-              </section>
-
-              {/* 7. Data Retention */}
-              <section id="retention" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <Clock className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">7. Data Retention</h2>
-                </div>
-                <div className="mt-6 space-y-4 text-base leading-relaxed text-slate-600">
-                  <p>
-                    We retain your personal data only for as long as is necessary to fulfil the purposes described in this Policy:
-                  </p>
-                  <ul className="grid gap-3 pl-5 list-disc text-sm">
-                    <li><strong>Active Account Data:</strong> Duration of your account plus 3 years post-closure</li>
-                    <li><strong>Candidate Assessment Data:</strong> 2 years from date of generation</li>
-                    <li><strong>Employment-Related Data:</strong> Up to 7 years to comply with labour law requirements</li>
-                    <li><strong>Financial and Billing Records:</strong> 7 years as required by tax regulations</li>
-                    <li><strong>Marketing Consent Records:</strong> 3 years from the date of consent or withdrawal</li>
-                  </ul>
-                  <p className="text-sm">
-                    Upon expiry of the retention period, data is securely deleted or anonymised. You may request earlier deletion subject to our legal obligations.
-                  </p>
-                </div>
-              </section>
-
-              {/* 8. Your Data Rights */}
-              <section id="rights" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <UserCheck className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">8. Your Data Rights</h2>
-                </div>
-                <div className="mt-6 space-y-8 text-base leading-relaxed text-slate-600">
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold text-slate-900">8.1 Rights Under Indian Law (DPDP Act, 2023)</h3>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {["Right to Access", "Right to Correction and Erasure", "Right to Grievance Redressal", "Right to Nominate", "Right to Withdraw Consent"].map((right) => (
-                        <div key={right} className="rounded-xl border border-slate-200 p-4 text-sm font-medium"> {right} </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold text-slate-900">8.2 Rights Under UAE Law (PDPL)</h3>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {["Right to Know", "Right of Access", "Right to Rectification", "Right to Erasure", "Right to Object", "Right to Data Portability", "Right to Lodge a Complaint"].map((right) => (
-                        <div key={right} className="rounded-xl border border-slate-200 p-4 text-sm font-medium"> {right} </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-blue-50/50 p-6 ring-1 ring-inset ring-blue-500/10">
-                    <p className="text-sm">
-                      To exercise any of these rights, please submit a written request to <a href="mailto:hello@quickrekruit.com" className="font-bold text-blue-600 hover:underline">hello@quickrekruit.com</a>. We will respond within 30 days. Identity verification may be required.
-                    </p>
-                  </div>
-                </div>
-              </section>
-
-              {/* 9. Cookies and Tracking Technologies */}
-              <section id="cookies" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <Globe className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">9. Cookies and Tracking Technologies</h2>
-                </div>
-                <div className="mt-6 space-y-4 text-base leading-relaxed text-slate-600">
-                  <p>
-                    Quick Recruit uses cookies to operate and improve the Platform. Categories include:
-                  </p>
-                  <dl className="space-y-4">
-                    <div className="rounded-xl border border-slate-200 p-4">
-                      <dt className="font-bold text-slate-900">Strictly Necessary Cookies</dt>
-                      <dd className="mt-1 text-sm">Essential for Platform operation, authentication, and security. Cannot be disabled.</dd>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 p-4">
-                      <dt className="font-bold text-slate-900">Functional Cookies</dt>
-                      <dd className="mt-1 text-sm">Remember your preferences and settings to improve your experience.</dd>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 p-4">
-                      <dt className="font-bold text-slate-900">Analytical / Performance Cookies</dt>
-                      <dd className="mt-1 text-sm">Collect anonymised usage data to help us understand usage patterns. Requires consent.</dd>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 p-4">
-                      <dt className="font-bold text-slate-900">Marketing Cookies</dt>
-                      <dd className="mt-1 text-sm">Used to deliver relevant advertising content. Requires explicit consent.</dd>
-                    </div>
-                  </dl>
-                </div>
-              </section>
-
-              {/* 10. Data Security */}
-              <section id="security" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <Lock className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">10. Data Security</h2>
-                </div>
-                <div className="mt-6 space-y-4 text-base leading-relaxed text-slate-600">
-                  <p>
-                    We implement comprehensive technical and organisational security measures:
-                  </p>
-                  <ul className="grid gap-3 pl-5 list-disc text-sm">
-                    <li>AES-256 encryption for data at rest and TLS 1.3 for data in transit</li>
-                    <li>Multi-factor authentication (MFA) for all user and admin accounts</li>
-                    <li>Role-based access controls (RBAC) for limited data exposure</li>
-                    <li>Regular security audits, vulnerability assessments, and penetration testing</li>
-                    <li>ISO 27001-aligned information security management practices</li>
-                    <li>Data breach response procedures with compliant notification timelines</li>
-                  </ul>
-                </div>
-              </section>
-
-              {/* 11. Cross-Border Data Transfers */}
-              <section id="transfers" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <Globe className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">11. Cross-Border Data Transfers</h2>
-                </div>
-                <div className="mt-6 space-y-4 text-base leading-relaxed text-slate-600">
-                  <p>
-                    Quick Recruit operates in India and the UAE. Cross-border transfers are conducted in accordance with legal requirements:
-                  </p>
-                  <ul className="grid gap-3 pl-5 list-disc text-sm">
-                    <li>Standard Contractual Clauses (SCCs) or equivalent mechanisms</li>
-                    <li>Ensuring recipient countries provide an adequate level of data protection</li>
-                    <li>Obtaining explicit consent for transfers to countries without adequacy decisions</li>
-                  </ul>
-                </div>
-              </section>
-
-              {/* 12. AI Processing and Decision-Making */}
-              <section id="ai-processing" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <Cpu className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">12. AI Processing and Automated Decision-Making</h2>
-                </div>
-                <div className="mt-6 space-y-6 text-base leading-relaxed text-slate-600">
-                  <p>
-                    AI is a core feature of our platform. We are committed to transparency and fairness.
-                  </p>
-
-                  <div className="space-y-4">
-                    <h3 className="font-bold text-slate-900">12.1 AI Features</h3>
-                    <ul className="list-disc pl-5 text-sm space-y-2">
-                      <li><strong>Semantic Resume-JD Matching:</strong> Contextual fit analysis.</li>
-                      <li><strong>Skill Gap Analysis:</strong> Identification of competency alignment.</li>
-                      <li><strong>Automated Skill Tests:</strong> Generating tailored assessments.</li>
-                      <li><strong>AI Interview Scoring:</strong> Evaluation of communication and technical depth.</li>
-                      <li><strong>Bias-Reduced Ranking:</strong> Skill-based ranking with demographic controls.</li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="font-bold text-slate-900">12.2 Human Oversight</h3>
-                    <p className="text-sm">
-                      AI scores are tools to support, not replace, human hiring decisions. Employers retain full discretion.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="font-bold text-slate-900">12.3 Right to Challenge</h3>
-                    <p className="text-sm">
-                      If you believe an automated assessment has incorrectly evaluated your profile, contact <a href="mailto:hello@quickrekruit.com" className="text-blue-600 hover:underline">hello@quickrekruit.com</a> for human review.
-                    </p>
-                  </div>
-                </div>
-              </section>
-
-              {/* 13. Children's Privacy */}
-              <section id="children" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <AlertCircle className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">13. Children's Privacy</h2>
-                </div>
-                <div className="mt-6 text-base leading-relaxed text-slate-600">
-                  <p>
-                    Quick Recruit is strictly for individuals aged 18 and above. We do not knowingly collect data from minors. If you suspect a minor has provided data, contact us immediately.
-                  </p>
-                </div>
-              </section>
-
-              {/* 14. Third-Party Links */}
-              <section id="links" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <Share2 className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">14. Third-Party Links and Integrations</h2>
-                </div>
-                <div className="mt-6 text-base leading-relaxed text-slate-600">
-                  <p>
-                    We are not responsible for the privacy practices of third-party websites linked on our Platform. We encourage you to review their policies.
-                  </p>
-                </div>
-              </section>
-
-              {/* 15. Changes to This Policy */}
-              <section id="changes" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <Clock className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">15. Changes to This Privacy Policy</h2>
-                </div>
-                <div className="mt-6 text-base leading-relaxed text-slate-600">
-                  <p>
-                    We may update this Policy. Material changes will be notified via email or a prominent notice on the Platform for 30 days.
-                  </p>
-                </div>
-              </section>
-
-              {/* 16. Governing Law */}
-              <section id="governing-law" className="scroll-mt-28">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">16. Governing Law and Dispute Resolution</h2>
-                </div>
-                <div className="mt-6 text-base leading-relaxed text-slate-600">
-                  <p>
-                    Governed by the laws of India and the UAE. Disputes are subject to the jurisdiction of courts in India or the UAE as applicable.
-                  </p>
-                </div>
-              </section>
-
-              {/* End Note */}
-              <div className="border-t border-slate-200 pt-12 text-center text-sm text-slate-500">
-                <p className="font-bold text-slate-900">Quick Recruit — Committed to Your Privacy</p>
-                <p className="mt-2">For all privacy inquiries: <a href="mailto:hello@quickrekruit.com" className="text-blue-600 hover:underline">hello@quickrekruit.com</a></p>
-                <p className="mt-4">&copy; {new Date().getFullYear()} Quick Recruit. All Rights Reserved.</p>
-              </div>
-            </div>
-          </div>
+            <footer className="mt-16 border-t border-slate-200 pt-8 text-center text-sm text-slate-500">
+              <p className="font-bold text-slate-900 tracking-wider">
+                QUICKREKRUIT
+              </p>
+              <p className="mt-2">https://quickrekruit.com/</p>
+              <p className="mt-4">
+                &copy; {new Date().getFullYear()} All Rights Reserved.
+              </p>
+            </footer>
+          </article>
         </div>
       </main>
 
-      {/* Floating Action Button (Mobile Only) */}
       <div className="fixed bottom-6 right-6 lg:hidden">
         <a
           href="#top"
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl transition-transform hover:scale-110 active:scale-95"
+          className="flex items-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-xl transition-transform hover:scale-105 active:scale-95"
         >
-          <ArrowLeft className="h-6 w-6 rotate-90" />
+          <ArrowUp className="h-4 w-4" />
+          Back to top
         </a>
       </div>
     </div>

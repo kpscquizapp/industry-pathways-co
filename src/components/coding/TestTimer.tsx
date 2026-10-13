@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Timer, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TestTimerProps {
@@ -62,34 +61,15 @@ const TestTimer: React.FC<TestTimerProps> = ({
   const isUrgentTime = timeLeft < 60;
 
   return (
-    <div
+    <span
       className={cn(
-        "flex items-center gap-2 px-4 py-2 rounded-full font-mono font-bold text-lg min-w-[120px] justify-center transition-colors",
-        isLowTime
-          ? "bg-red-100 text-red-700 border border-red-200 shadow-sm"
-          : "bg-slate-100 text-slate-700 border border-slate-200",
+        "font-mono text-xl font-semibold leading-none tabular-nums transition-colors",
+        isLowTime ? "text-red-300" : "text-white",
+        isUrgentTime && "animate-pulse motion-reduce:animate-none",
       )}
     >
-      {isLowTime ? (
-        <AlertTriangle
-          className={cn(
-            "h-5 w-5",
-            isUrgentTime && "animate-pulse motion-reduce:animate-none",
-          )}
-        />
-      ) : (
-        <Timer className="h-5 w-5" />
-      )}
-      <span
-        className={cn(
-          "tabular-nums leading-none",
-          isUrgentTime && "animate-pulse motion-reduce:animate-none",
-          isUrgentTime && "text-red-800",
-        )}
-      >
-        {formatTime(timeLeft)}
-      </span>
-    </div>
+      {formatTime(timeLeft)}
+    </span>
   );
 };
 

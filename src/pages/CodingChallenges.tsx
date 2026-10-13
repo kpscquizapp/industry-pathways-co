@@ -23,6 +23,8 @@ import {
   Video,
   Airplay,
   Layers,
+  FileCode2,
+  CheckCircle2,
 } from "lucide-react";
 import {
   useNavigate,
@@ -54,6 +56,7 @@ import {
   Language,
 } from "@/app/queries/assessmentApi";
 import WebcamFeed from "./WebcamFeed";
+import logo from "../assets/White Option.png";
 
 type TestStatus =
   | "loading"
@@ -473,7 +476,7 @@ const CodingChallenge: React.FC = () => {
         reason: "Multiple monitors detected",
       })
         .unwrap()
-        .catch(() => { });
+        .catch(() => {});
       setTotalViolations((prev) => prev + 1);
       addLog("Violation: Multiple monitors detected");
     },
@@ -655,17 +658,17 @@ const CodingChallenge: React.FC = () => {
     : false;
   const currentProblemHasResults = currentProblem
     ? Object.keys(testCasesMap).some((key) =>
-      key.startsWith(`${currentProblem.id}_`),
-    ) ||
-    (() => {
-      for (let i = 0; i < localStorage.length; i += 1) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith(`coding_results_${currentProblem.id}_`)) {
-          return true;
+        key.startsWith(`${currentProblem.id}_`),
+      ) ||
+      (() => {
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith(`coding_results_${currentProblem.id}_`)) {
+            return true;
+          }
         }
-      }
-      return false;
-    })()
+        return false;
+      })()
     : false;
   const shouldBlockProblemSwitch =
     !!currentProblem && currentProblemHasResults && !isCurrentProblemSubmitted;
@@ -952,8 +955,8 @@ const CodingChallenge: React.FC = () => {
     } catch (err: any) {
       setError(
         err?.data?.message ||
-        err.message ||
-        "An error occurred during execution",
+          err.message ||
+          "An error occurred during execution",
       );
     } finally {
       setIsRunningCode(false);
@@ -1027,8 +1030,8 @@ const CodingChallenge: React.FC = () => {
     } catch (err: any) {
       setError(
         err?.data?.message ||
-        err.message ||
-        "An error occurred during submission",
+          err.message ||
+          "An error occurred during submission",
       );
     } finally {
       setIsSubmitting(false);
@@ -1241,10 +1244,11 @@ const CodingChallenge: React.FC = () => {
 
             <div className="space-y-4 mb-8">
               <button
-                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${hasWebcamPermission
-                  ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
-                  : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
-                  }`}
+                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${
+                  hasWebcamPermission
+                    ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
+                    : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
+                }`}
                 onClick={async () => {
                   if (hasWebcamPermission) return;
                   try {
@@ -1290,10 +1294,11 @@ const CodingChallenge: React.FC = () => {
               </button>
 
               <button
-                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${isScreenSelected
-                  ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
-                  : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
-                  }`}
+                className={`w-full group flex items-center justify-between p-4 rounded-xl border-[1.5px] transition-all duration-200 shadow-sm ${
+                  isScreenSelected
+                    ? "border-[#4DD9E8]/30 bg-[#4DD9E8]/5"
+                    : "border-[#e8eaef] hover:border-[#4DD9E8]/50 hover:shadow-[0_0_0_3px_rgba(77,217,232,0.12)] bg-white"
+                }`}
                 onClick={async () => {
                   if (isScreenSelected) return;
                   try {
@@ -1438,10 +1443,11 @@ const CodingChallenge: React.FC = () => {
                       ? "1px solid #e2e8f0"
                       : "none",
                 }}
-                className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${!hasWebcamPermission || !isScreenSelected || !hasConsented
-                  ? "cursor-not-allowed opacity-100"
-                  : "hover:opacity-90"
-                  }`}
+                className={`w-full h-[52px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.98] ${
+                  !hasWebcamPermission || !isScreenSelected || !hasConsented
+                    ? "cursor-not-allowed opacity-100"
+                    : "hover:opacity-90"
+                }`}
                 disabled={
                   !hasWebcamPermission || !isScreenSelected || !hasConsented
                 }
@@ -1459,148 +1465,322 @@ const CodingChallenge: React.FC = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      {/* Header */}
-      <header className="border-b border-border px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between bg-card flex-shrink-0 min-w-0">
-        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-          <Button
-            size="sm"
-            onClick={async () => {
-              if (
-                window.confirm(
-                  "⚠️ Warning: Exiting will end your assessment. You will not be able to re-enter. Are you sure?",
-                )
-              ) {
-                toast.info("Ending session...", { duration: 2000 });
-                await performCleanup();
-                navigate(getTestsPath());
-              }
-            }}
-            className="gap-2 px-2 sm:px-3 hover:bg-muted bg-transparent text-black font-semibold"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Exit</span>
-          </Button>
-          <div className="h-6 w-px bg-border hidden sm:block" />
-          <h1 className="text-lg font-semibold truncate max-w-[120px] md:max-w-[200px] hidden lg:block">
-            {metadata?.title}
-          </h1>
-
-          {/* Tabs - Scrollable and compact on mobile */}
-          <div className="flex items-center mx-1 sm:mx-4 bg-slate-100 p-0.5 sm:p-1 rounded-lg gap-1 border border-slate-200 overflow-x-auto no-scrollbar flex-1 min-w-0">
-            {problems.map((p, idx) => (
-              <button
-                key={p.id}
-                onClick={() =>
-                  shouldBlockProblemSwitch && idx !== activeProblemIndex
-                    ? setBlockedProblemIndex(idx)
-                    : setActiveProblemIndex(idx)
-                }
-                title={p.title}
-                className={cn(
-                  "px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-[11px] sm:text-sm font-medium transition-all whitespace-nowrap shrink-0",
-                  activeProblemIndex === idx
-                    ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-slate-500 hover:text-slate-800",
-                )}
-              >
-                P{idx + 1}
-                {!isMobile && `: ${p.title}`}
-              </button>
-            ))}
-          </div>
+    <div className="flex h-screen min-h-[720px] flex-col overflow-hidden bg-[#131a24] text-[#e6edf6]">
+      <header className="flex h-[62px] shrink-0 items-center justify-between border-b px-4 border-[#344353] bg-[#1d2734] sm:px-6">
+        <div className="flex items-center gap-3">
+          <img src={logo} alt="QuickRekruit Logo" className="h-14 w-auto" />
         </div>
-
-        <div className="flex items-center gap-2 sm:gap-6">
-          {(metadata?.startedAt || testStartTime) && (
-            <div
-              className={cn("flex flex-col items-end", isMobile && "scale-90")}
-            >
-              <TestTimer
-                startedAt={
-                  metadata?.startedAt ||
-                  testStartTime ||
-                  new Date().toISOString()
-                }
-                totalMinutes={metadata?.totalTime || 0}
-                onTimeUp={handleSubmitAndEndTest}
-              />
-            </div>
-          )}
-
-          <div className="flex items-center gap-1.5 sm:gap-3">
-            <Button
-              onClick={handleRunCode}
-              disabled={isRunning}
-              size={isMobile ? "icon" : "default"}
-              className={cn(
-                "gap-2 bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none shrink-0",
-                !isMobile &&
-                "bg-[#080b20] text-white hover:bg-[#080b20]/90 border-none",
-              )}
-            >
-              {isRunningCode ? (
-                <SpinnerLoader className="text-white" />
-              ) : (
-                <Play className={cn("h-4 w-4", !isMobile && "text-white")} />
-              )}
-              {!isMobile && (isRunningCode ? "Running..." : "Run Code")}
-            </Button>
-            {isLastProblem ? (
-              <Button
-                onClick={handleSubmitAndEndTest}
-                disabled={isRunning}
-                variant="destructive"
-                size={isMobile ? "icon" : "default"}
-                className="gap-2 shrink-0"
-              >
-                {isSubmitting ? (
-                  <SpinnerLoader />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-                {!isMobile &&
-                  (isSubmitting ? "Submitting..." : "Submit & End Test")}
-              </Button>
-            ) : (
-              <Button
-                onClick={() => handleSubmitProblem(true)}
-                disabled={isRunning}
-                size={isMobile ? "icon" : "default"}
-                className="gap-2 shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                {isSubmitting ? (
-                  <SpinnerLoader />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-                {!isMobile && (isSubmitting ? "Submitting..." : "Submit Code")}
-              </Button>
-            )}
-          </div>
+        <div className="flex items-center gap-2 text-xs text-[#a5b5c6]">
+          <ShieldCheck className="h-4 w-4 text-white/60" />
+          <span className="hidden sm:inline">
+            Secure assessment environment
+          </span>
+          <span className="sm:hidden">Secure session</span>
         </div>
       </header>
 
+      <main className="mx-auto flex min-h-0 w-full max-w-[1800px] flex-1 flex-col overflow-y-auto [scrollbar-color:#526273_#131a24] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#526273] [&::-webkit-scrollbar-thumb:hover]:bg-[#6b7f92] [&::-webkit-scrollbar-track]:bg-[#131a24] px-4 py-5 sm:px-6">
+        <section className="shrink-0">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[1.6px] text-[#a5b5c6]">
+                Coding assessment
+              </p>
+              <h1 className="truncate text-xl font-semibold tracking-tight text-white sm:text-2xl">
+                {metadata?.title || "Coding Assessment"}
+              </h1>
+              <p className="mt-0.5 truncate text-sm text-[#a5b5c6]">
+                {currentProblem?.title || "Technical interview"}
+              </p>
+            </div>
+            {(metadata?.startedAt || testStartTime) && (
+              <div className="flex shrink-0 items-center gap-3 rounded-xl border border-[#344353] bg-[#1d2734] px-3 py-2 sm:px-5 sm:py-3">
+                <Clock className="h-5 w-5 text-[#a5b5c6]" />
+                <div>
+                  <div className="text-xl font-semibold leading-6 text-white sm:text-2xl">
+                    <TestTimer
+                      startedAt={
+                        metadata?.startedAt ||
+                        testStartTime ||
+                        new Date().toISOString()
+                      }
+                      totalMinutes={metadata?.totalTime || 0}
+                      onTimeUp={handleSubmitAndEndTest}
+                    />
+                  </div>
+                  <div className="text-xs text-[#a5b5c6]">Time remaining</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-5 h-[5px] overflow-hidden rounded-full bg-[#344353]">
+            <div
+              className="h-full rounded-full bg-[#187bba] transition-[width]"
+              style={{
+                width: `${problems.length ? ((activeProblemIndex + 1) / problems.length) * 100 : 0}%`,
+              }}
+            />
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 text-xs text-[#a5b5c6]">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span>
+                Question {activeProblemIndex + 1} of {problems.length}
+              </span>
+              {problems.length > 1 && (
+                <div className="flex flex-wrap items-center gap-1">
+                  {problems.map((problem, index) => (
+                    <button
+                      key={problem.id}
+                      type="button"
+                      onClick={() =>
+                        shouldBlockProblemSwitch && index !== activeProblemIndex
+                          ? setBlockedProblemIndex(index)
+                          : setActiveProblemIndex(index)
+                      }
+                      title={problem.title}
+                      aria-current={
+                        activeProblemIndex === index ? "step" : undefined
+                      }
+                      className={cn(
+                        "rounded-md border px-2 py-0.5 text-[11px] transition-colors",
+                        activeProblemIndex === index
+                          ? "border-sky-500/60 bg-sky-500/15 text-sky-300"
+                          : "border-[#344353] text-[#a5b5c6] hover:border-sky-500/40 hover:text-white",
+                      )}
+                    >
+                      Q{index + 1}
+                      {submittedProblemIds.has(problem.id) && (
+                        <CheckCircle2 className="ml-1 inline h-3 w-3 text-emerald-400" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              Assessment in progress
+            </span>
+          </div>
+        </section>
+
+        <div className="mt-5 flex-none xl:min-h-[640px] xl:flex-1">
+          {currentProblem && (
+            <div className="grid min-h-[640px] gap-4 xl:h-full xl:grid-cols-[minmax(270px,0.9fr)_minmax(400px,1.35fr)_250px]">
+              <section className="flex min-h-[620px] flex-col overflow-hidden rounded-xl border border-[#344353] bg-[#1d2734]">
+                <div className="flex h-[52px] shrink-0 items-center justify-between border-b border-[#344353] px-5">
+                  <span className="font-semibold text-white">Problem</span>
+                  <FileCode2 className="h-4 w-4 text-[#a5b5c6]" />
+                </div>
+                <div className="min-h-0 flex-1 overflow-hidden">
+                  <ProblemPanel problem={currentProblem} />
+                </div>
+              </section>
+
+              <section className="flex min-h-[620px] flex-col overflow-hidden rounded-xl border border-[#344353] bg-[#1d2734]">
+                <ResizablePanelGroup
+                  direction="vertical"
+                  className="min-h-0 flex-1"
+                >
+                  <ResizablePanel defaultSize={isMobile ? 68 : 70} minSize={35}>
+                    <EditorPanel
+                      language={language}
+                      onLanguageChange={handleLanguageChange}
+                      code={code}
+                      onCodeChange={handleCodeChange}
+                      starterCode={currentProblem.starterCode}
+                      baseCode={currentProblem.baseCode}
+                      allLanguages={filteredLanguages}
+                    />
+                  </ResizablePanel>
+
+                  <ResizableHandle withHandle />
+
+                  <ResizablePanel defaultSize={isMobile ? 32 : 30} minSize={18}>
+                    <ConsoleOutput
+                      testCases={
+                        testCasesMap[
+                          getTestCaseResultKey(
+                            currentProblem.id,
+                            getLanguageId(language),
+                          )
+                        ] ?? []
+                      }
+                      sampleTestCases={
+                        currentProblem.test_cases ||
+                        currentProblem.testcases ||
+                        currentProblem.testCases ||
+                        currentProblem.examples?.map((example, index) => ({
+                          id: index + 1,
+                          input: example.input,
+                          expectedOutput: example.output,
+                        })) ||
+                        []
+                      }
+                      isRunning={isRunning}
+                      runningProblemId={runningProblemId}
+                      currentProblemId={Number(currentProblem.id)}
+                      error={error}
+                    />
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+
+                <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-[#344353] bg-[#1d2734] p-3">
+                  <Button
+                    onClick={handleRunCode}
+                    disabled={isRunning}
+                    className="gap-2 border border-[#344353] hover:bg-[#1d2734] text-[#e6edf6] bg-[#263b4b]"
+                  >
+                    {isRunningCode ? (
+                      <SpinnerLoader />
+                    ) : (
+                      <Play className="h-4 w-4" />
+                    )}
+                    {isRunningCode ? "Running..." : "Run code"}
+                  </Button>
+                  {isLastProblem ? (
+                    <Button
+                      onClick={handleSubmitAndEndTest}
+                      disabled={isRunning}
+                      className="gap-2 bg-[#187bba] text-white hover:bg-[#14699f]"
+                    >
+                      {isSubmitting ? (
+                        <SpinnerLoader />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                      {isSubmitting ? "Submitting..." : "Submit solution"}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleSubmitProblem(true)}
+                      disabled={isRunning}
+                      className="gap-2 bg-[#187bba] text-white hover:bg-[#14699f]"
+                    >
+                      {isSubmitting ? (
+                        <SpinnerLoader />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                      {isSubmitting ? "Submitting..." : "Submit solution"}
+                    </Button>
+                  )}
+                </div>
+              </section>
+
+              <aside className="flex min-h-[620px] flex-col gap-4 xl:min-h-0">
+                <section className="overflow-hidden rounded-xl border border-[#344353] bg-[#1d2734]">
+                  <div className="relative flex aspect-[4/3] items-center justify-center bg-[#17212d]">
+                    <div className="absolute left-3 top-3 rounded-md border border-[#526273] bg-[#1d2734]/90 px-2 py-1 text-[10px] font-semibold tracking-wide text-[#c8d4e0]">
+                      PREVIEW
+                    </div>
+                    <div className="grid h-16 w-16 place-items-center rounded-full border border-sky-300/20 bg-sky-500/10 text-xl font-semibold text-sky-200">
+                      {user?.firstName?.slice(0, 1) || "Y"}
+                      {user?.lastName?.slice(0, 1) || ""}
+                    </div>
+                    <span className="absolute bottom-3 left-3 text-xs font-medium text-white">
+                      {user?.firstName
+                        ? `${user.firstName} · You`
+                        : "Candidate · You"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 border-t border-[#344353] px-3 py-2 text-xs text-[#a5b5c6]">
+                    <Video className="h-3.5 w-3.5" />
+                    Camera preview
+                  </div>
+                </section>
+
+                <section className="shrink-0 rounded-xl border border-[#344353] bg-[#1d2734] p-4">
+                  <h2 className="font-semibold text-white">Session details</h2>
+                  <dl className="mt-4 space-y-3 text-xs">
+                    <div className="flex items-start flex-col gap-3">
+                      <dt className="text-[#a5b5c6]">Assessment</dt>
+                      <dd className="text-right font-medium text-[#e6edf6]">
+                        {metadata?.title || "Coding assessment"}
+                      </dd>
+                    </div>
+                    <div className="flex items-start flex-col gap-3">
+                      <dt className="text-[#a5b5c6]">Question</dt>
+                      <dd className="font-medium text-[#e6edf6]">
+                        {activeProblemIndex + 1} of {problems.length}
+                      </dd>
+                    </div>
+                    <div className="flex items-start flex-col gap-3">
+                      <dt className="text-[#a5b5c6]">Response type</dt>
+                      <dd className="font-medium text-[#e6edf6]">Coding</dd>
+                    </div>
+                    {metadata?.totalTime ? (
+                      <div className="flex items-start flex-col gap-3">
+                        <dt className="text-[#a5b5c6]">Duration</dt>
+                        <dd className="font-medium text-[#e6edf6]">
+                          {metadata.totalTime} min
+                        </dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                  <div className="mt-5 border-t border-[#344353] pt-4">
+                    <Button
+                      variant="destructive"
+                      onClick={async () => {
+                        if (
+                          window.confirm(
+                            "⚠️ Warning: Exiting will end your assessment. You will not be able to re-enter. Are you sure?",
+                          )
+                        ) {
+                          toast.info("Ending session...", { duration: 2000 });
+                          await performCleanup();
+                          navigate(getTestsPath());
+                        }
+                      }}
+                      className="w-full gap-2"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      End assessment
+                    </Button>
+                  </div>
+                </section>
+
+                {isToken && (
+                  <WebcamFeed
+                    apiBaseUrl={import.meta.env.VITE_API_BASE_URL}
+                    isInterviewActive={isInterviewActive}
+                    totalViolations={totalViolations}
+                    onScreenShareStart={handleScreenShareStart}
+                    onRecordingStart={handleRecordingStart}
+                    onRecordingStop={handleRecordingStop}
+                    onCameraError={handleCameraError}
+                    sessionId={sessionId}
+                    initialStream={initialWebcamStream}
+                    initialScreenStream={initialScreenStream}
+                  />
+                )}
+              </aside>
+            </div>
+          )}
+        </div>
+      </main>
+
       {blockedProblemIndex !== null && currentProblem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 backdrop-blur-[2px] px-4">
-          <Card className="w-full max-w-md overflow-hidden border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.25)]">
-            <div className="border-b border-slate-100 bg-slate-50 px-5 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-[2px]">
+          <Card className="w-full max-w-md overflow-hidden border-[#344353] bg-[#1d2734] text-[#e6edf6] shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+            <div className="border-b border-[#344353] bg-[#202e3f] px-5 py-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-400">
                 Action required
               </p>
-              <h3 className="mt-1 text-lg font-semibold text-slate-900">
+              <h3 className="mt-1 text-lg font-semibold text-white">
                 Submit before switching
               </h3>
             </div>
             <div className="space-y-4 px-5 py-5">
-              <p className="text-sm leading-6 text-slate-600">
+              <p className="text-sm leading-6 text-[#a5b5c6]">
                 Please submit your code for the current problem before moving to
                 the next one.
               </p>
               <div className="flex items-center justify-end gap-2">
                 <Button
                   onClick={() => setBlockedProblemIndex(null)}
-                  className="border border-slate-200 hover:bg-gray-400/50 text-gray-600 bg-gray-50"
+                  className="border border-[#344353] bg-[#1d2734] text-[#e6edf6] hover:bg-[#263b4b]"
                 >
                   Stay here
                 </Button>
@@ -1615,7 +1795,7 @@ const CodingChallenge: React.FC = () => {
                       setActiveProblemIndex(nextIndex);
                     }
                   }}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="bg-[#187bba] text-white hover:bg-[#14699f]"
                 >
                   Submit now
                 </Button>
@@ -1624,82 +1804,6 @@ const CodingChallenge: React.FC = () => {
           </Card>
         </div>
       )}
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-hidden relative">
-        {currentProblem && (
-          <ResizablePanelGroup direction={isMobile ? "vertical" : "horizontal"}>
-            {/* Left Panel - Problem Description */}
-            <ResizablePanel
-              defaultSize={isMobile ? 40 : 35}
-              minSize={isMobile ? 20 : 25}
-            >
-              <ProblemPanel problem={currentProblem} />
-            </ResizablePanel>
-
-            <ResizableHandle withHandle />
-
-            {/* Right Panel - Editor and Console */}
-            <ResizablePanel
-              defaultSize={isMobile ? 60 : 65}
-              minSize={isMobile ? 30 : 40}
-            >
-              <ResizablePanelGroup direction="vertical">
-                {/* Editor */}
-                <ResizablePanel defaultSize={60} minSize={30}>
-                  <EditorPanel
-                    language={language}
-                    onLanguageChange={handleLanguageChange}
-                    code={code}
-                    onCodeChange={handleCodeChange}
-                    starterCode={currentProblem.starterCode}
-                    baseCode={currentProblem.baseCode}
-                    allLanguages={filteredLanguages}
-                  />
-                </ResizablePanel>
-
-                <ResizableHandle withHandle />
-
-                {/* Console Output */}
-                <ResizablePanel defaultSize={40} minSize={20}>
-                  <ConsoleOutput
-                    testCases={
-                      testCasesMap[
-                      getTestCaseResultKey(
-                        currentProblem?.id,
-                        getLanguageId(language),
-                      )
-                      ] ?? []
-                    }
-                    isRunning={isRunning}
-                    runningProblemId={runningProblemId}
-                    currentProblemId={Number(currentProblem.id)}
-                    error={error}
-                  />
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        )}
-      </div>
-
-      <div className="relative rounded-lg shadow-2xl max-w-sm">
-        {isToken && (
-          <WebcamFeed
-            apiBaseUrl={import.meta.env.VITE_API_BASE_URL}
-            isInterviewActive={isInterviewActive}
-            totalViolations={totalViolations}
-            onScreenShareStart={handleScreenShareStart}
-            onRecordingStart={handleRecordingStart}
-            onRecordingStop={handleRecordingStop}
-            onCameraError={handleCameraError}
-            sessionId={sessionId}
-            initialStream={initialWebcamStream}
-            initialScreenStream={initialScreenStream}
-          />
-        )}
-      </div>
-      {/* </div> */}
     </div>
   );
 };

@@ -1,10 +1,8 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { CodingProblem, Difficulty } from "@/types/coding";
-import { CheckCircle2, Circle } from "lucide-react";
+import { Circle, FileCode2 } from "lucide-react";
 import DOMPurify from "dompurify";
 
 interface ProblemPanelProps {
@@ -27,118 +25,109 @@ const ProblemPanel: React.FC<ProblemPanelProps> = ({ problem }) => {
   const constraints = problem.constraints || [];
 
   return (
-    <Card className="h-full border-none rounded-none shadow-none">
-      <CardHeader className="border-b border-border">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <CardTitle className="text-xl mb-2">{problem.title}</CardTitle>
+    <Card className="h-full overflow-y-auto [scrollbar-color:#526273_#1d2734] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#526273] [&::-webkit-scrollbar-thumb:hover]:bg-[#6b7f92] [&::-webkit-scrollbar-track]:bg-[#1d2734] rounded-none border-none bg-transparent text-[#e6edf6] shadow-none">
+      <CardContent className="space-y-6 px-5 py-5">
+        <div>
+          <h2 className="text-2xl font-bold leading-tight tracking-tight text-white">
+            {problem.title}
+          </h2>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <Badge
               variant="outline"
-              className={getDifficultyColor(problem.difficulty as Difficulty)}
+              className={`${getDifficultyColor(problem.difficulty as Difficulty)} capitalize`}
             >
               {problem.difficulty}
             </Badge>
+            <Badge
+              variant="outline"
+              className="border-[#344353] bg-[#131a24] text-[#a5b5c6]"
+            >
+              Coding
+            </Badge>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <Tabs defaultValue="description" className="h-full">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
-            <TabsTrigger
-              value="description"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Description
-            </TabsTrigger>
-            <TabsTrigger
-              value="examples"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Examples
-            </TabsTrigger>
-            <TabsTrigger
-              value="constraints"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Constraints
-            </TabsTrigger>
-          </TabsList>
 
-          <ScrollArea className="h-[calc(100vh-280px)]">
-            <TabsContent value="description" className="p-6 space-y-4">
-              <div
-                className="prose prose-sm dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(problem.description || ""),
-                }}
-              />
-            </TabsContent>
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold text-white">Description</h3>
+          <div
+            className="prose prose-sm prose-invert max-w-none text-[#a5b5c6] prose-p:my-3 prose-p:leading-7 prose-headings:mb-2 prose-headings:mt-5 prose-headings:text-white prose-strong:text-[#e6edf6] prose-code:rounded-md prose-code:bg-[#c8d4e0] prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[#263b4b] prose-code:before:content-none prose-code:after:content-none prose-pre:rounded-lg prose-pre:border prose-pre:border-[#344353] prose-pre:bg-[#131a24] prose-pre:text-[#e6edf6]"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(problem.description || ""),
+            }}
+          />
+        </section>
 
-            <TabsContent value="examples" className="p-6 space-y-6">
-              {examples.length > 0 ? (
-                examples.map((example, idx) => (
-                  <div key={idx} className="space-y-3">
-                    <h4 className="font-semibold text-foreground">
-                      Example {idx + 1}:
-                    </h4>
-                    <div className="space-y-2">
-                      <div className="bg-muted/50 rounded-lg p-4 ">
-                        <p className="text-sm font-medium text-muted-foreground mb-1">
-                          Input:
-                        </p>
-                        <code className="text-sm text-foreground max-w-full break-all">
-                          {example.input}
-                        </code>
-                      </div>
-                      <div className="bg-muted/50 rounded-lg p-4">
-                        <p className="text-sm font-medium text-muted-foreground mb-1">
-                          Output:
-                        </p>
-                        <code className="text-sm text-foreground">
-                          {example.output}
-                        </code>
-                      </div>
-                      {example.explanation && (
-                        <div className="bg-muted/30 rounded-lg p-4">
-                          <p className="text-sm font-medium text-muted-foreground mb-1">
-                            Explanation:
-                          </p>
-                          <p className="text-sm text-foreground">
-                            {example.explanation}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+        {constraints.length > 0 && (
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold text-white">Constraints</h3>
+            <ul className="space-y-2">
+              {constraints.map((constraint, idx) => (
+                <li
+                  key={idx}
+                  className="flex items-start gap-2 text-sm leading-6 text-[#a5b5c6]"
+                >
+                  <Circle className="mt-2 h-1.5 w-1.5 shrink-0 fill-current" />
+                  <span>{constraint}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {examples.length > 0 ? (
+          <section className="space-y-4">
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-white">Example 1</h3>
+              <div className="overflow-hidden rounded-lg border border-[#344353] bg-[#131a24]">
+                <div className="space-y-4 p-4 font-mono text-xs leading-6 text-[#e6edf6] sm:text-[13px]">
+                  <div>
+                    <p className="mb-1 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#a5b5c6]">
+                      Input
+                    </p>
+                    <pre className="whitespace-pre-wrap break-words">
+                      {examples[0].input}
+                    </pre>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p className="text-sm">No examples available for this problem.</p>
+                  <div>
+                    <p className="mb-1 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#a5b5c6]">
+                      Output
+                    </p>
+                    <pre className="whitespace-pre-wrap break-words">
+                      {examples[0].output}
+                    </pre>
+                  </div>
+                  {examples[0].explanation && (
+                    <div>
+                      <p className="mb-1 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#a5b5c6]">
+                        Explanation
+                      </p>
+                      <p className="font-sans text-[#a5b5c6]">
+                        {examples[0].explanation}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="constraints" className="p-6">
-              {constraints.length > 0 ? (
-                <ul className="space-y-2">
-                  {constraints.map((constraint, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start gap-2 text-sm text-muted-foreground"
-                    >
-                      <Circle className="h-2 w-2 mt-1.5 fill-current" />
-                      <span>{constraint}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p className="text-sm">No constraints specified.</p>
-                </div>
-              )}
-            </TabsContent>
-          </ScrollArea>
-        </Tabs>
+              </div>
+            </div>
+          </section>
+        ) : (
+          constraints.length > 0 && (
+            <section className="space-y-3">
+              <h3 className="text-sm font-semibold text-white">Constraints</h3>
+              <ul className="space-y-2">
+                {constraints.map((constraint, idx) => (
+                  <li
+                    key={idx}
+                    className="flex items-start gap-2 text-sm leading-6 text-[#a5b5c6]"
+                  >
+                    <Circle className="mt-2 h-1.5 w-1.5 shrink-0 fill-current" />
+                    <span>{constraint}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        )}
       </CardContent>
     </Card>
   );
